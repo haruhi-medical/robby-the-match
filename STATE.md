@@ -143,8 +143,8 @@ robby-the-match/
 - 子ページ: area/9ページ + guide/6ページ = 計15ページ
 - sitemap.xml: 18 URLエントリ（lp/sitemap.xml）
 - robots.txt: あり（ルート直下 + lp/ 配下に各1つ、計2つ）
-- GA4: 未設定（G-X4G2BYW13BをIDに置換が必要）
-- Search Console: 未登録
+- GA4: ✅ 設定済み（G-X4G2BYW13B、全27ファイル）
+- Search Console: ✅ 登録済み（メタタグ検証、サイトマップ送信済み）
 - Googleビジネスプロフィール: 未登録
 - 構造化データ(JSON-LD):
   - index.html: WebSite, Organization, BreadcrumbList, EmploymentAgency, FAQPage（5種）
@@ -184,6 +184,7 @@ robby-the-match/
 ## 未完了の手動作業
 - [x] GA4測定ID置換 → ✅ G-X4G2BYW13B 全27ファイル置換完了（2/20）
 - [x] LINE URL置換 → ✅ https://lin.ee/HJwmQgp4 全22ファイル置換完了（2/20）
+- [x] Search Console登録 → ✅ メタタグ検証完了+サイトマップ送信（2/20）
 - [x] GitHubリポジトリpush → ✅ haruhi-medical/robby-the-match デプロイ完了（2/20）
 - [x] GitHub Pages有効化 → ✅ https://haruhi-medical.github.io/robby-the-match/（2/20）
 - [ ] Search Console登録+サイトマップ送信
@@ -196,7 +197,7 @@ robby-the-match/
 ## 次にやるべきこと（優先順）
 1. ~~GitHub push + Pages有効化~~ → ✅ 完了
 2. ~~GA4設定~~ → ✅ 完了（G-X4G2BYW13B）
-3. Search Console登録（インデックス促進）
+3. ~~Search Console登録~~ → ✅ 完了
 4. ~~LINE URL設定~~ → ✅ 完了（https://lin.ee/HJwmQgp4）
 5. TikTok初投稿（素材は準備済み）
 6. sitemap.xml / robots.txt のURL統一
