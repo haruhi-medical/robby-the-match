@@ -511,12 +511,12 @@ Step 3（任意・詳細）: メール + 勤務形態 + 夜勤 + その他
 
 ```html
 <!-- GA4 タグ（head内に追加） -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX', {
+  gtag('config', 'G-X4G2BYW13B', {
     'send_page_view': true,
     'cookie_flags': 'SameSite=None;Secure'
   });

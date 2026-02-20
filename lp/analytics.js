@@ -2,7 +2,7 @@
  * ROBBY THE MATCH — Google Analytics 4 共通スニペット
  *
  * 設置方法:
- *   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+ *   <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
  *   <script src="/analytics.js"></script>
  *
  * 機能:
@@ -21,7 +21,7 @@
   // ===================================================================
   // 測定ID（プレースホルダー — GA4プロパティ作成後に置き換えること）
   // ===================================================================
-  var GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+  var GA_MEASUREMENT_ID = 'G-X4G2BYW13B';
 
   // ===================================================================
   // gtag 初期化

@@ -143,7 +143,7 @@ robby-the-match/
 - 子ページ: area/9ページ + guide/6ページ = 計15ページ
 - sitemap.xml: 18 URLエントリ（lp/sitemap.xml）
 - robots.txt: あり（ルート直下 + lp/ 配下に各1つ、計2つ）
-- GA4: 未設定（G-XXXXXXXXXXをIDに置換が必要）
+- GA4: 未設定（G-X4G2BYW13BをIDに置換が必要）
 - Search Console: 未登録
 - Googleビジネスプロフィール: 未登録
 - 構造化データ(JSON-LD):
@@ -182,10 +182,10 @@ robby-the-match/
 ```
 
 ## 未完了の手動作業
-- [ ] GA4測定ID置換（G-XXXXXXXXXX → 実際のID）
-- [ ] LINE URL置換（https://lin.ee/placeholder → 実際のURL）
-- [ ] GitHubリポジトリpush（リモート未設定。新規リポジトリ作成+remote add+push が必要）
-- [ ] GitHub Pages有効化
+- [x] GA4測定ID置換 → ✅ G-X4G2BYW13B 全27ファイル置換完了（2/20）
+- [x] LINE URL置換 → ✅ https://lin.ee/HJwmQgp4 全22ファイル置換完了（2/20）
+- [x] GitHubリポジトリpush → ✅ haruhi-medical/robby-the-match デプロイ完了（2/20）
+- [x] GitHub Pages有効化 → ✅ https://haruhi-medical.github.io/robby-the-match/（2/20）
 - [ ] Search Console登録+サイトマップ送信
 - [ ] Googleビジネスプロフィール登録
 - [ ] 独自ドメイン取得
@@ -194,15 +194,16 @@ robby-the-match/
 - [ ] Mac Miniスリープ無効化（sudo pmset -a sleep 0）
 
 ## 次にやるべきこと（優先順）
-1. GitHub push + Pages有効化（公開しないとSEO効果ゼロ）
-2. GA4設定（効果測定できないと改善できない）
+1. ~~GitHub push + Pages有効化~~ → ✅ 完了
+2. ~~GA4設定~~ → ✅ 完了（G-X4G2BYW13B）
 3. Search Console登録（インデックス促進）
-4. LINE URL設定（CTA動作させる）
+4. ~~LINE URL設定~~ → ✅ 完了（https://lin.ee/HJwmQgp4）
 5. TikTok初投稿（素材は準備済み）
+6. sitemap.xml / robots.txt のURL統一
 
 ## 問題・ブロッカー
 - ~~git remoteが未設定~~ → ✅ 解決済み（2/20 デプロイ完了）
-- **GA4未設定**: guide子ページ等でG-XXXXXXXXXXがプレースホルダーのまま。効果測定不可。
+- ~~GA4未設定~~ → ✅ 解決済み（2/20 全27ファイルにG-X4G2BYW13B設定完了）
 - **sitemap.xmlのURL**: placeholder.github.io のまま。GitHub組織名/リポジトリ名に合わせて更新が必要。
 - **robots.txtのURL**: haruhi-medical.github.io（ルート）とplaceholder.github.io（lp/）で不一致。統一が必要。
 - **lp/facility/ が空**: LP-B（施設向け）のindex.htmlが未作成。ただしCLAUDE.md v8.0の方針ではPhase1では不要。

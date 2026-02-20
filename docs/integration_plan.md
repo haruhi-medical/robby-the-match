@@ -198,7 +198,7 @@ robby-the-match/
 - [ ] SLACK_BOT_TOKENが有効か確認
 - [ ] Google Sheets IDとサービスアカウントJSONが設定済みか確認
 - [ ] OGP画像のURLがGitHub Pagesの正しいパスを指しているか確認
-- [ ] GA4の測定IDを実際のものに置き換え（G-XXXXXXXXXX）
+- [ ] GA4の測定IDを実際のものに置き換え（G-X4G2BYW13B）
 
 ---
 
@@ -305,7 +305,7 @@ robby-the-match/
 ## 9. GA4タグ
 
 メインLP（index.html）には以下のGA4タグが設置済み:
-- 測定ID: `G-XXXXXXXXXX`（プレースホルダー、実測定IDに要置換）
+- 測定ID: `G-X4G2BYW13B`（プレースホルダー、実測定IDに要置換）
 - カスタムパラメータ: profession, urgency_score, area, source_channel
 - 自動追跡イベント: chat_started, generate_lead
 - コンバージョン値: 50,000 JPY / リード

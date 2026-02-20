@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://placeholder.github.io/robby-the-match/sitemap.xml
+Sitemap: https://haruhi-medical.github.io/robby-the-match/sitemap.xml

@@ -39,10 +39,10 @@
 
 1. **管理** > **データストリーム** > 作成したストリームをクリック
 2. 画面上部に表示される **測定ID** をコピー
-   - 形式: `G-XXXXXXXXXX`
+   - 形式: `G-X4G2BYW13B`
 3. この測定IDを以下のファイルに設定:
    - `/lp/analytics.js` の `GA_MEASUREMENT_ID` 変数
-   - `.env` に `GA_MEASUREMENT_ID=G-XXXXXXXXXX` を追加（任意）
+   - `.env` に `GA_MEASUREMENT_ID=G-X4G2BYW13B` を追加（任意）
 
 ---
 
@@ -62,7 +62,7 @@
 
 ```html
 <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
 <script src="/analytics.js"></script>
 ```
 
@@ -70,12 +70,12 @@
 
 ```html
 <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
+  gtag('config', 'G-X4G2BYW13B');
 </script>
 ```
 
@@ -229,7 +229,7 @@ page_view (自動)
 ## 確認チェックリスト（全手順完了後）
 
 - [ ] GA4プロパティが作成されている
-- [ ] 測定IDが取得できている (G-XXXXXXXXXX)
+- [ ] 測定IDが取得できている (G-X4G2BYW13B)
 - [ ] `lp/analytics.js` に測定IDが設定されている
 - [ ] LP-A (`lp/job-seeker/index.html`) にGA4タグが設置されている
 - [ ] LP-B (`lp/facility/index.html`) にGA4タグが設置されている（ファイルが存在する場合）
