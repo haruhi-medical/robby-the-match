@@ -112,4 +112,36 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+
+  <!-- 追加SEOガイドページ -->
+  <url>
+    <loc>https://placeholder.github.io/robby-the-match/job-seeker/guide/part-time-odawara.html</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://placeholder.github.io/robby-the-match/job-seeker/guide/visiting-nurse-kanagawa.html</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://placeholder.github.io/robby-the-match/job-seeker/guide/hospital-reviews.html</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://placeholder.github.io/robby-the-match/job-seeker/guide/fee-comparison-detail.html</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://placeholder.github.io/robby-the-match/job-seeker/guide/first-transfer.html</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
