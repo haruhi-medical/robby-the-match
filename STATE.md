@@ -1,5 +1,5 @@
 # ROBBY THE MATCH 状態ファイル
-# 最終更新: 2026-02-20 11:15 by 初期構築
+# 最終更新: 2026-02-20 11:45 by デプロイ完了
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -14,7 +14,7 @@
 ## KPI
 | 指標 | 目標 | 現在 | 更新日 |
 |------|------|------|--------|
-| SEO子ページ数 | 50 | 15（area/9 + guide/6） | 2026-02-20 |
+| SEO子ページ数 | 50 | 20（area/9 + guide/11） | 2026-02-20 |
 | ブログ記事数 | 10 | 0 | 2026-02-20 |
 | 投稿数(TikTok) | Week2:5 | 0 | 2026-02-20 |
 | 投稿数(Instagram) | Week2:3 | 0 | 2026-02-20 |
@@ -132,9 +132,11 @@ robby-the-match/
 ```
 
 ## デプロイ状態
-- GitHub Pages: 未デプロイ（git remoteが未設定）
-- 公開URL: 未設定
-- git remote: なし（ローカルリポジトリのみ）
+- GitHub Pages: ✅ 公開中
+- 公開URL: https://haruhi-medical.github.io/robby-the-match/
+- git remote: origin https://github.com/haruhi-medical/robby-the-match.git
+- デプロイブランチ: master（mainからforce push）
+- 最新commit: d718482
 - 最新commit: 8f42fa9 feat: 自律PDCAシステム構築完了
 
 ## SEO状態
@@ -199,7 +201,7 @@ robby-the-match/
 5. TikTok初投稿（素材は準備済み）
 
 ## 問題・ブロッカー
-- **git remoteが未設定**: ローカルリポジトリのみ。GitHub Pagesでの公開にはリモート設定+pushが必須。
+- ~~git remoteが未設定~~ → ✅ 解決済み（2/20 デプロイ完了）
 - **GA4未設定**: guide子ページ等でG-XXXXXXXXXXがプレースホルダーのまま。効果測定不可。
 - **sitemap.xmlのURL**: placeholder.github.io のまま。GitHub組織名/リポジトリ名に合わせて更新が必要。
 - **robots.txtのURL**: haruhi-medical.github.io（ルート）とplaceholder.github.io（lp/）で不一致。統一が必要。
