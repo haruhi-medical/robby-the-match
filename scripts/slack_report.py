@@ -25,7 +25,7 @@ load_dotenv(project_root / ".env")
 
 # Slack設定
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C08SKJBLW7A")
+SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C09A7U4TV4G")
 
 if not SLACK_BOT_TOKEN:
     print("エラー: SLACK_BOT_TOKEN が.envに設定されていません")

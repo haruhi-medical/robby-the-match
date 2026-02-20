@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
 """
-Slack指示受け付けスクリプト — ROBBY THE MATCH
-Slackチャンネルからのメッセージを監視し、コマンドに反応する。
+Slack Commander v2.0 — ROBBY THE MATCH
+Slackチャンネルからのメッセージを監視し、コマンド実行 & 指示受けを行う。
 
 対応コマンド:
   !status  → 現在のプロジェクト状態をSlackに報告
   !kpi     → KPIダッシュボードを送信
   !content → 今日のコンテンツ生成状態を報告
   !seo     → SEOページの状態を報告
+  !site    → サイトページ数・リンク数を報告
+  !team    → チーム別作業レポートを送信
+  !push    → git commit & push を実行
   !deploy  → デプロイ手順を案内
+  !tasks   → 指示キューの一覧を表示
+  !clear   → 指示キューをクリア
   !help    → コマンド一覧を表示
 
+自由文メッセージ:
+  !コマンド以外のメッセージ → 指示キューに保存（後でClaude Codeが処理）
+
 使い方:
-  python3 slack_commander.py              # 通常起動（WebSocket）
-  python3 slack_commander.py --poll       # ポーリングモード（Socket Mode不要）
-  python3 slack_commander.py --poll --interval 5  # 5秒間隔ポーリング
+  python3 slack_commander.py --poll                    # 常駐ポーリング
+  python3 slack_commander.py --poll --interval 30      # 30秒間隔
+  python3 slack_commander.py --once                    # 1回チェックして終了（cron用）
 """
 
 import argparse
@@ -36,8 +44,12 @@ load_dotenv(project_root / ".env")
 
 # Slack設定
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C08SKJBLW7A")
-SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN", "")  # Socket Mode用（任意）
+SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C09A7U4TV4G")
+SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN", "")
+
+# 指示キューファイル
+INSTRUCTIONS_FILE = project_root / "data" / "slack_instructions.json"
+LAST_TS_FILE = project_root / "data" / ".slack_last_ts"
 
 if not SLACK_BOT_TOKEN:
     print("エラー: SLACK_BOT_TOKEN が.envに設定されていません")
@@ -79,6 +91,29 @@ def post_message(channel: str, text: str = "", blocks: list = None) -> bool:
         return False
 
 
+def post_reply(channel: str, thread_ts: str, text: str) -> bool:
+    """スレッドに返信"""
+    headers = {
+        "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "channel": channel,
+        "text": text,
+        "thread_ts": thread_ts,
+    }
+    try:
+        resp = requests.post(
+            "https://slack.com/api/chat.postMessage",
+            headers=headers,
+            json=payload,
+            timeout=15,
+        )
+        return resp.json().get("ok", False)
+    except Exception:
+        return False
+
+
 def get_conversation_history(channel: str, oldest: str = None, limit: int = 10) -> list:
     """チャンネルの直近メッセージを取得"""
     headers = {
@@ -108,108 +143,246 @@ def get_conversation_history(channel: str, oldest: str = None, limit: int = 10) 
 
 
 # ===================================================================
+# 指示キュー管理
+# ===================================================================
+
+def load_instructions() -> list:
+    """指示キューを読み込み"""
+    if INSTRUCTIONS_FILE.exists():
+        try:
+            return json.loads(INSTRUCTIONS_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, Exception):
+            return []
+    return []
+
+
+def save_instructions(instructions: list):
+    """指示キューを保存"""
+    INSTRUCTIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    INSTRUCTIONS_FILE.write_text(
+        json.dumps(instructions, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def add_instruction(text: str, user: str = "unknown"):
+    """指示をキューに追加"""
+    instructions = load_instructions()
+    instructions.append({
+        "id": len(instructions) + 1,
+        "text": text,
+        "user": user,
+        "timestamp": datetime.now().isoformat(),
+        "status": "pending",
+    })
+    save_instructions(instructions)
+    return len(instructions)
+
+
+def load_last_ts() -> str:
+    """最後に処理したタイムスタンプを読み込み"""
+    if LAST_TS_FILE.exists():
+        return LAST_TS_FILE.read_text().strip()
+    return str(time.time())
+
+
+def save_last_ts(ts: str):
+    """最後に処理したタイムスタンプを保存"""
+    LAST_TS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    LAST_TS_FILE.write_text(ts)
+
+
+# ===================================================================
 # コマンドハンドラー
 # ===================================================================
 
-def handle_status(channel: str):
+def handle_status(channel: str, **kwargs):
     """!status — 現在のプロジェクト状態を報告"""
-    # slack_report.py を呼び出す
     report_script = project_root / "scripts" / "slack_report.py"
     if report_script.exists():
         result = subprocess.run(
             [sys.executable, str(report_script), "--report", "daily"],
-            capture_output=True,
-            text=True,
-            timeout=30,
+            capture_output=True, text=True, timeout=30,
         )
         if result.returncode == 0:
-            return  # slack_report.py が直接Slackに送信済み
+            return
         else:
             post_message(channel, text=f"レポート生成エラー:\n```{result.stderr[:500]}```")
             return
 
-    # フォールバック: 簡易ステータス
-    progress_file = project_root / "PROGRESS.md"
-    if progress_file.exists():
-        raw = progress_file.read_text(encoding="utf-8")
-        today_str = date.today().strftime("%Y-%m-%d")
-        pattern = rf"## {re.escape(today_str)}.*?(?=\n---|\n## \d|\Z)"
-        match = re.search(pattern, raw, re.DOTALL)
-        section = match.group(0)[:2500] if match else "今日のエントリはありません。"
-    else:
-        section = "PROGRESS.md が見つかりません。"
+    post_message(channel, text="slack_report.py が見つかりません。")
+
+
+def handle_kpi(channel: str, **kwargs):
+    """!kpi — KPIダッシュボードを送信"""
+    _run_report(channel, "kpi")
+
+
+def handle_content(channel: str, **kwargs):
+    """!content — 今日のコンテンツ生成状態を報告"""
+    _run_report(channel, "content")
+
+
+def handle_seo(channel: str, **kwargs):
+    """!seo — SEOページの状態を報告"""
+    _run_report(channel, "seo")
+
+
+def handle_team(channel: str, **kwargs):
+    """!team — チーム別レポートを送信"""
+    _run_report(channel, "team")
+
+
+def _run_report(channel: str, report_type: str):
+    """slack_report.py を呼び出してレポート送信"""
+    report_script = project_root / "scripts" / "slack_report.py"
+    if report_script.exists():
+        result = subprocess.run(
+            [sys.executable, str(report_script), "--report", report_type],
+            capture_output=True, text=True, timeout=30,
+        )
+        if result.returncode == 0:
+            return
+        else:
+            post_message(channel, text=f"{report_type}レポート生成エラー:\n```{result.stderr[:500]}```")
+            return
+    post_message(channel, text="slack_report.py が見つかりません。")
+
+
+def handle_site(channel: str, **kwargs):
+    """!site — サイトのページ数・構成を報告"""
+    counts = {}
+    total = 0
+    for subdir in ["area", "guide", "blog"]:
+        path = project_root / subdir
+        if path.exists():
+            htmls = list(path.rglob("*.html"))
+            counts[subdir] = len(htmls)
+            total += len(htmls)
+
+    # ルート直下のHTML
+    root_htmls = list(project_root.glob("*.html"))
+    counts["root"] = len(root_htmls)
+    total += len(root_htmls)
+
+    # sitemap
+    sitemap = project_root / "sitemap.xml"
+    sitemap_count = 0
+    if sitemap.exists():
+        content = sitemap.read_text(encoding="utf-8")
+        sitemap_count = content.count("<loc>")
+
+    # 指示キュー
+    instructions = load_instructions()
+    pending = [i for i in instructions if i.get("status") == "pending"]
 
     blocks = [
         {
             "type": "header",
-            "text": {"type": "plain_text", "text": "プロジェクト状態"},
+            "text": {"type": "plain_text", "text": "ROBBY サイト構成レポート"},
         },
         {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": section},
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"*HTMLファイル合計:* {total} ページ\n"
+                    + "\n".join(f"  - `{k}/`: {v} ページ" for k, v in counts.items())
+                    + f"\n\n*sitemap.xml:* {sitemap_count} URL"
+                    + f"\n*指示キュー:* {len(pending)} 件 pending"
+                ),
+            },
         },
     ]
-    post_message(channel, blocks=blocks, text="プロジェクト状態")
+    post_message(channel, blocks=blocks, text="サイト構成レポート")
 
 
-def handle_kpi(channel: str):
-    """!kpi — KPIダッシュボードを送信"""
-    report_script = project_root / "scripts" / "slack_report.py"
-    if report_script.exists():
-        result = subprocess.run(
-            [sys.executable, str(report_script), "--report", "kpi"],
-            capture_output=True,
-            text=True,
-            timeout=30,
+def handle_push(channel: str, **kwargs):
+    """!push — git add, commit, push を実行"""
+    try:
+        # status確認
+        status = subprocess.run(
+            ["git", "status", "--short"],
+            capture_output=True, text=True, cwd=str(project_root), timeout=10,
         )
-        if result.returncode == 0:
+        changes = status.stdout.strip()
+
+        if not changes:
+            post_message(channel, text="変更なし。pushするものがありません。")
             return
-        else:
-            post_message(channel, text=f"KPIレポート生成エラー:\n```{result.stderr[:500]}```")
-            return
 
-    post_message(channel, text="slack_report.py が見つかりません。")
-
-
-def handle_content(channel: str):
-    """!content — 今日のコンテンツ生成状態を報告"""
-    report_script = project_root / "scripts" / "slack_report.py"
-    if report_script.exists():
-        result = subprocess.run(
-            [sys.executable, str(report_script), "--report", "content"],
-            capture_output=True,
-            text=True,
-            timeout=30,
+        # add & commit
+        subprocess.run(
+            ["git", "add", "-A"],
+            cwd=str(project_root), timeout=10,
         )
-        if result.returncode == 0:
-            return
-        else:
-            post_message(channel, text=f"コンテンツレポート生成エラー:\n```{result.stderr[:500]}```")
-            return
-
-    post_message(channel, text="slack_report.py が見つかりません。")
-
-
-def handle_seo(channel: str):
-    """!seo — SEOページの状態を報告"""
-    report_script = project_root / "scripts" / "slack_report.py"
-    if report_script.exists():
-        result = subprocess.run(
-            [sys.executable, str(report_script), "--report", "seo"],
-            capture_output=True,
-            text=True,
-            timeout=30,
+        commit_msg = f"auto: Slack Commander push ({date.today().isoformat()})"
+        subprocess.run(
+            ["git", "commit", "-m", commit_msg],
+            capture_output=True, text=True, cwd=str(project_root), timeout=15,
         )
-        if result.returncode == 0:
-            return
+
+        # push to both main and master
+        push_result = subprocess.run(
+            ["git", "push", "origin", "main:master"],
+            capture_output=True, text=True, cwd=str(project_root), timeout=30,
+        )
+
+        if push_result.returncode == 0:
+            file_count = len(changes.splitlines())
+            post_message(channel, text=f"git push 完了 ({file_count} ファイル変更)\n```{changes[:500]}```")
         else:
-            post_message(channel, text=f"SEOレポート生成エラー:\n```{result.stderr[:500]}```")
-            return
+            post_message(channel, text=f"git push エラー:\n```{push_result.stderr[:500]}```")
+    except Exception as e:
+        post_message(channel, text=f"push エラー: {e}")
 
-    post_message(channel, text="slack_report.py が見つかりません。")
+
+def handle_tasks(channel: str, **kwargs):
+    """!tasks — 指示キューの一覧を表示"""
+    instructions = load_instructions()
+
+    if not instructions:
+        post_message(channel, text="指示キューは空です。")
+        return
+
+    pending = [i for i in instructions if i.get("status") == "pending"]
+    done = [i for i in instructions if i.get("status") == "done"]
+
+    lines = []
+    for inst in pending[-10:]:  # 直近10件
+        lines.append(f"  [{inst['id']}] {inst['text'][:60]}")
+
+    text = (
+        f"*指示キュー*\n"
+        f"pending: {len(pending)} 件 / 完了: {len(done)} 件\n\n"
+        + ("*直近の未処理指示:*\n" + "\n".join(lines) if lines else "未処理の指示はありません。")
+    )
+
+    blocks = [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": "指示キュー"},
+        },
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": text},
+        },
+    ]
+    post_message(channel, blocks=blocks, text="指示キュー")
 
 
-def handle_deploy(channel: str):
+def handle_clear(channel: str, **kwargs):
+    """!clear — 指示キューをクリア"""
+    instructions = load_instructions()
+    # pending を全て done に
+    for inst in instructions:
+        if inst.get("status") == "pending":
+            inst["status"] = "done"
+    save_instructions(instructions)
+    post_message(channel, text="指示キューをクリアしました。")
+
+
+def handle_deploy(channel: str, **kwargs):
     """!deploy — デプロイ手順を案内"""
     blocks = [
         {
@@ -221,24 +394,14 @@ def handle_deploy(channel: str):
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    "*1. LP (Cloudflare Pages)*\n"
+                    "*GitHub Pages デプロイ:*\n"
                     "```\n"
-                    "cd ~/robby-the-match\n"
-                    "git add -A && git commit -m 'deploy: LP更新'\n"
-                    "git push origin main\n"
-                    "# Cloudflare Pages が自動デプロイ\n"
-                    "```\n\n"
-                    "*2. 手動デプロイ確認*\n"
+                    "git add -A && git commit -m 'deploy'\n"
+                    "git push origin main:master\n"
                     "```\n"
-                    "# Cloudflare ダッシュボードでビルドステータスを確認\n"
-                    "# https://dash.cloudflare.com/ > Pages\n"
-                    "```\n\n"
-                    "*3. 確認項目*\n"
-                    "  - LP-A (求職者向け) 表示確認\n"
-                    "  - LP-B (施設向け) 表示確認\n"
-                    "  - LINE登録ボタンの動作確認\n"
-                    "  - モバイル表示確認\n"
-                    "  - GA4タグの発火確認 (Chrome DevTools > Network > collect)"
+                    "または Slackで `!push` を送信\n\n"
+                    "*確認:*\n"
+                    "  https://haruhi-medical.github.io/robby-the-match/"
                 ),
             },
         },
@@ -246,36 +409,36 @@ def handle_deploy(channel: str):
     post_message(channel, blocks=blocks, text="デプロイ手順ガイド")
 
 
-def handle_help(channel: str):
+def handle_help(channel: str, **kwargs):
     """!help — コマンド一覧を表示"""
     blocks = [
         {
             "type": "header",
-            "text": {"type": "plain_text", "text": "ROBBY Commander コマンド一覧"},
+            "text": {"type": "plain_text", "text": "ROBBY Commander v2.0"},
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    "*利用可能なコマンド:*\n\n"
-                    "`!status`  — 現在のプロジェクト状態を報告\n"
-                    "`!kpi`     — KPIダッシュボードを送信\n"
-                    "`!content` — 今日のコンテンツ生成状態を報告\n"
-                    "`!seo`     — SEOページの状態を報告\n"
-                    "`!deploy`  — デプロイ手順を案内\n"
-                    "`!help`    — このコマンド一覧を表示\n"
+                    "*レポート系:*\n"
+                    "  `!status`  — 日次レポート\n"
+                    "  `!kpi`     — KPIダッシュボード\n"
+                    "  `!content` — コンテンツ生成状態\n"
+                    "  `!seo`     — SEOページ状態\n"
+                    "  `!site`    — サイト構成レポート\n"
+                    "  `!team`    — チーム別レポート\n\n"
+                    "*アクション系:*\n"
+                    "  `!push`    — git push を実行\n"
+                    "  `!deploy`  — デプロイ手順\n\n"
+                    "*指示キュー:*\n"
+                    "  `!tasks`   — 指示一覧\n"
+                    "  `!clear`   — 指示キュークリア\n\n"
+                    "*自由文メッセージ:*\n"
+                    "  `!`なしのメッセージ → 指示キューに保存\n"
+                    "  → Claude Code が次回起動時に処理します"
                 ),
             },
-        },
-        {
-            "type": "context",
-            "elements": [
-                {
-                    "type": "mrkdwn",
-                    "text": "ROBBY THE MATCH Slack Commander v1.0",
-                }
-            ],
         },
     ]
     post_message(channel, blocks=blocks, text="コマンド一覧")
@@ -287,7 +450,12 @@ COMMANDS = {
     "!kpi": handle_kpi,
     "!content": handle_content,
     "!seo": handle_seo,
+    "!site": handle_site,
+    "!team": handle_team,
+    "!push": handle_push,
     "!deploy": handle_deploy,
+    "!tasks": handle_tasks,
+    "!clear": handle_clear,
     "!help": handle_help,
 }
 
@@ -297,41 +465,53 @@ COMMANDS = {
 # ===================================================================
 
 def process_message(message: dict, channel: str):
-    """メッセージを解析してコマンドを実行"""
+    """メッセージを解析してコマンドを実行、または指示キューに保存"""
     text = message.get("text", "").strip()
+    user = message.get("user", "unknown")
+    ts = message.get("ts", "")
 
     # Bot自身のメッセージは無視
     if message.get("bot_id") or message.get("subtype") == "bot_message":
         return
 
+    # 空メッセージ無視
+    if not text:
+        return
+
     # コマンド検出
     for cmd, handler in COMMANDS.items():
         if text.lower().startswith(cmd):
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] コマンド検出: {cmd}")
-            handler(channel)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] コマンド: {cmd} (user={user})")
+            handler(channel, user=user, ts=ts)
             return
+
+    # !で始まらない自由文 → 指示キューに保存
+    if not text.startswith("!"):
+        idx = add_instruction(text, user=user)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] 指示保存: #{idx} '{text[:50]}...'")
+        post_reply(
+            channel, ts,
+            f"指示を受け付けました (#{idx})\nClaude Codeが次回処理します。"
+        )
 
 
 # ===================================================================
 # ポーリングモード
 # ===================================================================
 
-def run_polling(channel: str, interval: int = 3):
-    """
-    conversations.history をポーリングしてコマンドを検出する。
-    Socket Mode (websocket) が使えない場合のフォールバック。
-    """
-    print(f"ROBBY Commander 起動 (ポーリングモード, {interval}秒間隔)")
+def run_polling(channel: str, interval: int = 30):
+    """常駐ポーリングモード"""
+    print(f"ROBBY Commander v2.0 起動 (ポーリング, {interval}秒間隔)")
     print(f"監視チャンネル: {channel}")
     print("終了: Ctrl+C")
     print("---")
 
-    last_ts = str(time.time())
+    last_ts = load_last_ts()
     processed_ts = set()
 
     while True:
         try:
-            messages = get_conversation_history(channel, oldest=last_ts, limit=5)
+            messages = get_conversation_history(channel, oldest=last_ts, limit=10)
             for msg in reversed(messages):
                 ts = msg.get("ts", "")
                 if ts in processed_ts:
@@ -339,67 +519,43 @@ def run_polling(channel: str, interval: int = 3):
                 processed_ts.add(ts)
                 process_message(msg, channel)
 
-            # 古い処理済みTSをクリーンアップ（メモリ節約）
-            if len(processed_ts) > 1000:
+            if len(processed_ts) > 500:
                 processed_ts.clear()
 
             if messages:
-                last_ts = messages[0].get("ts", last_ts)
+                newest_ts = messages[0].get("ts", last_ts)
+                last_ts = newest_ts
+                save_last_ts(last_ts)
 
             time.sleep(interval)
 
         except KeyboardInterrupt:
             print("\nCommander 終了")
+            save_last_ts(last_ts)
             break
         except Exception as e:
-            print(f"エラー: {e}")
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] エラー: {e}")
             time.sleep(interval * 2)
 
 
-# ===================================================================
-# Socket Mode (slack_bolt)
-# ===================================================================
+def run_once(channel: str):
+    """1回チェックして終了（cron用）"""
+    last_ts = load_last_ts()
+    messages = get_conversation_history(channel, oldest=last_ts, limit=20)
 
-def run_socket_mode():
-    """
-    Slack Socket Mode で起動する。
-    slack_bolt がインストールされている場合に使用。
-    SLACK_APP_TOKEN (xapp-...) が必要。
-    """
-    try:
-        from slack_bolt import App
-        from slack_bolt.adapter.socket_mode import SocketModeHandler
-    except ImportError:
-        print("slack_bolt が未インストールです。")
-        print("  pip install slack-bolt")
-        print("または --poll オプションでポーリングモードを使用してください。")
-        sys.exit(1)
+    processed = 0
+    for msg in reversed(messages):
+        process_message(msg, channel)
+        processed += 1
 
-    if not SLACK_APP_TOKEN:
-        print("エラー: SLACK_APP_TOKEN が.envに設定されていません。")
-        print("Socket Modeを使用するには xapp- で始まるApp-Level Tokenが必要です。")
-        print("または --poll オプションでポーリングモードを使用してください。")
-        sys.exit(1)
+    if messages:
+        newest_ts = messages[0].get("ts", last_ts)
+        save_last_ts(newest_ts)
 
-    app = App(token=SLACK_BOT_TOKEN)
-
-    @app.message(re.compile(r"^!(status|kpi|content|seo|deploy|help)", re.IGNORECASE))
-    def handle_command(message, say):
-        text = message.get("text", "").strip().lower()
-        channel = message.get("channel", SLACK_CHANNEL_ID)
-
-        for cmd, handler in COMMANDS.items():
-            if text.startswith(cmd):
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] コマンド検出: {cmd}")
-                handler(channel)
-                return
-
-    print("ROBBY Commander 起動 (Socket Mode)")
-    print("終了: Ctrl+C")
-    print("---")
-
-    handler = SocketModeHandler(app, SLACK_APP_TOKEN)
-    handler.start()
+    if processed > 0:
+        print(f"処理: {processed} メッセージ")
+    else:
+        print("新規メッセージなし")
 
 
 # ===================================================================
@@ -408,31 +564,22 @@ def run_socket_mode():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ROBBY THE MATCH Slack Commander — チャンネル監視 & コマンド応答"
+        description="ROBBY Commander v2.0 — Slack監視 & コマンド応答 & 指示受け"
     )
-    parser.add_argument(
-        "--poll",
-        action="store_true",
-        help="ポーリングモードで起動 (Socket Mode不要)",
-    )
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=3,
-        help="ポーリング間隔（秒）(default: 3)",
-    )
-    parser.add_argument(
-        "--channel",
-        default=SLACK_CHANNEL_ID,
-        help=f"監視するチャンネルID (default: {SLACK_CHANNEL_ID})",
-    )
+    parser.add_argument("--poll", action="store_true", help="常駐ポーリングモード")
+    parser.add_argument("--once", action="store_true", help="1回チェックして終了（cron用）")
+    parser.add_argument("--interval", type=int, default=30, help="ポーリング間隔（秒）")
+    parser.add_argument("--channel", default=SLACK_CHANNEL_ID, help="監視チャンネルID")
 
     args = parser.parse_args()
 
-    if args.poll:
+    if args.once:
+        run_once(channel=args.channel)
+    elif args.poll:
         run_polling(channel=args.channel, interval=args.interval)
     else:
-        run_socket_mode()
+        # デフォルトはポーリングモード
+        run_polling(channel=args.channel, interval=args.interval)
 
 
 if __name__ == "__main__":
