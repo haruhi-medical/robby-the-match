@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://placeholder.github.io/robby-the-match/sitemap.xml

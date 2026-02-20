@@ -1,0 +1,1122 @@
+// ========================================
+// ROBBY THE MATCH - AI Chat Widget
+// Phone-gated + hybrid pre-scripted/AI chat
+// ========================================
+
+(function () {
+  "use strict";
+
+  // --------------------------------------------------
+  // Configuration
+  // --------------------------------------------------
+  var CHAT_CONFIG = {
+    brandName: typeof CONFIG !== "undefined" ? CONFIG.BRAND_NAME : "ROBBY THE MATCH",
+    workerEndpoint: typeof CONFIG !== "undefined" ? CONFIG.API.workerEndpoint : "",
+    hospitals: typeof CONFIG !== "undefined" ? CONFIG.HOSPITALS : [],
+    stepLabels: [
+      "職種の確認",
+      "エリアの確認",
+      "条件ヒアリング",
+      "求人検索中",
+      "ご案内準備完了",
+    ],
+  };
+
+  // --------------------------------------------------
+  // Pre-scripted flow data
+  // --------------------------------------------------
+  var PRESCRIPTED = {
+    professions: [
+      { label: "看護師", value: "看護師" },
+      { label: "理学療法士", value: "理学療法士" },
+      { label: "その他の医療職", value: "その他" },
+    ],
+    areas: [
+      { label: "県西エリア（小田原・南足柄）", value: "kensei" },
+      { label: "湘南西部（平塚・秦野・伊勢原）", value: "shonan_west" },
+      { label: "湘南東部（藤沢・茅ヶ崎）", value: "shonan_east" },
+      { label: "県央エリア（厚木・海老名）", value: "kenoh" },
+      { label: "その他のエリア", value: "other" },
+    ],
+    // Medical district value → display name mapping
+    areaLabels: {
+      kensei: "県西",
+      shonan_west: "湘南西部",
+      shonan_east: "湘南東部",
+      kenoh: "県央",
+      other: "その他",
+    },
+    // Medical district value → city names for hospital matching
+    areaCities: {
+      kensei: ["小田原", "南足柄", "開成", "大井", "大磯", "二宮", "松田", "山北", "箱根", "真鶴", "湯河原"],
+      shonan_west: ["平塚", "秦野", "伊勢原"],
+      shonan_east: ["藤沢", "茅ヶ崎", "寒川"],
+      kenoh: ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
+    },
+  };
+
+  // --------------------------------------------------
+  // Demo mode responses (AI phase, after pre-scripted)
+  // Used when API is not configured
+  // --------------------------------------------------
+  var DEMO_RESPONSES = [
+    {
+      reply: "お話しいただきありがとうございます。\n\n差し支えなければ、今回転職をお考えになったきっかけを教えていただけますか？",
+      step: 3,
+      score: null,
+      done: false,
+    },
+    {
+      reply: "なるほど、そうだったのですね。お気持ちよく分かります。\n\nちなみに、月収やお休みの日数など、特に重視されている条件はありますか？",
+      step: 3,
+      score: "C",
+      done: false,
+    },
+    {
+      reply: "ありがとうございます。いただいた条件をもとに、エリアの病院をいくつか候補として整理しています。\n\n夜勤の有無や通勤時間について、ご希望があればお聞かせください。",
+      step: 4,
+      score: "B",
+      done: false,
+    },
+    {
+      reply: "詳しくお聞かせいただきありがとうございました。\n\nお伺いした内容をもとに、条件に合う求人を担当エージェントがお探しします。24時間以内にお電話でご連絡いたしますので、少々お待ちくださいね。",
+      step: 5,
+      score: "A",
+      done: true,
+      summary: "転職希望の方。職種・エリア・希望条件をヒアリング済み。エージェントからの連絡を希望。",
+    },
+  ];
+
+  // --------------------------------------------------
+  // State
+  // --------------------------------------------------
+  function generateSessionId() {
+    return "sess_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9);
+  }
+
+  var CLIENT_RATE_LIMIT = {
+    sendCooldownMs: 3000,
+    maxSessionMessages: 6,
+  };
+
+  var chatState = {
+    isOpen: false,
+    consentGiven: false,
+    phone: "",
+    token: null,
+    tokenTimestamp: null,
+    formShownAt: null,
+    currentStep: 1,
+    messages: [],
+    apiMessages: [],
+    sessionId: generateSessionId(),
+    demoIndex: 0,
+    score: null,
+    done: false,
+    summary: null,
+    isTyping: false,
+    lastSendTime: 0,
+    userMessageCount: 0,
+    sendCooldown: false,
+    ctaShown: false,
+    demoMode: false, // true when API init fails (AI uses demo responses, but notifications still sent)
+    // Pre-scripted flow state
+    profession: null,
+    area: null,
+    prescriptedPhase: "profession", // "profession" | "area" | "summary" | "done"
+  };
+
+  // --------------------------------------------------
+  // DOM References (set after init)
+  // --------------------------------------------------
+  var els = {};
+
+  // --------------------------------------------------
+  // Initialization
+  // --------------------------------------------------
+  function init() {
+    els = {
+      toggle: document.getElementById("chatToggle"),
+      window: document.getElementById("chatWindow"),
+      body: document.getElementById("chatBody"),
+      input: document.getElementById("chatInput"),
+      sendBtn: document.getElementById("chatSendBtn"),
+      closeBtn: document.getElementById("chatCloseBtn"),
+      minimizeBtn: document.getElementById("chatMinimizeBtn"),
+      stepDots: document.querySelectorAll(".chat-step-dot"),
+      stepLabel: document.getElementById("chatStepLabel"),
+      consentView: document.getElementById("chatConsent"),
+      consentBtn: document.getElementById("chatConsentBtn"),
+      consentDecline: document.getElementById("chatConsentDecline"),
+      phoneGate: document.getElementById("chatPhoneGate"),
+      phoneInput: document.getElementById("chatPhoneInput"),
+      phoneSubmit: document.getElementById("chatPhoneSubmit"),
+      phoneError: document.getElementById("chatPhoneError"),
+      honeypot: document.getElementById("chatHoneypot"),
+      chatView: document.getElementById("chatView"),
+      summaryView: document.getElementById("chatSummary"),
+      summaryText: document.getElementById("chatSummaryText"),
+      summaryScore: document.getElementById("chatSummaryScore"),
+    };
+
+    if (!els.toggle || !els.window) return;
+
+    // Event listeners
+    els.toggle.addEventListener("click", toggleChat);
+    els.closeBtn.addEventListener("click", closeChat);
+    els.minimizeBtn.addEventListener("click", closeChat);
+    els.sendBtn.addEventListener("click", sendMessage);
+    els.consentBtn.addEventListener("click", grantConsent);
+    els.consentDecline.addEventListener("click", closeChat);
+
+    // Phone gate listeners
+    if (els.phoneSubmit) {
+      els.phoneSubmit.addEventListener("click", handlePhoneSubmit);
+    }
+    if (els.phoneInput) {
+      els.phoneInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handlePhoneSubmit();
+        }
+      });
+    }
+
+    els.input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Auto-resize textarea
+    els.input.addEventListener("input", function () {
+      els.input.style.height = "auto";
+      els.input.style.height = Math.min(els.input.scrollHeight, 100) + "px";
+    });
+
+    // Focus trap and Escape key for chat window
+    document.addEventListener("keydown", function (e) {
+      if (!chatState.isOpen) return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeChat();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        var focusable = els.window.querySelectorAll(
+          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        var visible = [];
+        for (var i = 0; i < focusable.length; i++) {
+          if (focusable[i].offsetParent !== null) visible.push(focusable[i]);
+        }
+        if (visible.length === 0) return;
+        var first = visible[0];
+        var last = visible[visible.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    });
+  }
+
+  // --------------------------------------------------
+  // Toggle / Open / Close
+  // --------------------------------------------------
+  function toggleChat() {
+    if (chatState.isOpen) {
+      closeChat();
+    } else {
+      openChat();
+    }
+  }
+
+  function openChat() {
+    chatState.isOpen = true;
+    els.window.classList.add("open");
+    els.toggle.classList.add("active");
+    els.toggle.querySelector(".chat-toggle-icon").textContent = "\u2715";
+
+    if (!chatState.consentGiven) {
+      showView("consent");
+    } else if (!chatState.phone) {
+      showView("phone");
+    } else if (chatState.done) {
+      showView("summary");
+    } else {
+      showView("chat");
+      if (chatState.prescriptedPhase === "done") {
+        els.input.focus();
+      }
+    }
+  }
+
+  function closeChat() {
+    chatState.isOpen = false;
+    els.window.classList.remove("open");
+    els.toggle.classList.remove("active");
+    els.toggle.querySelector(".chat-toggle-icon").textContent = "\uD83D\uDCAC";
+    els.toggle.focus();
+  }
+
+  function showView(view) {
+    // Consent
+    if (view === "consent") {
+      els.consentView.classList.remove("hidden");
+      els.consentView.style.display = "flex";
+    } else {
+      els.consentView.classList.add("hidden");
+      els.consentView.style.display = "none";
+    }
+
+    // Phone gate
+    if (els.phoneGate) {
+      if (view === "phone") {
+        els.phoneGate.classList.remove("hidden");
+        els.phoneGate.style.display = "flex";
+      } else {
+        els.phoneGate.classList.add("hidden");
+        els.phoneGate.style.display = "none";
+      }
+    }
+
+    // Chat
+    if (view === "chat") {
+      els.chatView.classList.remove("hidden");
+      els.chatView.style.display = "flex";
+    } else {
+      els.chatView.classList.add("hidden");
+      els.chatView.style.display = "none";
+    }
+
+    // Summary
+    if (els.summaryView) {
+      if (view === "summary") {
+        els.summaryView.classList.remove("hidden");
+        els.summaryView.style.display = "flex";
+      } else {
+        els.summaryView.classList.add("hidden");
+        els.summaryView.style.display = "none";
+      }
+    }
+  }
+
+  // --------------------------------------------------
+  // Consent
+  // --------------------------------------------------
+  function grantConsent() {
+    chatState.consentGiven = true;
+    showView("phone");
+    chatState.formShownAt = Date.now();
+    if (els.phoneInput) {
+      els.phoneInput.focus();
+    }
+  }
+
+  // --------------------------------------------------
+  // Phone Gate
+  // --------------------------------------------------
+  function validatePhoneClient(phone) {
+    var digits = phone.replace(/[\s\-\(\)\+]/g, "");
+    return /^0\d{9,10}$/.test(digits);
+  }
+
+  function showPhoneError(msg) {
+    if (els.phoneError) {
+      els.phoneError.textContent = msg;
+      els.phoneError.style.display = "block";
+    }
+  }
+
+  function hidePhoneError() {
+    if (els.phoneError) {
+      els.phoneError.textContent = "";
+      els.phoneError.style.display = "none";
+    }
+  }
+
+  async function handlePhoneSubmit() {
+    hidePhoneError();
+
+    var phone = (els.phoneInput ? els.phoneInput.value : "").trim();
+    var honeypotValue = els.honeypot ? els.honeypot.value : "";
+
+    // Honeypot check (bot detection)
+    if (honeypotValue) {
+      showPhoneError("送信できませんでした。もう一度お試しください。");
+      return;
+    }
+
+    // Client-side phone validation
+    if (!phone) {
+      showPhoneError("電話番号を入力してください。");
+      return;
+    }
+
+    if (!validatePhoneClient(phone)) {
+      showPhoneError("正しい電話番号を入力してください。（例: 090-1234-5678）");
+      return;
+    }
+
+    // Timing check (too fast = bot)
+    if (chatState.formShownAt && (Date.now() - chatState.formShownAt) < 2000) {
+      showPhoneError("しばらくお待ちください。");
+      return;
+    }
+
+    // Disable button during submission
+    if (els.phoneSubmit) {
+      els.phoneSubmit.disabled = true;
+      els.phoneSubmit.textContent = "接続中...";
+    }
+
+    // Call /api/chat-init if API is available (graceful fallback to demo mode on failure)
+    if (isAPIAvailable()) {
+      try {
+        var response = await fetch(CHAT_CONFIG.workerEndpoint + "/api/chat-init", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: phone,
+            honeypot: honeypotValue,
+            formShownAt: chatState.formShownAt,
+          }),
+        });
+
+        if (response.ok) {
+          var data = await response.json();
+          chatState.token = data.token || null;
+          chatState.tokenTimestamp = data.timestamp || null;
+          if (data.sessionId) {
+            chatState.sessionId = data.sessionId;
+          }
+        } else {
+          // API returned error - use demo mode for AI chat, but keep endpoint for notifications
+          console.warn("[Chat] chat-init returned " + response.status + ", proceeding in demo mode");
+          chatState.demoMode = true;
+        }
+      } catch (err) {
+        // API unreachable - use demo mode for AI chat, but keep endpoint for notifications
+        console.warn("[Chat] chat-init failed, proceeding in demo mode:", err.message);
+        chatState.demoMode = true;
+      }
+    }
+
+    // Store phone and proceed to chat with pre-scripted flow
+    chatState.phone = phone;
+    showView("chat");
+
+    // Start the pre-scripted button flow (no API calls needed)
+    startPrescriptedFlow();
+  }
+
+  // --------------------------------------------------
+  // Pre-scripted Button Flow (Steps 1-2, no API cost)
+  // --------------------------------------------------
+  function startPrescriptedFlow() {
+    chatState.prescriptedPhase = "profession";
+    updateStep(1);
+
+    // Hide the text input during pre-scripted phase
+    setInputVisible(false);
+
+    // Show greeting + profession question after a brief typing delay
+    showTyping();
+    setTimeout(function () {
+      hideTyping();
+      addMessage("ai", "はじめまして！ROBBY THE MATCHのAIアシスタントです。\n\nいくつか簡単な質問をさせてください。まず、どの職種をお探しですか？");
+      chatState.messages[chatState.messages.length - 1].content; // recorded
+      showButtonGroup(PRESCRIPTED.professions, handleProfessionSelect);
+    }, 800);
+  }
+
+  function handleProfessionSelect(value, label) {
+    chatState.profession = value;
+
+    // Remove the buttons
+    removeButtonGroup();
+
+    // Show user selection as a user message
+    addMessage("user", label);
+
+    // Move to area question
+    chatState.prescriptedPhase = "area";
+    updateStep(2);
+
+    showTyping();
+    setTimeout(function () {
+      hideTyping();
+      addMessage("ai", "ありがとうございます！希望のエリアはありますか？");
+      showButtonGroup(PRESCRIPTED.areas, handleAreaSelect);
+    }, 600);
+  }
+
+  function handleAreaSelect(value, label) {
+    chatState.area = value;
+
+    // Remove the buttons
+    removeButtonGroup();
+
+    // Show user selection as a user message
+    addMessage("user", label);
+
+    // Show matching hospital summary
+    chatState.prescriptedPhase = "summary";
+
+    showTyping();
+    setTimeout(function () {
+      hideTyping();
+      showHospitalSummary();
+
+      // Transition to AI phase
+      chatState.prescriptedPhase = "done";
+      updateStep(3);
+
+      // Show the text input for AI conversation
+      setInputVisible(true);
+      els.input.focus();
+
+      // Inject context into API messages so AI knows the user's selections
+      var areaDisplay = getAreaDisplayName(chatState.area);
+      var contextMsg = "【事前ヒアリング結果】職種: " + (chatState.profession || "未選択") +
+        " / 希望エリア: " + (areaDisplay || "未選択") +
+        "。これらの情報を踏まえて、転職の詳しい希望条件をヒアリングしてください。";
+      chatState.apiMessages.push({ role: "user", content: contextMsg });
+
+      // If API is available and not in demo mode, get AI's first contextual response
+      if (isAPIAvailable() && !chatState.demoMode) {
+        showTyping();
+        callAPI(chatState.apiMessages).then(function (response) {
+          hideTyping();
+          if (response && isValidReply(response.reply)) {
+            addMessage("ai", response.reply);
+            chatState.apiMessages.push({ role: "assistant", content: response.reply });
+          }
+          // If no valid response, that's fine - user can still type
+        });
+      }
+    }, 800);
+  }
+
+  function getAreaDisplayName(areaValue) {
+    return (PRESCRIPTED.areaLabels && PRESCRIPTED.areaLabels[areaValue]) || areaValue || "";
+  }
+
+  function showHospitalSummary() {
+    // Find matching hospitals based on area selection
+    var matches = findMatchingHospitals(chatState.area);
+    var areaName = getAreaDisplayName(chatState.area);
+
+    if (matches.length === 0) {
+      addMessage("ai", chatState.profession + "の" + areaName + "エリアの求人をお探しですね。\n\n現在エリアの求人を確認中です。詳しい条件を教えていただければ、最適な求人をご案内できます。\n\nどのような条件を重視されていますか？（例：給与、休日、夜勤の有無など）");
+      return;
+    }
+
+    // Build summary text
+    var text = chatState.profession + "の" + areaName + "エリアの求人をお探しですね。\n\n";
+    text += "以下の求人がございます：\n\n";
+
+    for (var i = 0; i < matches.length; i++) {
+      var h = matches[i];
+      text += h.displayName + "\n";
+      text += "  " + h.salary + " / " + h.holidays + "\n";
+      text += "  夜勤: " + h.nightShift + " / " + h.commute + "\n";
+      if (i < matches.length - 1) text += "\n";
+    }
+
+    text += "\nさらに詳しい条件をお伺いできれば、より最適な求人をご案内できます。転職で重視されているポイントを教えてください。";
+
+    addMessage("ai", text);
+  }
+
+  function findMatchingHospitals(area) {
+    var hospitals = CHAT_CONFIG.hospitals;
+    if (!hospitals || hospitals.length === 0) {
+      // Fallback data when CONFIG.HOSPITALS is empty
+      return [
+        { displayName: "小田原市立病院（小田原市・417床）", salary: "月給28〜38万円（目安）", holidays: "年間休日120日以上", nightShift: "あり（三交代制）", commute: "小田原駅バス10分" },
+        { displayName: "東海大学医学部付属病院（伊勢原市・804床）", salary: "月給29〜38万円（目安）", holidays: "年間休日120日以上", nightShift: "あり（三交代制）", commute: "伊勢原駅バス10分" },
+        { displayName: "海老名総合病院（海老名市・479床）", salary: "月給29〜38万円（目安）", holidays: "年間休日115日以上", nightShift: "あり（二交代制）", commute: "海老名駅徒歩7分" },
+      ];
+    }
+
+    if (!area || area === "other") {
+      return hospitals;
+    }
+
+    // Get city names for this medical district
+    var cities = PRESCRIPTED.areaCities && PRESCRIPTED.areaCities[area];
+    if (!cities || cities.length === 0) {
+      return hospitals;
+    }
+
+    // Filter hospitals by matching any city name in displayName
+    var filtered = [];
+    for (var i = 0; i < hospitals.length; i++) {
+      if (!hospitals[i].displayName) continue;
+      for (var c = 0; c < cities.length; c++) {
+        if (hospitals[i].displayName.indexOf(cities[c]) !== -1) {
+          filtered.push(hospitals[i]);
+          break;
+        }
+      }
+    }
+
+    // If no match, return all (better than showing nothing)
+    return filtered.length > 0 ? filtered : hospitals;
+  }
+
+  // --------------------------------------------------
+  // Button Group Rendering
+  // --------------------------------------------------
+  function showButtonGroup(options, handler) {
+    var container = document.createElement("div");
+    container.className = "chat-quick-replies";
+    container.id = "chatButtonGroup";
+
+    for (var i = 0; i < options.length; i++) {
+      (function (opt) {
+        var btn = document.createElement("button");
+        btn.className = "chat-quick-reply";
+        btn.textContent = opt.label;
+        btn.addEventListener("click", function () {
+          handler(opt.value, opt.label);
+        });
+        container.appendChild(btn);
+      })(options[i]);
+    }
+
+    els.body.appendChild(container);
+    scrollToBottom();
+  }
+
+  function removeButtonGroup() {
+    var group = document.getElementById("chatButtonGroup");
+    if (group) group.remove();
+  }
+
+  function setInputVisible(visible) {
+    var inputArea = els.input ? els.input.parentElement : null;
+    if (inputArea) {
+      inputArea.style.display = visible ? "flex" : "none";
+    }
+  }
+
+  // --------------------------------------------------
+  // Messages
+  // --------------------------------------------------
+  function escapeHtml(text) {
+    var div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function addMessage(role, content) {
+    chatState.messages.push({ role: role, content: content });
+
+    var msgEl = document.createElement("div");
+    msgEl.className = "chat-message " + role;
+
+    if (role === "ai") {
+      var avatar = document.createElement("div");
+      avatar.className = "chat-msg-avatar";
+      avatar.textContent = "R";
+      msgEl.appendChild(avatar);
+    }
+
+    var bubble = document.createElement("div");
+    bubble.className = "chat-bubble";
+    bubble.innerHTML = escapeHtml(content).replace(/\n/g, "<br>");
+    msgEl.appendChild(bubble);
+
+    els.body.appendChild(msgEl);
+    scrollToBottom();
+  }
+
+  function sendMessage() {
+    // Block typed messages during pre-scripted phase
+    if (chatState.prescriptedPhase !== "done") return;
+
+    var text = els.input.value.trim();
+    if (!text || chatState.isTyping || chatState.done || chatState.sendCooldown) return;
+
+    // Session message limit check
+    if (chatState.userMessageCount >= CLIENT_RATE_LIMIT.maxSessionMessages) {
+      addMessage("ai", "チャットの上限に達しました。専門エージェントからお電話にてご連絡いたします。");
+      els.input.disabled = true;
+      els.sendBtn.disabled = true;
+      return;
+    }
+
+    chatState.userMessageCount++;
+    addMessage("user", text);
+    els.input.value = "";
+    els.input.style.height = "auto";
+
+    // Add to API message history
+    chatState.apiMessages.push({ role: "user", content: text });
+
+    // Update step based on AI-phase message count (steps 3-5)
+    updateStep(getStepFromMessageCount(chatState.userMessageCount));
+
+    // Start send cooldown
+    startSendCooldown();
+
+    processResponse(text);
+  }
+
+  function startSendCooldown() {
+    chatState.sendCooldown = true;
+    chatState.lastSendTime = Date.now();
+    els.sendBtn.disabled = true;
+    els.input.disabled = true;
+
+    setTimeout(function () {
+      chatState.sendCooldown = false;
+      if (!chatState.isTyping && !chatState.done) {
+        els.sendBtn.disabled = false;
+        els.input.disabled = false;
+        els.input.focus();
+      }
+    }, CLIENT_RATE_LIMIT.sendCooldownMs);
+  }
+
+  // --------------------------------------------------
+  // Step Progression (AI phase, steps 3-5)
+  // Steps 1-2 are handled by pre-scripted flow
+  // --------------------------------------------------
+  function getStepFromMessageCount(count) {
+    if (count <= 2) return 3;  // 条件ヒアリング
+    if (count <= 4) return 4;  // 求人検索中
+    return 5;                   // ご案内準備完了
+  }
+
+  // --------------------------------------------------
+  // Response Processing (AI phase)
+  // --------------------------------------------------
+  function processResponse(userText) {
+    showTyping();
+
+    if (isAPIAvailable() && !chatState.demoMode) {
+      callAPI(chatState.apiMessages).then(function (response) {
+        hideTyping();
+        if (response && response.isError) {
+          // Error response: show message but don't advance conversation state
+          addMessage("ai", response.reply);
+          // Undo the user message count increment so errors don't consume turns
+          if (chatState.userMessageCount > 0) chatState.userMessageCount--;
+          chatState.apiMessages.pop(); // remove the user message from API history
+        } else if (response && isValidReply(response.reply)) {
+          handleAIResponse(response);
+        } else if (response && response.reply) {
+          addMessage("ai", "申し訳ございません。もう一度お話しいただけますか？");
+        } else {
+          addMessage("ai", getFallbackMessage());
+        }
+        maybeShowInlineCTA();
+      });
+    } else {
+      // Demo mode
+      var delay = 1000 + Math.random() * 1500;
+      setTimeout(function () {
+        hideTyping();
+        var response = DEMO_RESPONSES[chatState.demoIndex] || DEMO_RESPONSES[DEMO_RESPONSES.length - 1];
+        chatState.demoIndex = Math.min(chatState.demoIndex + 1, DEMO_RESPONSES.length - 1);
+        handleAIResponse(response);
+        maybeShowInlineCTA();
+      }, delay);
+    }
+  }
+
+  function handleAIResponse(response) {
+    addMessage("ai", response.reply);
+
+    // Track in API messages
+    chatState.apiMessages.push({ role: "assistant", content: response.reply });
+
+    // Update step from response (override if server says so)
+    if (response.step) {
+      updateStep(response.step);
+    }
+
+    // Update score
+    if (response.score) {
+      chatState.score = response.score;
+    }
+
+    // Check if conversation is done (from API or max messages reached)
+    if (response.done || chatState.userMessageCount >= CLIENT_RATE_LIMIT.maxSessionMessages) {
+      chatState.done = true;
+      chatState.summary = response.summary || "";
+      onConversationComplete();
+    }
+  }
+
+  // --------------------------------------------------
+  // Inline CTA (after 4+ user messages)
+  // --------------------------------------------------
+  function maybeShowInlineCTA() {
+    if (chatState.userMessageCount >= 4 && !chatState.ctaShown && !chatState.done) {
+      chatState.ctaShown = true;
+      var cta = document.createElement("button");
+      cta.className = "chat-inline-cta";
+      cta.textContent = "\uD83D\uDCDD 無料登録で詳しい条件をご案内 \u2192";
+      cta.onclick = function () {
+        var registerSection = document.getElementById("registerSection") || document.getElementById("register");
+        if (registerSection) {
+          registerSection.scrollIntoView({ behavior: "smooth" });
+        }
+        closeChat();
+      };
+      els.body.appendChild(cta);
+      scrollToBottom();
+    }
+  }
+
+  // --------------------------------------------------
+  // Response Validation
+  // --------------------------------------------------
+  function isValidReply(reply) {
+    if (!reply || typeof reply !== "string") return false;
+    if (reply.length < 5) return false;
+    if (reply.trim().charAt(0) === "{" || reply.trim().charAt(0) === "[") return false;
+    return true;
+  }
+
+  // --------------------------------------------------
+  // Step Indicator
+  // --------------------------------------------------
+  function updateStep(step) {
+    chatState.currentStep = step;
+
+    els.stepDots.forEach(function (dot, i) {
+      dot.classList.remove("active", "completed");
+      if (i + 1 < step) {
+        dot.classList.add("completed");
+      } else if (i + 1 === step) {
+        dot.classList.add("active");
+      }
+    });
+
+    if (els.stepLabel) {
+      els.stepLabel.textContent = step + "/5 " + (CHAT_CONFIG.stepLabels[step - 1] || "");
+    }
+  }
+
+  // --------------------------------------------------
+  // Typing Indicator
+  // --------------------------------------------------
+  function showTyping() {
+    chatState.isTyping = true;
+    if (els.sendBtn) els.sendBtn.disabled = true;
+    if (els.sendBtn) els.sendBtn.classList.add("loading");
+
+    var typing = document.createElement("div");
+    typing.className = "chat-typing";
+    typing.id = "chatTypingIndicator";
+
+    var avatar = document.createElement("div");
+    avatar.className = "chat-msg-avatar";
+    avatar.textContent = "R";
+    typing.appendChild(avatar);
+
+    var dots = document.createElement("div");
+    dots.className = "chat-typing-dots";
+    dots.innerHTML = "<span></span><span></span><span></span>";
+    typing.appendChild(dots);
+
+    els.body.appendChild(typing);
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    chatState.isTyping = false;
+    if (els.sendBtn) els.sendBtn.classList.remove("loading");
+
+    if (!chatState.sendCooldown && !chatState.done) {
+      if (els.sendBtn) els.sendBtn.disabled = false;
+      if (els.input) els.input.disabled = false;
+    }
+
+    var indicator = document.getElementById("chatTypingIndicator");
+    if (indicator) indicator.remove();
+  }
+
+  // --------------------------------------------------
+  // Temperature Score Auto-Detection
+  // --------------------------------------------------
+  function detectTemperatureScore() {
+    // If server already set a score, use it
+    if (chatState.score) return chatState.score;
+
+    var score = 0;
+    var userMessages = [];
+    for (var i = 0; i < chatState.messages.length; i++) {
+      if (chatState.messages[i].role === "user") {
+        userMessages.push(chatState.messages[i].content);
+      }
+    }
+    var allText = userMessages.join(" ");
+
+    // Urgency keywords (A-level signals)
+    var urgentKeywords = ["すぐ", "急ぎ", "今月", "来月", "退職済", "辞めた", "決まっている", "早く", "なるべく早"];
+    for (var u = 0; u < urgentKeywords.length; u++) {
+      if (allText.indexOf(urgentKeywords[u]) !== -1) { score += 3; break; }
+    }
+
+    // Active interest keywords (B-level signals)
+    var activeKeywords = ["面接", "見学", "応募", "給与", "年収", "月給", "具体的", "いつから", "条件"];
+    for (var a = 0; a < activeKeywords.length; a++) {
+      if (allText.indexOf(activeKeywords[a]) !== -1) { score += 1; }
+    }
+
+    // Engagement: message count
+    if (chatState.userMessageCount >= 5) { score += 2; }
+    else if (chatState.userMessageCount >= 3) { score += 1; }
+
+    // Message length engagement
+    var totalLen = 0;
+    for (var l = 0; l < userMessages.length; l++) { totalLen += userMessages[l].length; }
+    if (totalLen > 200) { score += 1; }
+
+    if (score >= 5) return "A";
+    if (score >= 3) return "B";
+    if (score >= 1) return "C";
+    return "D";
+  }
+
+  // --------------------------------------------------
+  // Build Structured Conversation Summary
+  // --------------------------------------------------
+  function buildConversationSummary() {
+    var score = detectTemperatureScore();
+    chatState.score = score;
+
+    return {
+      sessionId: chatState.sessionId,
+      phone: chatState.phone,
+      profession: chatState.profession || null,
+      area: chatState.area || null,
+      score: score,
+      messageCount: chatState.userMessageCount,
+      messages: chatState.messages,
+      summary: chatState.summary || null,
+      completedAt: new Date().toISOString(),
+    };
+  }
+
+  // --------------------------------------------------
+  // Conversation Complete
+  // --------------------------------------------------
+  function onConversationComplete() {
+    // Disable input
+    els.input.disabled = true;
+    els.sendBtn.disabled = true;
+    els.input.placeholder = "会話が完了しました";
+
+    // Build structured summary and send to backend
+    var summaryData = buildConversationSummary();
+    sendChatComplete(summaryData);
+
+    // Warm encouragement messages based on engagement level
+    var scoreMessages = {
+      A: {
+        text: "お話を聞かせていただきありがとうございました。ぴったりの職場、一緒に見つけましょう。",
+        sub: "担当エージェントが24時間以内にお電話いたします。",
+      },
+      B: {
+        text: "詳しくお聞かせいただきありがとうございました。あなたの経験が活きる職場をお探しします。",
+        sub: "担当エージェントが24時間以内にお電話いたします。",
+      },
+      C: {
+        text: "ご相談ありがとうございました。まずは情報収集からでも大丈夫です。お気軽にどうぞ。",
+        sub: "担当エージェントからご連絡いたします。ご都合の良い時間帯があればお知らせください。",
+      },
+      D: {
+        text: "お話しいただきありがとうございました。転職は大きな決断ですよね。いつでもご相談ください。",
+        sub: "気になることがあれば、いつでもまたお声がけくださいね。",
+      },
+    };
+
+    // After a short delay, show summary view
+    var msg = scoreMessages[summaryData.score] || scoreMessages["C"];
+    setTimeout(function () {
+      if (els.summaryText) {
+        els.summaryText.textContent = msg.text;
+      }
+      if (els.summaryScore) {
+        els.summaryScore.textContent = msg.sub;
+      }
+      showView("summary");
+    }, 2000);
+  }
+
+  // --------------------------------------------------
+  // API Integration
+  // --------------------------------------------------
+  function isAPIAvailable() {
+    return CHAT_CONFIG.workerEndpoint && CHAT_CONFIG.workerEndpoint.length > 0;
+  }
+
+  // Fetch with timeout wrapper
+  function fetchWithTimeout(url, options, timeoutMs) {
+    timeoutMs = timeoutMs || 20000;
+    return new Promise(function (resolve, reject) {
+      var aborted = false;
+      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      if (controller) {
+        options = Object.assign({}, options, { signal: controller.signal });
+      }
+
+      var timer = setTimeout(function () {
+        aborted = true;
+        if (controller) controller.abort();
+        reject(new Error("Request timeout"));
+      }, timeoutMs);
+
+      fetch(url, options).then(function (res) {
+        clearTimeout(timer);
+        if (!aborted) resolve(res);
+      }).catch(function (err) {
+        clearTimeout(timer);
+        if (!aborted) reject(err);
+      });
+    });
+  }
+
+  // Error fallback messages
+  var FALLBACK_MESSAGES = [
+    "申し訳ございません。一時的に接続が不安定です。少し時間をおいて再度お試しください。",
+    "通信環境をご確認のうえ、再度メッセージを送信してください。",
+    "ただいま混み合っております。しばらくお待ちいただいてから再度お試しください。",
+  ];
+
+  function getFallbackMessage() {
+    var idx = Math.floor(Math.random() * FALLBACK_MESSAGES.length);
+    return FALLBACK_MESSAGES[idx];
+  }
+
+  async function callAPI(messages) {
+    try {
+      var response = await fetchWithTimeout(CHAT_CONFIG.workerEndpoint + "/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: messages,
+          sessionId: chatState.sessionId,
+          phone: chatState.phone,
+          token: chatState.token,
+          timestamp: chatState.tokenTimestamp,
+          profession: chatState.profession,
+          area: chatState.area,
+        }),
+      }, 20000);
+
+      if (response.status === 429) {
+        var errData = {};
+        try { errData = await response.json(); } catch (e) { /* ignore */ }
+        return {
+          reply: errData.error || "リクエストが多すぎます。少しお待ちください。",
+          step: chatState.currentStep,
+          score: null,
+          done: false,
+        };
+      }
+
+      if (!response.ok) {
+        throw new Error("API response " + response.status);
+      }
+
+      var data = await response.json();
+
+      // Parse the response - the worker should return the AI's JSON
+      if (typeof data.reply === "string") {
+        return data;
+      }
+
+      // If the API returns raw text, try parsing it
+      if (data.content) {
+        try {
+          return JSON.parse(data.content);
+        } catch (e) {
+          return { reply: data.content, step: chatState.currentStep, score: null, done: false };
+        }
+      }
+
+      return null;
+    } catch (err) {
+      console.error("[Chat API Error]", err);
+      // Return a user-friendly fallback instead of null
+      if (err.message === "Request timeout") {
+        return {
+          reply: "応答に時間がかかっております。もう一度お試しいただけますか？",
+          step: chatState.currentStep,
+          score: null,
+          done: false,
+          isError: true,
+        };
+      }
+      return {
+        reply: getFallbackMessage(),
+        step: chatState.currentStep,
+        score: null,
+        done: false,
+        isError: true,
+      };
+    }
+  }
+
+  async function sendChatComplete(summaryData) {
+    if (!CHAT_CONFIG.workerEndpoint || chatState.messages.length < 2) return;
+    try {
+      await fetchWithTimeout(CHAT_CONFIG.workerEndpoint + "/api/chat-complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: chatState.phone,
+          sessionId: chatState.sessionId,
+          token: chatState.token,
+          timestamp: chatState.tokenTimestamp,
+          messages: chatState.messages,
+          profession: chatState.profession,
+          area: chatState.area,
+          score: summaryData ? summaryData.score : null,
+          messageCount: summaryData ? summaryData.messageCount : chatState.userMessageCount,
+          completedAt: summaryData ? summaryData.completedAt : new Date().toISOString(),
+        }),
+      }, 15000);
+    } catch (err) {
+      console.error("[Chat] chat-complete error:", err);
+    }
+  }
+
+  // --------------------------------------------------
+  // Utilities
+  // --------------------------------------------------
+  function scrollToBottom() {
+    requestAnimationFrame(function () {
+      els.body.scrollTop = els.body.scrollHeight;
+    });
+  }
+
+  // --------------------------------------------------
+  // Initialize on DOM ready
+  // --------------------------------------------------
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

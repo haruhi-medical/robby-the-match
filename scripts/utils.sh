@@ -1,9 +1,9 @@
 #!/bin/bash
-# ROBBY THE MATCH — 共通関数
+# ROBBY THE MATCH 共通関数
+# 全PDCAスクリプトはこれをsourceして使う
 
 PROJECT_DIR="$HOME/robby-the-match"
 cd "$PROJECT_DIR"
-
 export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:$HOME/.npm-global/bin"
 
 TODAY=$(date +%Y-%m-%d)
@@ -25,7 +25,6 @@ git_sync() {
   if ! git diff --cached --quiet; then
     git commit -m "$msg"
     git push origin main 2>> "$LOG" || echo "[WARN] git push失敗" >> "$LOG"
-    echo "[OK] git sync: $msg" >> "$LOG"
   else
     echo "[INFO] 変更なし" >> "$LOG"
   fi
@@ -33,39 +32,33 @@ git_sync() {
 
 slack_notify() {
   local message=$1
-  if [ -f "$PROJECT_DIR/scripts/notify_slack.py" ]; then
-    python3 "$PROJECT_DIR/scripts/notify_slack.py" --message "$message" 2>> "$LOG" \
-      || echo "[WARN] Slack通知失敗" >> "$LOG"
-  else
-    echo "[WARN] notify_slack.py未作成。Slack通知スキップ。" >> "$LOG"
-  fi
+  local channel=${2:-"general"}
+  python3 "$PROJECT_DIR/scripts/notify_slack.py" --message "$message" 2>> "$LOG" \
+    || echo "[WARN] Slack通知失敗" >> "$LOG"
 }
 
-slack_report() {
-  # PROGRESS.mdの今日のセクションをSlackに送信
+slack_report_structured() {
+  local report_type=${1:-"daily"}
+  python3 "$PROJECT_DIR/scripts/slack_report.py" --report "$report_type" 2>> "$LOG" \
+    || echo "[WARN] Slack構造化レポート失敗" >> "$LOG"
+}
+
+update_state() {
   local section=$1
-  local today_section=$(sed -n "/## ${TODAY}/,/## [0-9]/p" PROGRESS.md | head -30)
-  if [ -n "$today_section" ]; then
-    slack_notify "$section 完了。
----
-$today_section"
-  else
-    slack_notify "$section 完了。PROGRESS.md更新済み。"
-  fi
+  python3 -c "
+import re
+with open('STATE.md', 'r') as f: text = f.read()
+text = re.sub(r'# 最終更新:.*', '# 最終更新: $(date "+%Y-%m-%d %H:%M") by ${section}', text)
+with open('STATE.md', 'w') as f: f.write(text)
+" 2>> "$LOG" || echo "[WARN] STATE.md更新失敗" >> "$LOG"
 }
 
 update_progress() {
-  # PROGRESS.mdに今日のエントリを追記
   local cycle=$1
   local content=$2
-
-  # 今日のセクションがなければ作成
   if ! grep -q "## ${TODAY}" PROGRESS.md 2>/dev/null; then
-    echo "" >> PROGRESS.md
-    echo "## ${TODAY}" >> PROGRESS.MD
-    echo "" >> PROGRESS.md
+    echo -e "\n## ${TODAY}\n" >> PROGRESS.md
   fi
-
   echo "### ${cycle}（${NOW}）" >> PROGRESS.md
   echo "$content" >> PROGRESS.md
   echo "" >> PROGRESS.md
@@ -81,7 +74,7 @@ run_claude() {
   local exit_code=$?
   if [ $exit_code -eq 124 ]; then
     echo "[TIMEOUT] ${max_minutes}分超過" >> "$LOG"
-    slack_notify "⏰ Claude Code ${max_minutes}分タイムアウト。"
+    slack_notify "⏰ タイムアウト（${max_minutes}分）" "alert"
   fi
   return $exit_code
 }

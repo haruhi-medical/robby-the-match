@@ -1,0 +1,75 @@
+{
+  "content_formula": "[看護師あるある] + [AIにやらせてみた] → [予想外の結果・相手が黙った]",
+
+  "content_mix_ratio": {
+    "nurse_daily_x_ai": 0.40,
+    "career_x_ai_simulation": 0.25,
+    "salary_x_ai_analysis": 0.20,
+    "service_introduction": 0.05,
+    "trend_surfing": 0.10
+  },
+
+  "cta_ratio": {
+    "soft_cta": 0.80,
+    "hard_cta": 0.20
+  },
+
+  "posting_schedule": {
+    "tiktok": {
+      "frequency": "daily_or_every_other_day",
+      "min_per_week": 4
+    },
+    "instagram_reels": {
+      "frequency": "3_per_week"
+    },
+    "instagram_carousel": {
+      "frequency": "2_per_week"
+    },
+    "instagram_stories": {
+      "frequency": "daily",
+      "purpose": "LINE誘導リンク常設"
+    }
+  },
+
+  "optimal_posting_times": [
+    {"time": "07:00-08:00", "reason": "日勤前の支度中", "priority": 3},
+    {"time": "12:00-13:00", "reason": "昼休憩", "priority": 4},
+    {"time": "17:30-18:30", "reason": "日勤後の帰宅中", "priority": 5},
+    {"time": "21:00-22:00", "reason": "夜のリラックスタイム", "priority": 4},
+    {"time": "00:00-01:00", "reason": "夜勤の休憩中", "priority": 3}
+  ],
+
+  "hashtags": [
+    "#看護師あるある",
+    "#ナースあるある",
+    "#看護師転職",
+    "#夜勤あるある",
+    "#看護師の日常",
+    "#病棟あるある",
+    "#看護師辞めたい",
+    "#ナースの本音",
+    "#AI看護師",
+    "#看護師さんと繋がりたい"
+  ],
+
+  "prohibited_content": [
+    "患者の個人情報",
+    "実在病院名の批判",
+    "お祝い金・金銭キャンペーン",
+    "虚偽の求人条件",
+    "毎回のサービス名連呼",
+    "横長画像（1536×1024）",
+    "小さすぎるテキスト",
+    "自分語りフック"
+  ],
+
+  "performance_targets": {
+    "phase1": {
+      "duration_months": 6,
+      "sns_reach_per_month": 100000,
+      "line_registrations_per_month": 20,
+      "interviews_per_month": 5,
+      "placements_per_month": 1
+    }
+  }
+}

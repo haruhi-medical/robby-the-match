@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D1B2A;stop-opacity:1" />
+      <stop offset="40%" style="stop-color:#112240;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0D1B2A;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#38BDF8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34D399;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#38BDF8;stop-opacity:0.12" />
+      <stop offset="100%" style="stop-color:#34D399;stop-opacity:0.04" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)" />
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.03" stroke="#38BDF8" stroke-width="0.5" fill="none">
+    <line x1="0" y1="0" x2="0" y2="630" /><line x1="60" y1="0" x2="60" y2="630" />
+    <line x1="120" y1="0" x2="120" y2="630" /><line x1="180" y1="0" x2="180" y2="630" />
+    <line x1="240" y1="0" x2="240" y2="630" /><line x1="300" y1="0" x2="300" y2="630" />
+    <line x1="360" y1="0" x2="360" y2="630" /><line x1="420" y1="0" x2="420" y2="630" />
+    <line x1="480" y1="0" x2="480" y2="630" /><line x1="540" y1="0" x2="540" y2="630" />
+    <line x1="600" y1="0" x2="600" y2="630" /><line x1="660" y1="0" x2="660" y2="630" />
+    <line x1="720" y1="0" x2="720" y2="630" /><line x1="780" y1="0" x2="780" y2="630" />
+    <line x1="840" y1="0" x2="840" y2="630" /><line x1="900" y1="0" x2="900" y2="630" />
+    <line x1="960" y1="0" x2="960" y2="630" /><line x1="1020" y1="0" x2="1020" y2="630" />
+    <line x1="1080" y1="0" x2="1080" y2="630" /><line x1="1140" y1="0" x2="1140" y2="630" />
+    <line x1="0" y1="0" x2="1200" y2="0" /><line x1="0" y1="60" x2="1200" y2="60" />
+    <line x1="0" y1="120" x2="1200" y2="120" /><line x1="0" y1="180" x2="1200" y2="180" />
+    <line x1="0" y1="240" x2="1200" y2="240" /><line x1="0" y1="300" x2="1200" y2="300" />
+    <line x1="0" y1="360" x2="1200" y2="360" /><line x1="0" y1="420" x2="1200" y2="420" />
+    <line x1="0" y1="480" x2="1200" y2="480" /><line x1="0" y1="540" x2="1200" y2="540" />
+  </g>
+
+  <!-- Radial glow center -->
+  <ellipse cx="600" cy="280" rx="450" ry="260" fill="url(#glowGrad)" />
+
+  <!-- Decorative circles -->
+  <circle cx="180" cy="120" r="60" fill="none" stroke="#38BDF8" stroke-width="0.5" opacity="0.08" />
+  <circle cx="1020" cy="500" r="80" fill="none" stroke="#34D399" stroke-width="0.5" opacity="0.08" />
+  <circle cx="950" cy="130" r="40" fill="none" stroke="#38BDF8" stroke-width="0.5" opacity="0.06" />
+
+  <!-- Top accent line -->
+  <rect x="380" y="165" width="440" height="2" fill="url(#accentGrad)" opacity="0.5" rx="1" />
+
+  <!-- Brand name: ROBBY -->
+  <text x="600" y="270" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="800" fill="#FFFFFF" letter-spacing="8">
+    ROBBY
+  </text>
+
+  <!-- Brand name: THE MATCH -->
+  <text x="600" y="355" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="800" fill="url(#accentGrad)" letter-spacing="8" filter="url(#glow)">
+    THE MATCH
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="420" text-anchor="middle" font-family="'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif" font-size="28" fill="#E0E0E0" letter-spacing="3">
+    手数料10%の医療人材紹介
+  </text>
+
+  <!-- Bottom accent line -->
+  <rect x="430" y="445" width="340" height="2" fill="url(#accentGrad)" opacity="0.5" rx="1" />
+
+  <!-- Feature badges -->
+  <g transform="translate(300, 490)">
+    <rect x="0" y="0" width="140" height="36" rx="18" fill="rgba(56,189,248,0.1)" stroke="#38BDF8" stroke-width="0.8" />
+    <text x="70" y="23" text-anchor="middle" font-family="'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif" font-size="13" fill="#38BDF8" font-weight="600">看護師転職</text>
+  </g>
+  <g transform="translate(460, 490)">
+    <rect x="0" y="0" width="140" height="36" rx="18" fill="rgba(52,211,153,0.1)" stroke="#34D399" stroke-width="0.8" />
+    <text x="70" y="23" text-anchor="middle" font-family="'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif" font-size="13" fill="#34D399" font-weight="600">理学療法士転職</text>
+  </g>
+  <g transform="translate(620, 490)">
+    <rect x="0" y="0" width="140" height="36" rx="18" fill="rgba(56,189,248,0.1)" stroke="#38BDF8" stroke-width="0.8" />
+    <text x="70" y="23" text-anchor="middle" font-family="'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif" font-size="13" fill="#38BDF8" font-weight="600">神奈川県西部</text>
+  </g>
+  <g transform="translate(780, 490)">
+    <rect x="0" y="0" width="140" height="36" rx="18" fill="rgba(52,211,153,0.1)" stroke="#34D399" stroke-width="0.8" />
+    <text x="70" y="23" text-anchor="middle" font-family="'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif" font-size="13" fill="#34D399" font-weight="600">24時間AI相談</text>
+  </g>
+
+  <!-- Company name -->
+  <text x="600" y="575" text-anchor="middle" font-family="'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif" font-size="15" fill="#6080A0" letter-spacing="1.5">
+    株式会社はるひメディカルサービス｜有料職業紹介 23-ユ-302928
+  </text>
+</svg>

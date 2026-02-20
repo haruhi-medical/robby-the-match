@@ -1,0 +1,91 @@
+{
+  "project_name": "ROBBY_THE_MATCH",
+  "version": "2.0",
+  "agent_role": "ロビー - SNSコンテンツ生成AI",
+  "operation_mode": "autonomous_with_approval",
+
+  "agents": {
+    "content_generator": {
+      "name": "コンテンツ生成エージェント",
+      "role": "TikTok/Instagram用スライドショー台本生成",
+      "model": "claude-sonnet-4-5",
+      "auto_run": true,
+      "requires_approval": false
+    },
+    "image_generator": {
+      "name": "画像生成エージェント",
+      "role": "縦型スライド画像生成（1024×1536）",
+      "model": "gpt-image-1",
+      "auto_run": true,
+      "requires_approval": false
+    },
+    "caption_generator": {
+      "name": "キャプション生成エージェント",
+      "role": "投稿キャプション＋ハッシュタグ生成",
+      "model": "claude-sonnet-4-5",
+      "auto_run": true,
+      "requires_approval": false
+    },
+    "scheduler": {
+      "name": "投稿スケジューラー",
+      "role": "Postiz経由で下書きアップロード",
+      "auto_run": true,
+      "requires_approval": true,
+      "approval_method": "human_review"
+    },
+    "performance_analyzer": {
+      "name": "パフォーマンス分析エージェント",
+      "role": "投稿データ収集・勝ちパターン分析",
+      "model": "claude-sonnet-4-5",
+      "auto_run": false,
+      "schedule": "weekly"
+    }
+  },
+
+  "daily_workflow": {
+    "enabled": true,
+    "steps": [
+      "topic_selection",
+      "script_generation",
+      "image_generation",
+      "caption_generation",
+      "postiz_draft_upload",
+      "human_approval_request",
+      "data_logging"
+    ]
+  },
+
+  "approval_gates": {
+    "before_posting": true,
+    "legal_check": true,
+    "brand_check": true
+  },
+
+  "integrations": {
+    "postiz": {
+      "enabled": false,
+      "api_key_env": "POSTIZ_API_KEY"
+    },
+    "claude_api": {
+      "enabled": true,
+      "api_key_env": "ANTHROPIC_API_KEY"
+    },
+    "openai_api": {
+      "enabled": true,
+      "api_key_env": "OPENAI_API_KEY",
+      "model": "gpt-image-1"
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_env": "SLACK_WEBHOOK_URL",
+      "notification_channel": "#robby-approvals"
+    }
+  },
+
+  "constraints": {
+    "max_posts_per_day": 2,
+    "min_hours_between_posts": 6,
+    "max_api_cost_per_day_jpy": 3000,
+    "require_human_approval": true
+  }
+}

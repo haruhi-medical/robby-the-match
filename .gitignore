@@ -1,7 +1,13 @@
 .env
+slack-bot.env
 logs/
 content/generated/
 __pycache__/
 *.pyc
 node_modules/
 .DS_Store
+*.tmp
+.slack-prompt.tmp
+api/.wrangler/
+Thumbs.db
+*.log

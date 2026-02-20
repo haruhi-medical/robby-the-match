@@ -1,0 +1,20 @@
+name = "robby-the-match-api"
+main = "worker.js"
+compatibility_date = "2024-12-01"
+
+# 環境変数（デプロイ前に wrangler secret で設定すること）
+# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put SLACK_WEBHOOK_URL
+# wrangler secret put GOOGLE_SHEETS_ID
+# wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
+# wrangler secret put ALLOWED_ORIGIN
+
+[vars]
+# 非機密の環境変数はここに記載可能
+# ALLOWED_ORIGIN = "https://your-domain.com"
+CHAT_MODEL = "claude-haiku-4-5-20251001"
+
+# ルーティング設定（カスタムドメイン使用時）
+# [routes]
+# pattern = "api.your-domain.com/*"
+# zone_name = "your-domain.com"

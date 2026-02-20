@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBBY THE MATCH | KPI Dashboard</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div class="dash-login-overlay" id="loginOverlay">
+    <div class="dash-login-card">
+      <div class="dash-login-logo">ROBBY <span class="dash-logo-accent">THE MATCH</span></div>
+      <div class="dash-login-badge">DASHBOARD</div>
+      <h2 class="dash-login-title">管理画面ログイン</h2>
+      <form id="loginForm" onsubmit="return false;">
+        <div class="dash-login-field">
+          <label for="loginId">ユーザーID</label>
+          <input type="text" id="loginId" placeholder="IDを入力" autocomplete="username" required>
+        </div>
+        <div class="dash-login-field">
+          <label for="loginPass">パスワード</label>
+          <input type="password" id="loginPass" placeholder="パスワードを入力" autocomplete="current-password" required>
+        </div>
+        <p class="dash-login-error" id="loginError"></p>
+        <button type="submit" class="dash-login-btn" id="loginBtn">ログイン</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="dash-header">
+    <div class="dash-container dash-header-inner">
+      <div class="dash-logo">
+        <span class="dash-logo-text">ROBBY <span class="dash-logo-accent">THE MATCH</span></span>
+        <span class="dash-logo-badge">DASHBOARD</span>
+      </div>
+      <div class="dash-period-selector">
+        <button class="dash-period-btn" data-period="today">今日</button>
+        <button class="dash-period-btn" data-period="week">今週</button>
+        <button class="dash-period-btn active" data-period="month">今月</button>
+        <button class="dash-period-btn" data-period="all">全期間</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dash-main">
+    <div class="dash-container">
+
+      <!-- Summary Cards -->
+      <section class="dash-summary">
+        <div class="dash-card dash-summary-card">
+          <div class="dash-card-header">
+            <span class="dash-card-icon">+</span>
+            <span class="dash-card-label">新規登録数</span>
+          </div>
+          <div class="dash-card-value" data-count="47" data-suffix="件">0件</div>
+          <div class="dash-card-trend dash-trend-up">
+            <span class="dash-trend-arrow">&#9650;</span> 前月比 +12.3%
+          </div>
+        </div>
+        <div class="dash-card dash-summary-card">
+          <div class="dash-card-header">
+            <span class="dash-card-icon">AI</span>
+            <span class="dash-card-label">AI完了率</span>
+          </div>
+          <div class="dash-card-value" data-count="82" data-suffix="%">0%</div>
+          <div class="dash-card-trend dash-trend-up">
+            <span class="dash-trend-arrow">&#9650;</span> 目標80%達成
+          </div>
+        </div>
+        <div class="dash-card dash-summary-card">
+          <div class="dash-card-header">
+            <span class="dash-card-icon">&#9742;</span>
+            <span class="dash-card-label">面接設定率</span>
+          </div>
+          <div class="dash-card-value" data-count="63" data-suffix="%">0%</div>
+          <div class="dash-card-trend dash-trend-up">
+            <span class="dash-trend-arrow">&#9650;</span> 目標60%達成
+          </div>
+        </div>
+        <div class="dash-card dash-summary-card">
+          <div class="dash-card-header">
+            <span class="dash-card-icon">&yen;</span>
+            <span class="dash-card-label">月間売上</span>
+          </div>
+          <div class="dash-card-value" data-count="200" data-suffix="万円">0万円</div>
+          <div class="dash-card-trend dash-trend-up">
+            <span class="dash-trend-arrow">&#9650;</span> 前月比 +8.5%
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Row 1: Registration trend + Traffic sources -->
+      <section class="dash-charts-row">
+        <div class="dash-card dash-chart-card dash-chart-wide">
+          <h3 class="dash-chart-title">登録数推移（過去30日）</h3>
+          <div class="dash-chart-wrap">
+            <canvas id="registrationChart"></canvas>
+          </div>
+        </div>
+        <div class="dash-card dash-chart-card dash-chart-narrow">
+          <h3 class="dash-chart-title">流入源内訳</h3>
+          <div class="dash-chart-wrap dash-chart-donut-wrap">
+            <canvas id="trafficChart"></canvas>
+            <div class="dash-donut-center">
+              <span class="dash-donut-total" data-count="47" data-suffix="">0</span>
+              <span class="dash-donut-label">総登録</span>
+            </div>
+          </div>
+          <div id="trafficLegend" class="dash-legend"></div>
+        </div>
+      </section>
+
+      <!-- Charts Row 2: Funnel + Revenue -->
+      <section class="dash-charts-row">
+        <div class="dash-card dash-chart-card dash-chart-wide">
+          <h3 class="dash-chart-title">コンバージョンファネル</h3>
+          <div class="dash-chart-wrap">
+            <canvas id="funnelChart"></canvas>
+          </div>
+        </div>
+        <div class="dash-card dash-chart-card dash-chart-narrow">
+          <h3 class="dash-chart-title">売上推移（過去6ヶ月）</h3>
+          <div class="dash-chart-wrap">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Speed Indicators -->
+      <section class="dash-speed-section">
+        <h3 class="dash-section-title">スピード指標</h3>
+        <div class="dash-speed-grid">
+          <div class="dash-card dash-speed-card">
+            <div class="dash-speed-gauge-wrap">
+              <canvas id="speedGauge1" width="140" height="140"></canvas>
+              <div class="dash-speed-gauge-value">
+                <span data-count="18" data-suffix="h">0h</span>
+              </div>
+            </div>
+            <div class="dash-speed-label">AI完了 → 初回架電</div>
+            <div class="dash-speed-target">目標: 24時間以内</div>
+            <div class="dash-card-trend dash-trend-up">達成</div>
+          </div>
+          <div class="dash-card dash-speed-card">
+            <div class="dash-speed-gauge-wrap">
+              <canvas id="speedGauge2" width="140" height="140"></canvas>
+              <div class="dash-speed-gauge-value">
+                <span data-count="5" data-suffix="日">0日</span>
+              </div>
+            </div>
+            <div class="dash-speed-label">面接設定 → 実施</div>
+            <div class="dash-speed-target">目標: 7日以内</div>
+            <div class="dash-card-trend dash-trend-up">達成</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tables -->
+      <section class="dash-tables-row">
+        <!-- Recent registrants -->
+        <div class="dash-card dash-table-card">
+          <h3 class="dash-chart-title">最近の登録者</h3>
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>日時</th>
+                  <th>氏名</th>
+                  <th>職種</th>
+                  <th>ステータス</th>
+                  <th>温度感</th>
+                </tr>
+              </thead>
+              <tbody id="registrantsTable"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Tasks -->
+        <div class="dash-card dash-table-card">
+          <h3 class="dash-chart-title">対応タスク一覧</h3>
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>タスク</th>
+                  <th>担当</th>
+                  <th>期限</th>
+                  <th>ステータス</th>
+                </tr>
+              </thead>
+              <tbody id="tasksTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
