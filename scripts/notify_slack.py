@@ -19,7 +19,7 @@ load_dotenv(project_root / ".env")
 
 # Slack Bot Token
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C08SKJBLW7A")
+SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C09A7U4TV4G")
 
 if not SLACK_BOT_TOKEN:
     print("❌ エラー: SLACK_BOT_TOKEN が.envに設定されていません")
@@ -121,7 +121,7 @@ def send_slack_notification(json_path: Path = None, message: str = None):
 
     elif message:
         # シンプルなメッセージ通知
-        payload = {"text": message}
+        payload = {"text": message, "channel": SLACK_CHANNEL_ID}
 
     else:
         print("❌ エラー: --json または --message のいずれかが必要です")
