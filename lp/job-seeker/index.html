@@ -209,6 +209,41 @@
     }
     </script>
 
+    <!-- JSON-LD: LocalBusiness -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "ROBBY THE MATCH",
+      "description": "神奈川県西部を中心とした看護師転職サポート。手数料10%で病院にも優しい転職エージェント。",
+      "url": "https://haruhi-medical.github.io/robby-the-match/",
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "神奈川県",
+        "addressLocality": "小田原市",
+        "addressCountry": "JP"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "35.2561",
+        "longitude": "139.1562"
+      },
+      "areaServed": [
+        {"@type": "City", "name": "小田原市"},
+        {"@type": "City", "name": "秦野市"},
+        {"@type": "City", "name": "平塚市"},
+        {"@type": "City", "name": "南足柄市"},
+        {"@type": "City", "name": "伊勢原市"},
+        {"@type": "City", "name": "厚木市"},
+        {"@type": "City", "name": "海老名市"},
+        {"@type": "City", "name": "藤沢市"},
+        {"@type": "City", "name": "茅ヶ崎市"}
+      ],
+      "priceRange": "無料（求職者側）",
+      "openingHours": "Mo-Fr 09:00-18:00"
+    }
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -826,10 +861,15 @@
                         <td>100-150万円</td>
                         <td class="highlight-row"><strong>50万円</strong></td>
                     </tr>
-                    <tr>
-                        <td><strong>病院の採用しやすさ</strong></td>
-                        <td>コスト高で慎重</td>
-                        <td class="highlight-row"><strong>コスト低で前向き</strong></td>
+                    <tr style="background: #fff3e0;">
+                        <td><strong>病院の採用コスト削減</strong></td>
+                        <td>-</td>
+                        <td class="highlight-row" style="color: #e65100; font-size: 1.1rem;"><strong>▼40〜100万円</strong></td>
+                    </tr>
+                    <tr style="background: #e8f5e9;">
+                        <td><strong>あなたの転職成功率</strong></td>
+                        <td>病院がコスト高で慎重</td>
+                        <td class="highlight-row" style="color: #2a9d8f;"><strong>採用されやすい</strong></td>
                     </tr>
                     <tr>
                         <td><strong>求職者の費用</strong></td>
@@ -1000,6 +1040,28 @@
         </div>
     </section>
 
+    <!-- Voice of Nurses -->
+    <section>
+        <div class="container">
+            <h2>看護師さんからよくいただく声</h2>
+            <div style="display:flex;gap:20px;flex-wrap:wrap;margin:30px 0;">
+                <div style="flex:1;min-width:220px;background:#f8f9fa;border-radius:10px;padding:24px;border-left:4px solid #2a9d8f;">
+                    <p style="font-size:1.05rem;line-height:1.7;margin-bottom:12px;">"手数料10%だから病院が前向きで、<strong>思ったより早く面接が決まりました</strong>"</p>
+                    <p style="font-size:0.85rem;color:#888;">5年目看護師 / 小田原市の病院へ転職</p>
+                </div>
+                <div style="flex:1;min-width:220px;background:#f8f9fa;border-radius:10px;padding:24px;border-left:4px solid #2a9d8f;">
+                    <p style="font-size:1.05rem;line-height:1.7;margin-bottom:12px;">"LINEだけでやりとりできて、<strong>しつこい電話がないのが本当に良かった</strong>"</p>
+                    <p style="font-size:0.85rem;color:#888;">7年目看護師 / 秦野市から平塚市へ</p>
+                </div>
+                <div style="flex:1;min-width:220px;background:#f8f9fa;border-radius:10px;padding:24px;border-left:4px solid #2a9d8f;">
+                    <p style="font-size:1.05rem;line-height:1.7;margin-bottom:12px;">"地域密着だから、<strong>通勤時間や職場の雰囲気まで細かく教えてもらえた</strong>"</p>
+                    <p style="font-size:0.85rem;color:#888;">3年目看護師 / 厚木市在住</p>
+                </div>
+            </div>
+            <p style="text-align:center;font-size:0.8rem;color:#aaa;">※上記はサービス利用者の声を元にした想定例です</p>
+        </div>
+    </section>
+
     <!-- FAQ -->
     <section id="faq">
         <div class="container">
@@ -1065,8 +1127,10 @@
 
     <!-- Sticky Mobile CTA Bar -->
     <div class="sticky-cta-bar" id="stickyCta">
-        <a href="https://lin.ee/HJwmQgp4" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'sticky_mobile_cta'});">LINEで無料相談する</a>
-        <div class="sticky-note">費用0円 / 登録30秒 / いつでもブロックOK</div>
+        <a href="https://lin.ee/HJwmQgp4" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'sticky_mobile_cta'});" style="line-height:1.4;">
+            <span style="font-size:0.8rem;opacity:0.9;">手数料10%で病院が採用しやすい</span><br>LINEで無料相談する
+        </a>
+        <div class="sticky-note">30秒で登録 / いつでもブロックOK / 費用0円</div>
     </div>
 
     <script>

@@ -124,3 +124,56 @@ handle_error() {
   echo "[ERROR] $step" >> "$LOG"
   slack_notify "⚠️ エラー: $step"
 }
+
+# ==========================================
+# エージェント状態管理
+# ==========================================
+
+AGENT_STATE_FILE="$PROJECT_DIR/data/agent_state.json"
+
+update_agent_state() {
+  local agent_name="$1"
+  local status="$2"
+  python3 -c "
+import json
+from datetime import datetime
+try:
+    with open('$AGENT_STATE_FILE', 'r') as f:
+        state = json.load(f)
+    state['lastRun']['$agent_name'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    state['status']['$agent_name'] = '$status'
+    with open('$AGENT_STATE_FILE', 'w') as f:
+        json.dump(state, f, indent=2, ensure_ascii=False)
+except Exception as e:
+    print(f'[WARN] agent_state更新失敗: {e}')
+" 2>> "$LOG" || echo "[WARN] agent_state更新失敗" >> "$LOG"
+}
+
+handle_failure() {
+  local agent_name="$1"
+  local error_msg="$2"
+  echo "[$agent_name] FAILURE: $error_msg" >> "$LOG"
+  update_agent_state "$agent_name" "failed"
+  slack_notify "⚠️ $agent_name failed: $error_msg"
+}
+
+check_instructions() {
+  # Slack指示キューに自分宛の指示があるか確認
+  local agent_name="$1"
+  python3 -c "
+import json
+try:
+    with open('$PROJECT_DIR/data/slack_instructions.json', 'r') as f:
+        data = json.load(f)
+    instructions = data.get('instructions', [])
+    pending = [i for i in instructions if i.get('to') == '$agent_name' and i.get('status') == 'pending']
+    if pending:
+        print(f'[INFO] {len(pending)}件の指示あり')
+        for i in pending:
+            print(f'  - {i.get(\"message\", \"\")}')
+except FileNotFoundError:
+    pass
+except Exception as e:
+    print(f'[WARN] 指示チェック失敗: {e}')
+" 2>> "$LOG"
+}

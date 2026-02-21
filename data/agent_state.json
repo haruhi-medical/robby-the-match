@@ -1,0 +1,50 @@
+{
+  "lastRun": {
+    "seo_optimizer": null,
+    "health_monitor": null,
+    "competitor_analyst": null,
+    "content_creator": null,
+    "daily_reviewer": null,
+    "weekly_strategist": null,
+    "slack_commander": null
+  },
+  "status": {
+    "seo_optimizer": "pending",
+    "health_monitor": "pending",
+    "competitor_analyst": "pending",
+    "content_creator": "pending",
+    "daily_reviewer": "pending",
+    "weekly_strategist": "pending",
+    "slack_commander": "pending"
+  },
+  "pendingTasks": {},
+  "sharedContext": {
+    "topPerformingTags": [],
+    "contentMixThisWeek": {
+      "あるある": 0,
+      "転職": 0,
+      "給与": 0,
+      "サービス紹介": 0,
+      "トレンド": 0
+    },
+    "totalPostsThisWeek": 0,
+    "lastDeployTimestamp": null,
+    "knownIssues": []
+  },
+  "agentMemory": {
+    "content_creator": {
+      "highPerformingPatterns": [],
+      "failedPatterns": [],
+      "contentIdCounter": 0
+    },
+    "seo_optimizer": {
+      "lastSitemapUpdate": null,
+      "pagesOptimized": 0,
+      "pendingKeywords": []
+    },
+    "competitor_analyst": {
+      "trackedAccounts": [],
+      "trendingTopics": []
+    }
+  }
+}
