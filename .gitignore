@@ -13,3 +13,5 @@ content/temp_videos/
 api/.wrangler/
 Thumbs.db
 *.log
+TK_cookies_*.json
+.venv/

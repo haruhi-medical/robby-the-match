@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-02-21T18:44:06.706891",
+  "updated": "2026-02-21T19:57:48.228416",
   "posts": [
     {
       "id": 1,
@@ -20,7 +20,7 @@
       "cta_type": "soft",
       "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_20260220_A01_20260221.mp4",
-      "posted_at": "2026-02-21T18:42:15.863116",
+      "posted_at": "2026-02-21T19:56:32.249490",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -28,7 +28,8 @@
         "likes": null,
         "saves": null,
         "comments": null
-      }
+      },
+      "verified": true
     },
     {
       "id": 2,
@@ -47,15 +48,16 @@
       "cta_type": "soft",
       "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_20260220_A02_20260221.mp4",
-      "posted_at": "2026-02-21T18:44:06.706877",
+      "posted_at": "2026-02-21T19:57:48.228400",
       "tiktok_url": null,
-      "error": null,
+      "error": "unverified_reset",
       "performance": {
         "views": null,
         "likes": null,
         "saves": null,
         "comments": null
-      }
+      },
+      "verified": true
     },
     {
       "id": 3,

@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """
-TikTok自動投稿システム
-- 生成済みコンテンツを自動的にTikTokに投稿
-- 投稿キュー管理
-- ffmpegでスライドショー動画生成
-- tiktok-uploaderで自動投稿
-- 結果をSlack通知
+TikTok自動投稿システム v2.0
+- tiktokautouploader (Phantomwright stealth) を主力
+- tiktok-uploader (Playwright) をフォールバック
+- 投稿後にプロフィールのvideoCountで実際の投稿を検証
+- 指数バックオフ付きリトライ
+- ハートビート統合
 
 使い方:
-  python3 tiktok_post.py --setup-auth     # 初回認証セットアップ
   python3 tiktok_post.py --post-next      # 次の投稿を実行
   python3 tiktok_post.py --status         # キュー状態確認
-  python3 tiktok_post.py --init-queue     # キュー初期化（生成済みコンテンツから）
+  python3 tiktok_post.py --init-queue     # キュー初期化
+  python3 tiktok_post.py --verify         # TikTok投稿数を検証
+  python3 tiktok_post.py --heartbeat      # システム全体のヘルスチェック
 """
 
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -30,6 +32,9 @@ COOKIE_JSON = PROJECT_DIR / "data" / ".tiktok_cookies.json"
 CONTENT_DIR = PROJECT_DIR / "content" / "generated"
 TEMP_DIR = PROJECT_DIR / "content" / "temp_videos"
 ENV_FILE = PROJECT_DIR / ".env"
+VENV_PYTHON = PROJECT_DIR / ".venv" / "bin" / "python3"
+TIKTOK_USERNAME = "robby15051"
+LOG_DIR = PROJECT_DIR / "logs"
 
 
 def load_env():
@@ -55,6 +60,382 @@ def slack_notify(message):
         print(f"[WARN] Slack通知失敗: {e}")
 
 
+def log_event(event_type, data):
+    """イベントログ記録"""
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_file = LOG_DIR / f"tiktok_{datetime.now().strftime('%Y%m%d')}.log"
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "type": event_type,
+        "data": data
+    }
+    with open(log_file, 'a', encoding='utf-8') as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+# ============================================================
+# TikTok投稿検証
+# ============================================================
+
+def get_tiktok_video_count():
+    """TikTokプロフィールからvideoCountを取得して投稿数を検証"""
+    try:
+        result = subprocess.run([
+            'curl', '-s', '-b', str(COOKIE_FILE),
+            '-H', 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            f'https://www.tiktok.com/@{TIKTOK_USERNAME}'
+        ], capture_output=True, text=True, timeout=30)
+
+        html = result.stdout
+        matches = re.findall(r'videoCount["\':]+\s*(\d+)', html)
+        if matches:
+            count = max(int(m) for m in matches)
+            return count
+        return 0
+    except Exception as e:
+        print(f"[WARN] videoCount取得失敗: {e}")
+        return -1
+
+
+def verify_post(pre_count, max_wait=120):
+    """投稿後に実際にvideoCountが増えたか検証（最大2分待機）"""
+    print(f"   🔍 投稿検証中... (投稿前: {pre_count}件)")
+    start = time.time()
+    check_intervals = [10, 15, 20, 30, 45]  # 段階的にチェック
+
+    for wait in check_intervals:
+        if time.time() - start > max_wait:
+            break
+        time.sleep(wait)
+        current = get_tiktok_video_count()
+        if current > pre_count:
+            print(f"   ✅ 投稿確認済み! ({pre_count} → {current}件)")
+            return True
+        print(f"   ... まだ反映されていない ({current}件, {int(time.time()-start)}秒経過)")
+
+    print(f"   ❌ 投稿が検証できませんでした (videoCount: {get_tiktok_video_count()})")
+    return False
+
+
+# ============================================================
+# 動画生成
+# ============================================================
+
+def create_video_slideshow(slide_dir, output_path, duration_per_slide=3):
+    """PNG スライドから動画スライドショーを生成（ffmpeg）"""
+    slide_dir = Path(slide_dir)
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    slides = sorted(slide_dir.glob("slide_*.png"))
+    if not slides:
+        print(f"   ❌ スライド画像なし: {slide_dir}")
+        return False
+
+    print(f"   🎬 動画生成: {len(slides)}枚 x {duration_per_slide}秒")
+
+    filter_parts = []
+    inputs = []
+
+    for i, slide in enumerate(slides):
+        inputs.extend(["-loop", "1", "-t", str(duration_per_slide), "-i", str(slide)])
+        filter_parts.append(
+            f"[{i}:v]scale=1080:1920:force_original_aspect_ratio=decrease,"
+            f"pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black,"
+            f"setsar=1[v{i}]"
+        )
+
+    concat_inputs = "".join(f"[v{i}]" for i in range(len(slides)))
+    filter_complex = ";".join(filter_parts) + f";{concat_inputs}concat=n={len(slides)}:v=1:a=0[out]"
+
+    cmd = ["ffmpeg", "-y"] + inputs + [
+        "-filter_complex", filter_complex,
+        "-map", "[out]",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-r", "30",
+        "-preset", "fast",
+        str(output_path)
+    ]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if result.returncode != 0:
+            print(f"   ❌ ffmpeg失敗: {result.stderr[-500:]}")
+            return False
+
+        file_size = output_path.stat().st_size / (1024 * 1024)
+        print(f"   ✅ 動画生成完了: {output_path.name} ({file_size:.1f}MB)")
+        return True
+    except subprocess.TimeoutExpired:
+        print("   ❌ ffmpegタイムアウト")
+        return False
+    except FileNotFoundError:
+        print("   ❌ ffmpegがインストールされていません")
+        return False
+
+
+# ============================================================
+# アップロード方法
+# ============================================================
+
+def upload_method_autouploader(video_path, description, hashtags):
+    """
+    方法1: tiktokautouploader (Phantomwright stealth)
+    - bot検知回避内蔵
+    - CAPTCHA自動解決
+    - 初回はブラウザが開いてログインが必要
+    """
+    print("   [方法1] tiktokautouploader (stealth)")
+
+    if not VENV_PYTHON.exists():
+        print("   ⚠️ venv未作成")
+        return False
+
+    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+    params = {
+        "video": str(video_path),
+        "description": description,
+        "accountname": TIKTOK_USERNAME,
+        "hashtags": [h.lstrip('#') for h in hashtags] if hashtags else None,
+        "headless": False,  # Mac Miniには画面がある。非headlessで確実に
+        "stealth": True,    # ランダムディレイでbot検知回避
+    }
+    params_file = TEMP_DIR / "_autoupload_params.json"
+    with open(params_file, 'w', encoding='utf-8') as f:
+        json.dump(params, f, ensure_ascii=False)
+
+    script = TEMP_DIR / "_autoupload.py"
+    with open(script, 'w', encoding='utf-8') as f:
+        f.write(f"""
+import json, sys, traceback
+with open("{params_file}") as f:
+    p = json.load(f)
+try:
+    from tiktokautouploader import upload_tiktok
+    upload_tiktok(
+        video=p["video"],
+        description=p["description"],
+        accountname=p["accountname"],
+        hashtags=p["hashtags"],
+        headless=p["headless"],
+        stealth=p["stealth"],
+        suppressprint=False,
+    )
+    print("AUTOUPLOAD_SUCCESS")
+except Exception as e:
+    print(f"AUTOUPLOAD_FAILED: {{e}}")
+    traceback.print_exc()
+""")
+
+    try:
+        result = subprocess.run(
+            [str(VENV_PYTHON), str(script)],
+            capture_output=True, text=True, timeout=300,
+            cwd=str(PROJECT_DIR),
+            env={**os.environ, "DISPLAY": ":0"}
+        )
+
+        script.unlink(missing_ok=True)
+        params_file.unlink(missing_ok=True)
+
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+
+        if "AUTOUPLOAD_SUCCESS" in stdout:
+            print("   ✅ tiktokautouploader: 成功")
+            return True
+        else:
+            print(f"   ⚠️ tiktokautouploader: 失敗")
+            if stdout:
+                print(f"      stdout: {stdout[-400:]}")
+            if stderr:
+                print(f"      stderr: {stderr[-400:]}")
+            return False
+
+    except subprocess.TimeoutExpired:
+        print("   ⚠️ tiktokautouploader: タイムアウト (300秒)")
+        return False
+    except Exception as e:
+        print(f"   ⚠️ tiktokautouploader: {e}")
+        return False
+
+
+def upload_method_tiktok_uploader(video_path, description, hashtags):
+    """
+    方法2: tiktok-uploader (wkaisertexas) with cookie file
+    - 戻り値チェック: 空リスト=成功、ビデオ入りリスト=失敗
+    - 非headless + Chrome使用
+    """
+    print("   [方法2] tiktok-uploader (Playwright + Chrome)")
+
+    if not COOKIE_FILE.exists():
+        print("   ⚠️ Cookie未設定")
+        return False
+
+    if not VENV_PYTHON.exists():
+        print("   ⚠️ venv未作成")
+        return False
+
+    full_caption = description
+    if hashtags:
+        full_caption += "\n\n" + " ".join(hashtags)
+    if len(full_caption) > 2200:
+        full_caption = full_caption[:2197] + "..."
+
+    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+    params = {
+        "filename": str(video_path),
+        "description": full_caption,
+        "cookies": str(COOKIE_FILE),
+    }
+    params_file = TEMP_DIR / "_upload_params.json"
+    with open(params_file, 'w', encoding='utf-8') as f:
+        json.dump(params, f, ensure_ascii=False)
+
+    script = TEMP_DIR / "_upload.py"
+    with open(script, 'w', encoding='utf-8') as f:
+        f.write(f"""
+import json, sys, traceback
+with open("{params_file}", "r", encoding="utf-8") as f:
+    p = json.load(f)
+try:
+    from tiktok_uploader.upload import upload_video
+    failed = upload_video(
+        filename=p["filename"],
+        description=p["description"],
+        cookies=p["cookies"],
+        headless=False,
+        browser="chrome",
+    )
+    if not failed:
+        print("UPLOAD_SUCCESS")
+    else:
+        print(f"UPLOAD_FAILED: {{failed}}")
+except Exception as e:
+    print(f"UPLOAD_ERROR: {{e}}")
+    traceback.print_exc()
+""")
+
+    try:
+        result = subprocess.run(
+            [str(VENV_PYTHON), str(script)],
+            capture_output=True, text=True, timeout=300,
+            cwd=str(PROJECT_DIR),
+            env={**os.environ, "DISPLAY": ":0"}
+        )
+
+        script.unlink(missing_ok=True)
+        params_file.unlink(missing_ok=True)
+
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+
+        if "UPLOAD_SUCCESS" in stdout:
+            print("   ✅ tiktok-uploader: 成功")
+            return True
+        else:
+            print(f"   ⚠️ tiktok-uploader: 失敗")
+            if stdout:
+                print(f"      stdout: {stdout[-400:]}")
+            if stderr:
+                print(f"      stderr: {stderr[-400:]}")
+            return False
+
+    except subprocess.TimeoutExpired:
+        print("   ⚠️ tiktok-uploader: タイムアウト (300秒)")
+        return False
+    except Exception as e:
+        print(f"   ⚠️ tiktok-uploader: {e}")
+        return False
+
+
+def upload_method_slack_manual(video_path, description, hashtags):
+    """
+    方法3: Slack通知で手動投稿依頼（最終フォールバック）
+    """
+    print("   [方法3] Slack手動投稿依頼")
+    full_caption = description
+    if hashtags:
+        full_caption += "\n\n" + " ".join(hashtags)
+
+    slack_notify(
+        f"📱 *TikTok手動投稿が必要です*\n\n"
+        f"自動アップロードが全て失敗しました。\n"
+        f"TikTokアプリから以下の動画をアップロードしてください:\n\n"
+        f"動画: `{video_path}`\n"
+        f"キャプション:\n```\n{full_caption}\n```"
+    )
+    return False
+
+
+def upload_to_tiktok(video_path, caption, hashtags, max_retries=2):
+    """
+    TikTokにアップロード（検証付き、リトライ付き）
+
+    アップロード方法を順番に試行:
+    1. tiktokautouploader (Phantomwright stealth)
+    2. tiktok-uploader (Playwright + Chrome)
+    3. Slack手動投稿依頼
+    """
+    video_path = str(video_path)
+
+    print(f"   📤 TikTokアップロード開始")
+    print(f"   キャプション: {caption[:60]}...")
+
+    # 投稿前のvideoCountを取得
+    pre_count = get_tiktok_video_count()
+    print(f"   📊 投稿前videoCount: {pre_count}")
+
+    methods = [
+        ("tiktokautouploader", upload_method_autouploader),
+        ("tiktok-uploader", upload_method_tiktok_uploader),
+    ]
+
+    for attempt in range(max_retries + 1):
+        if attempt > 0:
+            wait = 30 * (2 ** (attempt - 1))  # 30秒, 60秒
+            print(f"\n   🔄 リトライ {attempt}/{max_retries} ({wait}秒待機)")
+            time.sleep(wait)
+
+        for method_name, method_func in methods:
+            try:
+                success = method_func(video_path, caption, hashtags)
+                if success:
+                    # 実際に投稿されたか検証
+                    verified = verify_post(pre_count, max_wait=90)
+                    if verified:
+                        log_event("upload_verified", {
+                            "method": method_name,
+                            "attempt": attempt,
+                            "video": video_path,
+                        })
+                        return True
+                    else:
+                        print(f"   ⚠️ {method_name}は成功報告したが、投稿が検証できず")
+                        log_event("upload_unverified", {
+                            "method": method_name,
+                            "attempt": attempt,
+                        })
+                        # 次の方法を試す
+            except Exception as e:
+                print(f"   ❌ {method_name}例外: {e}")
+                log_event("upload_exception", {
+                    "method": method_name,
+                    "error": str(e),
+                })
+
+    # 全方法失敗 → Slack手動依頼
+    upload_method_slack_manual(video_path, caption, hashtags)
+    log_event("upload_all_failed", {"video": video_path})
+    return False
+
+
+# ============================================================
+# キュー管理
+# ============================================================
+
 def find_content_sets():
     """生成済みコンテンツセットを検索"""
     content_sets = []
@@ -62,7 +443,6 @@ def find_content_sets():
     for json_file in sorted(CONTENT_DIR.rglob("*.json")):
         if json_file.name == "batch_summary.md":
             continue
-        # JSONと同名ディレクトリ（スライド画像）があるか確認
         slide_dir = json_file.parent / json_file.stem
         if slide_dir.is_dir() and list(slide_dir.glob("slide_*.png")):
             content_sets.append({
@@ -72,10 +452,8 @@ def find_content_sets():
                 "batch": json_file.parent.name
             })
 
-    # A01/A02（ルートレベル）も追加
     for subdir in sorted(CONTENT_DIR.iterdir()):
         if subdir.is_dir() and list(subdir.glob("slide_*.png")):
-            # 対応するJSONを探す
             json_candidates = [
                 CONTENT_DIR / f"{subdir.name}.json",
                 CONTENT_DIR / f"test_script_{subdir.name.split('_')[-1]}.json"
@@ -86,7 +464,6 @@ def find_content_sets():
                     json_path = str(j)
                     break
 
-            # 既に追加されていなければ追加
             existing = [c["slide_dir"] for c in content_sets]
             if str(subdir) not in existing:
                 content_sets.append({
@@ -102,16 +479,14 @@ def find_content_sets():
 def init_queue():
     """投稿キューを初期化"""
     content_sets = find_content_sets()
-
     queue = {
-        "version": 1,
+        "version": 2,
         "created": datetime.now().isoformat(),
         "updated": datetime.now().isoformat(),
         "posts": []
     }
 
     for i, cs in enumerate(content_sets):
-        # JSONからキャプション・ハッシュタグを読む
         caption = ""
         hashtags = []
         cta_type = "soft"
@@ -135,17 +510,12 @@ def init_queue():
             "caption": caption,
             "hashtags": hashtags,
             "cta_type": cta_type,
-            "status": "pending",  # pending → video_created → posted → failed
+            "status": "pending",
             "video_path": None,
             "posted_at": None,
-            "tiktok_url": None,
+            "verified": False,
+            "upload_method": None,
             "error": None,
-            "performance": {
-                "views": None,
-                "likes": None,
-                "saves": None,
-                "comments": None
-            }
         })
 
     QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -155,12 +525,10 @@ def init_queue():
     print(f"✅ 投稿キュー初期化完了: {len(queue['posts'])}件")
     for post in queue["posts"]:
         print(f"   #{post['id']}: {post['content_id']} ({post['batch']})")
-
     return queue
 
 
 def load_queue():
-    """キューを読み込む"""
     if not QUEUE_FILE.exists():
         print("キューファイルがありません。--init-queue で初期化してください。")
         return None
@@ -169,394 +537,9 @@ def load_queue():
 
 
 def save_queue(queue):
-    """キューを保存"""
     queue["updated"] = datetime.now().isoformat()
     with open(QUEUE_FILE, 'w', encoding='utf-8') as f:
         json.dump(queue, f, ensure_ascii=False, indent=2)
-
-
-def create_video_slideshow(slide_dir, output_path, duration_per_slide=3):
-    """
-    PNG スライドから動画スライドショーを生成（ffmpeg）
-
-    各スライド3秒 × 6枚 = 18秒のMP4動画
-    """
-    slide_dir = Path(slide_dir)
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # スライド画像を確認
-    slides = sorted(slide_dir.glob("slide_*.png"))
-    if not slides:
-        print(f"❌ スライド画像なし: {slide_dir}")
-        return False
-
-    print(f"   🎬 動画生成: {len(slides)}枚 × {duration_per_slide}秒")
-
-    # ffmpegで動画生成
-    # 各画像をduration秒表示、1080x1920（9:16縦型）にリサイズ
-    # concat filterを使用
-    filter_parts = []
-    inputs = []
-
-    for i, slide in enumerate(slides):
-        inputs.extend(["-loop", "1", "-t", str(duration_per_slide), "-i", str(slide)])
-        filter_parts.append(
-            f"[{i}:v]scale=1080:1920:force_original_aspect_ratio=decrease,"
-            f"pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black,"
-            f"setsar=1[v{i}]"
-        )
-
-    # concat
-    concat_inputs = "".join(f"[v{i}]" for i in range(len(slides)))
-    filter_complex = ";".join(filter_parts) + f";{concat_inputs}concat=n={len(slides)}:v=1:a=0[out]"
-
-    cmd = ["ffmpeg", "-y"] + inputs + [
-        "-filter_complex", filter_complex,
-        "-map", "[out]",
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        "-r", "30",
-        "-preset", "fast",
-        str(output_path)
-    ]
-
-    try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120
-        )
-        if result.returncode != 0:
-            print(f"❌ ffmpeg失敗: {result.stderr[-500:]}")
-            return False
-
-        file_size = output_path.stat().st_size / (1024 * 1024)
-        print(f"   ✅ 動画生成完了: {output_path.name} ({file_size:.1f}MB)")
-        return True
-
-    except subprocess.TimeoutExpired:
-        print("❌ ffmpegタイムアウト")
-        return False
-    except FileNotFoundError:
-        print("❌ ffmpegがインストールされていません: brew install ffmpeg")
-        return False
-
-
-def upload_via_selenium(video_path, caption):
-    """Selenium + Chrome でTikTokに動画アップロード"""
-    from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-
-    print("   🌐 Selenium: Chrome起動中...")
-
-    options = Options()
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-
-    # ユーザーの実際のChromeプロファイルを使用（ログイン状態を継承）
-    chrome_user_data = str(Path.home() / "Library/Application Support/Google/Chrome")
-    options.add_argument(f"--user-data-dir={chrome_user_data}")
-    options.add_argument("--profile-directory=Default")
-
-    chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    if os.path.exists(chrome_path):
-        options.binary_location = chrome_path
-
-    driver = webdriver.Chrome(options=options)
-
-    try:
-        # bot検知回避
-        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-            "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-        })
-
-        # Cookie注入のためにまずTikTokにアクセス
-        driver.get("https://www.tiktok.com")
-        time.sleep(2)
-
-        # Cookie注入
-        with open(COOKIE_JSON, 'r') as f:
-            cookies = json.load(f)
-
-        for cookie in cookies:
-            try:
-                cookie_dict = {
-                    "name": cookie["name"],
-                    "value": cookie["value"],
-                    "domain": cookie.get("domain", ".tiktok.com"),
-                    "path": cookie.get("path", "/"),
-                    "secure": cookie.get("secure", True),
-                }
-                driver.add_cookie(cookie_dict)
-            except Exception:
-                pass
-
-        # アップロードページに移動
-        driver.get("https://www.tiktok.com/upload")
-        time.sleep(5)
-
-        # ログイン状態確認
-        if "login" in driver.current_url.lower():
-            print("   ❌ Cookie認証失敗（ログインページにリダイレクト）")
-            driver.quit()
-            return False
-
-        print("   ✅ ログイン成功、アップロードページ表示")
-
-        # ファイル入力要素を探す
-        try:
-            file_input = WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
-            )
-            file_input.send_keys(os.path.abspath(video_path))
-            print("   ✅ 動画ファイルアップロード中...")
-        except Exception as e:
-            print(f"   ❌ ファイル入力要素が見つかりません: {e}")
-            driver.save_screenshot(str(PROJECT_DIR / "logs" / "upload_error.png"))
-            driver.quit()
-            return False
-
-        # アップロード完了を待つ
-        time.sleep(10)
-
-        # キャプション入力
-        try:
-            # TikTokのキャプション入力欄
-            caption_selectors = [
-                "div[contenteditable='true']",
-                "div[data-contents='true']",
-                ".DraftEditor-root",
-                "div[role='textbox']",
-            ]
-            caption_input = None
-            for selector in caption_selectors:
-                try:
-                    caption_input = driver.find_element(By.CSS_SELECTOR, selector)
-                    if caption_input:
-                        break
-                except Exception:
-                    continue
-
-            if caption_input:
-                caption_input.clear()
-                # JavaScriptでテキスト設定（日本語対応）
-                driver.execute_script(
-                    "arguments[0].textContent = arguments[1]",
-                    caption_input, caption
-                )
-                print("   ✅ キャプション入力完了")
-            else:
-                print("   ⚠️ キャプション入力欄が見つかりません")
-        except Exception as e:
-            print(f"   ⚠️ キャプション入力失敗: {e}")
-
-        # 投稿ボタンをクリック
-        time.sleep(3)
-        try:
-            post_selectors = [
-                "button[data-e2e='post-button']",
-                "button:has-text('投稿')",
-                "button:has-text('Post')",
-                "//button[contains(text(),'投稿') or contains(text(),'Post')]"
-            ]
-            posted = False
-            for selector in post_selectors:
-                try:
-                    if selector.startswith("//"):
-                        btn = driver.find_element(By.XPATH, selector)
-                    else:
-                        btn = driver.find_element(By.CSS_SELECTOR, selector)
-                    btn.click()
-                    posted = True
-                    print("   ✅ 投稿ボタンクリック")
-                    break
-                except Exception:
-                    continue
-
-            if not posted:
-                print("   ⚠️ 投稿ボタンが見つかりません")
-                driver.save_screenshot(str(PROJECT_DIR / "logs" / "post_button_error.png"))
-        except Exception as e:
-            print(f"   ⚠️ 投稿ボタンクリック失敗: {e}")
-
-        # 投稿処理完了を待つ
-        time.sleep(15)
-
-        # 成功確認
-        page_source = driver.page_source.lower()
-        if "uploaded" in page_source or "成功" in page_source or "manage" in driver.current_url:
-            print("   ✅ TikTok投稿成功！")
-            driver.quit()
-            return True
-        else:
-            print("   ⚠️ 投稿結果が不明（スクリーンショット保存）")
-            driver.save_screenshot(str(PROJECT_DIR / "logs" / "post_result.png"))
-            driver.quit()
-            return True  # 投稿は試行済み
-
-    except Exception as e:
-        print(f"   ❌ Seleniumエラー: {e}")
-        try:
-            driver.save_screenshot(str(PROJECT_DIR / "logs" / "selenium_error.png"))
-        except Exception:
-            pass
-        driver.quit()
-        return False
-
-
-def upload_to_tiktok(video_path, caption, hashtags):
-    """
-    TikTokにアップロード
-
-    方法1: tiktok-uploader (Python 3.12 + Playwright) - 一時スクリプト経由
-    方法2: TikTok Content Posting API（将来実装）
-    """
-    video_path = str(video_path)
-
-    # ハッシュタグをキャプションに追加
-    full_caption = caption
-    if hashtags:
-        tags = " ".join(hashtags)
-        full_caption = f"{caption}\n\n{tags}"
-
-    # キャプション2200文字制限
-    if len(full_caption) > 2200:
-        full_caption = full_caption[:2197] + "..."
-
-    print(f"   📤 TikTokアップロード開始")
-    print(f"   キャプション: {full_caption[:80]}...")
-
-    # 方法1: tiktok-uploader v1.2.0 (Python 3.12 + Playwright)
-    # 日本語キャプション対応のため、一時スクリプトファイルに書き出して実行
-    if COOKIE_FILE.exists():
-        try:
-            temp_script = TEMP_DIR / "_upload_tmp.py"
-            TEMP_DIR.mkdir(parents=True, exist_ok=True)
-
-            # JSONでパラメータを渡すことでエスケープ問題を回避
-            params = {
-                "filename": str(video_path),
-                "description": full_caption,
-                "cookies": str(COOKIE_FILE),
-            }
-            params_file = TEMP_DIR / "_upload_params.json"
-            with open(params_file, 'w', encoding='utf-8') as f:
-                json.dump(params, f, ensure_ascii=False)
-
-            script_content = f"""
-import json, sys
-with open("{params_file}", "r", encoding="utf-8") as f:
-    p = json.load(f)
-from tiktok_uploader.upload import upload_video
-upload_video(
-    filename=p["filename"],
-    description=p["description"],
-    cookies=p["cookies"],
-    headless=True
-)
-print("UPLOAD_SUCCESS")
-"""
-            with open(temp_script, 'w', encoding='utf-8') as f:
-                f.write(script_content)
-
-            result = subprocess.run(
-                ["python3.12", str(temp_script)],
-                capture_output=True, text=True, timeout=180,
-                cwd=str(PROJECT_DIR)
-            )
-
-            # 一時ファイル削除
-            temp_script.unlink(missing_ok=True)
-            params_file.unlink(missing_ok=True)
-
-            if "UPLOAD_SUCCESS" in result.stdout:
-                print("   ✅ TikTokアップロード完了")
-                return True
-            else:
-                stdout_tail = result.stdout[-500:] if result.stdout else ""
-                stderr_tail = result.stderr[-500:] if result.stderr else ""
-                print(f"   ⚠️ tiktok-uploader出力: {stdout_tail}")
-                if stderr_tail:
-                    print(f"   stderr: {stderr_tail}")
-        except subprocess.TimeoutExpired:
-            print("   ⚠️ tiktok-uploaderタイムアウト (180秒)")
-        except Exception as e:
-            print(f"   ⚠️ tiktok-uploader失敗: {e}")
-
-    # 方法2: TikTok Content Posting API
-    access_token = os.environ.get("TIKTOK_ACCESS_TOKEN")
-    if access_token:
-        try:
-            return upload_via_api(video_path, full_caption, access_token)
-        except Exception as e:
-            print(f"   ⚠️ TikTok API失敗: {e}")
-
-    # フォールバック: Slack通知で手動投稿依頼
-    print("   📱 自動投稿不可 → Slack通知で手動投稿依頼")
-    slack_notify(
-        f"📱 TikTok投稿準備完了（手動アップロード必要）\n\n"
-        f"動画: {video_path}\n"
-        f"キャプション:\n{full_caption}\n\n"
-        f"TikTokアプリから上記動画をアップロードしてください。"
-    )
-    return False
-
-
-def upload_via_api(video_path, caption, access_token):
-    """TikTok Content Posting API経由でアップロード"""
-    import httpx
-
-    # Step 1: Initialize upload
-    init_url = "https://open.tiktokapis.com/v2/post/publish/video/init/"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
-    }
-
-    file_size = Path(video_path).stat().st_size
-
-    init_data = {
-        "post_info": {
-            "title": caption[:150],
-            "privacy_level": "PUBLIC_TO_EVERYONE",
-            "disable_comment": False,
-            "disable_duet": False,
-            "disable_stitch": False
-        },
-        "source_info": {
-            "source": "FILE_UPLOAD",
-            "video_size": file_size,
-            "chunk_size": file_size
-        }
-    }
-
-    resp = httpx.post(init_url, headers=headers, json=init_data, timeout=30)
-    if resp.status_code != 200:
-        raise Exception(f"Init failed: {resp.text}")
-
-    data = resp.json()
-    upload_url = data["data"]["upload_url"]
-
-    # Step 2: Upload video
-    with open(video_path, "rb") as f:
-        video_data = f.read()
-
-    upload_headers = {
-        "Content-Type": "video/mp4",
-        "Content-Range": f"bytes 0-{file_size - 1}/{file_size}"
-    }
-
-    resp = httpx.put(upload_url, content=video_data, headers=upload_headers, timeout=120)
-    if resp.status_code not in (200, 201):
-        raise Exception(f"Upload failed: {resp.status_code}")
-
-    print(f"   ✅ TikTok API アップロード完了")
-    return True
 
 
 def post_next():
@@ -565,10 +548,9 @@ def post_next():
     if not queue:
         return False
 
-    # 次のpending投稿を取得
     next_post = None
     for post in queue["posts"]:
-        if post["status"] == "pending":
+        if post["status"] in ("pending", "video_created"):
             next_post = post
             break
 
@@ -576,7 +558,9 @@ def post_next():
         print("✅ 全投稿完了。キューに残りなし。")
         return True
 
-    print(f"\n=== 投稿 #{next_post['id']}: {next_post['content_id']} ===")
+    print(f"\n{'='*50}")
+    print(f"投稿 #{next_post['id']}: {next_post['content_id']}")
+    print(f"{'='*50}")
 
     # Step 1: 動画生成
     TEMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -585,9 +569,7 @@ def post_next():
 
     if not video_path.exists():
         success = create_video_slideshow(
-            next_post["slide_dir"],
-            video_path,
-            duration_per_slide=3
+            next_post["slide_dir"], video_path, duration_per_slide=3
         )
         if not success:
             next_post["status"] = "failed"
@@ -600,95 +582,151 @@ def post_next():
     next_post["status"] = "video_created"
     save_queue(queue)
 
-    # Step 2: TikTokにアップロード
+    # Step 2: TikTokにアップロード（検証付き）
     success = upload_to_tiktok(
-        video_path,
-        next_post["caption"],
-        next_post["hashtags"]
+        video_path, next_post["caption"], next_post["hashtags"]
     )
 
     if success:
         next_post["status"] = "posted"
         next_post["posted_at"] = datetime.now().isoformat()
+        next_post["verified"] = True
         save_queue(queue)
 
-        # 成功通知
         pending_count = sum(1 for p in queue["posts"] if p["status"] == "pending")
         slack_notify(
-            f"✅ TikTok投稿完了!\n"
+            f"✅ *TikTok投稿完了 (検証済み)*\n"
             f"コンテンツ: {next_post['content_id']}\n"
             f"キャプション: {next_post['caption'][:80]}...\n"
             f"残りキュー: {pending_count}件"
         )
-        print(f"\n✅ 投稿成功: {next_post['content_id']}")
+        print(f"\n✅ 投稿成功 (検証済み): {next_post['content_id']}")
     else:
-        # Slack通知済み（手動投稿依頼）
-        next_post["status"] = "manual_required"
+        next_post["status"] = "failed"
+        next_post["error"] = "all_upload_methods_failed"
         save_queue(queue)
-        print(f"\n📱 手動投稿が必要: {next_post['content_id']}")
+        print(f"\n❌ 投稿失敗: {next_post['content_id']}")
 
     return success
 
 
-def setup_auth():
-    """
-    TikTok認証セットアップ
+# ============================================================
+# ハートビート / ヘルスチェック
+# ============================================================
 
-    ブラウザでTikTokにログイン→cookieを保存
-    """
-    print("=== TikTok認証セットアップ ===")
-    print()
+def heartbeat():
+    """システム全体のヘルスチェック"""
+    print(f"\n{'='*50}")
+    print(f"ROBBY THE MATCH ハートビート")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*50}\n")
 
-    # 方法1: ブラウザでcookie取得
+    issues = []
+    status = {}
+
+    # 1. Cookie有効性チェック
+    print("🔐 Cookie有効性...")
+    if COOKIE_JSON.exists():
+        with open(COOKIE_JSON) as f:
+            cookies = json.load(f)
+        for c in cookies:
+            if c["name"] == "sessionid":
+                expiry = datetime.fromtimestamp(c["expiry"])
+                days_left = (expiry - datetime.now()).days
+                status["cookie_days_left"] = days_left
+                if days_left < 3:
+                    issues.append(f"🚨 Cookie期限切れ間近: {days_left}日")
+                elif days_left < 30:
+                    issues.append(f"⚠️ Cookie残り{days_left}日")
+                else:
+                    print(f"   ✅ sessionid有効 (残り{days_left}日)")
+                break
+    else:
+        issues.append("🚨 Cookieファイルなし")
+        print("   ❌ Cookieファイルなし")
+
+    # 2. TikTok投稿数確認
+    print("📊 TikTok投稿数...")
+    video_count = get_tiktok_video_count()
+    status["tiktok_videos"] = video_count
+    print(f"   TikTok公開投稿: {video_count}件")
+    if video_count == 0:
+        issues.append("⚠️ TikTok投稿が0件")
+
+    # 3. キュー状態
+    print("📋 投稿キュー...")
+    queue = load_queue()
+    if queue:
+        stats = {}
+        for post in queue["posts"]:
+            stats[post["status"]] = stats.get(post["status"], 0) + 1
+        status["queue"] = stats
+        for k, v in stats.items():
+            print(f"   {k}: {v}")
+        if stats.get("failed", 0) > 3:
+            issues.append(f"🚨 失敗した投稿が{stats['failed']}件")
+    else:
+        issues.append("⚠️ キューファイルなし")
+
+    # 4. venv確認
+    print("🐍 Python venv...")
+    if VENV_PYTHON.exists():
+        print(f"   ✅ venv有効")
+    else:
+        issues.append("🚨 venvが見つかりません")
+        print(f"   ❌ venv未作成")
+
+    # 5. cron確認
+    print("⏰ cron...")
     try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.chrome.service import Service
+        result = subprocess.run(
+            ["crontab", "-l"], capture_output=True, text=True, timeout=5
+        )
+        cron_jobs = [l for l in result.stdout.split('\n') if l.strip() and not l.startswith('#')]
+        status["cron_jobs"] = len(cron_jobs)
+        print(f"   ✅ {len(cron_jobs)}件のcronジョブ")
+    except Exception:
+        issues.append("⚠️ cron確認失敗")
 
-        print("Chromeを起動してTikTokのログインページを開きます...")
-        print("ログイン後、このスクリプトに戻ってEnterを押してください。")
-        print()
+    # 6. ディスク容量
+    print("💾 ディスク...")
+    try:
+        result = subprocess.run(
+            ["df", "-h", str(PROJECT_DIR)],
+            capture_output=True, text=True, timeout=5
+        )
+        lines = result.stdout.strip().split('\n')
+        if len(lines) > 1:
+            parts = lines[1].split()
+            avail = parts[3] if len(parts) > 3 else "?"
+            print(f"   空き容量: {avail}")
+    except Exception:
+        pass
 
-        options = Options()
-        options.add_argument("--start-maximized")
-        # Mac Chrome path
-        options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    # 結果
+    print(f"\n{'='*50}")
+    if issues:
+        print(f"⚠️ {len(issues)}件の問題:")
+        for issue in issues:
+            print(f"   {issue}")
 
-        driver = webdriver.Chrome(options=options)
-        driver.get("https://www.tiktok.com/login")
+        slack_notify(
+            f"🏥 *ROBBY ハートビート - {len(issues)}件の問題*\n\n"
+            + "\n".join(issues)
+            + f"\n\nTikTok投稿: {video_count}件"
+            + f"\nキュー: {json.dumps(status.get('queue', {}))}"
+        )
+    else:
+        print("✅ 全システム正常")
+        slack_notify(
+            f"💚 *ROBBY ハートビート - 全システム正常*\n"
+            f"TikTok投稿: {video_count}件\n"
+            f"Cookie残り: {status.get('cookie_days_left', '?')}日\n"
+            f"キュー: {json.dumps(status.get('queue', {}))}"
+        )
 
-        input("ログインが完了したらEnterを押してください...")
-
-        # Cookie保存
-        cookies = driver.get_cookies()
-        COOKIE_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-        # Netscape cookie format for tiktok-uploader
-        with open(COOKIE_FILE, 'w') as f:
-            f.write("# Netscape HTTP Cookie File\n")
-            for cookie in cookies:
-                secure = "TRUE" if cookie.get("secure", False) else "FALSE"
-                expiry = str(int(cookie.get("expiry", 0)))
-                http_only = "TRUE" if cookie.get("httpOnly", False) else "FALSE"
-                domain = cookie.get("domain", "")
-                if not domain.startswith("."):
-                    domain = "." + domain
-                f.write(f"{domain}\tTRUE\t{cookie['path']}\t{secure}\t{expiry}\t{cookie['name']}\t{cookie['value']}\n")
-
-        print(f"✅ Cookie保存完了: {COOKIE_FILE}")
-        driver.quit()
-
-    except ImportError:
-        print("Seleniumがインストールされていません。")
-        print("pip3 install selenium を実行してください。")
-    except Exception as e:
-        print(f"❌ エラー: {e}")
-        print()
-        print("手動でcookieを設定する場合:")
-        print(f"1. Chromeでhttps://www.tiktok.comにログイン")
-        print(f"2. F12 → Application → Cookies → sessionid の値をコピー")
-        print(f"3. 以下のコマンドを実行:")
-        print(f'   echo "sessionid=YOUR_SESSION_ID" > {COOKIE_FILE}')
+    log_event("heartbeat", {"status": status, "issues": issues})
+    return len(issues) == 0
 
 
 def show_status():
@@ -697,58 +735,85 @@ def show_status():
     if not queue:
         return
 
-    stats = {"pending": 0, "video_created": 0, "posted": 0,
-             "manual_required": 0, "failed": 0}
-
+    stats = {}
     for post in queue["posts"]:
         stats[post["status"]] = stats.get(post["status"], 0) + 1
 
+    # TikTok実際の投稿数も表示
+    video_count = get_tiktok_video_count()
+
     print(f"=== 投稿キュー状態 ===")
     print(f"最終更新: {queue['updated']}")
-    print(f"合計: {len(queue['posts'])}件")
-    print(f"  待機中: {stats['pending']}")
-    print(f"  動画生成済: {stats['video_created']}")
-    print(f"  投稿完了: {stats['posted']}")
-    print(f"  手動必要: {stats['manual_required']}")
-    print(f"  失敗: {stats['failed']}")
+    print(f"TikTok公開投稿数: {video_count}件")
+    print(f"キュー合計: {len(queue['posts'])}件")
+    for k, v in sorted(stats.items()):
+        print(f"  {k}: {v}")
     print()
 
     for post in queue["posts"]:
-        status_emoji = {
-            "pending": "⏳",
-            "video_created": "🎬",
-            "posted": "✅",
-            "manual_required": "📱",
-            "failed": "❌"
-        }.get(post["status"], "❓")
-
+        emoji = {"pending": "⏳", "video_created": "🎬", "posted": "✅",
+                 "manual_required": "📱", "failed": "❌"}.get(post["status"], "❓")
+        verified = " ✓" if post.get("verified") else ""
         posted = f" ({post['posted_at'][:10]})" if post.get("posted_at") else ""
-        print(f"  {status_emoji} #{post['id']}: {post['content_id']}{posted}")
+        print(f"  {emoji} #{post['id']}: {post['content_id']}{posted}{verified}")
 
+
+def verify_command():
+    """TikTok投稿数検証コマンド"""
+    video_count = get_tiktok_video_count()
+    queue = load_queue()
+
+    posted_count = 0
+    if queue:
+        posted_count = sum(1 for p in queue["posts"] if p["status"] == "posted")
+
+    print(f"TikTok公開投稿数: {video_count}")
+    print(f"キュー内 posted: {posted_count}")
+
+    if video_count < posted_count:
+        print(f"⚠️ 不整合: キューでは{posted_count}件 posted だが、TikTokには{video_count}件しかない")
+        # postedだが実際には投稿されていないものをfailedに戻す
+        if queue:
+            fixed = 0
+            for post in queue["posts"]:
+                if post["status"] == "posted" and not post.get("verified"):
+                    post["status"] = "pending"
+                    post["posted_at"] = None
+                    post["error"] = "unverified_reset"
+                    fixed += 1
+            if fixed:
+                save_queue(queue)
+                print(f"   {fixed}件の未検証投稿をpendingにリセット")
+    else:
+        print("✅ 整合性OK")
+
+
+# ============================================================
+# メイン
+# ============================================================
 
 def main():
     load_env()
 
-    parser = argparse.ArgumentParser(description="TikTok自動投稿システム")
-    parser.add_argument("--setup-auth", action="store_true",
-                        help="TikTok認証セットアップ")
-    parser.add_argument("--init-queue", action="store_true",
-                        help="投稿キューを初期化")
-    parser.add_argument("--post-next", action="store_true",
-                        help="次の投稿を実行")
-    parser.add_argument("--status", action="store_true",
-                        help="キュー状態表示")
+    parser = argparse.ArgumentParser(description="TikTok自動投稿システム v2.0")
+    parser.add_argument("--post-next", action="store_true", help="次の投稿を実行")
+    parser.add_argument("--init-queue", action="store_true", help="投稿キューを初期化")
+    parser.add_argument("--status", action="store_true", help="キュー状態表示")
+    parser.add_argument("--verify", action="store_true", help="TikTok投稿数検証")
+    parser.add_argument("--heartbeat", action="store_true", help="システムヘルスチェック")
 
     args = parser.parse_args()
 
-    if args.setup_auth:
-        setup_auth()
+    if args.post_next:
+        post_next()
     elif args.init_queue:
         init_queue()
-    elif args.post_next:
-        post_next()
     elif args.status:
         show_status()
+    elif args.verify:
+        verify_command()
+    elif args.heartbeat:
+        heartbeat()
     else:
         parser.print_help()
 
