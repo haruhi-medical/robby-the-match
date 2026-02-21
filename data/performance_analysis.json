@@ -1,0 +1,60 @@
+{
+  "analyzed_at": "2026-02-21T20:25:25",
+  "content_performance": {
+    "total_posted": 2,
+    "verified": 2,
+    "by_category": {},
+    "by_cta_type": {},
+    "best_performing": [],
+    "worst_performing": [],
+    "avg_views": 0,
+    "avg_likes": 0,
+    "avg_saves": 0,
+    "message": "パフォーマンスデータ未収集（tiktok_analytics.py --updateで収集）"
+  },
+  "kpi_trend": {
+    "trend": "データ不足",
+    "days": 1
+  },
+  "content_mix": {
+    "total_stock": 16,
+    "total_posted": 2,
+    "mix": {
+      "あるある": {
+        "target": 40,
+        "actual": 100,
+        "gap": 60,
+        "stock_remaining": 3
+      },
+      "転職": {
+        "target": 25,
+        "actual": 0,
+        "gap": -25,
+        "stock_remaining": 5
+      },
+      "給与": {
+        "target": 20,
+        "actual": 0,
+        "gap": -20,
+        "stock_remaining": 5
+      },
+      "紹介": {
+        "target": 5,
+        "actual": 0,
+        "gap": -5,
+        "stock_remaining": 0
+      },
+      "トレンド": {
+        "target": 10,
+        "actual": 0,
+        "gap": -10,
+        "stock_remaining": 1
+      }
+    }
+  },
+  "recommendations": [
+    "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
+    "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。",
+    "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
+  ]
+}

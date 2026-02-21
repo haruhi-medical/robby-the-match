@@ -5,6 +5,7 @@
 # ===========================================
 source ~/robby-the-match/scripts/utils.sh
 init_log "healthcheck"
+update_agent_state "health_monitor" "running"
 
 YESTERDAY=$(date -v-1d +%Y-%m-%d 2>/dev/null || date -d "yesterday" +%Y-%m-%d)
 ISSUES=""
@@ -34,6 +35,30 @@ python3 "$PROJECT_DIR/scripts/tiktok_post.py" --heartbeat >> "$LOG" 2>&1
 # 投稿検証（キューとTikTok実投稿数の整合性チェック）
 python3 "$PROJECT_DIR/scripts/tiktok_post.py" --verify >> "$LOG" 2>&1
 
+# === TikTok分析データ収集 + KPI記録（v2.1追加）===
+echo "[INFO] TikTok分析データ収集" >> "$LOG"
+python3 "$PROJECT_DIR/scripts/tiktok_analytics.py" --daily-kpi >> "$LOG" 2>&1 || echo "[WARN] TikTok分析スキップ" >> "$LOG"
+
+# === Agent Team稼働状態チェック ===
+echo "[INFO] Agent Team稼働状態チェック" >> "$LOG"
+python3 -c "
+import json
+from datetime import datetime, timedelta
+with open('$PROJECT_DIR/data/agent_state.json') as f:
+    state = json.load(f)
+now = datetime.now()
+for agent, last_run in state.get('lastRun', {}).items():
+    if last_run:
+        last = datetime.fromisoformat(last_run)
+        hours_ago = (now - last).total_seconds() / 3600
+        if hours_ago > 48:
+            print(f'⚠️ {agent}: {hours_ago:.0f}時間未実行')
+    else:
+        status = state.get('status', {}).get(agent, 'unknown')
+        if status == 'pending':
+            print(f'⚠️ {agent}: 一度も実行されていない')
+" >> "$LOG" 2>&1
+
 # === レポート送信 ===
 if [ -n "$ISSUES" ]; then
   slack_notify "🏥 ヘルスチェック問題あり:\n$(echo -e "$ISSUES")" "alert"
@@ -41,4 +66,5 @@ else
   echo "[OK] 全システム正常" >> "$LOG"
 fi
 
+update_agent_state "health_monitor" "completed"
 echo "[$TODAY] healthcheck完了" >> "$LOG"

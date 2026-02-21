@@ -37,7 +37,8 @@
     "content_creator": {
       "highPerformingPatterns": [],
       "failedPatterns": [],
-      "contentIdCounter": 0
+      "contentIdCounter": 0,
+      "lastAnalysisDate": "2026-02-21"
     },
     "seo_optimizer": {
       "lastSitemapUpdate": null,
@@ -49,11 +50,12 @@
       "trendingTopics": []
     },
     "sns_poster": {
-      "totalPosted": 0,
+      "totalPosted": 2,
       "lastPostedContentId": null,
       "postingMethod": "tiktok-uploader",
       "authStatus": "cookie_required",
-      "queueFile": "data/posting_queue.json"
+      "queueFile": "data/posting_queue.json",
+      "averageViews": 0
     }
   }
 }

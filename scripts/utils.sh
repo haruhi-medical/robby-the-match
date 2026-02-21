@@ -7,11 +7,19 @@ cd "$PROJECT_DIR"
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.npm-global/bin:$PATH"
 
 # cron環境用: gh CLIのトークンをgit認証に使う
+export GH_CONFIG_DIR="$HOME/.config/gh"
 if command -v gh &>/dev/null; then
   export GH_TOKEN=$(gh auth token 2>/dev/null || true)
   if [ -n "$GH_TOKEN" ]; then
     git config --local credential.helper "!f() { echo username=haruhi-medical; echo password=$GH_TOKEN; }; f"
   fi
+fi
+
+# .envから環境変数読み込み（Slack Token等）
+if [ -f "$PROJECT_DIR/.env" ]; then
+  set -a
+  source "$PROJECT_DIR/.env"
+  set +a
 fi
 
 TODAY=$(date +%Y-%m-%d)
@@ -76,13 +84,14 @@ run_claude() {
   local max_minutes=${2:-30}
   local max_seconds=$((max_minutes * 60))
 
-  # macOS互換: timeout → gtimeout → perl fallback
+  # macOS互換: gtimeout → timeout → background fallback
   local timeout_cmd=""
   if command -v gtimeout &>/dev/null; then
     timeout_cmd="gtimeout"
   elif command -v timeout &>/dev/null; then
     timeout_cmd="timeout"
   fi
+  echo "[DEBUG] timeout_cmd=$timeout_cmd, max=${max_minutes}min" >> "$LOG"
 
   if [ -n "$timeout_cmd" ]; then
     $timeout_cmd "${max_seconds}s" claude -p "$prompt" \

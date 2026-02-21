@@ -1,6 +1,8 @@
 #!/bin/bash
 source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_seo_batch"
+update_agent_state "seo_optimizer" "running"
+check_instructions "seo_optimizer"
 
 run_claude "
 STATE.mdを読め。これが現状だ。他を探し回るな。CLAUDE.mdも読め。
@@ -32,5 +34,6 @@ STATE.mdを読め。これが現状だ。他を探し回るな。CLAUDE.mdも読
 git_sync "seo: ${TODAY} SEO改善+子ページ追加"
 update_state "SEO朝サイクル"
 update_progress "🔍 SEO朝サイクル" "$(git log -1 --pretty=%s 2>/dev/null)"
+update_agent_state "seo_optimizer" "completed"
 slack_notify "🔍 SEO改善完了。STATE.md参照。" "seo"
 echo "[$TODAY] pdca_seo_batch完了" >> "$LOG"

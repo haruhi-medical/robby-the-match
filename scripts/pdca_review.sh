@@ -1,35 +1,50 @@
 #!/bin/bash
 source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_review"
+update_agent_state "daily_reviewer" "running"
+check_instructions "daily_reviewer"
+
+# === TikTok分析データ収集 ===
+echo "[INFO] TikTok分析データ収集中..." >> "$LOG"
+python3 "$PROJECT_DIR/scripts/tiktok_analytics.py" --update >> "$LOG" 2>&1 || echo "[WARN] TikTok分析失敗" >> "$LOG"
+
+# === パフォーマンス分析 ===
+echo "[INFO] パフォーマンス分析実行中..." >> "$LOG"
+python3 "$PROJECT_DIR/scripts/analyze_performance.py" --analyze >> "$LOG" 2>&1 || echo "[WARN] パフォーマンス分析失敗" >> "$LOG"
 
 run_claude "
-STATE.mdを読め。
+STATE.mdを読め。data/performance_analysis.jsonも読め（パフォーマンス分析結果）。data/kpi_log.csvも読め。
 
 【日次レビュー+即時改善サイクル】サブエージェントでデータ収集と改善を同時実行。
 
 ■ Check
-1. 今日の全ログ確認（seo_batch, competitor, content）
-2. GA4データ取得（可能なら）
-3. エラー確認（ログにERROR/WARN/TIMEOUTをgrep）
+1. 今日の全ログ確認（seo_batch, competitor, content, sns_post）
+2. data/performance_analysis.json のパフォーマンス分析結果を確認
+3. data/kpi_log.csv のKPIトレンドを確認
+4. エラー確認（ログにERROR/WARN/TIMEOUTをgrep）
+5. data/agent_state.json で全エージェントの稼働状態を確認
 
 ■ Do
-4. PROGRESS.mdに日次サマリ追記:
+6. PROGRESS.mdに日次サマリ追記:
    - 子ページ総数、今日の追加数
-   - 投稿パフォーマンス（あれば）
+   - TikTok: 投稿数/再生数/フォロワー数
    - SEO施策数
    - エラー数
-5. 改善点があればコード修正して即実行
-6. 明日のコンテンツ素材があるか確認→なければSlack警告
+   - Agent Team稼働状況
+7. 改善点があればコード修正して即実行
+8. 明日のコンテンツ素材があるか確認→なければSlack警告
+9. STATE.mdのKPI欄を最新データで更新
 
 ■ Act
-7. STATE.md全面更新（KPI、全セクション最新化）
-8. PROGRESS.mdに「明日やること」記載
+10. STATE.md全面更新（KPI、全セクション最新化）
+11. PROGRESS.mdに「明日やること」記載
 " 30
 
 git_sync "review: ${TODAY} 日次レビュー"
 update_state "日次レビュー"
 
 TODAY_REPORT=$(sed -n "/## ${TODAY}/,/## [0-9]/p" PROGRESS.md 2>/dev/null | head -50)
+update_agent_state "daily_reviewer" "completed"
 slack_notify "📊 ${TODAY} 日次レポート
 ━━━━━━━━━━━━━━━━━━
 ${TODAY_REPORT:-データなし}

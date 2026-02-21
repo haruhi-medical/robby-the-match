@@ -107,6 +107,19 @@
       utm_medium: utm.utm_medium || '',
       utm_campaign: utm.utm_campaign || '',
     });
+
+    // TikTok→LINE conversion tracking with full UTM context
+    gtag('event', 'line_registration_intent', {
+      event_category: 'conversion',
+      event_label: 'LINE登録意向',
+      page_location: window.location.href,
+      page_title: document.title,
+      utm_source: utm.utm_source || 'direct',
+      utm_medium: utm.utm_medium || '',
+      utm_campaign: utm.utm_campaign || '',
+      utm_term: utm.utm_term || '',
+      utm_content: utm.utm_content || '',
+    });
   }
 
   function bindLineButtons() {

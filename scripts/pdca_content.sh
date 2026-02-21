@@ -1,6 +1,8 @@
 #!/bin/bash
 source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_content"
+update_agent_state "content_creator" "running"
+check_instructions "content_creator"
 
 run_claude "
 STATE.mdを読め。CLAUDE.mdも読め。今日は$(date +%A)（曜日${DOW}）。
@@ -30,5 +32,6 @@ STATE.mdを読め。CLAUDE.mdも読め。今日は$(date +%A)（曜日${DOW}）�
 git_sync "content: ${TODAY} コンテンツ生成"
 update_state "コンテンツ生成"
 update_progress "📱 コンテンツ生成" "$(cat content/generated/${TODAY}_*.json 2>/dev/null | head -3 || echo 'ログ参照')"
+update_agent_state "content_creator" "completed"
 slack_notify "📱 投稿準備完了。17:30にTikTok確認→投稿ボタン。" "content"
 echo "[$TODAY] pdca_content完了" >> "$LOG"

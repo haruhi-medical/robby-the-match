@@ -672,7 +672,7 @@
             left: 0;
             right: 0;
             background: white;
-            padding: 10px 16px;
+            padding: 14px 16px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
             text-align: center;
@@ -681,14 +681,45 @@
         .sticky-cta-bar .cta-button {
             display: block;
             width: 100%;
-            padding: 14px;
-            font-size: 1rem;
+            padding: 16px;
+            font-size: 1.05rem;
+            animation: ctaPulse 2s ease-in-out infinite;
         }
 
         .sticky-cta-bar .sticky-note {
             font-size: 0.75rem;
             color: #888;
             margin-top: 4px;
+        }
+
+        /* Pulse animation for sticky CTA */
+        @keyframes ctaPulse {
+            0% { box-shadow: 0 4px 15px rgba(0, 200, 81, 0.3); }
+            50% { box-shadow: 0 4px 25px rgba(0, 200, 81, 0.6); }
+            100% { box-shadow: 0 4px 15px rgba(0, 200, 81, 0.3); }
+        }
+
+        /* TikTok welcome banner */
+        .tiktok-welcome-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #2a9d8f 0%, #20b2aa 100%);
+            color: white;
+            text-align: center;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            z-index: 2000;
+            cursor: pointer;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .tiktok-welcome-banner.hidden {
+            opacity: 0;
+            transform: translateY(-100%);
+            pointer-events: none;
         }
 
         /* Responsive */
@@ -749,7 +780,7 @@
 
             /* Add padding to body bottom so sticky bar doesn't cover content */
             body {
-                padding-bottom: 80px;
+                padding-bottom: 90px;
             }
         }
     </style>
@@ -882,6 +913,11 @@
                 <p>大手と比べて、病院の負担が<strong>最大80万円も軽減</strong></p>
                 <p style="margin-top: 5px;">手数料が安い = 病院が採用しやすい = <strong>あなたの転職成功率アップ</strong></p>
             </div>
+            <!-- Inline CTA: After fee comparison -->
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="https://lin.ee/HJwmQgp4" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'fee_comparison_line_button'});" aria-label="手数料10%の転職サポートをLINEで試す" style="font-size: 1rem; padding: 16px 40px;">手数料10%の転職サポートを試してみる</a>
+            </p>
+            <p style="text-align: center; margin-top: 8px; font-size: 0.85rem; color: #888;">費用は完全無料 / 30秒で登録</p>
         </div>
     </section>
 
@@ -1096,6 +1132,12 @@
                     <p class="faq-a">A. AIを活用した業務効率化と、神奈川県西部への地域密着型運営により、大手エージェントのような高額な広告費やオフィスコストを削減しています。その<strong>コスト削減分を手数料の引き下げに還元</strong>しています。</p>
                 </div>
             </div>
+            <!-- Inline CTA: After FAQ -->
+            <div style="text-align: center; margin-top: 30px; padding: 25px; background: #f0f9f7; border-radius: 10px; border: 1px solid #d4edda;">
+                <p style="font-size: 1.1rem; color: #333; margin-bottom: 15px;">まだ質問がある方もLINEでお気軽に</p>
+                <a href="https://lin.ee/HJwmQgp4" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'faq_line_button'});" aria-label="LINEで気軽に質問する" style="font-size: 1rem; padding: 16px 40px;">LINEで気軽に質問する</a>
+                <p style="margin-top: 10px; font-size: 0.85rem; color: #888;">しつこい電話は一切ありません / いつでもブロックOK</p>
+            </div>
         </div>
     </section>
 
@@ -1148,6 +1190,32 @@
             }
             lastScrollY = scrollY;
         });
+    })();
+    </script>
+
+    <!-- TikTok visitor personalization -->
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('utm_source') === 'tiktok') {
+            var banner = document.createElement('div');
+            banner.className = 'tiktok-welcome-banner';
+            banner.id = 'tiktokBanner';
+            banner.textContent = 'TikTokをご覧いただきありがとうございます';
+            banner.setAttribute('role', 'status');
+            document.body.insertBefore(banner, document.body.firstChild);
+
+            // Auto-hide after 5 seconds
+            var hideTimer = setTimeout(function() {
+                banner.classList.add('hidden');
+            }, 5000);
+
+            // Hide on click
+            banner.addEventListener('click', function() {
+                clearTimeout(hideTimer);
+                banner.classList.add('hidden');
+            });
+        }
     })();
     </script>
 </body>

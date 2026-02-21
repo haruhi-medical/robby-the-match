@@ -1,6 +1,8 @@
 #!/bin/bash
 source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_competitor"
+update_agent_state "competitor_analyst" "running"
+check_instructions "competitor_analyst"
 
 run_claude "
 STATE.mdを読め。docs/seo_strategy.mdも読め。
@@ -16,5 +18,6 @@ STATE.mdを読め。docs/seo_strategy.mdも読め。
 git_sync "competitor: ${TODAY} 競合監視"
 update_state "競合監視"
 update_progress "🔎 競合監視" "$(tail -5 logs/pdca_competitor_${TODAY}.log 2>/dev/null)"
+update_agent_state "competitor_analyst" "completed"
 slack_notify "🔎 競合監視完了。" "seo"
 echo "[$TODAY] pdca_competitor完了" >> "$LOG"
