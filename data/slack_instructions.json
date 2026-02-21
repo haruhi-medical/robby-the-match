@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "text": "<@U09AAL90EGH> すすめて",
+    "user": "U08ACK9GHR6",
+    "timestamp": "2026-02-21T07:42:46.574196",
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "text": "<@U09AAL90EGH> @!help",
+    "user": "U08ACK9GHR6",
+    "timestamp": "2026-02-21T07:43:17.654561",
+    "status": "pending"
+  },
+  {
+    "id": 3,
+    "text": "<@U09AAL90EGH> \n/help",
+    "user": "U08ACK9GHR6",
+    "timestamp": "2026-02-21T07:43:48.767515",
+    "status": "pending"
+  },
+  {
+    "id": 4,
+    "text": "<@U09AAL90EGH> \nどうですか？すすんでますか？",
+    "user": "U08ACK9GHR6",
+    "timestamp": "2026-02-21T09:56:51.990965",
+    "status": "pending"
+  }
+]
