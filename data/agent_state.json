@@ -4,7 +4,7 @@
     "health_monitor": null,
     "competitor_analyst": null,
     "content_creator": null,
-    "daily_reviewer": null,
+    "daily_reviewer": "2026-02-21T23:00:00",
     "weekly_strategist": null,
     "slack_commander": null,
     "sns_poster": "2026-02-21T17:30:06"
@@ -14,7 +14,7 @@
     "health_monitor": "pending",
     "competitor_analyst": "pending",
     "content_creator": "pending",
-    "daily_reviewer": "pending",
+    "daily_reviewer": "running",
     "weekly_strategist": "pending",
     "slack_commander": "pending",
     "sns_poster": "completed"
@@ -29,9 +29,16 @@
       "サービス紹介": 0,
       "トレンド": 0
     },
-    "totalPostsThisWeek": 0,
+    "totalPostsThisWeek": 2,
     "lastDeployTimestamp": null,
-    "knownIssues": []
+    "knownIssues": [],
+    "lastAnalysis": "2026-02-21T23:00:03",
+    "recommendations": [
+      "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
+      "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。",
+      "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
+    ],
+    "queueRemaining": 14
   },
   "agentMemory": {
     "content_creator": {
