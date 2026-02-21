@@ -824,6 +824,53 @@
   box-shadow: none;
 }
 
+/* ---------- Remaining Message Count ---------- */
+.chat-remaining-count {
+  font-size: 0.7rem;
+  color: #8B8B8B;
+  text-align: center;
+  padding: 2px 0;
+  margin-top: -2px;
+}
+.chat-remaining-count.low {
+  color: #E67E22;
+  font-weight: 500;
+}
+
+/* ---------- Tag Badges ---------- */
+.chat-rec-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.chat-tag-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(91, 120, 125, 0.08);
+  border: 1px solid rgba(91, 120, 125, 0.2);
+  border-radius: 50px;
+  font-size: 0.65rem;
+  color: #5B787D;
+  font-weight: 500;
+}
+
+/* ---------- Social Proof & Urgency ---------- */
+.chat-social-proof {
+  font-size: 0.75rem;
+  color: #6B6B6B;
+  text-align: center;
+  padding: 8px 0 4px;
+}
+.chat-urgency-badge {
+  display: block;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #E67E22;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
 /* ---------- Mobile Full Screen ---------- */
 @media (max-width: 640px) {
   .chat-window {
@@ -850,9 +897,42 @@
   .chat-toggle {
     bottom: 16px;
     right: 16px;
-    width: 54px;
-    height: 54px;
-    font-size: 1.4rem;
+    width: 58px;
+    height: 58px;
+    font-size: 1.5rem;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  .chat-phone-field,
+  .chat-input {
+    font-size: 16px;
+  }
+
+  /* Touch-friendly CTA buttons */
+  .chat-cta-line,
+  .chat-cta-register,
+  .chat-inline-cta,
+  .chat-phone-btn {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Recommendation cards: more padding for touch */
+  .chat-recommendation-card {
+    padding: 14px 16px;
+  }
+
+  /* Summary view: slightly more padding */
+  .chat-summary {
+    padding: 1.5rem 1.2rem;
+  }
+
+  /* Quick reply buttons: larger touch target */
+  .chat-quick-reply {
+    padding: 10px 18px;
+    font-size: 0.85rem;
   }
 }
 

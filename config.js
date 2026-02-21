@@ -92,7 +92,7 @@ const CONFIG = {
 
   // 外部API連携（実運用時に設定）
   API: {
-    workerEndpoint: "https://robby-the-match-api.haruhi-medical.workers.dev",        // Cloudflare Workers API URL
+    workerEndpoint: "https://robby-the-match-api.robby-the-robot-2026.workers.dev",        // Cloudflare Workers API URL
     slackWebhookUrl: "",       // Slack Webhook URL（レガシー：workerEndpoint設定後は不要）
     googleSheetsId: "",        // Google Sheets ID（レガシー：workerEndpoint設定後は不要）
   },

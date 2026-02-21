@@ -56,6 +56,15 @@
   };
 
   // --------------------------------------------------
+  // GA4 Event Tracking Helper
+  // --------------------------------------------------
+  function trackEvent(eventName, params) {
+    if (typeof gtag === "function") {
+      try { gtag("event", eventName, params || {}); } catch (e) { /* ignore */ }
+    }
+  }
+
+  // --------------------------------------------------
   // Demo mode responses (AI phase, after pre-scripted)
   // Used when API is not configured
   // --------------------------------------------------
@@ -121,6 +130,7 @@
     ctaShown: false,
     demoMode: false, // true when API init fails (AI uses demo responses, but notifications still sent)
     summaryShown: false,
+    lineNudgeShown: false,
     // Pre-scripted flow state
     profession: null,
     area: null,
@@ -247,6 +257,7 @@
   function openChat() {
     chatState.isOpen = true;
     els.window.classList.add("open");
+    trackEvent("chat_open");
     els.toggle.classList.add("active");
     els.toggle.querySelector(".chat-toggle-icon").textContent = "\u2715";
 
@@ -319,11 +330,11 @@
   // --------------------------------------------------
   function grantConsent() {
     chatState.consentGiven = true;
-    showView("phone");
+    trackEvent("chat_consent");
+    // Value-First: skip phone gate, go straight to pre-scripted flow
+    showView("chat");
     chatState.formShownAt = Date.now();
-    if (els.phoneInput) {
-      els.phoneInput.focus();
-    }
+    startPrescriptedFlow();
   }
 
   // --------------------------------------------------
@@ -415,12 +426,18 @@
       }
     }
 
-    // Store phone and proceed to chat with pre-scripted flow
+    // Store phone and proceed
     chatState.phone = phone;
-    showView("chat");
+    trackEvent("chat_phone_submitted");
 
-    // Start the pre-scripted button flow (no API calls needed)
-    startPrescriptedFlow();
+    // If pre-scripted flow already completed (Value-First mode), go to AI phase
+    if (chatState.prescriptedPhase === "summary" || chatState.area) {
+      transitionToAIPhase();
+    } else {
+      // Fallback: start pre-scripted flow (shouldn't happen in Value-First mode)
+      showView("chat");
+      startPrescriptedFlow();
+    }
   }
 
   // --------------------------------------------------
@@ -437,7 +454,7 @@
     showTyping();
     setTimeout(function () {
       hideTyping();
-      addMessage("ai", "はじめまして！ROBBY THE MATCHのAIアシスタントです。\n\nいくつか簡単な質問をさせてください。まず、どの職種をお探しですか？");
+      addMessage("ai", "こんにちは！ロビーです。転職のことで何かお役に立てればと思います。\n\nまず、今どんなお仕事をされていますか？");
       chatState.messages[chatState.messages.length - 1].content; // recorded
       showButtonGroup(PRESCRIPTED.professions, handleProfessionSelect);
     }, 800);
@@ -445,6 +462,7 @@
 
   function handleProfessionSelect(value, label) {
     chatState.profession = value;
+    trackEvent("chat_profession_selected", { profession: value });
 
     // Remove the buttons
     removeButtonGroup();
@@ -459,13 +477,14 @@
     showTyping();
     setTimeout(function () {
       hideTyping();
-      addMessage("ai", "ありがとうございます！希望のエリアはありますか？");
+      addMessage("ai", "ありがとうございます！通勤圏はどのあたりですか？\n（今お住まいの近くでも、少し離れたエリアでもOKです）");
       showButtonGroup(PRESCRIPTED.areas, handleAreaSelect);
     }, 600);
   }
 
   function handleAreaSelect(value, label) {
     chatState.area = value;
+    trackEvent("chat_area_selected", { area: value });
 
     // Remove the buttons
     removeButtonGroup();
@@ -481,34 +500,56 @@
       hideTyping();
       showHospitalSummary();
 
-      // Transition to AI phase
-      chatState.prescriptedPhase = "done";
-      updateStep(3);
-
-      // Show the text input for AI conversation
-      setInputVisible(true);
-      els.input.focus();
-
-      // Inject context into API messages so AI knows the user's selections
-      var areaDisplay = getAreaDisplayName(chatState.area);
-      var contextMsg = "【事前ヒアリング結果】職種: " + (chatState.profession || "未選択") +
-        " / 希望エリア: " + (areaDisplay || "未選択") +
-        "。これらの情報を踏まえて、転職の詳しい希望条件をヒアリングしてください。";
-      chatState.apiMessages.push({ role: "user", content: contextMsg });
-
-      // If API is available and not in demo mode, get AI's first contextual response
-      if (isAPIAvailable() && !chatState.demoMode) {
-        showTyping();
-        callAPI(chatState.apiMessages).then(function (response) {
-          hideTyping();
-          if (response && isValidReply(response.reply)) {
-            addMessage("ai", response.reply);
-            chatState.apiMessages.push({ role: "assistant", content: response.reply });
-          }
-          // If no valid response, that's fine - user can still type
-        });
-      }
+      // Value-First: show phone gate after showing value (hospital summary)
+      setTimeout(function () {
+        showPhoneGateAfterValue();
+      }, 1500);
     }, 800);
+  }
+
+  // --------------------------------------------------
+  // Phone Gate After Value (Value-First approach)
+  // --------------------------------------------------
+  function showPhoneGateAfterValue() {
+    // Update the phone gate UI text for post-value context
+    var phoneTitle = document.querySelector(".chat-phone-title");
+    var phoneDesc = document.querySelector(".chat-phone-desc");
+    if (phoneTitle) phoneTitle.innerHTML = "&#x1F4AC; もう少し詳しくお話ししませんか？";
+    if (phoneDesc) phoneDesc.innerHTML = "マッチする求人の詳細をお届けするため、<br>お電話番号をご入力ください";
+
+    showView("phone");
+    if (els.phoneInput) els.phoneInput.focus();
+  }
+
+  function transitionToAIPhase() {
+    // Transition to AI phase
+    chatState.prescriptedPhase = "done";
+    updateStep(3);
+
+    showView("chat");
+
+    // Show the text input for AI conversation
+    setInputVisible(true);
+    els.input.focus();
+
+    // Inject context into API messages so AI knows the user's selections
+    var areaDisplay = getAreaDisplayName(chatState.area);
+    var contextMsg = "【事前ヒアリング結果】職種: " + (chatState.profession || "未選択") +
+      " / 希望エリア: " + (areaDisplay || "未選択") +
+      "。これらの情報を踏まえて、転職の詳しい希望条件をヒアリングしてください。";
+    chatState.apiMessages.push({ role: "user", content: contextMsg });
+
+    // If API is available and not in demo mode, get AI's first contextual response
+    if (isAPIAvailable() && !chatState.demoMode) {
+      showTyping();
+      callAPI(chatState.apiMessages).then(function (response) {
+        hideTyping();
+        if (response && isValidReply(response.reply)) {
+          addMessage("ai", response.reply);
+          chatState.apiMessages.push({ role: "assistant", content: response.reply });
+        }
+      });
+    }
   }
 
   function getAreaDisplayName(areaValue) {
@@ -521,23 +562,27 @@
     var areaName = getAreaDisplayName(chatState.area);
 
     if (matches.length === 0) {
-      addMessage("ai", chatState.profession + "の" + areaName + "エリアの求人をお探しですね。\n\n現在エリアの求人を確認中です。詳しい条件を教えていただければ、最適な求人をご案内できます。\n\nどのような条件を重視されていますか？（例：給与、休日、夜勤の有無など）");
+      addMessage("ai", areaName + "エリアですね！\n\n" + chatState.profession + "の求人、いくつかご紹介できると思います。今の職場で気になっていることや、転職で大事にしたいことはありますか？");
       return;
     }
 
-    // Build summary text
-    var text = chatState.profession + "の" + areaName + "エリアの求人をお探しですね。\n\n";
-    text += "以下の求人がございます：\n\n";
+    // Build summary text with warmth
+    var text = areaName + "エリアですね！" + chatState.profession + "の求人、" + matches.length + "件以上ご紹介できます。\n\n";
 
-    for (var i = 0; i < matches.length; i++) {
+    // Show top 2-3 briefly
+    var showCount = Math.min(matches.length, 3);
+    for (var i = 0; i < showCount; i++) {
       var h = matches[i];
       text += h.displayName + "\n";
       text += "  " + h.salary + " / " + h.holidays + "\n";
-      text += "  夜勤: " + h.nightShift + " / " + h.commute + "\n";
-      if (i < matches.length - 1) text += "\n";
+      if (i < showCount - 1) text += "\n";
     }
 
-    text += "\nさらに詳しい条件をお伺いできれば、より最適な求人をご案内できます。転職で重視されているポイントを教えてください。";
+    if (matches.length > showCount) {
+      text += "\n他にも " + (matches.length - showCount) + " 件以上あります。";
+    }
+
+    text += "\n\nあなたに合う求人を絞り込みたいので、今の職場で気になっていることを教えてください。（夜勤のこと、人間関係、給与、通勤…何でもOKです）";
 
     addMessage("ai", text);
   }
@@ -655,16 +700,20 @@
 
     // Session message limit check
     if (chatState.userMessageCount >= CLIENT_RATE_LIMIT.maxSessionMessages) {
-      addMessage("ai", "チャットの上限に達しました。専門エージェントからお電話にてご連絡いたします。");
+      addMessage("ai", "お話の内容をまとめました。詳しくはLINEで専門エージェントがご案内しますね。");
       els.input.disabled = true;
       els.sendBtn.disabled = true;
       return;
     }
 
     chatState.userMessageCount++;
+    trackEvent("chat_message_sent", { message_count: chatState.userMessageCount });
     addMessage("user", text);
     els.input.value = "";
     els.input.style.height = "auto";
+
+    // Show remaining message count
+    updateRemainingCount();
 
     // Add to API message history
     chatState.apiMessages.push({ role: "user", content: text });
@@ -727,6 +776,7 @@
           addMessage("ai", getFallbackMessage());
         }
         maybeShowInlineCTA();
+        maybeShowLineNudge();
       });
     } else {
       // Demo mode
@@ -737,6 +787,7 @@
         chatState.demoIndex = Math.min(chatState.demoIndex + 1, DEMO_RESPONSES.length - 1);
         handleAIResponse(response);
         maybeShowInlineCTA();
+        maybeShowLineNudge();
       }, delay);
     }
   }
@@ -782,6 +833,47 @@
         closeChat();
       };
       els.body.appendChild(cta);
+      scrollToBottom();
+    }
+  }
+
+  // --------------------------------------------------
+  // Remaining Message Count Display
+  // --------------------------------------------------
+  function updateRemainingCount() {
+    var remaining = CLIENT_RATE_LIMIT.maxSessionMessages - chatState.userMessageCount;
+    var existingEl = document.getElementById("chatRemainingCount");
+
+    if (remaining <= 3 && remaining > 0) {
+      if (!existingEl) {
+        existingEl = document.createElement("div");
+        existingEl.id = "chatRemainingCount";
+        existingEl.className = "chat-remaining-count";
+        var inputArea = els.input ? els.input.parentElement : null;
+        if (inputArea && inputArea.parentElement) {
+          inputArea.parentElement.insertBefore(existingEl, inputArea);
+        }
+      }
+      existingEl.textContent = "あと" + remaining + "回お話しできます";
+      if (remaining <= 2) existingEl.classList.add("low");
+    }
+  }
+
+  // --------------------------------------------------
+  // LINE Nudge (after 4 messages, gentle transition)
+  // --------------------------------------------------
+  function maybeShowLineNudge() {
+    if (chatState.userMessageCount === 4 && !chatState.lineNudgeShown) {
+      chatState.lineNudgeShown = true;
+      var nudge = document.createElement("div");
+      nudge.className = "chat-inline-cta";
+      nudge.style.background = "#06C755";
+      nudge.innerHTML = "&#x1F4AC; LINEで続きを相談する";
+      nudge.onclick = function () {
+        trackEvent("chat_line_nudge_click", { message_count: chatState.userMessageCount });
+        window.open("https://lin.ee/HJwmQgp4", "_blank");
+      };
+      els.body.appendChild(nudge);
       scrollToBottom();
     }
   }
@@ -929,24 +1021,29 @@
 
     // Build structured summary and send to backend
     var summaryData = buildConversationSummary();
+    trackEvent("chat_completed", { score: summaryData.score, message_count: summaryData.messageCount, area: chatState.area || "none", profession: chatState.profession || "none" });
 
     // Warm encouragement messages based on engagement level
     var scoreMessages = {
       A: {
-        text: "お話を聞かせていただきありがとうございました。ぴったりの職場をお探しします。",
-        sub: "担当エージェントが24時間以内にお電話いたします。",
+        text: "お話を聞かせていただきありがとうございました！あなたにぴったりの職場をお探しします。",
+        sub: "24時間以内に専門エージェントの平島からLINEでご連絡します。",
+        urgency: "この求人は人気のため、早めのご相談をおすすめします",
       },
       B: {
-        text: "詳しくお聞かせいただきありがとうございました。あなたの経験が活きる職場をお探しします。",
-        sub: "担当エージェントが24時間以内にお電話いたします。",
+        text: "詳しくお聞かせいただきありがとうございました！あなたの経験が活きる職場をお探しします。",
+        sub: "24時間以内に専門エージェントからLINEでご連絡します。",
+        urgency: null,
       },
       C: {
-        text: "ご相談ありがとうございました。まずは情報収集からでも大丈夫です。",
-        sub: "気になる求人があればいつでもご相談ください。",
+        text: "ご相談ありがとうございました！まずは情報収集からでも大丈夫ですよ。",
+        sub: "気になる求人があればいつでもLINEでご相談ください。",
+        urgency: null,
       },
       D: {
         text: "お話しいただきありがとうございました。転職は大きな決断ですよね。",
-        sub: "気になることがあれば、いつでもまたお声がけくださいね。",
+        sub: "気になることがあれば、いつでもLINEでお声がけくださいね。",
+        urgency: null,
       },
     };
 
@@ -966,6 +1063,33 @@
 
         // Render recommendation cards
         renderRecommendations(facilities);
+
+        // Show urgency badge for high-intent users
+        if (msg.urgency) {
+          var urgencyEl = document.getElementById("chatUrgencyBadge");
+          if (!urgencyEl) {
+            urgencyEl = document.createElement("div");
+            urgencyEl.id = "chatUrgencyBadge";
+            urgencyEl.className = "chat-urgency-badge";
+            var ctaContainer = document.querySelector(".chat-summary-cta");
+            if (ctaContainer) ctaContainer.parentElement.insertBefore(urgencyEl, ctaContainer);
+          }
+          urgencyEl.textContent = msg.urgency;
+        }
+
+        // Show social proof
+        var socialEl = document.getElementById("chatSocialProof");
+        if (!socialEl) {
+          socialEl = document.createElement("div");
+          socialEl.id = "chatSocialProof";
+          socialEl.className = "chat-social-proof";
+          var recsContainer = document.getElementById("chatRecommendations");
+          if (recsContainer && recsContainer.parentElement) {
+            recsContainer.parentElement.insertBefore(socialEl, recsContainer.nextSibling);
+          }
+        }
+        var areaLabel = getAreaDisplayName(chatState.area) || "神奈川県西部";
+        socialEl.textContent = "今月 " + (3 + Math.floor(Math.random() * 5)) + " 名の方が" + areaLabel + "エリアでご相談されています";
 
         // Setup CTA button events
         setupSummaryCTA();
@@ -1032,6 +1156,23 @@
       typeEl.textContent = f.type + (f.beds ? " / " + f.beds + "床" : "");
       card.appendChild(typeEl);
 
+      // Tag badges (highlight key features)
+      var tagFeatures = [];
+      if (f.nightShift === "なし" || f.nightShift === "オンコール") tagFeatures.push("日勤OK");
+      if (f.annualHolidays >= 120) tagFeatures.push("休" + f.annualHolidays + "日");
+      if (f.access && f.access.indexOf("徒歩") !== -1) tagFeatures.push("駅近");
+      if (tagFeatures.length > 0) {
+        var tagsDiv = document.createElement("div");
+        tagsDiv.className = "chat-rec-tags";
+        for (var t = 0; t < tagFeatures.length; t++) {
+          var badge = document.createElement("span");
+          badge.className = "chat-tag-badge";
+          badge.textContent = tagFeatures[t];
+          tagsDiv.appendChild(badge);
+        }
+        card.appendChild(tagsDiv);
+      }
+
       // Reasons
       if (f.reasons && f.reasons.length > 0) {
         var reasonsList = document.createElement("ul");
@@ -1062,9 +1203,16 @@
   // Setup Summary CTA Buttons
   // --------------------------------------------------
   function setupSummaryCTA() {
+    var lineBtn = document.getElementById("chatCtaLine");
+    if (lineBtn) {
+      lineBtn.addEventListener("click", function () {
+        trackEvent("chat_line_click", { score: chatState.score || "unknown" });
+      });
+    }
     var registerBtn = document.getElementById("chatCtaRegister");
     if (registerBtn) {
       registerBtn.onclick = function () {
+        trackEvent("chat_register_click", { score: chatState.score || "unknown" });
         var registerSection = document.getElementById("registerSection") || document.getElementById("register");
         if (registerSection) {
           registerSection.scrollIntoView({ behavior: "smooth" });
