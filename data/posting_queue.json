@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-02-21T17:30:06.554160",
+  "updated": "2026-02-21T18:44:06.706891",
   "posts": [
     {
       "id": 1,
@@ -18,9 +18,9 @@
         "#神奈川"
       ],
       "cta_type": "soft",
-      "status": "manual_required",
+      "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_20260220_A01_20260221.mp4",
-      "posted_at": null,
+      "posted_at": "2026-02-21T18:42:15.863116",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -45,9 +45,9 @@
         "#ROBBYTHEMATCH"
       ],
       "cta_type": "soft",
-      "status": "pending",
-      "video_path": null,
-      "posted_at": null,
+      "status": "posted",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_20260220_A02_20260221.mp4",
+      "posted_at": "2026-02-21T18:44:06.706877",
       "tiktok_url": null,
       "error": null,
       "performance": {

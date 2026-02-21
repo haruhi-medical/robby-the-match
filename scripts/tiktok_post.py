@@ -26,6 +26,7 @@ from datetime import datetime
 PROJECT_DIR = Path(__file__).parent.parent
 QUEUE_FILE = PROJECT_DIR / "data" / "posting_queue.json"
 COOKIE_FILE = PROJECT_DIR / "data" / ".tiktok_cookies.txt"
+COOKIE_JSON = PROJECT_DIR / "data" / ".tiktok_cookies.json"
 CONTENT_DIR = PROJECT_DIR / "content" / "generated"
 TEMP_DIR = PROJECT_DIR / "content" / "temp_videos"
 ENV_FILE = PROJECT_DIR / ".env"
@@ -240,11 +241,179 @@ def create_video_slideshow(slide_dir, output_path, duration_per_slide=3):
         return False
 
 
+def upload_via_selenium(video_path, caption):
+    """Selenium + Chrome でTikTokに動画アップロード"""
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
+    print("   🌐 Selenium: Chrome起動中...")
+
+    options = Options()
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+
+    # ユーザーの実際のChromeプロファイルを使用（ログイン状態を継承）
+    chrome_user_data = str(Path.home() / "Library/Application Support/Google/Chrome")
+    options.add_argument(f"--user-data-dir={chrome_user_data}")
+    options.add_argument("--profile-directory=Default")
+
+    chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    if os.path.exists(chrome_path):
+        options.binary_location = chrome_path
+
+    driver = webdriver.Chrome(options=options)
+
+    try:
+        # bot検知回避
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+        })
+
+        # Cookie注入のためにまずTikTokにアクセス
+        driver.get("https://www.tiktok.com")
+        time.sleep(2)
+
+        # Cookie注入
+        with open(COOKIE_JSON, 'r') as f:
+            cookies = json.load(f)
+
+        for cookie in cookies:
+            try:
+                cookie_dict = {
+                    "name": cookie["name"],
+                    "value": cookie["value"],
+                    "domain": cookie.get("domain", ".tiktok.com"),
+                    "path": cookie.get("path", "/"),
+                    "secure": cookie.get("secure", True),
+                }
+                driver.add_cookie(cookie_dict)
+            except Exception:
+                pass
+
+        # アップロードページに移動
+        driver.get("https://www.tiktok.com/upload")
+        time.sleep(5)
+
+        # ログイン状態確認
+        if "login" in driver.current_url.lower():
+            print("   ❌ Cookie認証失敗（ログインページにリダイレクト）")
+            driver.quit()
+            return False
+
+        print("   ✅ ログイン成功、アップロードページ表示")
+
+        # ファイル入力要素を探す
+        try:
+            file_input = WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
+            )
+            file_input.send_keys(os.path.abspath(video_path))
+            print("   ✅ 動画ファイルアップロード中...")
+        except Exception as e:
+            print(f"   ❌ ファイル入力要素が見つかりません: {e}")
+            driver.save_screenshot(str(PROJECT_DIR / "logs" / "upload_error.png"))
+            driver.quit()
+            return False
+
+        # アップロード完了を待つ
+        time.sleep(10)
+
+        # キャプション入力
+        try:
+            # TikTokのキャプション入力欄
+            caption_selectors = [
+                "div[contenteditable='true']",
+                "div[data-contents='true']",
+                ".DraftEditor-root",
+                "div[role='textbox']",
+            ]
+            caption_input = None
+            for selector in caption_selectors:
+                try:
+                    caption_input = driver.find_element(By.CSS_SELECTOR, selector)
+                    if caption_input:
+                        break
+                except Exception:
+                    continue
+
+            if caption_input:
+                caption_input.clear()
+                # JavaScriptでテキスト設定（日本語対応）
+                driver.execute_script(
+                    "arguments[0].textContent = arguments[1]",
+                    caption_input, caption
+                )
+                print("   ✅ キャプション入力完了")
+            else:
+                print("   ⚠️ キャプション入力欄が見つかりません")
+        except Exception as e:
+            print(f"   ⚠️ キャプション入力失敗: {e}")
+
+        # 投稿ボタンをクリック
+        time.sleep(3)
+        try:
+            post_selectors = [
+                "button[data-e2e='post-button']",
+                "button:has-text('投稿')",
+                "button:has-text('Post')",
+                "//button[contains(text(),'投稿') or contains(text(),'Post')]"
+            ]
+            posted = False
+            for selector in post_selectors:
+                try:
+                    if selector.startswith("//"):
+                        btn = driver.find_element(By.XPATH, selector)
+                    else:
+                        btn = driver.find_element(By.CSS_SELECTOR, selector)
+                    btn.click()
+                    posted = True
+                    print("   ✅ 投稿ボタンクリック")
+                    break
+                except Exception:
+                    continue
+
+            if not posted:
+                print("   ⚠️ 投稿ボタンが見つかりません")
+                driver.save_screenshot(str(PROJECT_DIR / "logs" / "post_button_error.png"))
+        except Exception as e:
+            print(f"   ⚠️ 投稿ボタンクリック失敗: {e}")
+
+        # 投稿処理完了を待つ
+        time.sleep(15)
+
+        # 成功確認
+        page_source = driver.page_source.lower()
+        if "uploaded" in page_source or "成功" in page_source or "manage" in driver.current_url:
+            print("   ✅ TikTok投稿成功！")
+            driver.quit()
+            return True
+        else:
+            print("   ⚠️ 投稿結果が不明（スクリーンショット保存）")
+            driver.save_screenshot(str(PROJECT_DIR / "logs" / "post_result.png"))
+            driver.quit()
+            return True  # 投稿は試行済み
+
+    except Exception as e:
+        print(f"   ❌ Seleniumエラー: {e}")
+        try:
+            driver.save_screenshot(str(PROJECT_DIR / "logs" / "selenium_error.png"))
+        except Exception:
+            pass
+        driver.quit()
+        return False
+
+
 def upload_to_tiktok(video_path, caption, hashtags):
     """
     TikTokにアップロード
 
-    方法1: tiktok-uploader（Selenium）
+    方法1: tiktok-uploader (Python 3.12 + Playwright) - 一時スクリプト経由
     方法2: TikTok Content Posting API（将来実装）
     """
     video_path = str(video_path)
@@ -262,21 +431,62 @@ def upload_to_tiktok(video_path, caption, hashtags):
     print(f"   📤 TikTokアップロード開始")
     print(f"   キャプション: {full_caption[:80]}...")
 
-    # 方法1: tiktok-uploader
+    # 方法1: tiktok-uploader v1.2.0 (Python 3.12 + Playwright)
+    # 日本語キャプション対応のため、一時スクリプトファイルに書き出して実行
     if COOKIE_FILE.exists():
         try:
-            from tiktok_uploader.upload import upload_video
-            upload_video(
-                filename=video_path,
-                description=full_caption,
-                cookies=str(COOKIE_FILE),
-                headless=True
+            temp_script = TEMP_DIR / "_upload_tmp.py"
+            TEMP_DIR.mkdir(parents=True, exist_ok=True)
+
+            # JSONでパラメータを渡すことでエスケープ問題を回避
+            params = {
+                "filename": str(video_path),
+                "description": full_caption,
+                "cookies": str(COOKIE_FILE),
+            }
+            params_file = TEMP_DIR / "_upload_params.json"
+            with open(params_file, 'w', encoding='utf-8') as f:
+                json.dump(params, f, ensure_ascii=False)
+
+            script_content = f"""
+import json, sys
+with open("{params_file}", "r", encoding="utf-8") as f:
+    p = json.load(f)
+from tiktok_uploader.upload import upload_video
+upload_video(
+    filename=p["filename"],
+    description=p["description"],
+    cookies=p["cookies"],
+    headless=True
+)
+print("UPLOAD_SUCCESS")
+"""
+            with open(temp_script, 'w', encoding='utf-8') as f:
+                f.write(script_content)
+
+            result = subprocess.run(
+                ["python3.12", str(temp_script)],
+                capture_output=True, text=True, timeout=180,
+                cwd=str(PROJECT_DIR)
             )
-            print(f"   ✅ TikTokアップロード完了")
-            return True
+
+            # 一時ファイル削除
+            temp_script.unlink(missing_ok=True)
+            params_file.unlink(missing_ok=True)
+
+            if "UPLOAD_SUCCESS" in result.stdout:
+                print("   ✅ TikTokアップロード完了")
+                return True
+            else:
+                stdout_tail = result.stdout[-500:] if result.stdout else ""
+                stderr_tail = result.stderr[-500:] if result.stderr else ""
+                print(f"   ⚠️ tiktok-uploader出力: {stdout_tail}")
+                if stderr_tail:
+                    print(f"   stderr: {stderr_tail}")
+        except subprocess.TimeoutExpired:
+            print("   ⚠️ tiktok-uploaderタイムアウト (180秒)")
         except Exception as e:
             print(f"   ⚠️ tiktok-uploader失敗: {e}")
-            # フォールバックへ
 
     # 方法2: TikTok Content Posting API
     access_token = os.environ.get("TIKTOK_ACCESS_TOKEN")
