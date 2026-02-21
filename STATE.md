@@ -1,5 +1,5 @@
 # ROBBY THE MATCH 状態ファイル
-# 最終更新: 2026-02-21 04:00 by SEO朝サイクル
+# 最終更新: 2026-02-21 15:00 by 戦略レビュー
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -7,141 +7,111 @@
 - PROGRESS.mdには履歴として追記（こちらは状態のスナップショット）
 
 ## 現在のフェーズ
-- マイルストーン: Week 1
+- マイルストーン: Week 1（2026-02-19〜03-01）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: 基盤構築完了、SEO+コンテンツ運用開始
+- 状態: **基盤完了 → マーケティング出力開始フェーズ**
+
+## 戦略診断（2026-02-21実施）
+
+### 完了していること ✅
+- LP-A + SEO 50ページ + ブログ10記事 + sitemap
+- GitHub Pages公開・GA4・Search Console・LINE公式
+- PDCA cron 7ジョブ稼働
+- Slack双方向連携（送受信・レポート5種・5分監視）
+- コンテンツ素材14本分生成済み（A01スライド6枚 + weekly 7本 + week2 7本）
+- 画像生成パイプライン（Cloudflare Workers AI + Pillow テキスト焼き込み）
+
+### 2/21に修正した致命的問題 🔧
+1. ~~timeout未対応でcronのClaude実行が全失敗~~ → macOS互換fallback実装
+2. ~~cron環境でgit push認証失敗~~ → GH_TOKEN credential helper方式に修正
+3. ~~slack_report.pyが50ページ超でBlock Kit制限エラー~~ → サマリ表示に修正
+4. ~~Slack双方向連携が機能していない~~ → slack_bridge.py新規作成
+
+### ミッション達成への最大ボトルネック 🔴
+**看護師の目に何も届いていない。SNS投稿ゼロ、PVゼロ。**
 
 ## KPI
-| 指標 | 目標 | 現在 | 更新日 |
-|------|------|------|--------|
-| SEO子ページ数 | 50 | 50（area/9 + guide/41） | 2026-02-20 |
-| ブログ記事数 | 10 | 10 | 2026-02-20 |
-| sitemap URL数 | - | 65 | 2026-02-20 |
-| 投稿数(TikTok) | Week2:5 | 0 | 2026-02-20 |
-| 投稿数(Instagram) | Week2:3 | 0 | 2026-02-20 |
-| PV/日 | 100 | 0 | 2026-02-20 |
-| LINE登録数 | Month2:5 | 0 | 2026-02-20 |
-| 成約数 | Month3:1 | 0 | 2026-02-20 |
+| 指標 | 目標 | 現在 | 状態 |
+|------|------|------|------|
+| SEO子ページ数 | 50 | 50 | ✅ |
+| ブログ記事数 | 10 | 10 | ✅ |
+| sitemap URL数 | - | 65 | ✅ |
+| 投稿数(TikTok) | Week2:5 | **0** | 🔴 |
+| 投稿数(Instagram) | Week2:3 | **0** | 🔴 |
+| PV/日 | 100 | **0** | 🔴 |
+| LINE登録数 | Month2:5 | 0 | ⏳ |
+| 成約数 | Month3:1 | 0 | ⏳ |
 
-## ファイル構成
-```
-robby-the-match/
-├── .env                          # 環境変数（git管理外）
-├── .gitignore
-├── 404.html
-├── CLAUDE.md                     # 戦略プロンプト v8.0
-├── PDCA_SETUP.md                 # PDCAシステム構築記録
-├── PROGRESS.md                   # 日次進捗ログ
-├── STATE.md                      # このファイル
-├── index.html                    # メインLP（構造化データ5種）
-├── privacy.html                  # プライバシーポリシー
-├── terms.html                    # 利用規約
-├── sitemap.xml                   # ルートsitemap（65 URL）
-├── robots.txt                    # ルートrobots.txt
-├── blog/                         # ブログ記事（10記事+index）
-│   ├── index.html
-│   ├── agent-comparison.html
-│   ├── ai-medical-future.html
-│   ├── kanagawa-west-guide.html
-│   ├── night-shift-health.html
-│   ├── nurse-communication.html
-│   ├── nurse-market-2026.html
-│   ├── nurse-money-guide.html
-│   ├── nurse-stress-management.html
-│   ├── odawara-living.html
-│   └── success-story-template.html
-├── lp/
-│   ├── analytics.js
-│   ├── robots.txt
-│   ├── sitemap.xml               # 65 URLエントリ
-│   └── job-seeker/
-│       ├── index.html            # LP-A（構造化データ4種）
-│       ├── area/                 # 地域別9ページ
-│       └── guide/                # ガイド41ページ
-├── scripts/
-│   ├── update_sitemap.py         # sitemap自動更新
-│   └── （その他既存スクリプト）
-└── （その他既存ファイル）
-```
+## 次にやるべきこと（優先順 — 変更厳禁）
+
+### 🔴 平島禎之の手動作業（AIではできない）
+1. **TikTokアカウント作成** → 生成済み素材を即投稿可能にする
+2. **Instagramアカウント作成** → TikTokと並行運用
+3. **生成済みコンテンツの初回投稿**（A01スライド6枚は完成済み）
+4. Mac Miniスリープ無効化（sudo pmset -a sleep 0）
+
+### 🟡 AIが自律でやること
+5. PDCA cronの実稼働確認（修正済み、次回04:00のseo_batchで検証）
+6. 生成済み週次バッチのスライド画像化（JSONはあるが画像未生成のもの）
+7. Search Consoleでsitemap再送信の自動化
+8. LP-AのCTAボタン・導線の改善（LINE登録率最適化）
+9. コンテンツ品質の自動チェック（ペルソナ適合度スコアリング）
+
+### ⏳ 後回し
+- Googleビジネスプロフィール登録（手動）
+- 独自ドメイン取得（SEO効果が出てから）
+- LP-B施設向け（Phase2）
 
 ## デプロイ状態
 - GitHub Pages: ✅ 公開中
 - 公開URL: https://haruhi-medical.github.io/robby-the-match/
 - git remote: origin https://github.com/haruhi-medical/robby-the-match.git
 - デプロイブランチ: master（mainからpush）
-- 最新commit: 6ef63ca feat: SEOコンテンツ大幅拡充
+- 最新push: 2026-02-21 15:00
 
 ## SEO状態
-- 子ページ: area/9ページ + guide/41ページ = 計50ページ
-- ブログ: 10記事 + indexページ
-- sitemap.xml: 65 URLエントリ（ルート+lp/ 両方）
-- robots.txt: あり（ルート直下 + lp/ 配下に各1つ、計2つ）
-- GA4: ✅ 設定済み（G-X4G2BYW13B）
-- Search Console: ✅ 登録済み（メタタグ検証、サイトマップ送信済み）
-- Googleビジネスプロフィール: 未登録
-- 構造化データ(JSON-LD):
-  - index.html: WebSite, Organization, BreadcrumbList, EmploymentAgency, FAQPage（5種）
-  - LP-A: Organization, JobPosting, FAQPage, BreadcrumbList（4種）
-  - area子ページ（9ページ）: 各BreadcrumbList + FAQPage（2種）
-  - guide子ページ（41ページ）: 各BreadcrumbList + Article（2種）
+- 子ページ: area/9 + guide/41 = 計50ページ
+- ブログ: 10記事 + index
+- sitemap.xml: 65 URL
+- GA4: ✅ G-X4G2BYW13B
+- Search Console: ✅ 登録済み
+- 構造化データ: index.html(5種) + LP-A(4種) + area(2種) + guide(2種)
 - 競合ゼロKW: 「神奈川県西部 看護師」「紹介料 10%」
+- **課題**: github.ioサブドメインはドメイン権威ゼロ。独自ドメインがないとランキングは厳しい。
 
 ## SNS状態
-- TikTokアカウント: 未確認
-- Instagramアカウント: 未確認
-- Postiz連携: 未設定（POSTIZ_API_KEY=空）
-- 今週分素材: 7本生成済み（content/generated/weekly_batch_20260220/）
+- TikTok: ❌ アカウント未作成（手動必要）
+- Instagram: ❌ アカウント未作成（手動必要）
+- 生成済み素材:
+  - content/generated/20260220_A01/ — スライド6枚（投稿可能）
+  - content/generated/weekly_batch_20260220/ — 7本分JSON（画像生成必要）
+  - content/generated/week2_batch_20260227/ — 7本分JSON（画像生成必要）
 
 ## Slack状態
-- Bot Token: あり（.envにSLACK_BOT_TOKEN設定済み）
-- SLACK_CHANNEL_ID: C09A7U4TV4G（#claudecode）
-- slack_report.py / slack_commander.py: 作成済み
-- 通知テスト: 未テスト
+- ✅ 双方向連携稼働中（2026-02-21構築完了）
+- slack_bridge.py: セッション開始/終了/送受信
+- slack_commander.py: cron 5分間隔監視
+- slack_report.py: daily/kpi/content/seo/team
 
-## cron状態
+## cron状態（2026-02-21修正済み）
 ```
-# 日次（月〜土）
-0  6 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_morning.sh
-0  7 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_healthcheck.sh
-0 15 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_content.sh
-0 23 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_review.sh
-# 週次（日曜のみ）
-0  8 * * 0   /bin/bash ~/robby-the-match/scripts/pdca_weekly.sh
+0  4 * * 1-6 pdca_seo_batch.sh      # SEO改善
+0  7 * * 1-6 pdca_healthcheck.sh    # 障害監視
+0 10 * * 1-6 pdca_competitor.sh     # 競合分析
+0 15 * * 1-6 pdca_content.sh        # コンテンツ生成
+0 23 * * 1-6 pdca_review.sh         # 日次レビュー
+0  6 * * 0   pdca_weekly.sh         # 週次総括
+*/5 * * * *  slack_commander.py      # Slack監視
 ```
-
-## 未完了の手動作業
-- [x] GA4測定ID置換 → ✅ G-X4G2BYW13B（2/20）
-- [x] LINE URL置換 → ✅ https://lin.ee/HJwmQgp4（2/20）
-- [x] Search Console登録 → ✅ メタタグ検証完了+サイトマップ送信（2/20）
-- [x] GitHubリポジトリpush → ✅ デプロイ完了（2/20）
-- [x] GitHub Pages有効化 → ✅（2/20）
-- [x] sitemap.xml URL統一 → ✅ 65 URL、haruhi-medical.github.io に統一（2/20）
-- [x] robots.txt URL統一 → ✅ 統一済み（2/20）
-- [ ] Googleビジネスプロフィール登録
-- [ ] 独自ドメイン取得
-- [ ] TikTokアカウント作成/連携
-- [ ] Instagramアカウント作成/連携
-- [ ] Mac Miniスリープ無効化（sudo pmset -a sleep 0）
-- [ ] Search Consoleでsitemap再送信（65 URLに更新したため）
-
-## 次にやるべきこと（優先順）
-1. ~~GitHub push + Pages有効化~~ → ✅ 完了
-2. ~~GA4設定~~ → ✅ 完了
-3. ~~Search Console登録~~ → ✅ 完了
-4. ~~LINE URL設定~~ → ✅ 完了
-5. ~~sitemap.xml / robots.txt URL統一~~ → ✅ 完了
-6. Search Consoleでsitemap再送信（65 URLに更新）
-7. TikTok初投稿（素材は準備済み）
-8. Googleビジネスプロフィール登録
+- **修正履歴**: timeout未対応→fallback実装、git push認証→GH_TOKEN方式
 
 ## 問題・ブロッカー
-- ~~sitemap.xmlのURL不一致~~ → ✅ 解決済み（全65 URLをharuhi-medical.github.ioに統一）
-- ~~robots.txtのURL不一致~~ → ✅ 解決済み
-- **lp/facility/ が空**: LP-B（施設向け）未作成。Phase1では不要。
-- **Postiz API Key未設定**: TikTok自動投稿不可。手動アップロードが必要。
+- **TikTok/Instagramアカウント未作成**: 全てのマーケティング出力がブロック
+- **github.ioサブドメイン**: SEO効果限定的。独自ドメインが必要
+- **Postiz API Key未設定**: 自動投稿不可。当面手動アップロード
 
 ## 戦略メモ
 - 競合ゼロKW: 「神奈川県西部 看護師」「紹介料 10%」
 - 3軸: 手数料破壊(10%) x 地域密着(9市) x 転職品質
 - 大手の隙間: TikTokオーガニック未参入
-- ロードマップ: 即座→地域KW、1-3ヶ月→高競合KW、12ヶ月→検索1位
+- **最優先**: SNSアカウント作成 → 素材投稿 → データ取得 → 改善ループ開始

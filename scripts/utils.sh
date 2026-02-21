@@ -4,7 +4,15 @@
 
 PROJECT_DIR="$HOME/robby-the-match"
 cd "$PROJECT_DIR"
-export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:$HOME/.npm-global/bin"
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.npm-global/bin:$PATH"
+
+# cron環境用: gh CLIのトークンをgit認証に使う
+if command -v gh &>/dev/null; then
+  export GH_TOKEN=$(gh auth token 2>/dev/null || true)
+  if [ -n "$GH_TOKEN" ]; then
+    git config --local credential.helper "!f() { echo username=haruhi-medical; echo password=$GH_TOKEN; }; f"
+  fi
+fi
 
 TODAY=$(date +%Y-%m-%d)
 NOW=$(date +%H:%M:%S)
@@ -32,7 +40,6 @@ git_sync() {
 
 slack_notify() {
   local message=$1
-  local channel=${2:-"general"}
   python3 "$PROJECT_DIR/scripts/notify_slack.py" --message "$message" 2>> "$LOG" \
     || echo "[WARN] Slack通知失敗" >> "$LOG"
 }
@@ -67,14 +74,47 @@ update_progress() {
 run_claude() {
   local prompt=$1
   local max_minutes=${2:-30}
-  timeout "${max_minutes}m" claude -p "$prompt" \
-    --dangerously-skip-permissions \
-    --max-turns 40 \
-    >> "$LOG" 2>&1
+  local max_seconds=$((max_minutes * 60))
+
+  # macOS互換: timeout → gtimeout → perl fallback
+  local timeout_cmd=""
+  if command -v gtimeout &>/dev/null; then
+    timeout_cmd="gtimeout"
+  elif command -v timeout &>/dev/null; then
+    timeout_cmd="timeout"
+  fi
+
+  if [ -n "$timeout_cmd" ]; then
+    $timeout_cmd "${max_seconds}s" claude -p "$prompt" \
+      --dangerously-skip-permissions \
+      --max-turns 40 \
+      >> "$LOG" 2>&1
+  else
+    # timeout系コマンドなし → バックグラウンド+waitで代替
+    claude -p "$prompt" \
+      --dangerously-skip-permissions \
+      --max-turns 40 \
+      >> "$LOG" 2>&1 &
+    local pid=$!
+    local elapsed=0
+    while kill -0 $pid 2>/dev/null; do
+      sleep 10
+      elapsed=$((elapsed + 10))
+      if [ $elapsed -ge $max_seconds ]; then
+        kill $pid 2>/dev/null
+        wait $pid 2>/dev/null
+        echo "[TIMEOUT] ${max_minutes}分超過" >> "$LOG"
+        slack_notify "⏰ タイムアウト（${max_minutes}分）"
+        return 124
+      fi
+    done
+    wait $pid
+  fi
+
   local exit_code=$?
   if [ $exit_code -eq 124 ]; then
     echo "[TIMEOUT] ${max_minutes}分超過" >> "$LOG"
-    slack_notify "⏰ タイムアウト（${max_minutes}分）" "alert"
+    slack_notify "⏰ タイムアウト（${max_minutes}分）"
   fi
   return $exit_code
 }

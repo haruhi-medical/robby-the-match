@@ -4,27 +4,48 @@
     "text": "<@U09AAL90EGH> すすめて",
     "user": "U08ACK9GHR6",
     "timestamp": "2026-02-21T07:42:46.574196",
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 2,
     "text": "<@U09AAL90EGH> @!help",
     "user": "U08ACK9GHR6",
     "timestamp": "2026-02-21T07:43:17.654561",
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 3,
     "text": "<@U09AAL90EGH> \n/help",
     "user": "U08ACK9GHR6",
     "timestamp": "2026-02-21T07:43:48.767515",
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 4,
     "text": "<@U09AAL90EGH> \nどうですか？すすんでますか？",
     "user": "U08ACK9GHR6",
     "timestamp": "2026-02-21T09:56:51.990965",
+    "status": "done"
+  },
+  {
+    "id": 5,
+    "text": "<@U09AAL90EGH> \nスラックで相互コミュニケーション取れるようにしてくれ。/!",
+    "user": "U08ACK9GHR6",
+    "timestamp": "2026-02-21T13:33:24.704376",
+    "status": "done"
+  },
+  {
+    "id": 6,
+    "text": "<@U09AAL90EGH>\n/!\nスラックで今の状況報告と相互コミュニケーションとれるように！",
+    "user": "U08ACK9GHR6",
+    "timestamp": "2026-02-21T13:35:27.459017",
+    "status": "done"
+  },
+  {
+    "id": 7,
+    "text": "<@U09AAL90EGH> 今どんな状況？",
+    "user": "U08ACK9GHR6",
+    "timestamp": "2026-02-21T13:58:53.005462",
     "status": "pending"
   }
 ]

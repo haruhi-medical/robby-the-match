@@ -111,3 +111,9 @@
 ### 🔍 SEO朝サイクル（04:00:00）
 seo: 2026-02-21 SEO改善+子ページ追加
 
+### 🔎 競合監視（10:00:00）
+=== [2026-02-21 10:00:00] pdca_competitor 開始 ===
+/Users/robby2/robby-the-match/scripts/utils.sh: line 70: timeout: command not found
+fatal: could not read Username for 'https://github.com': Device not configured
+[WARN] git push失敗
+

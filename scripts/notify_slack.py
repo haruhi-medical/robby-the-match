@@ -145,14 +145,14 @@ def send_slack_notification(json_path: Path = None, message: str = None):
             timeout=10
         )
 
-        if response.status_code == 200:
+        data = response.json()
+        if data.get("ok"):
             print("✅ Slack通知送信完了")
             if json_path:
                 print(f"   ID: {content_id}")
             return True
         else:
-            print(f"❌ Slack通知失敗: HTTP {response.status_code}")
-            print(f"   レスポンス: {response.text}")
+            print(f"❌ Slack通知失敗: {data.get('error', 'unknown')}")
             return False
 
     except Exception as e:

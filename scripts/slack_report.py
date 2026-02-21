@@ -264,17 +264,29 @@ def send_daily_report():
         }
     )
 
-    # --- SEO子ページ状況 ---
+    # --- SEO子ページ状況（サマリのみ） ---
     if seo_pages:
-        seo_lines = []
-        for p in seo_pages:
-            checks = ""
-            checks += "title " if p["title"] else "~~title~~ "
-            checks += "meta " if p["meta_desc"] else "~~meta~~ "
-            checks += "h1 " if p["h1"] else "~~h1~~ "
-            checks += "schema " if p["schema"] else "~~schema~~ "
-            checks += "GA4" if p["ga4"] else "~~GA4~~"
-            seo_lines.append(f"`{p['file']}` : {checks}")
+        total = len(seo_pages)
+        ok_count = sum(
+            1 for p in seo_pages if p["title"] and p["meta_desc"] and p["h1"]
+        )
+        schema_count = sum(1 for p in seo_pages if p["schema"])
+        ga4_count = sum(1 for p in seo_pages if p["ga4"])
+        # 問題のあるページだけ表示（最大5件）
+        ng_pages = [p for p in seo_pages if not (p["title"] and p["meta_desc"] and p["h1"])]
+
+        summary = (
+            f"*SEOページ状況*\n"
+            f"  総ページ数: *{total}* ページ\n"
+            f"  SEO最適化済み: *{ok_count}/{total}*\n"
+            f"  構造化データ: *{schema_count}/{total}*\n"
+            f"  GA4設置: *{ga4_count}/{total}*"
+        )
+        if ng_pages:
+            ng_list = "\n".join(f"  - `{p['file']}`" for p in ng_pages[:5])
+            if len(ng_pages) > 5:
+                ng_list += f"\n  ...他 {len(ng_pages) - 5} ページ"
+            summary += f"\n\n*要改善:*\n{ng_list}"
 
         blocks.append({"type": "divider"})
         blocks.append(
@@ -282,7 +294,7 @@ def send_daily_report():
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*SEOページ状況*\n" + "\n".join(seo_lines),
+                    "text": summary,
                 },
             }
         )
@@ -445,25 +457,48 @@ def send_seo_report():
             }
         )
     else:
-        for p in seo_pages:
-            status_items = [
-                ("title", p["title"]),
-                ("meta description", p["meta_desc"]),
-                ("h1", p["h1"]),
-                ("構造化データ", p["schema"]),
-                ("GA4", p["ga4"]),
-            ]
-            lines = []
-            for label, ok in status_items:
-                mark = "[OK]" if ok else "[NG]"
-                lines.append(f"  {mark} {label}")
+        total = len(seo_pages)
+        ok_count = sum(1 for p in seo_pages if p["title"] and p["meta_desc"] and p["h1"])
+        schema_count = sum(1 for p in seo_pages if p["schema"])
+        ga4_count = sum(1 for p in seo_pages if p["ga4"])
 
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"*サマリ*\n"
+                        f"  総ページ数: *{total}*\n"
+                        f"  SEO最適化済み（title+meta+h1）: *{ok_count}/{total}*\n"
+                        f"  構造化データあり: *{schema_count}/{total}*\n"
+                        f"  GA4あり: *{ga4_count}/{total}*"
+                    ),
+                },
+            }
+        )
+
+        # 問題のあるページのみ詳細表示（最大10件）
+        ng_pages = [p for p in seo_pages if not (p["title"] and p["meta_desc"] and p["h1"])]
+        if ng_pages:
+            blocks.append({"type": "divider"})
+            ng_lines = []
+            for p in ng_pages[:10]:
+                status_items = [
+                    ("title", p["title"]),
+                    ("meta", p["meta_desc"]),
+                    ("h1", p["h1"]),
+                ]
+                issues = " ".join(f"~~{label}~~" for label, ok in status_items if not ok)
+                ng_lines.append(f"  `{p['file']}` : {issues}")
+            if len(ng_pages) > 10:
+                ng_lines.append(f"  ...他 {len(ng_pages) - 10} ページ")
             blocks.append(
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*`{p['file']}`*\n" + "\n".join(lines),
+                        "text": "*要改善ページ:*\n" + "\n".join(ng_lines),
                     },
                 }
             )

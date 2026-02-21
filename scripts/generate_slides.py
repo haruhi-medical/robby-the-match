@@ -129,12 +129,35 @@ def create_slide(
     final_img.save(output_path, "PNG")
 
 
-def generate_slides(json_path: Path):
+def normalize_slides(data: dict) -> list[str]:
+    """異なるJSONフォーマットのスライドテキストを統一形式に変換"""
+    slides = data.get("slides", [])
+    if not slides:
+        return []
+
+    # 形式1: ["text1", "text2", ...] — シンプル文字列リスト
+    if isinstance(slides[0], str):
+        return slides
+
+    # 形式2: [{"slide": 1, "text": "...", "subtext": "..."}, ...] — 構造化形式
+    result = []
+    for s in slides:
+        text = s.get("text", "")
+        subtext = s.get("subtext", "")
+        if subtext:
+            result.append(f"{text}\n{subtext}")
+        else:
+            result.append(text)
+    return result
+
+
+def generate_slides(json_path: Path, output_dir_override: Path = None):
     """
     台本JSONから6枚のスライドを一括生成
 
     Args:
         json_path: 台本JSONファイルパス
+        output_dir_override: 出力先を上書き（バッチ生成用）
     """
     print(f"\n📦 台本読み込み: {json_path.name}")
 
@@ -142,13 +165,13 @@ def generate_slides(json_path: Path):
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    content_id = data.get("id", "UNKNOWN")
-    slides_text = data.get("slides", [])
+    content_id = data.get("content_id", data.get("id", "UNKNOWN"))
+    slides_text = normalize_slides(data)
     base_image = data.get("base_image", "base_nurse_station.png")
 
     if len(slides_text) != 6:
-        print(f"❌ エラー: スライド数が6枚ではありません（{len(slides_text)}枚）")
-        sys.exit(1)
+        print(f"⚠️ スライド数: {len(slides_text)}枚（6枚でない場合はスキップ）")
+        return None
 
     print(f"   ID: {content_id}")
     print(f"   ベース画像: {base_image}")
@@ -161,20 +184,32 @@ def generate_slides(json_path: Path):
         sys.exit(1)
 
     # 出力ディレクトリ
-    today = datetime.now().strftime("%Y%m%d")
-    output_dir = project_root / "content" / "generated" / f"{today}_{content_id}"
+    if output_dir_override:
+        output_dir = output_dir_override
+    else:
+        today = datetime.now().strftime("%Y%m%d")
+        output_dir = project_root / "content" / "generated" / f"{today}_{content_id}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"   出力先: {output_dir.relative_to(project_root)}")
+    try:
+        print(f"   出力先: {output_dir.relative_to(project_root)}")
+    except ValueError:
+        print(f"   出力先: {output_dir}")
     print()
 
     # 各スライドを生成
     for i, text in enumerate(slides_text, start=1):
         output_path = output_dir / f"slide_{i}.png"
 
-        # 1枚目: フォント160px（フック）
-        # 2-6枚目: フォント128px（ストーリー・オチ）
-        fontsize = 160 if i == 1 else 128
+        # 改行を含むテキストの処理（メイン+サブテキスト）
+        text = text.strip()
+
+        # 1枚目: フォント大（フック）
+        # 改行含む場合はサブテキストありなのでやや小さめ
+        if i == 1:
+            fontsize = 120 if "\n" in text else 160
+        else:
+            fontsize = 100 if "\n" in text else 128
 
         # 1枚目は中央やや上、2-6枚目は中央
         position = "center"
@@ -197,21 +232,50 @@ def generate_slides(json_path: Path):
     return output_dir
 
 
+def batch_generate(batch_dir: Path):
+    """バッチディレクトリ内の全JSONからスライドを一括生成"""
+    json_files = sorted(batch_dir.glob("*.json"))
+    if not json_files:
+        print(f"❌ JSONファイルが見つかりません: {batch_dir}")
+        return
+
+    print(f"=== バッチ生成: {batch_dir.name} ({len(json_files)}ファイル) ===")
+    success = 0
+    for json_file in json_files:
+        # batch_summary.mdなどは除外
+        if json_file.suffix != ".json":
+            continue
+        out_dir = (batch_dir / json_file.stem).resolve()
+        result = generate_slides(json_file, output_dir_override=out_dir)
+        if result:
+            success += 1
+
+    print(f"\n=== バッチ完了: {success}/{len(json_files)} セット生成 ===")
+
+
 def main():
     parser = argparse.ArgumentParser(description="台本JSONから6枚のスライドを生成")
-    parser.add_argument("--json", required=True, help="台本JSONファイルパス")
+    parser.add_argument("--json", help="台本JSONファイルパス")
+    parser.add_argument("--batch", help="バッチディレクトリパス（全JSONを一括処理）")
 
     args = parser.parse_args()
-    json_path = Path(args.json)
 
-    if not json_path.exists():
-        print(f"❌ エラー: JSONファイルが見つかりません: {json_path}")
-        sys.exit(1)
-
-    output_dir = generate_slides(json_path)
-
-    print(f"\n🎉 処理完了")
-    print(f"   出力: {output_dir}")
+    if args.batch:
+        batch_dir = Path(args.batch)
+        if not batch_dir.is_dir():
+            print(f"❌ エラー: ディレクトリが見つかりません: {batch_dir}")
+            sys.exit(1)
+        batch_generate(batch_dir)
+    elif args.json:
+        json_path = Path(args.json)
+        if not json_path.exists():
+            print(f"❌ エラー: JSONファイルが見つかりません: {json_path}")
+            sys.exit(1)
+        output_dir = generate_slides(json_path)
+        print(f"\n🎉 処理完了")
+        print(f"   出力: {output_dir}")
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":
