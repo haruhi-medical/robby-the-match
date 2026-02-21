@@ -1,5 +1,5 @@
 {
-  "analyzed_at": "2026-02-21T23:00:03",
+  "analyzed_at": "2026-02-22T06:00:02",
   "content_performance": {
     "total_posted": 2,
     "verified": 2,
@@ -13,8 +13,14 @@
     "message": "パフォーマンスデータ未収集（tiktok_analytics.py --updateで収集）"
   },
   "kpi_trend": {
-    "trend": "データ不足",
-    "days": 1
+    "latest_date": "2026-02-22",
+    "followers_change": 0,
+    "videos_change": -2,
+    "views_change": 0,
+    "likes_change": 0,
+    "current_followers": 0,
+    "current_videos": 0,
+    "days_tracked": 2
   },
   "content_mix": {
     "total_stock": 16,

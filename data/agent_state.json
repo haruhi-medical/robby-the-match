@@ -4,8 +4,8 @@
     "health_monitor": null,
     "competitor_analyst": null,
     "content_creator": null,
-    "daily_reviewer": "2026-02-21T23:00:00",
-    "weekly_strategist": null,
+    "daily_reviewer": "2026-02-21T23:00:07",
+    "weekly_strategist": "2026-02-22T06:00:00",
     "slack_commander": null,
     "sns_poster": "2026-02-21T17:30:06"
   },
@@ -14,8 +14,8 @@
     "health_monitor": "pending",
     "competitor_analyst": "pending",
     "content_creator": "pending",
-    "daily_reviewer": "running",
-    "weekly_strategist": "pending",
+    "daily_reviewer": "completed",
+    "weekly_strategist": "running",
     "slack_commander": "pending",
     "sns_poster": "completed"
   },
@@ -45,7 +45,7 @@
       "highPerformingPatterns": [],
       "failedPatterns": [],
       "contentIdCounter": 0,
-      "lastAnalysisDate": "2026-02-21",
+      "lastAnalysisDate": "2026-02-22",
       "bestHookPatterns": [],
       "avgMetrics": {
         "views": 0,
@@ -79,7 +79,7 @@
       "authStatus": "cookie_required",
       "queueFile": "data/posting_queue.json",
       "averageViews": 0,
-      "lastAnalysisDate": "2026-02-21"
+      "lastAnalysisDate": "2026-02-22"
     }
   }
 }
