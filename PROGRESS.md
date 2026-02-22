@@ -18,6 +18,56 @@
 
 ---
 
+## 2026-02-22（土）
+
+### 今日やったこと
+
+#### 午前: AI対話サービス品質最大化
+- ✅ Value-First変換（Phone gateを後ろに移動、先に病院情報を見せる）
+- ✅ LP-Aチャットウィジェット統合（lp/job-seeker/index.html）
+- ✅ AIプロンプト品質強化（共感→具体提案→まとめの3段階）
+- ✅ メッセージ制限UX改善（残り回数表示、LINEナッジ）
+- ✅ モバイル最適化（全画面チャット、タッチターゲット48px+）
+- ✅ GA4イベント計測強化（チャットファネル全9ステップ）
+- ✅ Cloudflare Workerデプロイ: v: 47d284cc
+
+#### 午後: 全97施設DB+距離計算+AI応答大幅改善
+- ✅ `scripts/build_worker_data.js` 作成 — data/areas.jsから全97施設をWorker用ESMに変換
+- ✅ `api/worker_facilities.js`（3393行）生成 — 30+駅座標、10エリアメタデータ、97施設DB
+- ✅ Haversine距離計算関数追加（駅⇔施設間の直線距離km）
+- ✅ 通勤時間推定（直線距離×1.3÷30km/h×60分）をAIプロンプトに注入
+- ✅ extractPreferences() v2 — 否定表現検出（「夜勤は嫌」対応）、除外タイプ、最寄り駅、通勤制限
+- ✅ scoreFacilities() v2 — 距離スコアリング、上位5件（distanceKm/commuteMin付き）
+- ✅ buildSystemPrompt() v2 — 全施設データ注入、ベテランアドバイザーペルソナ
+- ✅ chat.js: 駅選択UI追加（エリア別22駅+指定しない）
+- ✅ API連携: station送信→通勤距離計算→プロンプト注入
+- ✅ Cloudflare Workerデプロイ: v: a8bcff75
+- ✅ GitHub Pagesデプロイ: commit acbcf82
+- ✅ Worker Secrets再設定（CHAT_SECRET_KEY, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID, ALLOWED_ORIGIN）
+- ⚠️ **ANTHROPIC_API_KEY未設定** — 平島禎之にSlackで連絡済み
+
+### 技術的な問題と解決
+- worker_facilities.js生成時にstderrが混入 → wrangler buildでSyntax error → 手動で末尾のstderr行を削除
+- CLOUDFLARE_API_TOKENにWorkers:Edit権限なし → `CLOUDFLARE_API_TOKEN=""` でOAuth fallback
+- デプロイ後にWorker Secretsが全消失 → 4つ中3つを再設定、残り1つ（ANTHROPIC_API_KEY）は要確認
+
+### KPIサマリ
+- 累計LINE登録: 0名
+- 今週の投稿数: 2本（TikTok）
+- TikTokフォロワー: 0名
+- AI対話サービス: 全97施設+距離計算対応（ANTHROPIC_API_KEY設定待ち）
+
+### 明日やること
+- ANTHROPIC_API_KEY設定 → AI対話の実動作テスト
+- 実際にチャットを使って応答品質を検証・微調整
+
+### メモ・気づき
+- wrangler deployで全secretsが消えることがある — デプロイ後に`wrangler secret list`で確認すべき
+- ESMモジュール（worker_facilities.js）をesbuildでバンドルする方式は問題なく動作（201KB/gzip 30KB）
+- 97施設の全データをプロンプトに注入してもCloudflare Workerの制限内に収まる
+
+---
+
 ## 2026-02-20（金）
 
 ### 🚀 自律PDCAシステム起動（10:00-10:20）

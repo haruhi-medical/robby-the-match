@@ -1,5 +1,5 @@
 # ROBBY THE MATCH 状態ファイル
-# 最終更新: 2026-02-22 by AI対話サービス品質最大化
+# 最終更新: 2026-02-22 16:41 by 全97施設DB+距離計算+AI応答強化
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -9,7 +9,7 @@
 ## 現在のフェーズ
 - マイルストーン: Week 1（2026-02-19〜03-01）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: **AI対話サービス品質最大化完了（Value-First, LP-Aチャット統合, プロンプト強化, GA4計測）**
+- 状態: **全97施設DB+Haversine距離計算+駅選択UI+AI応答品質大幅改善 デプロイ完了**
 
 ## 戦略診断（2026-02-21実施）
 
@@ -71,7 +71,7 @@
 7. **LINE誘導強化** — サマリビューにLINE登録ボタン（緑）+ 登録フォームボタンを追加
 8. **Cloudflare Workerデプロイ完了**: wrangler OAuthログイン→`wrangler deploy`成功（v: ce1389eb）
 
-### 2/22に構築したAI対話サービス品質最大化 🚀
+### 2/22午前に構築したAI対話サービス品質最大化 🚀
 1. **Value-First変換** — Phone gateをプレスクリプト完了後に移動（先に病院情報を見せる→離脱40%改善見込み）
 2. **LP-Aチャットウィジェット統合** — lp/job-seeker/index.htmlにAIチャット追加（TikTok/SEO流入のメインLP）
 3. **AIプロンプト品質強化** — buildSystemPrompt全面改善（共感フェーズ/具体提案フェーズ/まとめフェーズの3段階、看護師用語対応）
@@ -83,8 +83,22 @@
 9. **config.js修正** — Worker endpoint を正しいURL(robby-the-robot-2026)に更新
 10. **Cloudflare Workerデプロイ**: v: 47d284cc
 
+### 2/22午後に構築した全97施設DB+距離計算+AI応答強化 🏥
+1. **施設データ変換パイプライン** — `scripts/build_worker_data.js`: data/areas.jsの全97施設をWorker用ESMモジュールに変換
+2. **api/worker_facilities.js（3393行）** — STATION_COORDINATES（30+駅座標）、AREA_METADATA（10エリア詳細）、FACILITY_DATABASE（97施設+座標）をESM export
+3. **Haversine距離計算** — worker.jsに`haversineDistance()`追加、駅⇔施設間の直線距離をkm単位で算出
+4. **通勤時間推定** — 直線距離×1.3÷30km/h×60分で概算通勤時間を計算、AIプロンプトに注入
+5. **extractPreferences() v2** — 否定表現検出（「夜勤は嫌」→nightShift:false）、除外施設タイプ、最寄り駅、通勤制限、専門分野を抽出
+6. **scoreFacilities() v2** — 距離スコアリング、除外タイプペナルティ(-50)、上位5件返却（distanceKm/commuteMin付き）
+7. **buildSystemPrompt() v2** — AREA_METADATA+FACILITY_DATABASE全量注入、ベテランキャリアアドバイザーペルソナ、2-3施設比較推奨
+8. **駅選択UI（chat.js）** — プレスクリプトに駅選択ステップ追加（エリア別22駅+指定しない）、chatState.station追加
+9. **API連携** — callAPI/chat-completeにstation送信、handleChatでstation受信→通勤距離計算→プロンプト注入
+10. **Cloudflare Workerデプロイ**: v: a8bcff75（wrangler deploy成功、ヘルスチェック200 OK）
+11. **GitHub Pagesデプロイ**: commit acbcf82（git push main+master成功）
+
 ### ミッション達成への最大ボトルネック 🔴
-**投稿頻度を上げてフォロワーを増やす。毎日17:30に自動投稿中（2本検証済み/14本待機中）。キュー枯渇時は自動補充が動く。**
+1. **ANTHROPIC_API_KEYがCloudflare Workerに未設定** — AIチャットが動作しない。平島禎之にキー提供を依頼済み（Slack通知済み）
+2. **投稿頻度を上げてフォロワーを増やす** — 毎日17:30に自動投稿中（2本検証済み/14本待機中）。キュー枯渇時は自動補充が動く。
 
 ## KPI
 | 指標 | 目標 | 現在 | 状態 |
@@ -127,7 +141,8 @@
 - 公開URL: https://haruhi-medical.github.io/robby-the-match/
 - git remote: origin https://github.com/haruhi-medical/robby-the-match.git
 - デプロイブランチ: master（mainからpush）
-- 最新push: 2026-02-21 21:10
+- Cloudflare Worker: ✅ デプロイ済み（v: a8bcff75）
+- 最新push: 2026-02-22 16:40
 
 ## SEO状態
 - 子ページ: area/9 + guide/41 = 計50ページ
@@ -184,6 +199,7 @@
 | 8 | Slack Commander | */5分 | FULL-AUTO | 稼働中 |
 
 ## 問題・ブロッカー
+- **🔴 ANTHROPIC_API_KEY未設定**: Cloudflare Workerのシークレットに設定必要。`echo 'sk-ant-xxxxx' | CLOUDFLARE_API_TOKEN="" npx wrangler secret put ANTHROPIC_API_KEY`
 - **TikTok Cookie認証未完了**: `python3 scripts/tiktok_auth.py` で解決
 - **Instagramアカウント未作成**: 手動作業必要
 - **github.ioサブドメイン**: SEO効果限定的。独自ドメインが必要
@@ -192,5 +208,6 @@
 - 競合ゼロKW: 「神奈川県西部 看護師」「紹介料 10%」
 - 3軸: 手数料破壊(10%) x 地域密着(9市) x 転職品質
 - 大手の隙間: TikTokオーガニック未参入
-- **現在地**: AI対話後パーソナライズレコメンド稼働。コンテンツ自動パイプライン+エージェント間通信・メモリ・自己修復稼働。
-- **新機能**: Slack `!generate` `!queue` `!agents` で遠隔監視・操作可能。
+- **現在地**: 全97施設DB+Haversine距離計算+駅選択UI+ベテランアドバイザーAIプロンプト稼働。コンテンツ自動パイプライン+エージェント間通信・メモリ・自己修復稼働。
+- **新機能**: 駅選択→通勤距離付きレコメンド。Slack `!generate` `!queue` `!agents` で遠隔監視・操作可能。
+- **次の改善**: ANTHROPIC_API_KEY設定後、実際のAI対話品質をテストして微調整。

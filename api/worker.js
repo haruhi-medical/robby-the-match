@@ -847,12 +847,6 @@ async function handleChat(request, env) {
       );
     }
 
-    // Anthropic APIキーの確認
-    const apiKey = env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      return jsonResponse({ error: "AI service not configured" }, 503, allowedOrigin);
-    }
-
     // システムプロンプトをサーバー側で構築（メッセージ数・職種・エリアに応じて変化）
     let systemPrompt = buildSystemPrompt(userMsgCount, safeProfession, safeArea);
     // 最寄り駅情報があれば距離情報を注入
@@ -885,34 +879,61 @@ async function handleChat(request, env) {
       console.log(`[Chat] Session: ${sessionId}, Messages: ${sanitizedMessages.length}, UserMsgs: ${userMsgCount}`);
     }
 
-    // Claude API呼び出し（Haiku: 低コスト・高速）
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: env.CHAT_MODEL || "claude-haiku-4-5-20251001",
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: sanitizedMessages,
-      }),
-    });
+    // AI呼び出し: Workers AI (無料) or Anthropic (要KEY) を自動切り替え
+    let aiText = "";
+    const aiProvider = env.AI_PROVIDER || "workers-ai";
 
-    if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text();
-      console.error("[Chat] Anthropic API error:", anthropicRes.status, errText);
-      return jsonResponse(
-        { error: "AI応答の取得に失敗しました" },
-        502,
-        allowedOrigin
-      );
+    if (aiProvider === "anthropic" && env.ANTHROPIC_API_KEY) {
+      // ---------- Anthropic Claude API ----------
+      const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: env.CHAT_MODEL || "claude-haiku-4-5-20251001",
+          max_tokens: 1024,
+          system: systemPrompt,
+          messages: sanitizedMessages,
+        }),
+      });
+
+      if (!anthropicRes.ok) {
+        const errText = await anthropicRes.text();
+        console.error("[Chat] Anthropic API error:", anthropicRes.status, errText);
+        return jsonResponse({ error: "AI応答の取得に失敗しました" }, 502, allowedOrigin);
+      }
+
+      const aiData = await anthropicRes.json();
+      aiText = aiData.content?.[0]?.text || "";
+    } else {
+      // ---------- Cloudflare Workers AI (無料・キー不要) ----------
+      if (!env.AI) {
+        return jsonResponse({ error: "AI service not configured" }, 503, allowedOrigin);
+      }
+
+      // Workers AIのメッセージ形式に変換（systemはmessages[0]に統合）
+      const workersMessages = [
+        { role: "system", content: systemPrompt },
+        ...sanitizedMessages,
+      ];
+
+      try {
+        const aiResult = await env.AI.run(
+          env.CHAT_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          {
+            messages: workersMessages,
+            max_tokens: 1024,
+          }
+        );
+        aiText = aiResult.response || "";
+      } catch (aiErr) {
+        console.error("[Chat] Workers AI error:", aiErr);
+        return jsonResponse({ error: "AI応答の取得に失敗しました" }, 502, allowedOrigin);
+      }
     }
-
-    const aiData = await anthropicRes.json();
-    let aiText = aiData.content?.[0]?.text || "";
 
     // Response validation: reject suspiciously short or JSON-like responses
     if (aiText.length < 5 || aiText.startsWith("{") || aiText.startsWith("[")) {

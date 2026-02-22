@@ -2,8 +2,12 @@ name = "robby-the-match-api"
 main = "worker.js"
 compatibility_date = "2024-12-01"
 
+# Cloudflare Workers AI バインディング（無料・キー不要）
+[ai]
+binding = "AI"
+
 # 環境変数（デプロイ前に wrangler secret で設定すること）
-# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put ANTHROPIC_API_KEY  ← 将来Claudeに戻す時用
 # wrangler secret put SLACK_WEBHOOK_URL
 # wrangler secret put GOOGLE_SHEETS_ID
 # wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
@@ -12,7 +16,9 @@ compatibility_date = "2024-12-01"
 [vars]
 # 非機密の環境変数はここに記載可能
 # ALLOWED_ORIGIN = "https://your-domain.com"
-CHAT_MODEL = "claude-haiku-4-5-20251001"
+# AI_PROVIDER: "workers-ai" (default/free) or "anthropic" (要API KEY)
+AI_PROVIDER = "workers-ai"
+CHAT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
 # ルーティング設定（カスタムドメイン使用時）
 # [routes]
