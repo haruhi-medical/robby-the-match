@@ -789,8 +789,14 @@
                 flex-direction: column;
             }
 
+            .comparison-table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
             .comparison-table {
                 font-size: 0.9rem;
+                min-width: 320px;
             }
 
             .comparison-table th,
@@ -944,6 +950,7 @@
         <div class="container">
             <h2>手数料の違い、知っていますか？</h2>
             <p style="text-align: center; margin-bottom: 20px;">転職エージェントの手数料は、<strong>病院が支払う採用コスト</strong>です。<br>手数料が高いほど、病院は採用を慎重になり、内定が出にくくなります。</p>
+            <div class="comparison-table-wrap">
             <table class="comparison-table" aria-label="転職エージェント手数料比較表">
                 <thead>
                     <tr>
@@ -985,6 +992,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
             <div class="savings-note">
                 <p>大手と比べて、病院の負担が<strong>最大80万円も軽減</strong></p>
                 <p style="margin-top: 5px;">手数料が安い = 病院が採用しやすい = <strong>あなたの転職成功率アップ</strong></p>

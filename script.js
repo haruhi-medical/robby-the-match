@@ -10,19 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================================
   const loadingScreen = document.getElementById("loadingScreen");
   if (loadingScreen) {
-    const progressCircle = loadingScreen.querySelector(".loading-circle-progress");
-    if (progressCircle) {
-      progressCircle.style.strokeDasharray = "126 126";
-    }
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        loadingScreen.classList.add("hidden");
-      }, 600);
-    });
-    // Fallback: hide after 2.5s max
-    setTimeout(() => {
-      loadingScreen.classList.add("hidden");
-    }, 2500);
+    // 静的サイトなので即非表示（遅延不要）
+    loadingScreen.classList.add("hidden");
   }
 
   // ============================================================
@@ -522,15 +511,33 @@ document.addEventListener("DOMContentLoaded", () => {
       registeredAt: new Date().toLocaleString("ja-JP"),
     };
 
-    const urgency = calcUrgency(formData);
-
     try {
-      await sendToSlack(formData, urgency);
-      await sendToSheets(formData);
-      showThanks();
+      const endpoint = typeof CONFIG !== "undefined" && CONFIG.API.workerEndpoint
+        ? CONFIG.API.workerEndpoint + "/api/register"
+        : "";
+
+      if (!endpoint) {
+        console.log("[Register] Worker endpoint未設定。送信データ:", formData);
+        showThanks();
+        return;
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        showThanks();
+      } else {
+        console.error("登録エラー:", result.error);
+        showFormError();
+      }
     } catch (err) {
       console.error("送信エラー:", err);
-      console.log("送信データ:", formData);
       showFormError();
     }
   });

@@ -154,7 +154,7 @@ img {
   align-items: center;
   justify-content: center;
   z-index: var(--z-loading);
-  transition: opacity 0.6s ease, visibility 0.6s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .loading-screen.hidden {

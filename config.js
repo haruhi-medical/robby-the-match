@@ -12,7 +12,7 @@ const CONFIG = {
 
   // 会社情報
   COMPANY: {
-    name: "株式会社はるひメディカルサービス",
+    name: "はるひメディカルサービス",
     representative: "YOSHIYUKI",
     licenseNumber: "23-ユ-302928",  // 有料職業紹介事業許可番号（厚生労働大臣許可）
     address: "神奈川県小田原市",       // 所在地（実住所に置換）
