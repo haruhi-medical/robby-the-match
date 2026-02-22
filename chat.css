@@ -3,6 +3,11 @@
    Warm Cream + Teal Theme / Mobile-first
    ======================================== */
 
+/* ---------- Hidden utility ---------- */
+.hidden {
+  display: none !important;
+}
+
 /* ---------- Chat Toggle Button ---------- */
 .chat-toggle {
   position: fixed;
@@ -726,7 +731,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 .chat-phone-inner { text-align: center; width: 100%; }
 .chat-phone-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #2D2D2D; }

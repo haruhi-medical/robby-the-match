@@ -383,6 +383,10 @@
     if (view === "chat") {
       els.chatView.classList.remove("hidden");
       els.chatView.style.display = "flex";
+      // Restore scroll position after display:none → display:flex
+      requestAnimationFrame(function () {
+        scrollToBottom();
+      });
     } else {
       els.chatView.classList.add("hidden");
       els.chatView.style.display = "none";
@@ -409,7 +413,10 @@
     // Value-First: skip phone gate, go straight to pre-scripted flow
     showView("chat");
     chatState.formShownAt = Date.now();
-    startPrescriptedFlow();
+    // Wait one frame for layout to settle after display:none → display:flex
+    requestAnimationFrame(function () {
+      startPrescriptedFlow();
+    });
   }
 
   // --------------------------------------------------
@@ -530,7 +537,6 @@
     setTimeout(function () {
       hideTyping();
       addMessage("ai", "こんにちは！ロビーです。転職のことで何かお役に立てればと思います。\n\nまず、今どんなお仕事をされていますか？");
-      chatState.messages[chatState.messages.length - 1].content; // recorded
       showButtonGroup(PRESCRIPTED.professions, handleProfessionSelect);
     }, 800);
   }
@@ -712,7 +718,14 @@
 
     // Show the text input for AI conversation
     setInputVisible(true);
-    els.input.focus();
+
+    // Explicit scroll after view switch + input area shown
+    scrollToBottom();
+
+    // Delay focus to let layout settle (prevents iOS keyboard race condition)
+    setTimeout(function () {
+      els.input.focus();
+    }, 300);
 
     // Inject context into API messages so AI knows the user's selections
     var areaDisplay = getAreaDisplayName(chatState.area);
@@ -722,7 +735,7 @@
       "。これらの情報を踏まえて、転職の詳しい希望条件をヒアリングしてください。";
     chatState.apiMessages.push({ role: "user", content: contextMsg });
 
-    // If API is available and not in demo mode, get AI's first contextual response
+    // Get AI's first contextual response (API or demo mode)
     if (isAPIAvailable() && !chatState.demoMode) {
       showTyping();
       callAPI(chatState.apiMessages).then(function (response) {
@@ -730,8 +743,20 @@
         if (response && isValidReply(response.reply)) {
           addMessage("ai", response.reply);
           chatState.apiMessages.push({ role: "assistant", content: response.reply });
+        } else {
+          addMessage("ai", "ありがとうございます！もう少し詳しくお伺いしたいのですが、今のお仕事で特に気になっていることはありますか？");
         }
       });
+    } else {
+      // Demo mode: show first AI message
+      showTyping();
+      setTimeout(function () {
+        hideTyping();
+        var response = DEMO_RESPONSES[chatState.demoIndex] || DEMO_RESPONSES[0];
+        chatState.demoIndex = Math.min(chatState.demoIndex + 1, DEMO_RESPONSES.length - 1);
+        addMessage("ai", response.reply);
+        chatState.apiMessages.push({ role: "assistant", content: response.reply });
+      }, 800);
     }
   }
 
@@ -840,6 +865,8 @@
     var inputArea = els.input ? els.input.parentElement : null;
     if (inputArea) {
       inputArea.style.display = visible ? "flex" : "none";
+      // Flex layout changed (~60px), scroll to compensate
+      scrollToBottom();
     }
   }
 
@@ -1128,6 +1155,7 @@
 
     var indicator = document.getElementById("chatTypingIndicator");
     if (indicator) indicator.remove();
+    scrollToBottom();
   }
 
   // --------------------------------------------------
@@ -1556,22 +1584,29 @@
   // Utilities
   // --------------------------------------------------
   function scrollToBottom() {
-    // Strategy: override smooth scroll for instant jump + multiple fallback attempts
+    // Cancel previous pending timers to avoid stacking
+    if (scrollToBottom._t1) clearTimeout(scrollToBottom._t1);
+    if (scrollToBottom._t2) clearTimeout(scrollToBottom._t2);
+    if (scrollToBottom._t3) clearTimeout(scrollToBottom._t3);
+
     function doScroll() {
       if (!els.body) return;
-      // Temporarily disable smooth scrolling to prevent stuck-scroll
+      // Skip if chat-body is not visible (parent is display:none)
+      if (els.body.offsetParent === null) return;
       els.body.style.scrollBehavior = "auto";
-      els.body.scrollTop = els.body.scrollHeight + 9999;
-      els.body.style.scrollBehavior = "";
+      els.body.scrollTop = els.body.scrollHeight;
+      els.body.style.scrollBehavior = "auto";
     }
     // Primary: double-rAF for immediate DOM renders
     requestAnimationFrame(function () {
       requestAnimationFrame(doScroll);
     });
     // Fallback 1: catch slow renders (images, CTA buttons)
-    setTimeout(doScroll, 80);
-    // Fallback 2: catch really delayed layout (iOS keyboard, flex recalc)
-    setTimeout(doScroll, 250);
+    scrollToBottom._t1 = setTimeout(doScroll, 80);
+    // Fallback 2: catch flex recalc
+    scrollToBottom._t2 = setTimeout(doScroll, 250);
+    // Fallback 3: catch CSS animation completion (400ms animations)
+    scrollToBottom._t3 = setTimeout(doScroll, 450);
   }
 
   // --------------------------------------------------
