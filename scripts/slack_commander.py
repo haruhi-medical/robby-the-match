@@ -150,10 +150,15 @@ def get_conversation_history(channel: str, oldest: str = None, limit: int = 10) 
 # ===================================================================
 
 def load_instructions() -> list:
-    """指示キューを読み込み"""
+    """指示キューを読み込み（dict/list両対応）"""
     if INSTRUCTIONS_FILE.exists():
         try:
-            return json.loads(INSTRUCTIONS_FILE.read_text(encoding="utf-8"))
+            data = json.loads(INSTRUCTIONS_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data.get("instructions", [])
+            if isinstance(data, list):
+                return data
+            return []
         except (json.JSONDecodeError, Exception):
             return []
     return []

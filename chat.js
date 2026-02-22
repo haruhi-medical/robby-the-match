@@ -53,6 +53,39 @@
       shonan_east: ["藤沢", "茅ヶ崎", "寒川"],
       kenoh: ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
     },
+    // 最寄り駅候補（エリア別）— 通勤距離計算用
+    stations: {
+      kensei: [
+        { label: "小田原駅", value: "小田原駅" },
+        { label: "鴨宮駅", value: "鴨宮駅" },
+        { label: "国府津駅", value: "国府津駅" },
+        { label: "大雄山駅", value: "大雄山駅" },
+        { label: "開成駅", value: "開成駅" },
+        { label: "指定しない", value: "none" },
+      ],
+      shonan_west: [
+        { label: "平塚駅", value: "平塚駅" },
+        { label: "秦野駅", value: "秦野駅" },
+        { label: "東海大学前駅", value: "東海大学前駅" },
+        { label: "伊勢原駅", value: "伊勢原駅" },
+        { label: "鶴巻温泉駅", value: "鶴巻温泉駅" },
+        { label: "指定しない", value: "none" },
+      ],
+      shonan_east: [
+        { label: "藤沢駅", value: "藤沢駅" },
+        { label: "辻堂駅", value: "辻堂駅" },
+        { label: "湘南台駅", value: "湘南台駅" },
+        { label: "茅ヶ崎駅", value: "茅ヶ崎駅" },
+        { label: "指定しない", value: "none" },
+      ],
+      kenoh: [
+        { label: "本厚木駅", value: "本厚木駅" },
+        { label: "海老名駅", value: "海老名駅" },
+        { label: "さがみ野駅", value: "さがみ野駅" },
+        { label: "愛甲石田駅", value: "愛甲石田駅" },
+        { label: "指定しない", value: "none" },
+      ],
+    },
   };
 
   // --------------------------------------------------
@@ -134,7 +167,8 @@
     // Pre-scripted flow state
     profession: null,
     area: null,
-    prescriptedPhase: "profession", // "profession" | "area" | "summary" | "done"
+    station: null,
+    prescriptedPhase: "profession", // "profession" | "area" | "station" | "summary" | "done"
   };
 
   // --------------------------------------------------
@@ -492,6 +526,40 @@
     // Show user selection as a user message
     addMessage("user", label);
 
+    // 最寄り駅選択ステップ（通勤距離計算のため）
+    var stationOptions = PRESCRIPTED.stations && PRESCRIPTED.stations[value];
+    if (stationOptions && stationOptions.length > 0) {
+      chatState.prescriptedPhase = "station";
+      showTyping();
+      setTimeout(function () {
+        hideTyping();
+        addMessage("ai", "通勤しやすい施設をご紹介するために、最寄り駅を教えてください。\n（通勤距離の目安を計算できます）");
+        showButtonGroup(stationOptions, handleStationSelect);
+      }, 600);
+    } else {
+      // 駅データがないエリア（other等）→ 直接病院サマリへ
+      proceedToHospitalSummary();
+    }
+  }
+
+  function handleStationSelect(value, label) {
+    chatState.station = value === "none" ? null : value;
+    trackEvent("chat_station_selected", { station: value });
+
+    // Remove the buttons
+    removeButtonGroup();
+
+    // Show user selection as a user message
+    if (value !== "none") {
+      addMessage("user", label);
+    } else {
+      addMessage("user", "指定しない");
+    }
+
+    proceedToHospitalSummary();
+  }
+
+  function proceedToHospitalSummary() {
     // Show matching hospital summary
     chatState.prescriptedPhase = "summary";
 
@@ -534,8 +602,9 @@
 
     // Inject context into API messages so AI knows the user's selections
     var areaDisplay = getAreaDisplayName(chatState.area);
+    var stationInfo = chatState.station ? " / 最寄り駅: " + chatState.station : "";
     var contextMsg = "【事前ヒアリング結果】職種: " + (chatState.profession || "未選択") +
-      " / 希望エリア: " + (areaDisplay || "未選択") +
+      " / 希望エリア: " + (areaDisplay || "未選択") + stationInfo +
       "。これらの情報を踏まえて、転職の詳しい希望条件をヒアリングしてください。";
     chatState.apiMessages.push({ role: "user", content: contextMsg });
 
@@ -1280,6 +1349,7 @@
           timestamp: chatState.tokenTimestamp,
           profession: chatState.profession,
           area: chatState.area,
+          station: chatState.station || null,
         }),
       }, 20000);
 
@@ -1351,6 +1421,7 @@
           messages: chatState.messages,
           profession: chatState.profession,
           area: chatState.area,
+          station: chatState.station || null,
           score: summaryData ? summaryData.score : null,
           messageCount: summaryData ? summaryData.messageCount : chatState.userMessageCount,
           completedAt: summaryData ? summaryData.completedAt : new Date().toISOString(),

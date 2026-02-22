@@ -125,7 +125,12 @@ def _load_instructions() -> list:
     """指示キュー読み込み"""
     if INSTRUCTIONS_FILE.exists():
         try:
-            return json.loads(INSTRUCTIONS_FILE.read_text(encoding="utf-8"))
+            data = json.loads(INSTRUCTIONS_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data.get("instructions", [])
+            if isinstance(data, list):
+                return data
+            return []
         except (json.JSONDecodeError, Exception):
             return []
     return []

@@ -174,8 +174,8 @@ import json
 try:
     with open('$PROJECT_DIR/data/slack_instructions.json', 'r') as f:
         data = json.load(f)
-    instructions = data.get('instructions', [])
-    pending = [i for i in instructions if i.get('to') == '$agent_name' and i.get('status') == 'pending']
+    instructions = data.get('instructions', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+    pending = [i for i in instructions if isinstance(i, dict) and i.get('to') == '$agent_name' and i.get('status') == 'pending']
     if pending:
         print(f'[INFO] {len(pending)}件の指示あり')
         for i in pending:

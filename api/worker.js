@@ -1,7 +1,10 @@
 // ========================================
 // ROBBY THE MATCH - Cloudflare Workers API
 // フォーム送信プロキシ / Slack通知 / AIチャット / Google Sheets連携
+// v2.0: 全97施設データベース + 距離計算 + 改良プロンプト
 // ========================================
+
+import { FACILITY_DATABASE, AREA_METADATA, STATION_COORDINATES } from './worker_facilities.js';
 
 // レート制限ストア（KVが未設定の場合のインメモリフォールバック）
 const rateLimitMap = new Map();
@@ -10,21 +13,35 @@ const rateLimitMap = new Map();
 const phoneSessionMap = new Map(); // phone → { count, windowStart }
 let globalSessionCount = { count: 0, windowStart: 0 }; // global hourly limit
 
-// ---------- AIチャット用システムプロンプト（サーバー側管理） ----------
+// ---------- Haversine距離計算（km） ----------
+function haversineDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371; // 地球の半径(km)
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
-// エリア別医療機関データベース（病院機能報告 令和6年度ベース）
-const AREA_DATABASE = {
-  "小田原": { hospitals: 11, majorHospitals: "小田原市立病院（417床・看護師270名）、小澤病院（202床）、小林病院（163床）、山近記念総合病院（108床）、小田原循環器病院（97床）、間中病院（90床）", salary: "月給28〜38万円", demand: "高" },
-  "秦野": { hospitals: 4, majorHospitals: "秦野赤十字病院（308床・看護師155名）、鶴巻温泉病院（505床・168名）、神奈川病院（300床・111名）、八木病院（88床）", salary: "月給27〜35万円", demand: "高" },
-  "平塚": { hospitals: 7, majorHospitals: "平塚共済病院（441床・看護師301名）、平塚市民病院（412床・315名）、済生会湘南平塚病院（176床）、ふれあい平塚ホスピタル（125床・PT32名）", salary: "月給28〜37万円", demand: "高" },
-  "藤沢": { hospitals: 14, majorHospitals: "藤沢市民病院（530床・看護師405名）、湘南藤沢徳洲会病院（419床・282名）、藤沢湘南台病院（330床）、湘南慶育病院（230床）、湘南中央病院（199床）", salary: "月給29〜38万円", demand: "非常に高い" },
-  "茅ヶ崎": { hospitals: 7, majorHospitals: "茅ヶ崎市立病院（401床・看護師216名）、茅ヶ崎中央病院（324床・PT20名）、湘南東部総合病院（323床・176名）、茅ヶ崎徳洲会病院（132床）", salary: "月給28〜37万円", demand: "高" },
-  "大磯・二宮": { hospitals: 1, majorHospitals: "湘南大磯病院（312床・看護師90名）※中郡唯一の総合病院", salary: "月給27〜35万円", demand: "中〜高" },
-  "南足柄・開成・大井": { hospitals: 4, majorHospitals: "勝又高台病院（310床・看護師71名）、大内病院（53床）、北小田原病院（55床）", salary: "月給26〜34万円", demand: "中" },
-  "伊勢原": { hospitals: 3, majorHospitals: "東海大学医学部付属病院（804床・看護師741名）※県西最大、伊勢原協同病院（350床・239名）", salary: "月給28〜37万円", demand: "非常に高い" },
-  "厚木": { hospitals: 9, majorHospitals: "厚木市立病院（341床・看護師233名）、東名厚木病院（282床・205名）、神奈川リハビリテーション病院（324床・PT18名）、AOI七沢リハ（245床・PT53名・OT35名）", salary: "月給28〜37万円", demand: "高" },
-  "海老名": { hospitals: 4, majorHospitals: "海老名総合病院（479床・看護師431名・PT56名）※県央唯一の救命救急センター、湘陽かしわ台病院（199床）", salary: "月給29〜38万円", demand: "非常に高い" },
-};
+// 駅名から座標を取得
+function getStationCoords(stationName) {
+  if (!stationName) return null;
+  // 完全一致
+  if (STATION_COORDINATES[stationName]) return STATION_COORDINATES[stationName];
+  // "駅"なしで検索
+  const withEki = stationName.endsWith("駅") ? stationName : stationName + "駅";
+  if (STATION_COORDINATES[withEki]) return STATION_COORDINATES[withEki];
+  // 部分一致
+  for (const [name, coords] of Object.entries(STATION_COORDINATES)) {
+    if (name.includes(stationName) || stationName.includes(name.replace("駅", ""))) {
+      return coords;
+    }
+  }
+  return null;
+}
+
+// ---------- AIチャット用システムプロンプト（サーバー側管理） ----------
 
 // 職種別 給与・勤務データ（システムプロンプト注入用）
 const SALARY_DATA = {
@@ -111,46 +128,89 @@ const EXTERNAL_JOBS = {
   },
 };
 
-// ---------- 施設詳細データベース（マッチング用） ----------
-const FACILITY_DATABASE = {
-  "小田原": [
-    { name: "小田原市立病院", type: "高度急性期・急性期", beds: 417, nurseCount: 270, features: "地域医療支援病院・救命救急センター・災害拠点病院。2026年新築移転予定。ICU・NICU完備。", access: "小田原駅バス10分", nightShiftType: "三交代制", annualHolidays: 120, salaryMin: 280000, salaryMax: 380000, educationLevel: "充実", matchingTags: ["高度急性期", "急性期", "救命救急", "災害拠点", "がん診療", "ICU", "NICU", "公立病院", "教育体制充実", "新築移転"] },
-    { name: "小澤病院", type: "急性期", beds: 202, nurseCount: 96, features: "脳外科・整形外科を中心とした地域密着型総合病院。", access: "小田原駅バス15分", nightShiftType: "二交代制", annualHolidays: 115, salaryMin: 280000, salaryMax: 370000, educationLevel: "あり", matchingTags: ["急性期", "脳外科", "整形外科", "地域密着"] },
-    { name: "小林病院", type: "急性期・回復期・慢性期", beds: 163, nurseCount: 40, features: "100年以上の歴史。一般病棟・回復期リハビリ病棟・療養病棟を併設。", access: "小田原駅バス15分", nightShiftType: "二交代制", annualHolidays: 115, salaryMin: 270000, salaryMax: 350000, educationLevel: "あり", matchingTags: ["急性期", "回復期", "慢性期", "ケアミックス", "回復期リハビリ", "地域密着"] },
-    { name: "山近記念総合病院", type: "急性期", beds: 108, nurseCount: 59, features: "救急病院指定。人間ドック対応。", access: "小田原駅バス12分", nightShiftType: "二交代制", annualHolidays: 115, salaryMin: 280000, salaryMax: 370000, educationLevel: "あり", matchingTags: ["急性期", "救急", "人間ドック"] },
-    { name: "小田原循環器病院", type: "高度急性期・急性期", beds: 97, nurseCount: 60, features: "循環器専門病院。心臓カテーテル治療に強み。HCU完備。", access: "小田原駅車10分", nightShiftType: "二交代制", annualHolidays: 110, salaryMin: 290000, salaryMax: 380000, educationLevel: "なし", matchingTags: ["高度急性期", "急性期", "循環器", "心臓カテーテル", "HCU", "専門病院"] },
-    { name: "間中病院", type: "急性期・回復期", beds: 90, nurseCount: 43, ptCount: 25, features: "地域包括ケア病棟・回復期リハビリ病棟併設。リハスタッフ充実。", access: "小田原駅車8分", nightShiftType: "二交代制", annualHolidays: 110, salaryMin: 270000, salaryMax: 350000, ptSalaryMin: 250000, ptSalaryMax: 320000, educationLevel: "なし", matchingTags: ["急性期", "回復期", "地域包括ケア", "回復期リハビリ", "リハビリ充実"] },
-    { name: "箱根病院", type: "慢性期", beds: 199, nurseCount: 93, features: "国立病院機構。慢性期医療に特化。", access: "小田原駅バス20分", nightShiftType: "二交代制", annualHolidays: 120, salaryMin: 270000, salaryMax: 360000, educationLevel: "あり", matchingTags: ["慢性期", "療養", "国立病院機構", "公的病院"] },
-    { name: "西湘病院", type: "急性期・慢性期", beds: 102, nurseCount: 30, features: "一般病棟・療養病棟を併設。救急病院指定。", access: "鴨宮駅徒歩10分", nightShiftType: "二交代制", annualHolidays: 115, salaryMin: 270000, salaryMax: 350000, educationLevel: "あり", matchingTags: ["急性期", "慢性期", "療養", "救急", "駅近"] },
-    { name: "丹羽病院", type: "急性期", beds: 51, nurseCount: 33, features: "急性期機能病床51床。地域密着型。", access: "小田原駅車10分", nightShiftType: "二交代制", annualHolidays: 110, salaryMin: 270000, salaryMax: 350000, educationLevel: "なし", matchingTags: ["急性期", "地域密着", "少人数"] },
-    { name: "小田原市訪問看護ステーション", type: "訪問看護", beds: null, nurseCount: 12, features: "市直営。24時間オンコール対応。在宅医療の中核。", access: "小田原駅バス8分", nightShiftType: "オンコール", annualHolidays: 125, salaryMin: 310000, salaryMax: 380000, educationLevel: "あり", matchingTags: ["訪問看護", "日勤のみ", "オンコール", "公的機関", "ブランクOK"] },
-    { name: "ケアステーション鴨宮", type: "訪問看護", beds: null, nurseCount: 8, features: "小児から高齢者まで幅広く対応。働きやすい環境。", access: "鴨宮駅徒歩7分", nightShiftType: "オンコール", annualHolidays: 120, salaryMin: 300000, salaryMax: 370000, educationLevel: "あり", matchingTags: ["訪問看護", "日勤のみ", "オンコール", "駅近", "残業少なめ"] },
-    { name: "小田原内科・循環器クリニック", type: "クリニック", beds: null, nurseCount: 6, features: "内科・循環器科の外来クリニック。日勤のみで残業少なめ。", access: "小田原駅徒歩5分", nightShiftType: "なし", annualHolidays: 125, salaryMin: 260000, salaryMax: 330000, educationLevel: "あり", matchingTags: ["クリニック", "日勤のみ", "残業少なめ", "駅近", "パート可"] },
-    { name: "足柄上クリニック", type: "クリニック", beds: null, nurseCount: 5, features: "内科・小児科・皮膚科の一般外来。アットホームな雰囲気。", access: "小田原駅車10分", nightShiftType: "なし", annualHolidays: 120, salaryMin: 260000, salaryMax: 320000, educationLevel: "あり", matchingTags: ["クリニック", "日勤のみ", "残業少なめ", "ブランクOK", "パート可"] },
-    { name: "介護老人保健施設こゆるぎ", type: "介護老人保健施設", beds: 100, nurseCount: 10, features: "入所定員100名。在宅復帰を目指したリハビリに注力。", access: "小田原駅バス15分", nightShiftType: "オンコール", annualHolidays: 115, salaryMin: 270000, salaryMax: 350000, educationLevel: "あり", matchingTags: ["介護施設", "日勤のみ", "オンコール", "ブランクOK", "残業少なめ"] },
-    { name: "小田原東訪問看護ステーション", type: "訪問看護", beds: null, nurseCount: 7, features: "ターミナルケア・精神科訪問看護にも対応。", access: "鴨宮駅車5分", nightShiftType: "オンコール", annualHolidays: 120, salaryMin: 300000, salaryMax: 380000, educationLevel: "あり", matchingTags: ["訪問看護", "日勤のみ", "オンコール", "ターミナルケア", "精神科訪問看護"] },
-  ],
-};
+// ---------- FACILITY_DATABASE は worker_facilities.js からimport済み（全97施設） ----------
 
-// ---------- ユーザー希望条件抽出 ----------
+// ---------- エリア名マッチングヘルパー ----------
+function findAreaName(areaInput) {
+  if (!areaInput) return null;
+  // FACILITY_DATABASE のキーからマッチ
+  for (const areaName of Object.keys(FACILITY_DATABASE)) {
+    if (areaInput.includes(areaName) || areaName.includes(areaInput)) return areaName;
+  }
+  // AREA_METADATA の areaId でもマッチ
+  for (const [areaName, meta] of Object.entries(AREA_METADATA)) {
+    if (meta.areaId === areaInput.toLowerCase()) return areaName;
+  }
+  // 部分一致（「小田原」→「小田原市」、「kensei」→ medicalRegion検索）
+  for (const [areaName, meta] of Object.entries(AREA_METADATA)) {
+    if (meta.medicalRegion === areaInput) return areaName; // 最初のエリアを返す
+  }
+  return null;
+}
+
+// 医療圏から複数エリアの施設をまとめて取得
+function getFacilitiesByRegionOrArea(areaInput) {
+  // まずエリア直接マッチ
+  const areaName = findAreaName(areaInput);
+  if (areaName && FACILITY_DATABASE[areaName]) {
+    return { areas: [areaName], facilities: FACILITY_DATABASE[areaName] };
+  }
+  // 医療圏マッチ（kensei, shonan_west等）
+  const regionAreas = [];
+  const regionFacilities = [];
+  for (const [name, meta] of Object.entries(AREA_METADATA)) {
+    if (meta.medicalRegion === areaInput) {
+      regionAreas.push(name);
+      regionFacilities.push(...(FACILITY_DATABASE[name] || []));
+    }
+  }
+  if (regionAreas.length > 0) {
+    return { areas: regionAreas, facilities: regionFacilities };
+  }
+  return { areas: [], facilities: [] };
+}
+
+// ---------- ユーザー希望条件抽出（v2: 否定・距離対応） ----------
 function extractPreferences(messages) {
   const userMessages = (messages || []).filter(m => m.role === "user");
   const allText = userMessages.map(m => String(m.content || "")).join(" ");
 
-  const prefs = { nightShift: null, facilityTypes: [], salaryMin: null, priorities: [], experience: null };
+  const prefs = {
+    nightShift: null,
+    facilityTypes: [],
+    excludeTypes: [],
+    salaryMin: null,
+    priorities: [],
+    experience: null,
+    nearStation: null,
+    maxCommute: null,
+    specialties: [],
+  };
 
-  // 夜勤希望
-  if (/夜勤なし|日勤のみ|日勤だけ|夜勤はしたくない|夜勤なしで|夜勤不可/.test(allText)) {
+  // 夜勤希望（否定パターン強化）
+  if (/夜勤(?:は|が)?(?:嫌|いや|無理|辛|つらい|きつい|したくない|やりたくない|不可|なし)|日勤のみ|日勤だけ|夜勤なしで/.test(allText)) {
     prefs.nightShift = false;
-  } else if (/夜勤OK|夜勤可|夜勤あり|二交代|三交代|夜勤も/.test(allText)) {
+  } else if (/夜勤OK|夜勤可|夜勤あり|二交代|三交代|夜勤も|夜勤手当/.test(allText)) {
     prefs.nightShift = true;
   }
 
-  // 施設タイプ
-  const typeMap = { "急性期": "急性期", "回復期": "回復期", "慢性期": "慢性期", "療養": "慢性期", "訪問看護": "訪問看護", "訪問": "訪問看護", "クリニック": "クリニック", "外来": "クリニック", "介護": "介護施設", "老健": "介護施設" };
+  // 施設タイプ（否定検出付き）
+  const typeMap = {
+    "急性期": "急性期", "回復期": "回復期", "慢性期": "慢性期", "療養": "慢性期",
+    "訪問看護": "訪問看護", "訪問": "訪問看護", "クリニック": "クリニック", "外来": "クリニック",
+    "介護": "介護施設", "老健": "介護施設", "大学病院": "大学病院", "リハビリ": "リハビリ",
+    "精神科": "精神科", "透析": "透析", "美容": "美容"
+  };
+  const negPatterns = /(?:は|が)?(?:嫌|いや|無理|避けたい|やめたい|以外)/;
   for (const [keyword, type] of Object.entries(typeMap)) {
-    if (allText.includes(keyword) && !prefs.facilityTypes.includes(type)) {
-      prefs.facilityTypes.push(type);
+    const idx = allText.indexOf(keyword);
+    if (idx === -1) continue;
+    // キーワードの後に否定表現があるかチェック
+    const after = allText.slice(idx, idx + keyword.length + 10);
+    if (negPatterns.test(after)) {
+      if (!prefs.excludeTypes.includes(type)) prefs.excludeTypes.push(type);
+    } else {
+      if (!prefs.facilityTypes.includes(type)) prefs.facilityTypes.push(type);
     }
   }
 
@@ -159,11 +219,17 @@ function extractPreferences(messages) {
   if (salaryMatch) {
     const val = parseInt(salaryMatch[1]);
     if (val >= 20 && val <= 60) prefs.salaryMin = val * 10000;
-    else if (val >= 200 && val <= 800) prefs.salaryMin = Math.round(val / 12) * 10000; // 年収→月額概算
+    else if (val >= 200 && val <= 800) prefs.salaryMin = Math.round(val / 12) * 10000;
   }
 
   // 優先事項
-  const priorityMap = { "休日": "休日", "休み": "休日", "給与": "給与", "給料": "給与", "年収": "給与", "通勤": "通勤", "近い": "通勤", "駅近": "通勤", "教育": "教育", "研修": "教育", "残業": "残業少", "定時": "残業少", "ブランク": "ブランクOK", "託児": "託児所", "子育て": "託児所" };
+  const priorityMap = {
+    "休日": "休日", "休み": "休日", "給与": "給与", "給料": "給与", "年収": "給与",
+    "通勤": "通勤", "近い": "通勤", "駅近": "通勤", "教育": "教育", "研修": "教育",
+    "残業": "残業少", "定時": "残業少", "ブランク": "ブランクOK", "託児": "託児所",
+    "子育て": "託児所", "車通勤": "車通勤", "パート": "パート", "寮": "寮",
+    "人間関係": "人間関係", "少人数": "少人数"
+  };
   for (const [keyword, priority] of Object.entries(priorityMap)) {
     if (allText.includes(keyword) && !prefs.priorities.includes(priority)) {
       prefs.priorities.push(priority);
@@ -174,20 +240,31 @@ function extractPreferences(messages) {
   const expMatch = allText.match(/(\d{1,2})\s*年/);
   if (expMatch) prefs.experience = parseInt(expMatch[1]);
 
+  // 最寄り駅（ユーザーが言及した場合）
+  for (const station of Object.keys(STATION_COORDINATES)) {
+    const stationBase = station.replace("駅", "");
+    if (allText.includes(stationBase)) {
+      prefs.nearStation = station;
+      break;
+    }
+  }
+
+  // 通勤時間制限
+  const commuteMatch = allText.match(/(\d{1,3})分以内/);
+  if (commuteMatch) {
+    prefs.maxCommute = parseInt(commuteMatch[1]);
+  }
+
   return prefs;
 }
 
-// ---------- 施設マッチングスコアリング ----------
-function scoreFacilities(preferences, profession, area) {
-  // エリアに対応する施設データを取得
+// ---------- 施設マッチングスコアリング（v2: 距離計算+除外タイプ対応） ----------
+function scoreFacilities(preferences, profession, area, userStation) {
+  // エリアに対応する施設データを取得（全97施設対応）
   let facilities = [];
   if (area) {
-    for (const [areaName, areaFacilities] of Object.entries(FACILITY_DATABASE)) {
-      if (area.includes(areaName) || areaName.includes(area)) {
-        facilities = areaFacilities;
-        break;
-      }
-    }
+    const result = getFacilitiesByRegionOrArea(area);
+    facilities = result.facilities;
   }
   if (facilities.length === 0) {
     // フォールバック: 全施設
@@ -196,9 +273,20 @@ function scoreFacilities(preferences, profession, area) {
     }
   }
 
+  // ユーザーの座標（最寄り駅 or エリアデフォルト）
+  const userCoords = userStation ? getStationCoords(userStation)
+    : (preferences.nearStation ? getStationCoords(preferences.nearStation) : null);
+
   const scored = facilities.map(f => {
     let score = 0;
     const reasons = [];
+
+    // 除外タイプチェック
+    for (const excludeType of (preferences.excludeTypes || [])) {
+      if (f.type.includes(excludeType) || (f.matchingTags || []).some(t => t.includes(excludeType))) {
+        score -= 50; // 強いペナルティ
+      }
+    }
 
     // 夜勤マッチング（重要度高）
     if (preferences.nightShift === false) {
@@ -206,17 +294,18 @@ function scoreFacilities(preferences, profession, area) {
         score += 25;
         reasons.push("日勤中心の勤務");
       } else {
-        score -= 15; // 夜勤必須はペナルティ
+        score -= 15;
       }
     } else if (preferences.nightShift === true) {
       if (f.nightShiftType !== "なし" && f.nightShiftType !== "オンコール") {
         score += 10;
+        reasons.push("夜勤手当あり");
       }
     }
 
     // 施設タイプマッチング
-    for (const type of preferences.facilityTypes) {
-      if (f.type.includes(type) || f.matchingTags.some(t => t.includes(type))) {
+    for (const type of (preferences.facilityTypes || [])) {
+      if (f.type.includes(type) || (f.matchingTags || []).some(t => t.includes(type))) {
         score += 15;
         reasons.push(type + "の経験を活かせる");
         break;
@@ -224,10 +313,14 @@ function scoreFacilities(preferences, profession, area) {
     }
 
     // matchingTagsと優先事項のマッチング
-    for (const priority of preferences.priorities) {
-      const tagMap = { "休日": "年休", "教育": "教育", "通勤": "駅近", "残業少": "残業少なめ", "ブランクOK": "ブランクOK", "託児所": "託児" };
+    const tagMap = {
+      "休日": "年休", "教育": "教育", "通勤": "駅近", "残業少": "残業少なめ",
+      "ブランクOK": "ブランクOK", "託児所": "託児", "車通勤": "車通勤",
+      "パート": "パート", "少人数": "少人数"
+    };
+    for (const priority of (preferences.priorities || [])) {
       const tagKeyword = tagMap[priority] || priority;
-      if (f.matchingTags.some(t => t.includes(tagKeyword))) {
+      if ((f.matchingTags || []).some(t => t.includes(tagKeyword))) {
         score += 10;
         reasons.push(priority + "に対応");
       }
@@ -236,7 +329,7 @@ function scoreFacilities(preferences, profession, area) {
     // 休日数
     if (f.annualHolidays >= 120) {
       score += 5;
-      if (preferences.priorities.includes("休日")) {
+      if ((preferences.priorities || []).includes("休日")) {
         score += 5;
         if (!reasons.some(r => r.includes("休日"))) reasons.push("年間休日" + f.annualHolidays + "日");
       }
@@ -266,6 +359,30 @@ function scoreFacilities(preferences, profession, area) {
     // ベーススコア（規模補正）
     if (f.beds && f.beds >= 200) score += 3;
 
+    // 距離計算（座標がある場合）
+    let distanceKm = null;
+    let commuteMin = null;
+    if (userCoords && f.lat && f.lng) {
+      distanceKm = haversineDistance(userCoords.lat, userCoords.lng, f.lat, f.lng);
+      // 概算通勤時間: 直線距離 × 1.3（道路係数）÷ 30km/h（電車+徒歩平均速度）× 60分
+      commuteMin = Math.round(distanceKm * 1.3 / 30 * 60);
+
+      // 距離ボーナス/ペナルティ
+      if (distanceKm <= 5) {
+        score += 15;
+        reasons.push("通勤" + commuteMin + "分圏内");
+      } else if (distanceKm <= 10) {
+        score += 8;
+      } else if (distanceKm > 20) {
+        score -= 5;
+      }
+
+      // 通勤時間制限チェック
+      if (preferences.maxCommute && commuteMin > preferences.maxCommute) {
+        score -= 20;
+      }
+    }
+
     // 給与表示用
     const displaySalaryMin = salaryMin ? Math.round(salaryMin / 10000) : null;
     const displaySalaryMax = salaryMax ? Math.round(salaryMax / 10000) : null;
@@ -276,53 +393,63 @@ function scoreFacilities(preferences, profession, area) {
     return {
       name: f.name,
       type: f.type,
-      matchScore: Math.max(0, Math.min(100, 40 + score)), // 40をベースに正規化
+      matchScore: Math.max(0, Math.min(100, 40 + score)),
       reasons: reasons.length > 0 ? reasons.slice(0, 3) : ["エリアの求人としてご案内"],
       salary: salaryDisplay,
       access: f.access,
       nightShift: f.nightShiftType,
       annualHolidays: f.annualHolidays,
       beds: f.beds,
+      nurseCount: f.nurseCount,
+      distanceKm: distanceKm ? Math.round(distanceKm * 10) / 10 : null,
+      commuteMin: commuteMin,
+      features: f.features,
     };
   });
 
-  // スコア降順でソート、上位3件
+  // スコア降順でソート、上位5件（表示は3件、裏で5件持つ）
   scored.sort((a, b) => b.matchScore - a.matchScore);
-  return scored.slice(0, 3);
+  return scored.slice(0, 5);
 }
 
 function buildSystemPrompt(userMsgCount, profession, area) {
-  // Build area-specific hospital info
+  // Build area-specific hospital info from AREA_METADATA + FACILITY_DATABASE
   let hospitalInfo = "";
   if (area) {
-    for (const [areaName, data] of Object.entries(AREA_DATABASE)) {
-      if (area.includes(areaName) || areaName.includes(area)) {
-        hospitalInfo = `\n【${areaName}エリアの医療機関情報（病院機能報告ベース）】\n` +
-          `病院数: ${data.hospitals}施設\n` +
-          `主要病院: ${data.majorHospitals}\n` +
-          `看護師給与目安: ${data.salary}\n` +
-          `看護師需要: ${data.demand}`;
-
-        // FACILITY_DATABASEから詳細施設データを追加
+    const result = getFacilitiesByRegionOrArea(area);
+    if (result.areas.length > 0) {
+      for (const areaName of result.areas) {
+        const meta = AREA_METADATA[areaName];
+        if (meta) {
+          hospitalInfo += `\n【${areaName}の医療機関情報】\n`;
+          hospitalInfo += `人口: ${meta.population} / 主要駅: ${(meta.majorStations || []).join("・")}\n`;
+          hospitalInfo += `病院${meta.facilityCount?.hospitals || "?"}施設・クリニック${meta.facilityCount?.clinics || "?"}施設\n`;
+          hospitalInfo += `看護師給与: ${meta.nurseAvgSalary} / 需要: ${meta.demandLevel}\n`;
+          hospitalInfo += `${meta.demandNote || ""}\n`;
+          hospitalInfo += `生活情報: ${meta.livingInfo || ""}\n`;
+        }
+        // 施設詳細データ
         const facilities = FACILITY_DATABASE[areaName];
         if (facilities) {
-          hospitalInfo += `\n\n【${areaName}エリア 施設詳細データ】`;
+          hospitalInfo += `\n【${areaName} 施設詳細データ（${facilities.length}施設）】`;
           for (const f of facilities) {
-            const salaryMin = Math.round(f.salaryMin / 10000);
-            const salaryMax = Math.round(f.salaryMax / 10000);
+            const salaryMin = f.salaryMin ? Math.round(f.salaryMin / 10000) : "?";
+            const salaryMax = f.salaryMax ? Math.round(f.salaryMax / 10000) : "?";
             hospitalInfo += `\n- ${f.name}（${f.type}）: ${f.beds ? f.beds + "床" : "外来"} / 月給${salaryMin}〜${salaryMax}万円 / ${f.nightShiftType} / 休${f.annualHolidays}日 / ${f.access}`;
             if (f.nurseCount) hospitalInfo += ` / 看護師${f.nurseCount}名`;
+            if (f.ptCount) hospitalInfo += ` / PT${f.ptCount}名`;
+            if (f.wardCount) hospitalInfo += ` / ${f.wardCount}病棟`;
+            if (f.functions && f.functions.length) hospitalInfo += ` / 機能:${f.functions.join("・")}`;
             if (f.features) hospitalInfo += ` / ${f.features}`;
           }
         }
-        break;
       }
     }
   }
   if (!hospitalInfo) {
     hospitalInfo = "\n【対応エリア（神奈川県西部10エリア・97施設）】\n";
-    for (const [areaName, data] of Object.entries(AREA_DATABASE)) {
-      hospitalInfo += `- ${areaName}: 病院${data.hospitals}施設 / ${data.salary} / 需要${data.demand}\n`;
+    for (const [areaName, meta] of Object.entries(AREA_METADATA)) {
+      hospitalInfo += `- ${areaName}: 病院${meta.facilityCount?.hospitals || "?"}施設 / ${meta.nurseAvgSalary || ""} / 需要${meta.demandLevel || ""}\n`;
     }
   }
 
@@ -361,24 +488,29 @@ function buildSystemPrompt(userMsgCount, profession, area) {
   let basePrompt = `あなたはROBBY THE MATCHのAI転職アドバイザーです。看護師・理学療法士など医療専門職の転職をサポートしています。あなたの名前は「ロビー」です。
 
 【あなたの人格・話し方】
-- 看護師の現場をよく知っている、頼れる先輩のように話してください
-- 「受け持ち」「夜勤入り」「インシデント」「プリセプター」「ラダー」等の看護現場の用語を自然に使えます
-- 相手の言葉をまず受け止めてから返してください（例: 「夜勤がつらい」→「夜勤明けの疲れって本当にキツいですよね」）
+- 看護師紹介歴10年のベテランキャリアアドバイザーとして話してください
+- 神奈川県西部の医療機関事情に精通しています。各病院の特徴・雰囲気・実際の働きやすさを知っている前提で話してください
+- 「受け持ち」「夜勤入り」「インシデント」「プリセプター」「ラダー」「申し送り」等の看護現場の用語を自然に使えます
+- 相手の言葉をまず受け止めてから返してください（例: 「夜勤がつらい」→「夜勤明けの疲れって本当にキツいですよね。体がしんどいのか、生活リズムが合わないのか、人によって理由も違いますし」）
 - 敬語は使いつつも、堅すぎず親しみやすい口調で（「〜ですよね」「〜かもしれませんね」）
-- 1回の返答は2-4文。短すぎず長すぎず、ちょうどLINEで読みやすい長さ
+- 1回の返答は3-5文。具体的な数字や施設名を含めて信頼感を出す
 - 質問は必ず1つだけ。複数質問は絶対にしない
 - 「何かお手伝いできることはありますか？」のような機械的な表現は禁止
+- 具体的な施設名を出す時は「○○病院は△△床で、□□に力を入れている病院です」のように具体的事実を添える
 
 【会話の進め方】
-メッセージ1-2: 共感フェーズ
+メッセージ1-2: 共感＋状況把握フェーズ
   - 転職を考えたきっかけや今の状況を聞く
   - 相手の気持ちに共感する（「それは大変ですね」「よくわかります」）
-  - 例: 「人間関係で…」→「病棟の人間関係って、毎日顔を合わせるからこそキツいですよね。どんなことが気になっていますか？」
+  - 現在の勤務形態、経験年数、希望条件のうち1つを自然に確認
+  - 例: 「人間関係で…」→「病棟の人間関係って、毎日顔を合わせるからこそキツいですよね。今は急性期で働かれているんですか？」
 
 メッセージ3-4: 具体的提案フェーズ
-  - 聞いた条件に合う病院を、データベースから具体名で提案
+  - 聞いた条件に合う病院を、データベースから具体名・具体数字で提案
   - 給与は経験年数×施設種別から目安を計算して伝える
-  - 例: 「5年の急性期経験があれば、小田原市立病院だと月給32〜37万円くらいが目安です。三交代ですが教育体制が充実していて、ICU・NICUもあるので経験の幅が広がりますよ」
+  - 必ず2-3施設を比較提案する（「○○病院と△△病院だと、こういう違いがあります」）
+  - 施設の特徴を「なぜあなたに合うか」の文脈で説明する
+  - 例: 「5年の急性期経験があれば、小田原市立病院なら月給32〜37万円くらいが目安です。417床で三交代ですが、ICU・NICUもあるので経験の幅が広がります。もし夜勤を減らしたいなら、小林病院は回復期リハビリ病棟もあって二交代で月4-5回に抑えられますよ」
 
 メッセージ5: まとめフェーズ
   - 会話内容を振り返り、マッチしそうな施設を1-2つ名前を挙げてまとめる
@@ -391,11 +523,11 @@ ${SHIFT_DATA}
 ${MARKET_DATA}
 
 【厳守ルール】
-- 上記データベースに基づいて具体的な施設名・条件を示してよい
+- 上記データベースに基づいて具体的な施設名・条件・数字を積極的に示す
+- 曖昧な回答より、具体的な数字（病床数、看護師数、給与レンジ）を含めた回答を優先する
 - 求人は「このエリアで募集が出ている施設です」等の自然な表現で案内する
 - 給与は「目安として」「概算で」の表現を使い断定しない
-- 勤務形態の特徴を説明するが「施設によって異なります」を添える
-- 「詳細は担当エージェントが確認・交渉します」を添える
+- 勤務形態の特徴を説明するが「施設によって異なりますので、詳しくは確認しますね」を添える
 - 「最高」「No.1」「絶対」「必ず」等の断定・最上級表現は禁止
 - 個人情報（フルネーム、住所、現在の勤務先名）は聞かない
 - 手数料は求人側負担、求職者は完全無料であることを伝える
@@ -405,19 +537,19 @@ ${MARKET_DATA}
 
   // Profession context from pre-chat button steps
   if (profession && area) {
-    basePrompt += `\n\nこの求職者は${profession}で、${area}エリアでの転職を検討しています。上記の病院・給与データを活用して具体的な提案をしてください。`;
+    basePrompt += `\n\nこの求職者は${profession}で、${area}エリアでの転職を検討しています。上記の施設データベースを最大限活用して、具体的な施設名と数字を含めた提案をしてください。`;
   } else if (profession) {
     basePrompt += `\n\nこの求職者は${profession}です。`;
   } else if (area) {
-    basePrompt += `\n\nこの求職者は${area}エリアでの転職を検討しています。上記の病院・給与データを活用して具体的な提案をしてください。`;
+    basePrompt += `\n\nこの求職者は${area}エリアでの転職を検討しています。上記の施設データベースを最大限活用して、具体的な提案をしてください。`;
   }
 
   // Message-count-aware prompt injection
   if (typeof userMsgCount === "number") {
     if (userMsgCount <= 2) {
-      basePrompt += "\n\n【今の段階】共感フェーズです。相手の気持ちに寄り添い、転職のきっかけや今の状況を自然に聞いてください。まだ求人の提案はしないでください。";
+      basePrompt += "\n\n【今の段階】共感＋状況把握フェーズです。相手の気持ちに寄り添い、転職のきっかけや今の状況を自然に聞いてください。まだ求人の提案はしないでください。ただし相手が具体的な条件を話し始めたら、次のフェーズに進んで構いません。";
     } else if (userMsgCount >= 3 && userMsgCount <= 4) {
-      basePrompt += "\n\n【今の段階】具体的提案フェーズです。聞いた条件に合う病院をデータベースから具体名で提案してください。経験年数から給与目安を計算して「○年の経験なら△△病院で月給□〜□万円くらい」のように伝えてください。";
+      basePrompt += "\n\n【今の段階】具体的提案フェーズです。聞いた条件に合う病院をデータベースから2-3施設、具体名と数字で提案してください。施設間の比較ポイントも添えてください。経験年数から給与目安を計算して「○年の経験なら△△病院で月給□〜□万円くらい」のように伝えてください。";
     } else if (userMsgCount >= 5) {
       basePrompt += "\n\n【今の段階】これが最後の返答です。会話で分かった希望条件をまとめ、マッチする施設を1-2つ挙げてください。最後に「詳しい条件や見学のことは、担当の平島がLINEでご案内しますね。お気軽にご連絡ください！」と伝えてください。";
     }
@@ -650,7 +782,7 @@ async function handleChat(request, env) {
 
   try {
     const body = await request.json();
-    const { messages, sessionId, token, phone, timestamp, profession, area } = body;
+    const { messages, sessionId, token, phone, timestamp, profession, area, station } = body;
 
     // Token validation
     const secretKey = env.CHAT_SECRET_KEY;
@@ -668,9 +800,10 @@ async function handleChat(request, env) {
       return jsonResponse({ error: "認証に失敗しました" }, 401, allowedOrigin);
     }
 
-    // Sanitize profession/area (optional strings from pre-chat steps)
+    // Sanitize profession/area/station (optional strings from pre-chat steps)
     const safeProfession = typeof profession === "string" ? profession.slice(0, 50) : "";
     const safeArea = typeof area === "string" ? area.slice(0, 50) : "";
+    const safeStation = typeof station === "string" ? station.slice(0, 50) : "";
 
     // メッセージ配列の検証
     if (!messages || !Array.isArray(messages)) {
@@ -721,7 +854,31 @@ async function handleChat(request, env) {
     }
 
     // システムプロンプトをサーバー側で構築（メッセージ数・職種・エリアに応じて変化）
-    const systemPrompt = buildSystemPrompt(userMsgCount, safeProfession, safeArea);
+    let systemPrompt = buildSystemPrompt(userMsgCount, safeProfession, safeArea);
+    // 最寄り駅情報があれば距離情報を注入
+    if (safeStation) {
+      const stationCoords = getStationCoords(safeStation);
+      if (stationCoords) {
+        const nearbyFacilities = [];
+        const result = getFacilitiesByRegionOrArea(safeArea || "");
+        for (const f of (result.facilities.length > 0 ? result.facilities : Object.values(FACILITY_DATABASE).flat())) {
+          if (f.lat && f.lng) {
+            const dist = haversineDistance(stationCoords.lat, stationCoords.lng, f.lat, f.lng);
+            const commute = Math.round(dist * 1.3 / 30 * 60);
+            nearbyFacilities.push({ name: f.name, dist: Math.round(dist * 10) / 10, commute });
+          }
+        }
+        nearbyFacilities.sort((a, b) => a.dist - b.dist);
+        const top10 = nearbyFacilities.slice(0, 10);
+        if (top10.length > 0) {
+          systemPrompt += `\n\n【${safeStation}からの通勤距離（目安）】\n`;
+          for (const nf of top10) {
+            systemPrompt += `- ${nf.name}: 約${nf.dist}km（通勤${nf.commute}分目安）\n`;
+          }
+          systemPrompt += "※距離は直線距離ベースの概算です。実際の通勤時間は交通手段により異なります。";
+        }
+      }
+    }
 
     // セッションID のログ記録
     if (sessionId) {
