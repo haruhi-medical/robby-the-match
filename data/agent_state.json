@@ -4,22 +4,22 @@
     "health_monitor": "2026-02-28T11:00:07",
     "competitor_analyst": "2026-02-28T10:00:03",
     "content_creator": "2026-02-28T15:00:16",
-    "daily_reviewer": "2026-02-28T23:00:00",
+    "daily_reviewer": "2026-02-28T23:00:07",
     "weekly_strategist": "2026-02-22T06:00:05",
     "sns_poster": "2026-02-28T20:03:18",
     "ai_marketing_orchestrator": "2026-02-28T10:05:02",
-    "weekly_content_planner": null
+    "weekly_content_planner": "2026-03-01T05:00:27"
   },
   "status": {
     "seo_optimizer": "completed",
     "health_monitor": "completed",
     "competitor_analyst": "completed",
     "content_creator": "completed",
-    "daily_reviewer": "running",
+    "daily_reviewer": "completed",
     "weekly_strategist": "completed",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
-    "weekly_content_planner": "pending"
+    "weekly_content_planner": "failed"
   },
   "pendingTasks": {
     "content_creator": []
@@ -45,7 +45,9 @@
     "queueRemaining": 3,
     "lastMarketingPDCA": "2026-02-28 10:04:59",
     "queuePending": 4,
-    "dailyGeneratedCount": 0
+    "dailyGeneratedCount": 0,
+    "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
+    "lastWeeklyContentRun": "2026-03-01"
   },
   "agentMemory": {
     "content_creator": {
@@ -87,6 +89,11 @@
       "queueFile": "data/posting_queue.json",
       "averageViews": 0,
       "lastAnalysisDate": "2026-02-28"
+    },
+    "weekly_content_planner": {
+      "lastWeeklyRun": "2026-03-01",
+      "lastGeneratedCount": 0,
+      "lastApprovedCount": 3
     }
   }
 }

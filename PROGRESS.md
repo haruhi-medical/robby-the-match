@@ -436,3 +436,14 @@ AI Marketing PDCA:
 ### sns_post（20:00:00）
 SNS自動投稿: IG済6件 / 未投稿5件 (IG=0, TK=0)
 
+
+## 2026-03-01
+
+### pdca_weekly_content（05:00:01）
+Weekly Content Plan (Week 09):
+  Last week posted: 14
+  Generated this run: 0
+  Quality approved: 3 / rejected: 0
+  Queue pending: 3
+  Stock total: 2
+
