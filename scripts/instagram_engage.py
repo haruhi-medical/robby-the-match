@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 """
-instagram_engage.py — Instagram日常エンゲージメント自動化 v1.0
+instagram_engage.py -- Instagram日常エンゲージメント自動化 v2.0
 
 看護師系ハッシュタグの投稿にいいね・コメントを行い、
-アカウントの「人間らしさ」を維持する。
+アカウントの「人間らしさ」を維持 + コミュニティ接点を作る。
 
 cron: 毎日12:00-13:00（ランダム遅延付き）
   0 12 * * * sleep $((RANDOM \% 3600)) && python3 ~/robby-the-match/scripts/instagram_engage.py --daily
 
+v2.0 改善:
+  - ハッシュタグ20投稿取得、最大15アクション/セッション
+  - コメント確率10%、Robbyキャラボイス5テンプレ
+  - アトミックJSON書き込み（tmpfile + fsync + os.replace）
+  - アクションブロック検知 + 安全停止
+
 使い方:
-  python3 scripts/instagram_engage.py --daily        # 日次エンゲージメント
-  python3 scripts/instagram_engage.py --daily --dry-run  # ドライラン
+  python3 scripts/instagram_engage.py --daily
+  python3 scripts/instagram_engage.py --daily --dry-run
 """
 
 from __future__ import annotations
@@ -20,6 +26,7 @@ import json
 import os
 import random
 import sys
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -30,112 +37,100 @@ SESSION_FILE = PROJECT_DIR / "data" / ".instagram_session.json"
 ENGAGE_LOG_FILE = PROJECT_DIR / "data" / "engagement_log.json"
 ENV_FILE = PROJECT_DIR / ".env"
 
-# Target hashtags (nursing community)
-TARGET_HASHTAGS = [
-    "看護師あるある",
-    "ナース",
-    "看護師転職",
-    "夜勤あるある",
-    "看護師の日常",
-    "神奈川看護師",
-    "病棟あるある",
-    "看護師ママ",
-    "ナースライフ",
-    "看護師",
+# Target hashtags (nursing community) -- primary 4 always included
+PRIMARY_HASHTAGS = ["看護師", "ナース", "看護師あるある", "転職看護師"]
+SECONDARY_HASHTAGS = [
+    "夜勤あるある", "看護師の日常", "神奈川看護師", "病棟あるある",
+    "看護師ママ", "ナースライフ",
 ]
 
-# Comment templates (Robby character voice - casual, empathetic)
+# Comment templates (Robby character voice)
 COMMENT_TEMPLATES = [
     "わかる...!",
-    "夜勤お疲れさまです!",
-    "共感しすぎて保存した",
-    "これ本当にそう",
-    "めちゃくちゃわかる",
-    "応援してます!",
-    "素敵な投稿ですね",
-    "がんばってますね!",
+    "夜勤お疲れさまです！",
+    "共感しかない\U0001f97a",
+    "本当にそう！",
+    "応援してます！",
 ]
 
 # Safety limits
 MAX_ACTIONS_PER_SESSION = 15
-MAX_LIKES_PER_SESSION = 12
-MAX_COMMENTS_PER_SESSION = 3
-LIKE_PROBABILITY = 0.8
-COMMENT_PROBABILITY = 0.08
+LIKE_PROBABILITY = 0.80
+COMMENT_PROBABILITY = 0.10
+ACTION_DELAY_MIN = 15
+ACTION_DELAY_MAX = 45
+HASHTAG_PAUSE_MIN = 10
+HASHTAG_PAUSE_MAX = 30
+POSTS_PER_HASHTAG = 20
+
+
+def atomic_json_write(filepath: Path, data, indent: int = 2):
+    """Atomic JSON write (tempfile + fsync + os.replace)."""
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=filepath.parent, suffix=".tmp", prefix=filepath.stem + "_")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=indent, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, filepath)
+    except Exception:
+        try:
+            os.unlink(tmp_path)
+        except (OSError, UnboundLocalError):
+            pass
+        raise
 
 
 def load_env():
     if ENV_FILE.exists():
-        with open(ENV_FILE) as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, value = line.split("=", 1)
-                    os.environ.setdefault(key.strip(), value.strip())
+        for line in ENV_FILE.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
 
 
 def load_engage_log() -> List[Dict]:
     if ENGAGE_LOG_FILE.exists():
-        with open(ENGAGE_LOG_FILE) as f:
-            return json.load(f)
+        try:
+            return json.loads(ENGAGE_LOG_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return []
     return []
 
 
-def save_engage_log(log: List[Dict]):
-    with open(ENGAGE_LOG_FILE, "w") as f:
-        json.dump(log, f, indent=2, ensure_ascii=False)
-
-
-def slack_notify(message: str):
-    try:
-        import subprocess
-        subprocess.run(
-            ["python3", str(PROJECT_DIR / "scripts" / "notify_slack.py"),
-             "--message", message],
-            capture_output=True, timeout=30
-        )
-    except Exception:
-        pass
-
-
 def instagram_login():
-    """Login with session reuse."""
+    """Login with session reuse (shares session with auto_post.py)."""
     from instagrapi import Client
 
     cl = Client()
     cl.delay_range = [2, 5]
+    username = os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse")
+    password = os.environ.get("INSTAGRAM_PASSWORD", "")
 
     if SESSION_FILE.exists():
         try:
             cl.load_settings(str(SESSION_FILE))
-            cl.login(
-                os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse"),
-                os.environ.get("INSTAGRAM_PASSWORD", "")
-            )
+            cl.login(username, password)
             return cl
         except Exception:
             pass
 
     cl.set_settings({
-        "user_agent": "Instagram 302.1.0.36.111 Android (33/13; 420dpi; 1080x2400; Google/google; Pixel 7; panther; panther; en_JP; 533450710)",
-        "country": "JP",
-        "country_code": 81,
-        "locale": "ja_JP",
-        "timezone_offset": 32400,
+        "user_agent": "Instagram 302.1.0.36.111 Android (34/14; 420dpi; 1080x2400; Google/google; Pixel 8; shiba; shiba; en_JP; 533450710)",
+        "country": "JP", "country_code": 81, "locale": "ja_JP", "timezone_offset": 32400,
     })
-    cl.login(
-        os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse"),
-        os.environ.get("INSTAGRAM_PASSWORD", "")
-    )
+    cl.login(username, password)
     cl.dump_settings(str(SESSION_FILE))
     return cl
 
 
 def daily_engagement(dry_run: bool = False) -> Dict:
-    """Spend ~15-30 min engaging with nursing community content."""
+    """Browse 2-3 hashtags, like/comment on recent posts. Max 15 actions."""
     print(f"[ENGAGE] Starting daily engagement ({datetime.now().strftime('%H:%M')})")
 
-    session_log = {
+    session = {
         "date": datetime.now().isoformat(),
         "actions": [],
         "total_likes": 0,
@@ -144,14 +139,20 @@ def daily_engagement(dry_run: bool = False) -> Dict:
         "dry_run": dry_run,
     }
 
+    # Pick 2-3 hashtags: at least 1 primary + rest mixed
+    pick_count = random.randint(2, 3)
+    primary_pick = random.sample(PRIMARY_HASHTAGS, min(1, len(PRIMARY_HASHTAGS)))
+    remaining = [h for h in PRIMARY_HASHTAGS + SECONDARY_HASHTAGS if h not in primary_pick]
+    extra = random.sample(remaining, min(pick_count - 1, len(remaining)))
+    hashtags = primary_pick + extra
+
     if dry_run:
         print("[ENGAGE] DRY RUN mode")
-        # Simulate planning
-        hashtags = random.sample(TARGET_HASHTAGS, min(3, len(TARGET_HASHTAGS)))
         for tag in hashtags:
-            print(f"  [DRY] Would browse #{tag}, like ~{int(5*LIKE_PROBABILITY)} posts")
-        session_log["hashtags_browsed"] = hashtags
-        return session_log
+            est_likes = int(min(POSTS_PER_HASHTAG, MAX_ACTIONS_PER_SESSION) * LIKE_PROBABILITY)
+            print(f"  [DRY] Would browse #{tag} ({POSTS_PER_HASHTAG} posts), ~{est_likes} likes")
+        session["hashtags_browsed"] = hashtags
+        return session
 
     try:
         cl = instagram_login()
@@ -163,18 +164,14 @@ def daily_engagement(dry_run: bool = False) -> Dict:
     total_likes = 0
     total_comments = 0
 
-    # Browse 2-3 random hashtags
-    hashtags = random.sample(TARGET_HASHTAGS, min(random.randint(2, 3), len(TARGET_HASHTAGS)))
-
     for tag in hashtags:
         if total_actions >= MAX_ACTIONS_PER_SESSION:
             break
-
         print(f"[ENGAGE] Browsing #{tag}...")
-        session_log["hashtags_browsed"].append(tag)
+        session["hashtags_browsed"].append(tag)
 
         try:
-            medias = cl.hashtag_medias_recent(tag, amount=10)
+            medias = cl.hashtag_medias_recent(tag, amount=POSTS_PER_HASHTAG)
             time.sleep(random.uniform(2, 5))
         except Exception as e:
             print(f"[ENGAGE] Failed to fetch #{tag}: {e}")
@@ -185,69 +182,55 @@ def daily_engagement(dry_run: bool = False) -> Dict:
                 break
 
             # Like
-            if total_likes < MAX_LIKES_PER_SESSION and random.random() < LIKE_PROBABILITY:
+            if random.random() < LIKE_PROBABILITY:
                 try:
                     cl.media_like(media.id)
                     total_likes += 1
                     total_actions += 1
-                    session_log["actions"].append({
-                        "type": "like",
-                        "hashtag": tag,
-                        "media_id": str(media.id),
-                    })
-                    print(f"  [LIKE] #{tag} ({total_likes}/{MAX_LIKES_PER_SESSION})")
-                    time.sleep(random.uniform(15, 45))
+                    session["actions"].append({"type": "like", "hashtag": tag, "media_id": str(media.id)})
+                    print(f"  [LIKE] #{tag} ({total_likes} likes)")
+                    time.sleep(random.uniform(ACTION_DELAY_MIN, ACTION_DELAY_MAX))
                 except Exception as e:
                     print(f"  [LIKE] Failed: {e}")
                     if "blocked" in str(e).lower():
-                        print("[ENGAGE] Action blocked! Stopping session.")
+                        print("[ENGAGE] Action blocked! Stopping.")
+                        total_actions = MAX_ACTIONS_PER_SESSION
                         break
 
-            # Comment (rare)
-            if total_comments < MAX_COMMENTS_PER_SESSION and random.random() < COMMENT_PROBABILITY:
+            # Comment (10% probability)
+            if total_actions < MAX_ACTIONS_PER_SESSION and random.random() < COMMENT_PROBABILITY:
                 comment = random.choice(COMMENT_TEMPLATES)
                 try:
                     cl.media_comment(media.id, comment)
                     total_comments += 1
                     total_actions += 1
-                    session_log["actions"].append({
-                        "type": "comment",
-                        "hashtag": tag,
-                        "media_id": str(media.id),
-                        "text": comment,
-                    })
-                    print(f"  [COMMENT] \"{comment}\" on #{tag}")
-                    time.sleep(random.uniform(30, 90))
+                    session["actions"].append({"type": "comment", "hashtag": tag, "media_id": str(media.id), "text": comment})
+                    print(f'  [COMMENT] "{comment}" on #{tag}')
+                    time.sleep(random.uniform(ACTION_DELAY_MIN * 2, ACTION_DELAY_MAX * 2))
                 except Exception as e:
                     print(f"  [COMMENT] Failed: {e}")
 
-        # Pause between hashtags
-        time.sleep(random.uniform(10, 30))
+        time.sleep(random.uniform(HASHTAG_PAUSE_MIN, HASHTAG_PAUSE_MAX))
 
-    session_log["total_likes"] = total_likes
-    session_log["total_comments"] = total_comments
-
-    # Save session and session file
+    session["total_likes"] = total_likes
+    session["total_comments"] = total_comments
     cl.dump_settings(str(SESSION_FILE))
 
-    # Persist log
+    # Persist log (atomic, keep last 30 days)
     log = load_engage_log()
-    log.append(session_log)
-    # Keep only last 30 days
+    log.append(session)
     if len(log) > 30:
         log = log[-30:]
-    save_engage_log(log)
+    atomic_json_write(ENGAGE_LOG_FILE, log)
 
-    summary = f"[ENGAGE] Done: {total_likes} likes, {total_comments} comments across {len(hashtags)} hashtags"
-    print(summary)
-
-    return session_log
+    print(f"[ENGAGE] Done: {total_likes} likes, {total_comments} comments across {len(hashtags)} hashtags")
+    return session
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Instagram エンゲージメント自動化")
+    parser = argparse.ArgumentParser(description="Instagram エンゲージメント自動化 v2.0")
     parser.add_argument("--daily", action="store_true", help="日次エンゲージメント実行")
-    parser.add_argument("--dry-run", action="store_true", help="ドライラン")
+    parser.add_argument("--dry-run", action="store_true", help="ドライラン（API呼び出しなし）")
     args = parser.parse_args()
 
     load_env()

@@ -68,8 +68,8 @@ INSTAGRAM_FORMAT_SCHEDULE = {
 # Device profiles for session rotation
 DEVICE_PROFILES = [
     {
-        "user_agent": "Instagram 302.1.0.36.111 Android (33/13; 420dpi; 1080x2400; Google/google; Pixel 7; panther; panther; en_JP; 533450710)",
-        "device_name": "Pixel 7",
+        "user_agent": "Instagram 302.1.0.36.111 Android (34/14; 420dpi; 1080x2400; Google/google; Pixel 8; shiba; shiba; en_JP; 533450710)",
+        "device_name": "Pixel 8",
     },
     {
         "user_agent": "Instagram 302.1.0.36.111 Android (34/14; 480dpi; 1080x2340; samsung; SM-S921B; e1s; s5e9945; en_JP; 533450710)",
@@ -542,7 +542,7 @@ def retry_failed(dry_run: bool = False) -> List[Dict]:
         }
         log.append(new_entry)
         results.append(new_entry)
-        time.sleep(POST_INTERVAL)
+        time.sleep(random.randint(POST_INTERVAL_MIN, POST_INTERVAL_MAX))
 
     save_post_log(log)
     return results

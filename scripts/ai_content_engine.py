@@ -1814,7 +1814,11 @@ def _parse_json_from_text(text: str) -> Optional[Any]:
     if not text:
         return None
 
-    text = text.strip()
+    # Already parsed (list or dict from API)
+    if isinstance(text, (list, dict)):
+        return text
+
+    text = str(text).strip()
 
     # Try direct parse
     try:
@@ -1977,45 +1981,81 @@ def cmd_feedback_loop():
 # Content Calendar (--calendar)
 # ============================================================
 
+def _count_pending_and_ready(queue: dict) -> int:
+    """Count posts with status 'pending' or 'ready'."""
+    return sum(1 for p in queue.get("posts", [])
+               if p.get("status") in ("pending", "ready"))
+
+
+# Calendar-specific content type ratios (requested distribution)
+CALENDAR_MIX_RATIOS = {
+    "あるある": 0.40,
+    "転職": 0.25,
+    "給与": 0.20,
+    "紹介": 0.05,
+    "トレンド": 0.10,
+}
+
+# Map calendar categories to content_type values used in queue
+CALENDAR_CATEGORY_TO_CONTENT_TYPE = {
+    "あるある": "aruaru",
+    "転職": "career",
+    "給与": "salary",
+    "紹介": "service",
+    "トレンド": "trend",
+}
+
+
 def cmd_calendar():
     """Maintain a rolling 2-week content calendar.
 
-    Checks pending posts, generates to reach AUTO_TARGET_PENDING,
-    and assigns scheduled_date to each post.
+    Checks pending/ready posts count, auto-generates up to 14 total items
+    if pending < 7, assigns scheduled_date (skipping Sundays), and
+    balances content_type ratios per CALENDAR_MIX_RATIOS.
     """
     print("=" * 60)
     print(f"[CALENDAR] Content Calendar Manager - {timestamp_str()}")
     print("=" * 60)
 
     queue = load_queue()
-    pending = count_pending(queue)
+    pending_ready = _count_pending_and_ready(queue)
     statuses = count_by_status(queue)
 
-    print(f"\n  Current queue: {sum(statuses.values())} total")
-    print(f"  Pending/ready: {pending}")
-    print(f"  Target: {AUTO_TARGET_PENDING}")
+    print(f"\n  Current queue: {sum(statuses.values())} total posts")
+    for s, c in sorted(statuses.items()):
+        print(f"    {s}: {c}")
+    print(f"\n  Pending + ready: {pending_ready}")
+    print(f"  Threshold: {AUTO_MIN_PENDING} (trigger generation if below)")
+    print(f"  Target:    {AUTO_TARGET_PENDING} (generate up to this many)")
 
-    # Generate if needed
-    need = max(0, AUTO_TARGET_PENDING - pending)
-    if need > 0:
-        print(f"\n  Need {need} more posts. Generating...")
-        cmd_generate(need)
-        queue = load_queue()  # Reload
+    # --- Auto-generate if buffer is low ---
+    generated_count = 0
+    if pending_ready < AUTO_MIN_PENDING:
+        need = AUTO_TARGET_PENDING - pending_ready
+        if need > 0:
+            # Determine content type distribution for new posts
+            current_mix = _analyze_calendar_mix(queue)
+            type_plan = _plan_calendar_types(need, current_mix)
+            print(f"\n  Buffer low ({pending_ready} < {AUTO_MIN_PENDING}). Generating {need} posts...")
+            print(f"  Planned type distribution: {type_plan}")
+            cmd_generate(need)
+            queue = load_queue()  # Reload after generation
+            generated_count = need
     else:
-        print(f"\n  Buffer sufficient ({pending} >= {AUTO_TARGET_PENDING})")
+        print(f"\n  Buffer sufficient ({pending_ready} >= {AUTO_MIN_PENDING}). No generation needed.")
 
-    # Assign scheduled_dates to posts without one
-    from datetime import timedelta
+    # --- Assign scheduled_dates to unscheduled pending/ready posts ---
     today = datetime.now().date()
     schedule_idx = 0
 
-    # Load posting schedule if exists
+    # Load posting schedule (defines available days and times; Sunday is skipped)
     schedule_file = PROJECT_DIR / "data" / "posting_schedule.json"
     if schedule_file.exists():
         with open(schedule_file, encoding="utf-8") as f:
             schedule_data = json.load(f)
         day_times = schedule_data.get("schedule", {})
     else:
+        # Default: Mon-Sat with varying times. Sunday excluded = skip.
         day_times = {"Mon": "17:30", "Tue": "12:00", "Wed": "21:00",
                      "Thu": "17:30", "Fri": "18:00", "Sat": "20:00"}
 
@@ -2023,38 +2063,55 @@ def cmd_calendar():
     posts_to_schedule = [p for p in queue.get("posts", [])
                          if p.get("status") in ("pending", "ready") and not p.get("scheduled_date")]
 
+    # Also collect already-scheduled dates to avoid double-booking
+    already_scheduled = set()
+    for p in queue.get("posts", []):
+        sd = p.get("scheduled_date", "")
+        if sd:
+            already_scheduled.add(sd.split(" ")[0] if " " in sd else sd)
+
     scheduled_count = 0
+    scheduled_details = []
     for post in posts_to_schedule:
-        # Find next available day
-        while True:
+        # Find next available day (skip Sundays explicitly)
+        while schedule_idx < 60:  # Look up to 60 days ahead
             target_date = today + timedelta(days=schedule_idx + 1)
             day_name = day_names[target_date.weekday()]
-            if day_name in day_times:
+            date_str = target_date.isoformat()
+            # Skip Sundays (not in day_times schedule) and already-booked dates
+            if day_name in day_times and date_str not in already_scheduled:
                 time_str = day_times[day_name]
-                post["scheduled_date"] = f"{target_date.isoformat()} {time_str}"
+                post["scheduled_date"] = f"{date_str} {time_str}"
+                already_scheduled.add(date_str)
                 scheduled_count += 1
+                scheduled_details.append(
+                    f"    #{post.get('id')} ({post.get('content_type', '?')}) -> {date_str} {day_name} {time_str}"
+                )
                 schedule_idx += 1
                 break
             schedule_idx += 1
-            if schedule_idx > 30:
-                break
 
     if scheduled_count > 0:
         save_queue(queue)
-        print(f"\n  Scheduled {scheduled_count} posts")
+        print(f"\n  Scheduled {scheduled_count} posts (Sundays skipped):")
+        for detail in scheduled_details:
+            print(detail)
+    else:
+        print(f"\n  No posts needed scheduling.")
 
-    # Validate MIX ratios across calendar
-    mix = analyze_queue_mix(queue)
-    total_active = sum(mix.values())
-    print(f"\n  Content MIX across calendar ({total_active} active):")
-    for cat in MIX_RATIOS:
-        cnt = mix.get(cat, 0)
-        target = MIX_RATIOS[cat] * 100
-        actual = (cnt / total_active * 100) if total_active > 0 else 0
-        status = "✅" if abs(actual - target) <= 10 else "⚠️"
-        print(f"    {status} {cat}: {actual:.0f}% (target {target:.0f}%)")
+    # --- Validate content type MIX ratios ---
+    cal_mix = _analyze_calendar_mix(queue)
+    total_active = sum(cal_mix.values())
+    print(f"\n  Content MIX across calendar ({total_active} active posts):")
+    for cat, target_ratio in CALENDAR_MIX_RATIOS.items():
+        cnt = cal_mix.get(cat, 0)
+        target_pct = target_ratio * 100
+        actual_pct = (cnt / total_active * 100) if total_active > 0 else 0
+        ok = abs(actual_pct - target_pct) <= 15
+        indicator = "[OK]" if ok else "[!!]"
+        print(f"    {indicator} {cat}: {cnt} posts = {actual_pct:.0f}% (target {target_pct:.0f}%)")
 
-    # Validate CTA 8:2 rule
+    # --- Validate CTA 8:2 rule ---
     cta_counts = {"soft": 0, "hard": 0}
     for p in queue.get("posts", []):
         if p.get("status") in ("pending", "ready"):
@@ -2063,14 +2120,64 @@ def cmd_calendar():
     total_cta = sum(cta_counts.values())
     if total_cta > 0:
         hard_pct = cta_counts["hard"] / total_cta * 100
-        status = "✅" if 10 <= hard_pct <= 30 else "⚠️"
-        print(f"\n  {status} CTA balance: soft={cta_counts['soft']} hard={cta_counts['hard']} ({hard_pct:.0f}% hard)")
+        ok = 10 <= hard_pct <= 30
+        indicator = "[OK]" if ok else "[!!]"
+        print(f"\n  {indicator} CTA balance: soft={cta_counts['soft']} hard={cta_counts['hard']} ({hard_pct:.0f}% hard, target 20%)")
 
-    print(f"\n[CALENDAR] Complete.")
-    slack_notify(
-        f"[Calendar] Updated: {scheduled_count} newly scheduled, "
-        f"{count_pending(queue)} total pending"
+    # --- Summary ---
+    final_pending_ready = _count_pending_and_ready(queue)
+    summary = (
+        f"[Calendar] Complete: {generated_count} generated, "
+        f"{scheduled_count} scheduled, {final_pending_ready} total pending/ready"
     )
+    print(f"\n{summary}")
+
+    log_event("calendar", {
+        "generated": generated_count,
+        "scheduled": scheduled_count,
+        "pending_ready": final_pending_ready,
+        "mix": cal_mix,
+    })
+
+    slack_notify(summary)
+
+
+def _analyze_calendar_mix(queue: dict) -> Dict[str, int]:
+    """Analyze content type distribution using CALENDAR_MIX_RATIOS categories."""
+    dist: Dict[str, int] = {cat: 0 for cat in CALENDAR_MIX_RATIOS}
+    for p in queue.get("posts", []):
+        if p.get("status") in ("pending", "ready"):
+            ct = p.get("content_type", "")
+            for cat, ctype in CALENDAR_CATEGORY_TO_CONTENT_TYPE.items():
+                if ctype == ct:
+                    dist[cat] += 1
+                    break
+            else:
+                # Map regional, local etc. to closest category
+                if ct in ("regional", "local"):
+                    dist["あるある"] = dist.get("あるある", 0) + 1
+    return dist
+
+
+def _plan_calendar_types(need: int, current_mix: Dict[str, int]) -> Dict[str, int]:
+    """Plan how many of each content type to generate to reach target ratios."""
+    total_after = sum(current_mix.values()) + need
+    plan: Dict[str, int] = {}
+    remaining = need
+
+    for cat, ratio in sorted(CALENDAR_MIX_RATIOS.items(), key=lambda x: -x[1]):
+        target_count = max(0, round(total_after * ratio) - current_mix.get(cat, 0))
+        assigned = min(target_count, remaining)
+        if assigned > 0:
+            plan[cat] = assigned
+            remaining -= assigned
+
+    # Distribute any remaining to the largest category
+    if remaining > 0:
+        top_cat = max(CALENDAR_MIX_RATIOS, key=CALENDAR_MIX_RATIOS.get)
+        plan[top_cat] = plan.get(top_cat, 0) + remaining
+
+    return plan
 
 
 # ============================================================

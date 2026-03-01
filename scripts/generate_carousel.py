@@ -1146,6 +1146,7 @@ def generate_carousel(
     category: str = "あるある",
     cta_type: str = "soft",
     reveal: dict = None,   # kept for backward compat, merged into last content slide
+    platform: str = "tiktok",
 ) -> list[str]:
     """
     Generate an 8-slide carousel set (Hook + 6 Content + CTA).
@@ -1160,6 +1161,7 @@ def generate_carousel(
         category: Content category for color scheme
         cta_type: "soft" or "hard"
         reveal: (backward compat) If provided, appended as last content slide
+        platform: "tiktok" (9:16), "instagram" (4:5 feed), or "instagram_story" (9:16)
 
     Returns:
         List of saved PNG file paths
@@ -1168,6 +1170,17 @@ def generate_carousel(
     out.mkdir(parents=True, exist_ok=True)
 
     theme = CATEGORY_THEMES.get(category, DEFAULT_THEME)
+
+    # Platform dimensions (slides are rendered at 1080x1920, then resized if needed)
+    target_w, target_h = PLATFORM_SIZES.get(platform, (CANVAS_W, CANVAS_H))
+    needs_resize = (target_w != CANVAS_W or target_h != CANVAS_H)
+
+    def _save_slide(img: Image.Image, path: Path) -> str:
+        """Save slide with optional platform resize."""
+        if needs_resize:
+            img = img.resize((target_w, target_h), Image.LANCZOS)
+        img.save(str(path), "PNG", quality=95)
+        return str(path)
 
     # Merge reveal into slides if provided (backward compat)
     content_slides = list(slides)
@@ -1191,13 +1204,13 @@ def generate_carousel(
     total_slides_count = 1 + len(content_slides) + 1  # Hook + Content + CTA
     saved_paths: list[str] = []
 
-    print(f"  [{content_id}] Generating {total_slides_count}-slide carousel (category: {category})")
+    platform_label = f", platform: {platform} {target_w}x{target_h}" if platform != "tiktok" else ""
+    print(f"  [{content_id}] Generating {total_slides_count}-slide carousel (category: {category}{platform_label})")
 
     # --- Slide 1: HOOK ---
     img1 = generate_slide_hook(hook, theme=theme, total_slides=total_slides_count)
     p1 = out / f"{content_id}_slide_01_hook.png"
-    img1.save(str(p1), "PNG", quality=95)
-    saved_paths.append(str(p1))
+    saved_paths.append(_save_slide(img1, p1))
     print(f"    slide 01 (HOOK): {hook[:30]}...")
 
     # --- Slides 2-7: CONTENT (alternating dark/light) ---
@@ -1221,16 +1234,14 @@ def generate_carousel(
             total_slides=total_slides_count,
         )
         p = out / f"{content_id}_slide_{slide_num:02d}_content.png"
-        img.save(str(p), "PNG", quality=95)
-        saved_paths.append(str(p))
+        saved_paths.append(_save_slide(img, p))
         print(f"    slide {slide_num:02d} (CONTENT {'dark' if dark else 'light'}): {title[:30]}...")
 
     # --- Final slide: CTA ---
     cta_slide_num = total_slides_count
     img_cta = generate_slide_cta(cta_type=cta_type, theme=theme, total_slides=total_slides_count)
     p_cta = out / f"{content_id}_slide_{cta_slide_num:02d}_cta.png"
-    img_cta.save(str(p_cta), "PNG", quality=95)
-    saved_paths.append(str(p_cta))
+    saved_paths.append(_save_slide(img_cta, p_cta))
     print(f"    slide {cta_slide_num:02d} (CTA: {cta_type})")
 
     print(f"  [{content_id}] Done: {len(saved_paths)} slides saved to {out}")
@@ -1667,6 +1678,7 @@ def main():
                     output_dir=str(out_dir),
                     category=content["category"],
                     cta_type=content.get("cta_type", "soft"),
+                    platform=args.platform,
                 )
         else:
             print("ERROR: Could not extract carousel content from JSON.")
