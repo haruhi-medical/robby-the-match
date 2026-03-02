@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-01T22:45:17.866194",
+  "updated": "2026-03-02T08:55:32.442128",
   "posts": [
     {
       "id": 1,
@@ -288,7 +288,7 @@
       "id": 9,
       "content_id": "ai_ある_0301_02",
       "batch": "ai_batch_20260301_2207",
-      "slide_dir": "content/generated/ai_batch_20260301_2207/ai_ある_0301_02",
+      "slide_dir": "content/generated/carousel_20260301_ai_ある_0301_02",
       "json_path": "content/generated/ai_batch_20260301_2207/ai_ある_0301_02.json",
       "caption": "看護師さん、静寂が怖い？\n\nロビーが調べてみた看護師の強み\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
       "hashtags": [
@@ -316,7 +316,7 @@
       "id": 10,
       "content_id": "ai_ある_0301_03",
       "batch": "ai_batch_20260301_2207",
-      "slide_dir": "content/generated/ai_batch_20260301_2207/ai_ある_0301_03",
+      "slide_dir": "content/generated/carousel_20260301_ai_ある_0301_03",
       "json_path": "content/generated/ai_batch_20260301_2207/ai_ある_0301_03.json",
       "caption": "夜勤明けの電車、誰もが嫌だろ？\n\n看護師の強みって思いやり、忍耐力、チームワークなんだ。\n\nこれ知らなかった人、正直に手あげて🙋",
       "hashtags": [
