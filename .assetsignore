@@ -1,0 +1,14 @@
+data/
+content/
+logs/
+.git/
+.venv/
+node_modules/
+_redirects
+_headers
+*.csv
+*.mp4
+*.mp3
+*.dylib
+*.so
+*.whl

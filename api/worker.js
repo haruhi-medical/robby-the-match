@@ -2925,13 +2925,16 @@ ${interestedText}
 ${resumeText}
 
 ---
-ユーザーID: ${userId.slice(0, 8)}....
+ユーザーID: \`${userId}\`
 会話メッセージ数: ${entry.messageCount}
 日時: ${nowJST}
 
 ✅ *次のアクション*
 ☐ 24時間以内にLINEで連絡
-☐ マッチング上位施設の求人確認`;
+☐ マッチング上位施設の求人確認
+
+💬 *返信するには:*
+\`!reply ${userId} ここにメッセージを入力\``;
 
   try {
     await fetch("https://slack.com/api/chat.postMessage", {
