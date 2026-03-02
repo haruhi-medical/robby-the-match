@@ -652,6 +652,11 @@ def process_message(message: dict, channel: str):
     if not text:
         return
 
+    # Slackの書式を除去（バッククォート、太字等）
+    text = text.strip("`").strip("*").strip("_").strip()
+    # 全角スペースを半角に統一（日本語入力時の誤入力対策）
+    text = text.replace("\u3000", " ")
+
     # !reply 特別処理（引数パース必要）
     if text.startswith("!reply "):
         parts = text.split(" ", 2)

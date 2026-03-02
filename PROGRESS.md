@@ -493,3 +493,17 @@ Not logged in · Please run /login
 Not logged in · Please run /login
 [INFO] commit済み（pushは日次レビューで一括）
 
+### 🔎 競合監視（11:00:01）
+[2026-03-02] pdca_competitor完了 (exit=1)
+=== [2026-03-02 11:00:01] pdca_competitor 開始 ===
+[DEBUG] timeout_cmd=gtimeout, max=20min
+Not logged in · Please run /login
+[INFO] commit済み（pushは日次レビューで一括）
+
+### content（15:00:01）
+コンテンツ生成: [PENDING] 直近のpending (2件):
+  id=9, content_id=ai_ある_0301_02, batch=ai_batch_20260301_2207, cta=soft
+  id=10, content_id=ai_ある_0301_03, batch=ai_batch_20260301_2207, cta=soft
+
+[NOTE] pending (2) < threshold (7) -- --auto で自動補充が実行されます
+
