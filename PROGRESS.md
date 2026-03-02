@@ -561,3 +561,9 @@ Not logged in · Please run /login
 ### sns_post（17:00:00）
 SNS自動投稿: IG済7件 / 未投稿4件 (IG=0, TK=0)
 
+
+## 2026-03-03
+
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-03-03 SEO改善+子ページ追加
+
