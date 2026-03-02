@@ -486,3 +486,10 @@ AI Marketing PDCA:
 Not logged in · Please run /login
 [INFO] commit済み（pushは日次レビューで一括）
 
+### 🔎 競合監視（10:30:00）
+[2026-03-02] pdca_competitor完了 (exit=1)
+=== [2026-03-02 10:30:00] pdca_competitor 開始 ===
+[DEBUG] timeout_cmd=gtimeout, max=20min
+Not logged in · Please run /login
+[INFO] commit済み（pushは日次レビューで一括）
+

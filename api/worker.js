@@ -2027,7 +2027,7 @@ async function handleWebSession(request) {
 // LINE会話履歴ストア（インメモリ、userId → 拡張エントリ）
 const lineConversationMap = new Map();
 const LINE_MAX_HISTORY = 40;
-const LINE_SESSION_TTL = 86400000; // 24時間
+const LINE_SESSION_TTL = 604800000; // 7日間（handoff後の人間対応期間を考慮）
 
 // ---------- 定数: フェーズフロー ----------
 // フロー分岐: urgencyに応じてルートが変わる
@@ -2337,7 +2337,7 @@ async function saveLineEntry(userId, entry, env) {
         toSave.messages = toSave.messages.slice(-10);
       }
       await env.LINE_SESSIONS.put(`line:${userId}`, JSON.stringify(toSave), {
-        expirationTtl: 86400, // 24時間で自動期限切れ
+        expirationTtl: 604800, // 7日間で自動期限切れ
       });
     } catch (e) {
       console.error("[LINE] KV put error:", e.message);
@@ -3187,8 +3187,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       if (event.type === "postback") {
         let entry = await getLineEntryAsync(userId, env);
         if (!entry) {
+          console.warn(`[LINE] No KV entry for postback ${userId.slice(0, 8)}, creating new session`);
           entry = createLineEntry();
           entry.phase = "q1_urgency";
+        } else {
+          console.log(`[LINE] KV hit for postback ${userId.slice(0, 8)}, phase: ${entry.phase}`);
         }
 
         const dataStr = event.postback.data;
@@ -3257,8 +3260,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         let entry = await getLineEntryAsync(userId, env);
         if (!entry) {
+          console.warn(`[LINE] No KV entry for ${userId.slice(0, 8)}, creating new session`);
           entry = createLineEntry();
           entry.phase = "q1_urgency";
+        } else {
+          console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
 
         // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはq1）
@@ -3320,12 +3326,32 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         entry.messageCount++;
         entry.updatedAt = Date.now();
 
+        // 【安全チェック】handoff中なら handleFreeTextInput を呼ばずに直接沈黙
+        if (entry.phase === "handoff") {
+          console.log(`[LINE] Handoff silent (direct check): "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            const profile = entry.extractedProfile || {};
+            const areaLabel = entry.areaLabel || profile.area || "不明";
+            await fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || "C09A7U4TV4G",
+                text: `💬 *LINE受信（引き継ぎ済み・要返信）*\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
+              }),
+            }).catch(() => {});
+          }
+          await saveLineEntry(userId, entry, env);
+          continue; // LINE応答は絶対に送らない
+        }
+
         const prevPhase = entry.phase;
         const nextPhase = handleFreeTextInput(userText, entry);
 
         let replyMessages = null;
 
-        // handoff中: Bot完全沈黙 → Slackに転送のみ
+        // handoff中: Bot完全沈黙 → Slackに転送のみ（フォールバック）
         if (nextPhase === "handoff_silent") {
           if (env.SLACK_BOT_TOKEN) {
             const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
