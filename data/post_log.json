@@ -82,5 +82,15 @@
     "timestamp": "2026-02-28T20:01:29.890469",
     "status": "success",
     "format": "story"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260226_day3_wed_A04",
+    "timestamp": "2026-03-02T17:16:56.444616",
+    "status": "success",
+    "media_id": "3843822174571042042_45884164083",
+    "code": "DVX_-b_E5T6",
+    "url": "https://www.instagram.com/p/DVX_-b_E5T6/",
+    "format": "carousel"
   }
 ]

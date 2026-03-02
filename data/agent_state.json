@@ -4,9 +4,9 @@
     "health_monitor": "2026-03-02T07:00:06",
     "competitor_analyst": "2026-03-02T11:00:03",
     "content_creator": "2026-03-02T15:00:14",
-    "daily_reviewer": "2026-02-28T23:00:07",
+    "daily_reviewer": "2026-03-02T23:00:00",
     "weekly_strategist": "2026-03-01T06:00:04",
-    "sns_poster": "2026-02-28T20:03:18",
+    "sns_poster": "2026-03-02T17:18:24",
     "ai_marketing_orchestrator": "2026-03-02T07:30:27",
     "weekly_content_planner": "2026-03-01T05:00:27"
   },
@@ -15,7 +15,7 @@
     "health_monitor": "completed",
     "competitor_analyst": "completed",
     "content_creator": "completed",
-    "daily_reviewer": "completed",
+    "daily_reviewer": "running",
     "weekly_strategist": "completed",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
@@ -55,16 +55,16 @@
       "サービス紹介": 0,
       "トレンド": 0
     },
-    "totalPostsThisWeek": 2,
+    "totalPostsThisWeek": 6,
     "lastDeployTimestamp": null,
     "knownIssues": [],
-    "lastAnalysis": "2026-02-28T23:00:02",
+    "lastAnalysis": "2026-03-02T23:00:16",
     "recommendations": [
       "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。",
       "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
     ],
-    "queueRemaining": 3,
+    "queueRemaining": 2,
     "lastMarketingPDCA": "2026-03-02 07:30:01",
     "queuePending": 0,
     "dailyGeneratedCount": 0,
@@ -76,7 +76,7 @@
       "highPerformingPatterns": [],
       "failedPatterns": [],
       "contentIdCounter": 0,
-      "lastAnalysisDate": "2026-03-01",
+      "lastAnalysisDate": "2026-03-02",
       "bestHookPatterns": [],
       "avgMetrics": {
         "views": 0,
@@ -104,13 +104,13 @@
       "trendingTopics": []
     },
     "sns_poster": {
-      "totalPosted": 2,
+      "totalPosted": 6,
       "lastPostedContentId": null,
       "postingMethod": "tiktok-uploader",
       "authStatus": "cookie_required",
       "queueFile": "data/posting_queue.json",
       "averageViews": 0,
-      "lastAnalysisDate": "2026-03-01"
+      "lastAnalysisDate": "2026-03-02"
     },
     "weekly_content_planner": {
       "lastWeeklyRun": "2026-03-01",

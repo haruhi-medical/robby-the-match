@@ -507,3 +507,57 @@ Not logged in · Please run /login
 
 [NOTE] pending (2) < threshold (7) -- --auto で自動補充が実行されます
 
+---
+
+## 2026-03-02（日）— LINE Bot フルフロー修正
+
+### 今日やったこと
+
+#### LINE Bot 重大バグ3件修正（全フロー通過確認済み）
+
+**バグ1: KV書き込みの検証不足（前セッションからの継続）**
+- 症状: Q5以降のphase遷移がKVに保存されず、別Workerインスタンスで古いphaseに戻る
+- 前セッションで `saveLineEntry` にKV書き込みログ+読み返し検証を追加済み
+- 今回のテストで全ステップ `KV put OK` + `KV verify OK` を確認 → **KV書き込みは正常動作**
+- 前回の問題は `ctx.waitUntil` 非同期処理（前セッションで同期処理に修正済み）が原因だった
+
+**バグ2: Q10（資格選択）→ 経歴書生成で無応答**
+- 症状: 正看護師を選択後、1分以上経っても返信なし
+- 原因: `OPENAI_API_KEY` がWorker secretsに未設定 → OpenAIスキップ → Workers AI (`env.AI.run()`) にフォールバック → Workers AIがWorkerをクラッシュ（outcome: "canceled"）
+- 修正:
+  - Workers AI呼び出しに15秒タイムアウト追加（`Promise.race`）
+  - `buildResumeConfirmMessages` でOpenAI APIキーがない場合はAI呼び出しスキップ、テンプレート経歴書で即応答
+- ファイル: `api/worker.js` L2643, L3584
+
+**バグ3: マッチング結果のFlex Message送信エラー**
+- 症状: 経歴書ドラフト確認後「OK！これでいい」を選択しても返信なし
+- 原因: `buildFacilityFlexBubble` で `facility.access` が空文字列 → LINE Reply API が `must be non-empty text` で400エラー
+- 修正: 空文字列の場合にフォールバックテキストを設定
+  - `access: "" → "アクセス情報なし"`
+  - `type: "" → "医療機関"`
+  - `nightShiftType: "" → "不明"`
+- ファイル: `api/worker.js` L2819-2822
+
+#### デバッグ基盤の強化
+- `saveLineEntry` にKV書き込みログ（put start/OK/FAILED）追加
+- KV書き込み後の読み返し検証（verify OK/MISMATCH）追加
+- `buildResumeConfirmMessages` にAI結果ログ追加
+- `lineReply` にReply APIエラーログ追加（前セッション）
+
+### テスト結果
+- フルフロー（Q1=urgent → Q2〜Q10 → 経歴書確認 → マッチング結果表示）: ✅ 完走確認
+- ミディアムフロー（Q1=good → Q2〜Q5 → マッチング直行）: ✅ 動作確認
+- KV永続化: 全ステップで `KV verify OK` 確認済み
+
+### デプロイ情報
+- Version: c1dc6d21-8892-4bc3-9adb-c6105e7a8c41
+- デプロイ手順: `mv wrangler.jsonc` → `cd api && unset CLOUDFLARE_API_TOKEN && npx wrangler deploy` → `mv` 復元
+
+### 未対応（次回）
+- `OPENAI_API_KEY` をWorker secretに追加 → AI経歴書生成が有効化される
+- Workers AI (`env.AI.run()`) が不安定 → Cloudflare側の問題。OpenAI優先で運用
+- KVデバッグログの削除（安定確認後）
+
+### sns_post（17:00:00）
+SNS自動投稿: IG済7件 / 未投稿4件 (IG=0, TK=0)
+
