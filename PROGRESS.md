@@ -570,3 +570,27 @@ seo: 2026-03-03 SEO改善+子ページ追加
 ### 🔍 SEO朝サイクル（04:30:01）
 seo: 2026-03-03 SEO改善+子ページ追加
 
+### 🔍 SEO朝サイクル（05:00:00）
+seo: 2026-03-03 SEO改善+子ページ追加
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=2 ready=2 posted=6 failed=0
+  Generated today: 0
+  Quality issues: 3
+  Status: Queue Low
+
+### pdca_ai_marketing（07:00:00）
+AI Marketing PDCA:
+  Queue: pending=1 ready=2 posted=6 failed=1
+  Generated today: 0
+  Quality issues: 2
+  Status: Queue Low
+
+### pdca_ai_marketing（07:30:42）
+AI Marketing PDCA:
+  Queue: pending=0 ready=2 posted=6 failed=2
+  Generated today: 0
+  Quality issues: 1
+  Status: Queue Low
+

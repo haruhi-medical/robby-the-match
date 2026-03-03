@@ -1,19 +1,19 @@
 {
   "lastRun": {
-    "seo_optimizer": "2026-03-03T05:00:00",
-    "health_monitor": "2026-03-02T07:00:06",
-    "competitor_analyst": "2026-03-02T11:00:03",
+    "seo_optimizer": "2026-03-03T05:00:04",
+    "health_monitor": "2026-03-03T08:00:46",
+    "competitor_analyst": "2026-03-03T10:00:00",
     "content_creator": "2026-03-02T15:00:14",
     "daily_reviewer": "2026-03-02T23:00:21",
     "weekly_strategist": "2026-03-01T06:00:04",
     "sns_poster": "2026-03-02T17:18:24",
-    "ai_marketing_orchestrator": "2026-03-02T07:30:27",
+    "ai_marketing_orchestrator": "2026-03-03T07:31:09",
     "weekly_content_planner": "2026-03-01T05:00:27"
   },
   "status": {
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
@@ -43,6 +43,27 @@
         "details": "Queue critically low (0 pending). Emergency generation needed.",
         "created": "2026-03-02T07:30:27.059114",
         "status": "processing"
+      },
+      {
+        "from": "ai_marketing_orchestrator",
+        "type": "emergency_generate",
+        "details": "Queue critically low (2 pending). Emergency generation needed.",
+        "created": "2026-03-03T06:00:26.759574",
+        "status": "pending"
+      },
+      {
+        "from": "ai_marketing_orchestrator",
+        "type": "emergency_generate",
+        "details": "Queue critically low (1 pending). Emergency generation needed.",
+        "created": "2026-03-03T07:00:33.911852",
+        "status": "pending"
+      },
+      {
+        "from": "ai_marketing_orchestrator",
+        "type": "emergency_generate",
+        "details": "Queue critically low (0 pending). Emergency generation needed.",
+        "created": "2026-03-03T07:31:08.961971",
+        "status": "pending"
       }
     ]
   },
@@ -65,7 +86,7 @@
       "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
     ],
     "queueRemaining": 2,
-    "lastMarketingPDCA": "2026-03-02 07:30:01",
+    "lastMarketingPDCA": "2026-03-03 07:30:42",
     "queuePending": 0,
     "dailyGeneratedCount": 0,
     "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
