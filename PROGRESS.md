@@ -607,3 +607,20 @@ Not logged in · Please run /login
 Not logged in · Please run /login
 [INFO] commit済み（pushは日次レビューで一括）
 
+### 🔎 競合監視（11:00:00）
+[2026-03-03] pdca_competitor完了 (exit=1)
+=== [2026-03-03 11:00:00] pdca_competitor 開始 ===
+[DEBUG] timeout_cmd=gtimeout, max=20min
+Not logged in · Please run /login
+[INFO] commit済み（pushは日次レビューで一括）
+
+### sns_post（12:00:00）
+SNS自動投稿: IG済8件 / 未投稿3件 (IG=0, TK=0)
+
+### content（15:00:01）
+コンテンツ生成:   給与      :   0本  (実績  0.0% / 目標  20%) [!]
+  紹介      :   0本  (実績  0.0% / 目標   5%) [OK]
+  トレンド    :   0本  (実績  0.0% / 目標  10%) [!]
+
+[NOTE] pending (0) < threshold (7) -- --auto で自動補充が実行されます
+

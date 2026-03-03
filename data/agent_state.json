@@ -2,18 +2,18 @@
   "lastRun": {
     "seo_optimizer": "2026-03-03T05:00:04",
     "health_monitor": "2026-03-03T08:00:46",
-    "competitor_analyst": "2026-03-03T11:00:00",
-    "content_creator": "2026-03-02T15:00:14",
+    "competitor_analyst": "2026-03-03T11:00:02",
+    "content_creator": "2026-03-03T15:00:31",
     "daily_reviewer": "2026-03-02T23:00:21",
     "weekly_strategist": "2026-03-01T06:00:04",
-    "sns_poster": "2026-03-02T17:18:24",
+    "sns_poster": "2026-03-03T12:10:18",
     "ai_marketing_orchestrator": "2026-03-03T07:31:09",
     "weekly_content_planner": "2026-03-01T05:00:27"
   },
   "status": {
     "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "running",
+    "competitor_analyst": "completed",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
@@ -49,21 +49,21 @@
         "type": "emergency_generate",
         "details": "Queue critically low (2 pending). Emergency generation needed.",
         "created": "2026-03-03T06:00:26.759574",
-        "status": "pending"
+        "status": "processing"
       },
       {
         "from": "ai_marketing_orchestrator",
         "type": "emergency_generate",
         "details": "Queue critically low (1 pending). Emergency generation needed.",
         "created": "2026-03-03T07:00:33.911852",
-        "status": "pending"
+        "status": "processing"
       },
       {
         "from": "ai_marketing_orchestrator",
         "type": "emergency_generate",
         "details": "Queue critically low (0 pending). Emergency generation needed.",
         "created": "2026-03-03T07:31:08.961971",
-        "status": "pending"
+        "status": "processing"
       }
     ]
   },

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-02T17:17:08.979119",
+  "updated": "2026-03-03T12:08:58.760223",
   "posts": [
     {
       "id": 1,
@@ -215,9 +215,9 @@
       ],
       "cta_type": "soft",
       "content_type": "regional",
-      "status": "video_created",
+      "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_NEW-2_20260302.mp4",
-      "posted_at": null,
+      "posted_at": "2026-03-02T17:18:23.889208",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -226,7 +226,8 @@
         "saves": null,
         "comments": null
       },
-      "verified": true
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 7,
@@ -243,8 +244,8 @@
       ],
       "cta_type": "soft",
       "content_type": "regional",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_NEW-3_20260303.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -299,11 +300,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -327,11 +328,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,

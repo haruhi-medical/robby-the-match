@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-03T07:31:07.062669",
+  "updated": "2026-03-03T15:00:30.760901",
   "posts": [
     {
       "id": 1,
@@ -244,9 +244,9 @@
       ],
       "cta_type": "soft",
       "content_type": "regional",
-      "status": "ready",
-      "video_path": null,
-      "posted_at": null,
+      "status": "posted",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_NEW-3_20260303.mp4",
+      "posted_at": "2026-03-03T12:10:17.456882",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -255,7 +255,8 @@
         "saves": null,
         "comments": null
       },
-      "verified": true
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 8,
