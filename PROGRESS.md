@@ -594,3 +594,9 @@ AI Marketing PDCA:
   Quality issues: 1
   Status: Queue Low
 
+### 🔎 競合監視（10:00:00）
+=== [2026-03-03 10:00:00] pdca_competitor 開始 ===
+[DEBUG] timeout_cmd=gtimeout, max=20min
+Not logged in · Please run /login
+[INFO] commit済み（pushは日次レビューで一括）
+
