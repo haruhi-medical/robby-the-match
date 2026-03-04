@@ -7,6 +7,7 @@
 :root {
   --z-chat: 9999;
   --transition: 0.3s ease;
+  --radius: 8px;
   --radius-xl: 16px;
 }
 
