@@ -73,7 +73,11 @@ CLAUDE_TIMEOUT = 120
 # ============================================================
 
 def load_env():
-    """Load .env file from PROJECT_DIR."""
+    """Load .env file from PROJECT_DIR.
+
+    Called at module level AND in main() to ensure env vars are available
+    even in cron environments where .zshrc is not sourced.
+    """
     env_path = PROJECT_DIR / ".env"
     if env_path.exists():
         with open(env_path, "r", encoding="utf-8") as f:
@@ -86,6 +90,10 @@ def load_env():
                     key = key.strip()
                     value = value.strip().strip('"').strip("'")
                     os.environ.setdefault(key, value)
+
+
+# Load .env at module level for cron compatibility
+load_env()
 
 
 def load_queue() -> dict:
@@ -150,8 +158,9 @@ def load_prompt_template() -> str:
 # ============================================================
 
 def count_pending(queue: dict) -> int:
-    """Count posts with status='pending'."""
-    return sum(1 for p in queue.get("posts", []) if p.get("status") == "pending")
+    """Count posts with status='pending' or 'ready' (both are unposted content)."""
+    return sum(1 for p in queue.get("posts", [])
+               if p.get("status") in ("pending", "ready"))
 
 
 def get_next_queue_id(queue: dict) -> int:
@@ -301,16 +310,24 @@ def invoke_claude(prompt: str) -> Optional[str]:
     Returns None on failure.
     """
     try:
+        # Remove CLAUDECODE to prevent nested session detection
+        env = os.environ.copy()
+        env.pop("CLAUDECODE", None)
+        env.pop("CLAUDE_CODE_ENTRYPOINT", None)
+
         result = subprocess.run(
             ["claude", "-p", prompt, "--max-turns", "1"],
             capture_output=True,
             text=True,
             timeout=CLAUDE_TIMEOUT,
+            env=env,
         )
         if result.returncode != 0:
             print(f"[ERROR] Claude CLI exit code {result.returncode}")
             if result.stderr:
                 print(f"  stderr: {result.stderr[:500]}")
+            if result.stdout:
+                print(f"  stdout: {result.stdout[:500]}")
             return None
         return result.stdout.strip()
     except subprocess.TimeoutExpired:
@@ -709,8 +726,10 @@ def cmd_status():
 
     total = len(posts)
     pending = sum(1 for p in posts if p.get("status") == "pending")
+    ready = sum(1 for p in posts if p.get("status") == "ready")
     posted = sum(1 for p in posts if p.get("status") == "posted")
-    other = total - pending - posted
+    other = total - pending - ready - posted
+    available = pending + ready  # Unposted content (used for threshold check)
 
     print("=" * 60)
     print("ROBBY THE MATCH Content Pipeline Status")
@@ -718,11 +737,13 @@ def cmd_status():
     print("=" * 60)
 
     print(f"\n[QUEUE] posting_queue.json")
-    print(f"  Total:   {total}")
-    print(f"  Pending: {pending}")
-    print(f"  Posted:  {posted}")
+    print(f"  Total:     {total}")
+    print(f"  Ready:     {ready}")
+    print(f"  Pending:   {pending}")
+    print(f"  Available: {available} (ready+pending)")
+    print(f"  Posted:    {posted}")
     if other > 0:
-        print(f"  Other:   {other}")
+        print(f"  Other:     {other}")
 
     print(f"\n[STOCK] stock.csv ({len(stock)} rows)")
     dist = analyze_stock_distribution(stock)
@@ -754,10 +775,10 @@ def cmd_status():
             print(f"  - {p}")
 
     print()
-    if pending < AUTO_THRESHOLD:
-        print(f"[NOTE] pending ({pending}) < threshold ({AUTO_THRESHOLD}) -- --auto で自動補充が実行されます")
+    if available < AUTO_THRESHOLD:
+        print(f"[NOTE] available ({available}) < threshold ({AUTO_THRESHOLD}) -- --auto で自動補充が実行されます")
     else:
-        print(f"[NOTE] pending ({pending}) >= threshold ({AUTO_THRESHOLD}) -- --auto では生成スキップ")
+        print(f"[NOTE] available ({available}) >= threshold ({AUTO_THRESHOLD}) -- --auto では生成スキップ")
 
 
 def cmd_auto():

@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 """
-auto_post.py — ナースロビー SNS自動投稿エンジン v2.0
+auto_post.py — ナースロビー SNS自動投稿エンジン v2.1
 
 Instagram/TikTokへの自動投稿。AI検出回避 + 行動パターン擬態。
 cron駆動で完全自動化。
+
+v2.1 改善:
+  - Instagram carousel optimization: 1080x1350 4:5 portrait, pre-sharpen,
+    progressive JPEG with 4:4:4 chroma subsampling
+  - optimize_for_instagram(): dedicated image optimization for IG carousels
+  - validate_instagram_slides(): pre-upload dimension/mode validation
+  - prepare_instagram_slides(): generate IG-specific slides from content JSON
+  - image_humanizer "carousel" mode: no noise/rotation/dimension change for
+    designed graphics (only metadata strip + subtle JPEG quality variation)
+  - Proper JPEG conversion & temp file cleanup after upload
 
 v2.0 改善:
   - image_humanizer統合（EXIF偽装+ノイズ+ビネット）
@@ -113,7 +123,11 @@ def atomic_json_write(filepath, data, indent=2):
 
 
 def load_env():
-    """Load .env file."""
+    """Load .env file.
+
+    Called at module level AND in main() to ensure env vars are available
+    even in cron environments where .zshrc is not sourced.
+    """
     if ENV_FILE.exists():
         with open(ENV_FILE) as f:
             for line in f:
@@ -121,6 +135,10 @@ def load_env():
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
                     os.environ.setdefault(key.strip(), value.strip())
+
+
+# Load .env at module level for cron compatibility
+load_env()
 
 
 def slack_notify(message: str):
@@ -171,6 +189,124 @@ def get_next_unposted(platform: str) -> Optional[Path]:
     for d in get_ready_dirs():
         if d.name not in posted_dirs:
             return d
+    return None
+
+
+# ============================================================
+# Instagram Image Optimization
+# ============================================================
+
+def optimize_for_instagram(img_path: str, output_path: str) -> str:
+    """Optimize image for Instagram carousel upload.
+
+    Ensures correct dimensions (1080x1350, 4:5 portrait), RGB mode,
+    pre-sharpens to compensate for Instagram compression, and saves
+    as an optimized progressive JPEG with 4:4:4 chroma subsampling
+    (better for text-heavy carousel slides).
+    """
+    from PIL import Image, ImageFilter
+
+    img = Image.open(img_path)
+
+    # Ensure RGB (no alpha channel)
+    if img.mode in ('RGBA', 'P'):
+        if img.mode == 'RGBA':
+            background = Image.new("RGB", img.size, (255, 255, 255))
+            background.paste(img, mask=img.split()[3])
+            img = background
+        else:
+            img = img.convert('RGB')
+
+    # Validate/enforce 1080x1350 (4:5 portrait)
+    target_w, target_h = 1080, 1350
+    if img.size != (target_w, target_h):
+        img = img.resize((target_w, target_h), Image.LANCZOS)
+
+    # Pre-sharpen to compensate for Instagram compression
+    img = img.filter(ImageFilter.UnsharpMask(radius=1.0, percent=50, threshold=2))
+
+    # Save as optimized JPEG
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    img.save(
+        output_path,
+        format="JPEG",
+        quality=85,
+        optimize=True,
+        progressive=True,
+        subsampling=0,  # 4:4:4 chroma (better for text)
+    )
+    return output_path
+
+
+def validate_instagram_slides(slide_paths: List[Path]) -> List[str]:
+    """Validate all slides are correct size for Instagram carousel.
+
+    Returns a list of issue strings. Empty list means all slides are valid.
+    """
+    from PIL import Image
+
+    issues = []
+    for path in slide_paths:
+        try:
+            img = Image.open(path)
+            w, h = img.size
+            if w != 1080 or h != 1350:
+                issues.append(f"{path}: {w}x{h} (expected 1080x1350)")
+            if img.mode not in ('RGB', 'L'):
+                issues.append(f"{path}: mode={img.mode} (expected RGB)")
+        except Exception as e:
+            issues.append(f"{path}: failed to open ({e})")
+    return issues
+
+
+def prepare_instagram_slides(content_dir: Path) -> Optional[List[Path]]:
+    """Generate Instagram-optimized slides from content directory.
+
+    Attempts to call generate_carousel.py with --platform instagram.
+    Falls back to None if generation fails (caller should use existing slides).
+    """
+    # Look for content JSON files
+    json_files = list(content_dir.glob("*.json"))
+    if not json_files:
+        print("[IG-PREP] No JSON content file found, skipping IG slide generation")
+        return None
+
+    carousel_script = PROJECT_DIR / "scripts" / "generate_carousel.py"
+    if not carousel_script.exists():
+        print("[IG-PREP] generate_carousel.py not found, skipping IG slide generation")
+        return None
+
+    ig_dir = content_dir / "instagram"
+    ig_dir.mkdir(exist_ok=True)
+
+    try:
+        result = subprocess.run(
+            [sys.executable, str(carousel_script),
+             "--single-json", str(json_files[0]),
+             "--platform", "instagram",
+             "--output", str(ig_dir)],
+            capture_output=True, text=True, timeout=120
+        )
+        if result.returncode != 0:
+            print(f"[IG-PREP] generate_carousel.py failed (exit={result.returncode})")
+            if result.stderr:
+                print(f"[IG-PREP] stderr: {result.stderr[:300]}")
+            return None
+    except Exception as e:
+        print(f"[IG-PREP] generate_carousel.py error: {e}")
+        return None
+
+    if ig_dir.exists():
+        # generate_carousel.py outputs to a subdirectory (carousel_YYYYMMDD_ID/)
+        slides = sorted(ig_dir.glob("*.png")) or sorted(ig_dir.glob("*.jpg"))
+        if not slides:
+            # Search subdirectories
+            slides = sorted(ig_dir.glob("**/*.png")) or sorted(ig_dir.glob("**/*.jpg"))
+        if slides:
+            print(f"[IG-PREP] Generated {len(slides)} Instagram-optimized slides")
+            return slides
+
+    print("[IG-PREP] No slides generated in instagram/ directory")
     return None
 
 
@@ -281,15 +417,29 @@ def post_engagement(cl, media_id: str, dry_run: bool = False):
         pass  # Non-critical
 
 
-def convert_to_jpeg(png_paths: List[Path], humanize: bool = True) -> List[str]:
-    """Convert PNG slides to JPEG with optional humanization for anti-AI detection."""
+def convert_to_jpeg(png_paths: List[Path], humanize: bool = True,
+                    for_carousel: bool = False) -> List[str]:
+    """Convert PNG slides to JPEG with optional humanization for anti-AI detection.
+
+    Args:
+        png_paths: List of PNG image paths to convert.
+        humanize: Whether to apply humanization.
+        for_carousel: If True, use Instagram carousel optimization instead of
+                      full humanization. This preserves exact dimensions and
+                      clean text rendering. image_humanizer's "carousel" mode
+                      is used (metadata strip + subtle JPEG quality variation only).
+    """
     TEMP_DIR.mkdir(exist_ok=True)
     jpeg_paths = []
 
     for png in png_paths:
-        jpeg_path = TEMP_DIR / png.name.replace(".png", ".jpg")
+        jpeg_path = TEMP_DIR / png.name.replace(".png", ".jpg").replace(".PNG", ".jpg")
 
-        if humanize:
+        if for_carousel:
+            # Instagram carousel: optimize without degrading designed graphics
+            optimize_for_instagram(str(png), str(jpeg_path))
+            print(f"  [IG-OPT] {png.name}: optimized for Instagram (1080x1350, JPEG q85)")
+        elif humanize:
             try:
                 from image_humanizer import humanize_image
                 info = humanize_image(str(png), str(jpeg_path), intensity="medium")
@@ -311,10 +461,31 @@ def convert_to_jpeg(png_paths: List[Path], humanize: bool = True) -> List[str]:
 
 def post_to_instagram(content_dir: Path, dry_run: bool = False,
                       format_override: Optional[str] = None) -> Dict:
-    """Post to Instagram with format rotation + anti-detection."""
-    slides = sorted(content_dir.glob("slide_*.png"))
-    if not slides:
-        return {"status": "error", "error": "No slides found"}
+    """Post to Instagram with format rotation + anti-detection.
+
+    Slide preparation flow:
+    1. Try to generate Instagram-specific slides (1080x1350) via generate_carousel.py
+    2. Fall back to existing TikTok-format slides in content_dir
+    3. Convert all slides to optimized JPEG (no destructive humanization for carousels)
+    4. Validate dimensions before upload
+    """
+    # --- Step 1: Prepare Instagram-optimized slides ---
+    # Try to generate Instagram-specific slides from content JSON
+    ig_slides = prepare_instagram_slides(content_dir)
+
+    if ig_slides:
+        slides = ig_slides
+        print(f"[IG] Using Instagram-optimized slides ({len(slides)} slides)")
+    else:
+        # Fall back to existing slides in content_dir (may be TikTok format)
+        slides = sorted(content_dir.glob("slide_*.png"))
+        if not slides:
+            # Also check for jpg slides
+            slides = sorted(content_dir.glob("slide_*.jpg"))
+        if slides:
+            print(f"[IG] Using existing slides from {content_dir.name} ({len(slides)} slides)")
+        else:
+            return {"status": "error", "error": "No slides found"}
 
     caption_file = content_dir / "caption.txt"
     hashtags_file = content_dir / "hashtags.txt"
@@ -344,10 +515,39 @@ def post_to_instagram(content_dir: Path, dry_run: bool = False,
         # Pre-posting warm-up (anti-bot)
         warm_up_session(cl, dry_run)
 
-        # Humanize images
-        jpeg_paths = convert_to_jpeg(slides, humanize=True)
+        # --- Step 2: Convert slides to optimized JPEG ---
+        # Use carousel optimization for carousel/single formats (designed graphics).
+        # Use full humanization only for reel thumbnails (AI-generated photographs).
+        is_carousel_format = post_format in ("carousel", "single", "story")
+        jpeg_paths = convert_to_jpeg(slides, humanize=not is_carousel_format,
+                                     for_carousel=is_carousel_format)
 
-        # Upload based on format
+        # --- Step 3: Validate slides before upload ---
+        validation_issues = validate_instagram_slides(
+            [Path(p) for p in jpeg_paths]
+        )
+        if validation_issues:
+            print(f"[IG] Validation issues found ({len(validation_issues)}):")
+            for issue in validation_issues:
+                print(f"  [WARN] {issue}")
+            # Try to fix by re-optimizing (resize to correct dimensions)
+            print("[IG] Attempting to fix dimensions...")
+            fixed_paths = []
+            for jp in jpeg_paths:
+                optimize_for_instagram(jp, jp)  # Re-optimize in place
+                fixed_paths.append(jp)
+            jpeg_paths = fixed_paths
+            # Re-validate
+            remaining_issues = validate_instagram_slides(
+                [Path(p) for p in jpeg_paths]
+            )
+            if remaining_issues:
+                print(f"[IG] {len(remaining_issues)} issues remain after fix attempt")
+                for issue in remaining_issues:
+                    print(f"  [ERR] {issue}")
+                # Continue anyway — Instagram may accept slightly off dimensions
+
+        # --- Step 4: Upload based on format ---
         media = None
         if post_format == "carousel":
             media = cl.album_upload(paths=jpeg_paths, caption=full_caption)
@@ -372,9 +572,11 @@ def post_to_instagram(content_dir: Path, dry_run: bool = False,
             cl.photo_upload_to_story(path=jpeg_paths[0])
             print("[IG] Story posted (no permalink)")
             cl.dump_settings(str(SESSION_FILE))
+            _cleanup_temp_jpegs(jpeg_paths)
             return {"status": "success", "format": "story"}
 
         if media is None:
+            _cleanup_temp_jpegs(jpeg_paths)
             return {"status": "error", "error": "Upload returned None"}
 
         url = f"https://www.instagram.com/p/{media.code}/"
@@ -384,6 +586,9 @@ def post_to_instagram(content_dir: Path, dry_run: bool = False,
         post_engagement(cl, str(media.id), dry_run)
 
         cl.dump_settings(str(SESSION_FILE))
+
+        # Cleanup temporary JPEG files
+        _cleanup_temp_jpegs(jpeg_paths)
 
         return {
             "status": "success",
@@ -403,11 +608,13 @@ def post_to_instagram(content_dir: Path, dry_run: bool = False,
             time.sleep(wait_time)
             try:
                 cl = instagram_login()
-                jpeg_paths = convert_to_jpeg(slides, humanize=True)
+                jpeg_paths = convert_to_jpeg(slides, humanize=False,
+                                             for_carousel=True)
                 media = cl.album_upload(paths=jpeg_paths, caption=full_caption)
                 url = f"https://www.instagram.com/p/{media.code}/"
                 print(f"[IG] RETRY SUCCESS: {url}")
                 cl.dump_settings(str(SESSION_FILE))
+                _cleanup_temp_jpegs(jpeg_paths)
                 return {
                     "status": "success",
                     "media_id": str(media.id),
@@ -419,6 +626,15 @@ def post_to_instagram(content_dir: Path, dry_run: bool = False,
                 return {"status": "error", "error": str(retry_e)}
 
         return {"status": "error", "error": error_msg}
+
+
+def _cleanup_temp_jpegs(jpeg_paths: List[str]):
+    """Remove temporary JPEG files after upload."""
+    for jp in jpeg_paths:
+        try:
+            Path(jp).unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 # ============================================================

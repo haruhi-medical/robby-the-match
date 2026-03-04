@@ -249,7 +249,12 @@ def humanize_image(input_path, output_path, intensity="medium"):
     Args:
         input_path: Source image path (PNG or JPEG)
         output_path: Output path (will be saved as JPEG)
-        intensity: "light", "medium", or "heavy"
+        intensity: "light", "medium", "heavy", or "carousel"
+
+    The "carousel" intensity is designed for designed graphic slides (text-heavy
+    carousel images). It applies only metadata stripping and a subtle JPEG
+    quality variation -- NO noise, NO rotation, NO dimension change, NO vignette.
+    This preserves clean text rendering and exact dimensions (e.g. 1080x1350).
     """
     img = Image.open(input_path)
 
@@ -264,7 +269,40 @@ def humanize_image(input_path, output_path, intensity="medium"):
     elif img.mode != "RGB":
         img = img.convert("RGB")
 
-    # Intensity presets
+    # --- Carousel mode: minimal humanization for designed graphics ---
+    if intensity == "carousel":
+        # NO dimension change (preserves exact 4:5 ratio)
+        # NO rotation (black corners visible on light slides)
+        # NO noise (degrades clean text rendering)
+        # NO vignette, NO color temperature shift
+        # Only: subtle JPEG quality variation + metadata strip
+        quality = random.randint(84, 86)  # Imperceptible variation
+        w, h = img.size
+
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Save without EXIF for carousel (designed graphics, not photos)
+        img.save(
+            str(output_path), "JPEG",
+            quality=quality,
+            optimize=True,
+            progressive=True,
+            subsampling=0,  # 4:4:4 chroma — better for text-heavy images
+        )
+
+        return {
+            "noise_sigma": 0,
+            "temp_shift": 0,
+            "rotation": 0,
+            "vignette": 0,
+            "quality": quality,
+            "dimensions": f"{w}x{h}",
+            "exif_injected": False,
+            "intensity": "carousel",
+        }
+
+    # --- Standard humanization modes: light / medium / heavy ---
     presets = {
         "light": {"noise_sigma": (1.5, 2.5), "rotation": (0.05, 0.2), "vignette": (0.03, 0.08), "temp_shift": (-3, 3)},
         "medium": {"noise_sigma": (2.0, 4.0), "rotation": (0.1, 0.5), "vignette": (0.05, 0.15), "temp_shift": (-5, 5)},
@@ -345,8 +383,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AI画像ヒューマナイザー")
     parser.add_argument("input", nargs="?", help="入力画像パス or ディレクトリ")
     parser.add_argument("output", nargs="?", help="出力画像パス or ディレクトリ")
-    parser.add_argument("--intensity", choices=["light", "medium", "heavy"], default="medium",
-                        help="処理強度 (default: medium)")
+    parser.add_argument("--intensity", choices=["light", "medium", "heavy", "carousel"], default="medium",
+                        help="処理強度 (default: medium, carousel=最小限/テキスト画像向け)")
     parser.add_argument("--batch", action="store_true", help="ディレクトリ一括処理")
     parser.add_argument("--test", action="store_true", help="テスト画像で動作確認")
     args = parser.parse_args()

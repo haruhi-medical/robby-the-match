@@ -25,7 +25,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 
 PROJECT_DIR = Path(__file__).parent.parent
 QUEUE_FILE = PROJECT_DIR / "data" / "posting_queue.json"
@@ -70,7 +70,11 @@ def atomic_json_write(filepath, data, indent=2):
 
 
 def load_env():
-    """Load .env file"""
+    """Load .env file.
+
+    Called at module level AND in main() to ensure env vars are available
+    even in cron environments where .zshrc is not sourced.
+    """
     if ENV_FILE.exists():
         with open(ENV_FILE) as f:
             for line in f:
@@ -78,6 +82,10 @@ def load_env():
                 if line and not line.startswith('#') and '=' in line:
                     key, value = line.split('=', 1)
                     os.environ.setdefault(key.strip(), value.strip())
+
+
+# Load .env at module level for cron compatibility
+load_env()
 
 
 def slack_notify(message):
@@ -1466,77 +1474,117 @@ def show_status():
         print(f"  {emoji} #{post['id']}: {post['content_id']}{posted}{verified}")
 
 
-def verify_command():
-    """TikTok投稿数検証コマンド"""
-    video_count = get_tiktok_video_count()
-    queue = load_queue()
+def _check_upload_verification_health():
+    """upload_verification.json を読み、直近7日間のアップロード健全性を返す。
 
+    Returns:
+        dict with keys:
+            recent_total (int): 直近7日の総件数
+            recent_success (int): 直近7日の成功件数
+            recent_fails (int): 直近7日の失敗件数
+            all_total (int): 全件数
+            all_success (int): 全成功件数
+            healthy (bool): 直近アップロードが健全か（成功率70%以上 or 直近5件中3件以上成功）
+            last_success_ts (str|None): 最後に成功したタイムスタンプ
+    """
+    vlog = load_upload_verification()
+    uploads = vlog.get("uploads", [])
+
+    all_total = len(uploads)
+    all_success = sum(1 for u in uploads if u.get("success"))
+
+    # 直近7日のフィルタ
+    cutoff = (datetime.now() - timedelta(days=7)).isoformat()
+    recent = [u for u in uploads if u.get("timestamp", "") >= cutoff]
+    recent_total = len(recent)
+    recent_success = sum(1 for u in recent if u.get("success"))
+    recent_fails = recent_total - recent_success
+
+    # 直近5件の成功率もチェック
+    last_5 = uploads[-5:] if len(uploads) >= 5 else uploads
+    last_5_success = sum(1 for u in last_5 if u.get("success"))
+
+    # 健全判定: 直近7日に成功があり、かつ直近5件中3件以上成功
+    healthy = (recent_success > 0 and last_5_success >= 3) or (recent_total == 0 and all_success > 0)
+
+    last_success_ts = None
+    for u in reversed(uploads):
+        if u.get("success"):
+            last_success_ts = u.get("timestamp")
+            break
+
+    return {
+        "recent_total": recent_total,
+        "recent_success": recent_success,
+        "recent_fails": recent_fails,
+        "all_total": all_total,
+        "all_success": all_success,
+        "healthy": healthy,
+        "last_success_ts": last_success_ts,
+    }
+
+
+def verify_command():
+    """TikTok投稿数検証コマンド v2.1
+
+    upload_verification.json を主要な健全性指標とする。
+    TikTokプロフィールのスクレイプ結果は参考情報。
+    bot検出で0件が返ることが頻繁にあるため、スクレイプ結果だけで
+    投稿を pending にリセットする破壊的操作は行わない。
+    """
+    # Step 1: upload_verification.json を主要指標として読む
+    uv_health = _check_upload_verification_health()
+
+    print(f"📤 アップロード検証ログ:")
+    print(f"   全期間: {uv_health['all_success']}/{uv_health['all_total']}件 成功")
+    print(f"   直近7日: {uv_health['recent_success']}/{uv_health['recent_total']}件 成功")
+    if uv_health['last_success_ts']:
+        print(f"   最終成功: {uv_health['last_success_ts'][:19]}")
+
+    # Step 2: キュー情報
+    queue = load_queue()
     posted_count = 0
     if queue:
         posted_count = sum(1 for p in queue["posts"] if p["status"] == "posted")
+    print(f"   キュー内 posted: {posted_count}件")
 
-    # フェッチ失敗 → アップロード検証ログで代替
+    # Step 3: TikTokプロフィール取得（参考情報）
+    video_count = get_tiktok_video_count()
+
     if video_count < 0:
         error_desc = {-1: "curl失敗", -2: "HTML解析失敗(JS-only)", -3: "全手段失敗"}
         desc = error_desc.get(video_count, f"不明エラー({video_count})")
         print(f"ℹ️ TikTokプロフィール取得不可: {desc}（bot検出の可能性）")
-        print(f"キュー内 posted: {posted_count}")
-        # アップロード検証ログで代替チェック
-        vlog = load_upload_verification()
-        recent = vlog.get("uploads", [])[-10:]
-        recent_fails = sum(1 for u in recent if not u.get("success"))
-        if recent_fails >= 3:
-            print(f"⚠️ 直近{len(recent)}件中{recent_fails}件の失敗 — アップロード問題の可能性")
-        else:
-            print(f"✅ アップロード検証ログ正常（直近{len(recent)}件中{len(recent)-recent_fails}件成功）")
-        return
-
-    print(f"TikTok公開投稿数: {video_count}")
-    print(f"キュー内 posted: {posted_count}")
-
-    if video_count == 0 and posted_count > 0:
-        print(f"🚨 重大不整合: キューでは{posted_count}件 posted だが、TikTokには0件")
-        print(f"   → 投稿処理がステータスを更新したが実際のアップロードは失敗している可能性大")
-        # postedだが実際には投稿されていないものをpendingに戻す
-        if queue:
-            fixed = 0
-            for post in queue["posts"]:
-                if post["status"] == "posted" and not post.get("verified"):
-                    post["status"] = "pending"
-                    post["posted_at"] = None
-                    post["error"] = "unverified_reset_by_verify"
-                    fixed += 1
-            if fixed:
-                save_queue(queue)
-                print(f"   {fixed}件の未検証投稿をpendingにリセット")
-        slack_notify(
-            f"🚨 *TikTok投稿不整合検出*\n"
-            f"TikTok実投稿: 0件\n"
-            f"キューposted: {posted_count}件\n"
-            f"→ {posted_count}件の投稿が実際にはアップロードされていません。未検証投稿をpendingにリセットしました。"
-        )
-    elif video_count < posted_count:
-        print(f"⚠️ 不整合: キューでは{posted_count}件 posted だが、TikTokには{video_count}件しかない")
-        # postedだが実際には投稿されていないものをpendingに戻す
-        if queue:
-            fixed = 0
-            for post in queue["posts"]:
-                if post["status"] == "posted" and not post.get("verified"):
-                    post["status"] = "pending"
-                    post["posted_at"] = None
-                    post["error"] = "unverified_reset_by_verify"
-                    fixed += 1
-            if fixed:
-                save_queue(queue)
-                print(f"   {fixed}件の未検証投稿をpendingにリセット")
-        slack_notify(
-            f"⚠️ *TikTok投稿不整合*\n"
-            f"TikTok実投稿: {video_count}件\n"
-            f"キューposted: {posted_count}件\n"
-            f"→ {posted_count - video_count}件が未反映。未検証投稿をpendingにリセットしました。"
-        )
     else:
-        print("✅ 整合性OK")
+        print(f"📊 TikTok公開投稿数: {video_count}件")
+
+    # Step 4: 判定ロジック（upload_verification.json が主、プロフィールは参考）
+    if uv_health["healthy"]:
+        # アップロードは健全 → TikTokプロフィールの結果に関わらず正常
+        if video_count < 0 or (video_count == 0 and posted_count > 0):
+            print(f"ℹ️ TikTokプロフィールのデータは不正確（bot検出の可能性大）")
+            print(f"   upload_verification.json で直近アップロード成功を確認済み — システム正常")
+        elif video_count >= 0 and video_count < posted_count:
+            # video_count > 0 だが posted_count より少ない → 一部削除の可能性（INFO）
+            print(f"ℹ️ TikTok実投稿{video_count}件 < キューposted{posted_count}件")
+            print(f"   一部ユーザー削除の可能性。アップロード自体は正常。")
+        else:
+            print("✅ 整合性OK")
+    else:
+        # アップロード検証でも問題あり → 本当に問題がある可能性
+        if uv_health["recent_fails"] >= 3:
+            print(f"⚠️ アップロード検証で直近7日{uv_health['recent_fails']}件の失敗 — アップロード問題の可能性")
+            slack_notify(
+                f"⚠️ *TikTokアップロード健全性低下*\n"
+                f"直近7日: {uv_health['recent_success']}/{uv_health['recent_total']}件 成功\n"
+                f"TikTokプロフィール: {'取得不可(bot検出)' if video_count < 0 else f'{video_count}件'}\n"
+                f"キューposted: {posted_count}件\n"
+                f"→ upload_verification.json で失敗が多発。要確認。"
+            )
+        elif uv_health["recent_total"] == 0 and uv_health["all_total"] == 0:
+            print(f"⚠️ アップロード検証ログが空 — upload_verification.json を確認してください")
+        else:
+            print(f"ℹ️ アップロード状況を確認中。直近: {uv_health['recent_success']}/{uv_health['recent_total']}件成功")
 
 
 # ============================================================

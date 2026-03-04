@@ -1,21 +1,21 @@
 {
   "lastRun": {
-    "seo_optimizer": "2026-03-03T05:00:04",
-    "health_monitor": "2026-03-03T08:00:46",
-    "competitor_analyst": "2026-03-03T11:00:02",
+    "seo_optimizer": "2026-03-04T04:00:02",
+    "health_monitor": "2026-03-04T09:01:23",
+    "competitor_analyst": "2026-03-04T10:00:02",
     "content_creator": "2026-03-03T15:00:31",
-    "daily_reviewer": "2026-03-02T23:00:21",
+    "daily_reviewer": "2026-03-03T23:00:19",
     "weekly_strategist": "2026-03-01T06:00:04",
     "sns_poster": "2026-03-03T12:10:18",
-    "ai_marketing_orchestrator": "2026-03-03T07:31:09",
+    "ai_marketing_orchestrator": "2026-03-04T08:01:02",
     "weekly_content_planner": "2026-03-01T05:00:27"
   },
   "status": {
-    "seo_optimizer": "completed",
+    "seo_optimizer": "config_error",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "config_error",
     "content_creator": "completed",
-    "daily_reviewer": "completed",
+    "daily_reviewer": "config_error",
     "weekly_strategist": "completed",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
@@ -24,46 +24,11 @@
   "pendingTasks": {
     "content_creator": [
       {
-        "from": "ai_marketing_orchestrator",
+        "from": "health_monitor",
         "type": "emergency_generate",
-        "details": "Queue critically low (2 pending). Emergency generation needed.",
-        "created": "2026-03-02T06:00:26.525846",
-        "status": "processing"
-      },
-      {
-        "from": "ai_marketing_orchestrator",
-        "type": "emergency_generate",
-        "details": "Queue critically low (1 pending). Emergency generation needed.",
-        "created": "2026-03-02T07:00:33.615828",
-        "status": "processing"
-      },
-      {
-        "from": "ai_marketing_orchestrator",
-        "type": "emergency_generate",
-        "details": "Queue critically low (0 pending). Emergency generation needed.",
-        "created": "2026-03-02T07:30:27.059114",
-        "status": "processing"
-      },
-      {
-        "from": "ai_marketing_orchestrator",
-        "type": "emergency_generate",
-        "details": "Queue critically low (2 pending). Emergency generation needed.",
-        "created": "2026-03-03T06:00:26.759574",
-        "status": "processing"
-      },
-      {
-        "from": "ai_marketing_orchestrator",
-        "type": "emergency_generate",
-        "details": "Queue critically low (1 pending). Emergency generation needed.",
-        "created": "2026-03-03T07:00:33.911852",
-        "status": "processing"
-      },
-      {
-        "from": "ai_marketing_orchestrator",
-        "type": "emergency_generate",
-        "details": "Queue critically low (0 pending). Emergency generation needed.",
-        "created": "2026-03-03T07:31:08.961971",
-        "status": "processing"
+        "details": "キュー残り0件。緊急コンテンツ生成必要。",
+        "created": "2026-03-03T22:00:46.018916",
+        "status": "pending"
       }
     ]
   },
@@ -86,8 +51,8 @@
       "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
     ],
     "queueRemaining": 2,
-    "lastMarketingPDCA": "2026-03-03 07:30:42",
-    "queuePending": 0,
+    "lastMarketingPDCA": "2026-03-04 08:01:01",
+    "queuePending": 57,
     "dailyGeneratedCount": 0,
     "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
     "lastWeeklyContentRun": "2026-03-01"
@@ -97,7 +62,7 @@
       "highPerformingPatterns": [],
       "failedPatterns": [],
       "contentIdCounter": 0,
-      "lastAnalysisDate": "2026-03-02",
+      "lastAnalysisDate": "2026-03-03",
       "bestHookPatterns": [],
       "avgMetrics": {
         "views": 0,
@@ -125,13 +90,13 @@
       "trendingTopics": []
     },
     "sns_poster": {
-      "totalPosted": 6,
+      "totalPosted": 7,
       "lastPostedContentId": null,
       "postingMethod": "tiktok-uploader",
       "authStatus": "cookie_required",
       "queueFile": "data/posting_queue.json",
       "averageViews": 0,
-      "lastAnalysisDate": "2026-03-02"
+      "lastAnalysisDate": "2026-03-03"
     },
     "weekly_content_planner": {
       "lastWeeklyRun": "2026-03-01",

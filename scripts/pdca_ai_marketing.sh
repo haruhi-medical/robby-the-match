@@ -11,11 +11,11 @@
 #
 # Dependencies:
 #   - utils.sh (common functions)
-#   - content_pipeline.py (--auto / --force / --status)
+#   - ai_content_engine.py (--auto / --generate N) [Cloudflare Workers AI, FREE]
 #   - sns_workflow.py (--prepare-next / --status)
 #   - slack_bridge.py (--send)
 #   - posting_queue.json (queue data)
-#   - content/stock.csv (content stock)
+#   - .env (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN — loaded by utils.sh + Python load_env)
 # ==========================================================================
 
 set -euo pipefail
@@ -75,8 +75,9 @@ if queue_path.exists():
     posted = sum(1 for p in posts if p['status'] == 'posted')
     failed = sum(1 for p in posts if p['status'] == 'failed')
     total = len(posts)
+    available = pending + ready  # Both pending and ready are available content
 else:
-    pending = ready = posted = failed = total = 0
+    pending = ready = posted = failed = total = available = 0
 
 # Stock stats
 import csv
@@ -100,21 +101,21 @@ for p in (q.get('posts', []) if queue_path.exists() else []):
     ct = p.get('content_type', p.get('cta_type', 'unknown'))
     type_counts[ct] = type_counts.get(ct, 0) + 1
 
-# Determine generation need
-need_generate = max(0, 7 - pending) if pending < 7 else 0
+# Determine generation need (count both pending and ready as available)
+need_generate = max(0, 7 - available) if available < 7 else 0
 
 # Output as structured JSON
 result = {
-    'queue': {'pending': pending, 'ready': ready, 'posted': posted, 'failed': failed, 'total': total},
+    'queue': {'pending': pending, 'ready': ready, 'posted': posted, 'failed': failed, 'total': total, 'available': available},
     'stock': {'total': stock_total, 'distribution': stock_dist},
     'need_generate': need_generate,
-    'queue_healthy': pending >= 3,
+    'queue_healthy': available >= 3,
 }
 print(json.dumps(result, ensure_ascii=False))
 " 2>> "$LOG") || {
     echo "[ERROR] PLAN: Queue analysis failed" >> "$LOG"
     PLAN_OK=false
-    QUEUE_STATS='{"queue":{"pending":0,"ready":0,"posted":0,"failed":0,"total":0},"stock":{"total":0,"distribution":{}},"need_generate":7,"queue_healthy":false}'
+    QUEUE_STATS='{"queue":{"pending":0,"ready":0,"posted":0,"failed":0,"total":0,"available":0},"stock":{"total":0,"distribution":{}},"need_generate":7,"queue_healthy":false}'
 }
 
 echo "[PLAN] Queue stats: $QUEUE_STATS" >> "$LOG"
@@ -125,6 +126,7 @@ READY=$(echo "$QUEUE_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin
 POSTED=$(echo "$QUEUE_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['queue']['posted'])" 2>/dev/null || echo "0")
 FAILED=$(echo "$QUEUE_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['queue']['failed'])" 2>/dev/null || echo "0")
 TOTAL=$(echo "$QUEUE_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['queue']['total'])" 2>/dev/null || echo "0")
+AVAILABLE=$(echo "$QUEUE_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['queue']['available'])" 2>/dev/null || echo "0")
 NEED_GENERATE=$(echo "$QUEUE_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['need_generate'])" 2>/dev/null || echo "0")
 QUEUE_HEALTHY=$(echo "$QUEUE_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['queue_healthy'])" 2>/dev/null || echo "False")
 
@@ -142,7 +144,7 @@ elif echo "$TASKS" | grep -q "generate_batch"; then
 fi
 
 # ===================================================================
-# DO: Generate content via content_pipeline.py
+# DO: Generate content via ai_content_engine.py (Cloudflare Workers AI)
 # ===================================================================
 
 echo "" >> "$LOG"
@@ -151,28 +153,31 @@ echo "[DO] ========== DO Phase ==========" >> "$LOG"
 GENERATED_COUNT=0
 GENERATION_FAILED=0
 
+# Use ai_content_engine.py (Cloudflare Workers AI, FREE) instead of content_pipeline.py
+# content_pipeline.py depends on Claude CLI which fails in cron ("Not logged in")
+# ai_content_engine.py uses Cloudflare Workers AI directly — no CLI auth needed
 if [ "$FORCE_COUNT" -gt 0 ]; then
-    echo "[DO] Force generating $FORCE_COUNT posts (inter-agent task)" >> "$LOG"
-    python3 "$PROJECT_DIR/scripts/content_pipeline.py" --force "$FORCE_COUNT" >> "$LOG" 2>&1
+    echo "[DO] Force generating $FORCE_COUNT posts via ai_content_engine (Cloudflare AI)" >> "$LOG"
+    python3 "$PROJECT_DIR/scripts/ai_content_engine.py" --generate "$FORCE_COUNT" >> "$LOG" 2>&1
     PIPELINE_EXIT=$?
 elif [ "$NEED_GENERATE" -gt 0 ]; then
-    echo "[DO] Auto-generating content (need $NEED_GENERATE posts)" >> "$LOG"
-    python3 "$PROJECT_DIR/scripts/content_pipeline.py" --auto >> "$LOG" 2>&1
+    echo "[DO] Auto-generating content via ai_content_engine (need $NEED_GENERATE posts)" >> "$LOG"
+    python3 "$PROJECT_DIR/scripts/ai_content_engine.py" --auto >> "$LOG" 2>&1
     PIPELINE_EXIT=$?
 else
-    echo "[DO] Queue is healthy ($PENDING pending). Skipping generation." >> "$LOG"
+    echo "[DO] Queue is healthy ($AVAILABLE available: $PENDING pending + $READY ready). Skipping generation." >> "$LOG"
     PIPELINE_EXIT=0
 fi
 
 if [ "${PIPELINE_EXIT:-0}" -ne 0 ]; then
-    echo "[ERROR] DO: content_pipeline.py failed (exit=$PIPELINE_EXIT)" >> "$LOG"
+    echo "[ERROR] DO: ai_content_engine.py failed (exit=$PIPELINE_EXIT)" >> "$LOG"
     DO_OK=false
-    ERRORS="${ERRORS}\n- Content pipeline failed (exit $PIPELINE_EXIT)"
+    ERRORS="${ERRORS}\n- AI content engine failed (exit $PIPELINE_EXIT)"
 else
-    echo "[DO] Content pipeline completed successfully" >> "$LOG"
+    echo "[DO] AI content engine completed successfully" >> "$LOG"
 fi
 
-# Re-read queue stats after generation
+# Re-read queue stats after generation (count both pending and ready as available)
 POST_GEN_PENDING=$(python3 -c "
 import json
 from pathlib import Path
@@ -180,14 +185,14 @@ qp = Path('$PROJECT_DIR') / 'data' / 'posting_queue.json'
 if qp.exists():
     with open(qp) as f:
         q = json.load(f)
-    print(sum(1 for p in q['posts'] if p['status'] == 'pending'))
+    print(sum(1 for p in q['posts'] if p['status'] in ('pending', 'ready')))
 else:
     print(0)
 " 2>/dev/null || echo "$PENDING")
 
-if [ "$POST_GEN_PENDING" -gt "$PENDING" ]; then
-    GENERATED_COUNT=$((POST_GEN_PENDING - PENDING))
-    echo "[DO] Generated $GENERATED_COUNT new posts (pending: $PENDING -> $POST_GEN_PENDING)" >> "$LOG"
+if [ "$POST_GEN_PENDING" -gt "$AVAILABLE" ]; then
+    GENERATED_COUNT=$((POST_GEN_PENDING - AVAILABLE))
+    echo "[DO] Generated $GENERATED_COUNT new posts (available: $AVAILABLE -> $POST_GEN_PENDING)" >> "$LOG"
 fi
 
 # ===================================================================
@@ -455,9 +460,9 @@ update_progress "$SCRIPT_NAME" "AI Marketing PDCA:
 
 # Act 5: Queue depletion warning
 if [ "${POST_GEN_PENDING:-0}" -lt 3 ]; then
-    echo "[WARN] Queue critically low (${POST_GEN_PENDING} pending)!" >> "$LOG"
-    create_agent_task "$AGENT_NAME" "content_creator" "emergency_generate" "Queue critically low (${POST_GEN_PENDING} pending). Emergency generation needed."
-    slack_notify "[AI Marketing] Queue critically low: ${POST_GEN_PENDING} pending posts. Emergency generation requested."
+    echo "[WARN] Queue critically low (${POST_GEN_PENDING} available)!" >> "$LOG"
+    create_agent_task "$AGENT_NAME" "content_creator" "emergency_generate" "Queue critically low (${POST_GEN_PENDING} available). Emergency generation needed."
+    slack_notify "[AI Marketing] Queue critically low: ${POST_GEN_PENDING} available posts (pending+ready). Emergency generation requested."
 fi
 
 # ===================================================================

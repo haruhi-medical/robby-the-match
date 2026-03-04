@@ -4,6 +4,14 @@ init_log "pdca_seo_batch"
 update_agent_state "seo_optimizer" "running"
 check_instructions "seo_optimizer"
 
+# Claude CLI認証確認（cron環境対策）
+ensure_env || {
+  echo "[ABORT] Claude CLI 認証エラーのためスキップ" >> "$LOG"
+  update_agent_state "seo_optimizer" "config_error"
+  write_heartbeat "seo_batch" $EXIT_CONFIG_ERROR
+  exit $EXIT_CONFIG_ERROR
+}
+
 run_claude "
 STATE.mdを読め。これが現状だ。他を探し回るな。CLAUDE.mdも読め。
 
@@ -31,6 +39,14 @@ STATE.mdを読め。これが現状だ。他を探し回るな。CLAUDE.mdも読
 13. Search Consoleにping: curl -s 'https://www.google.com/ping?sitemap=サイトURL/sitemap.xml'
 " 30
 JOB_EXIT=$?
+
+# CONFIG_ERROR(78)の場合はgit_sync等を実行せずに終了
+if [ "$JOB_EXIT" -eq "$EXIT_CONFIG_ERROR" ]; then
+  echo "[ABORT] Claude CLI 認証エラー (run_claude exit=$JOB_EXIT)" >> "$LOG"
+  update_agent_state "seo_optimizer" "config_error"
+  write_heartbeat "seo_batch" $JOB_EXIT
+  exit $EXIT_CONFIG_ERROR
+fi
 
 git_sync "seo: ${TODAY} SEO改善+子ページ追加" "true"
 update_state "SEO朝サイクル"

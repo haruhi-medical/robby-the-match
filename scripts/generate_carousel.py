@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 """
-generate_carousel.py -- TikTok/Instagramカルーセルスライド生成エンジン v3.0
+generate_carousel.py -- TikTok/Instagramカルーセルスライド生成エンジン v3.1
 
-1080x1920 (9:16) のカルーセルスライドをPillowのみで生成。
-外部画像素材不使用、プログラマティックデザイン。
+プラットフォーム別にネイティブ解像度でレンダリング:
+  - TikTok: 1080x1920 (9:16)
+  - Instagram Feed: 1080x1350 (4:5) -- ネイティブ描画、リサイズなし
+  - Instagram Story: 1080x1920 (9:16)
+
+v3.1 改善点:
+  - Instagram 1080x1350 ネイティブ描画（リサイズによる歪み解消）
+  - 禁則処理改善（NO_END_CHARS追加、幅超過時の再測定）
+  - 実ピクセル測定による適応的フォントサイズ決定
+  - テキスト溢れ時の省略記号（...）付き切り詰め
+  - プラットフォーム別ウォーターマーク（@robby15051 / @robby.for.nurse）
 
 v3.0 改善点:
   - スライド枚数を8枚（Hook + Content x6 + CTA）に最適化
@@ -45,6 +54,10 @@ except ImportError:
 CANVAS_W = 1080
 CANVAS_H = 1920
 
+# Instagram native canvas (4:5 feed) -- rendered natively, NOT resized
+INSTAGRAM_W = 1080
+INSTAGRAM_H = 1350
+
 # Platform-specific dimensions
 PLATFORM_SIZES = {
     "tiktok": (1080, 1920),     # 9:16
@@ -58,17 +71,34 @@ SAFE_BOTTOM = 250
 SAFE_RIGHT = 100
 SAFE_LEFT = 60
 
-# Instagram safe zones (less restrictive)
+# Instagram safe zones (less restrictive, no UI overlay)
+IG_SAFE = {"top": 70, "bottom": 70, "left": 70, "right": 70}
+
+# Platform safe zones lookup
 SAFE_ZONES = {
     "tiktok": {"top": 150, "bottom": 250, "left": 60, "right": 100},
-    "instagram": {"top": 60, "bottom": 60, "left": 60, "right": 60},
+    "instagram": IG_SAFE,
+    "instagram_story": {"top": 150, "bottom": 250, "left": 60, "right": 100},
 }
 
-# Derived safe content area
+# Derived safe content area (TikTok)
 CONTENT_X = SAFE_LEFT
 CONTENT_Y = SAFE_TOP
 CONTENT_W = CANVAS_W - SAFE_LEFT - SAFE_RIGHT  # 920
 CONTENT_H = CANVAS_H - SAFE_TOP - SAFE_BOTTOM  # 1520
+
+# Derived safe content area (Instagram native)
+IG_CONTENT_X = IG_SAFE["left"]                                    # 70
+IG_CONTENT_Y = IG_SAFE["top"]                                     # 70
+IG_CONTENT_W = INSTAGRAM_W - IG_SAFE["left"] - IG_SAFE["right"]  # 940
+IG_CONTENT_H = INSTAGRAM_H - IG_SAFE["top"] - IG_SAFE["bottom"]  # 1210
+
+# Platform watermarks
+PLATFORM_WATERMARKS = {
+    "tiktok": "@robby15051",
+    "instagram": "@robby.for.nurse",
+    "instagram_story": "@robby.for.nurse",
+}
 
 # Default slide count (Hook + 6 Content + CTA)
 DEFAULT_SLIDE_COUNT = 8
@@ -165,6 +195,39 @@ CATEGORY_THEMES = {
 
 DEFAULT_THEME = CATEGORY_THEMES["あるある"]
 
+# ===========================================================================
+# Instagram Design System — "Warm Coral" palette
+# ===========================================================================
+# Unique in the nurse recruitment market: competitors use pink/blue.
+# This warm coral palette creates a distinctive, trustworthy impression.
+
+INSTAGRAM_COLORS = {
+    "primary": (255, 123, 107),        # Warm Coral #FF7B6B
+    "primary_dark": (232, 93, 74),     # Deep Coral #E85D4A
+    "background": (255, 248, 240),     # Soft Cream #FFF8F0
+    "card_bg": (255, 255, 255),        # White card
+    "text_primary": (45, 45, 45),      # Charcoal #2D2D2D
+    "text_secondary": (107, 107, 107), # Warm Gray #6B6B6B
+    "accent": (255, 217, 61),          # Sunny Yellow #FFD93D
+    "trust": (46, 196, 182),           # Teal Green #2EC4B6
+    "card_shadow": (0, 0, 0, 20),      # Subtle shadow
+}
+
+IG_FONTS = {
+    "cover_title": 80,       # Cover slide main text
+    "slide_title": 52,       # Content slide header
+    "body": 38,              # Main content text
+    "body_bold": 38,         # Bold body text (same size, different weight)
+    "caption": 28,           # Secondary text, source attribution
+    "accent_number": 96,     # Large data numbers (e.g., "10%")
+    "brand": 24,             # Brand footer text
+    "progress": 12,          # Progress dots (size reference)
+}
+
+# Instagram canvas: 1080x1350 (4:5 feed post)
+IG_CANVAS_W = 1080
+IG_CANVAS_H = 1350
+
 # Common colors
 COLOR_WHITE = (255, 255, 255)
 COLOR_BLACK = (0, 0, 0)
@@ -209,10 +272,16 @@ def load_font(bold: bool, size: int) -> ImageFont.FreeTypeFont:
 # ===========================================================================
 
 _NO_START_CHARS = set("」）】》〉』」、。！？…ー）")
+_NO_END_CHARS = set("（〔［｛〈《「『【([{")
 
 
 def wrap_text_jp(text: str, font: ImageFont.FreeTypeFont, max_width: int, max_chars_hint: int = 20) -> list[str]:
-    """Wrap Japanese text to fit within max_width pixels."""
+    """Wrap Japanese text to fit within max_width pixels.
+
+    Implements kinsoku shori (禁則処理):
+      - _NO_START_CHARS: characters that must not start a line (行頭禁止)
+      - _NO_END_CHARS: characters that must not end a line (行末禁止)
+    """
     paragraphs = text.split("\n")
     all_lines: list[str] = []
 
@@ -227,12 +296,36 @@ def wrap_text_jp(text: str, font: ImageFont.FreeTypeFont, max_width: int, max_ch
             bbox = font.getbbox(test)
             w = bbox[2] - bbox[0]
             if w <= max_width:
+                # Check NO_END_CHARS: if this char cannot end a line and
+                # the next char would cause a break, we break before this char.
+                if char in _NO_END_CHARS and i + 1 < len(para):
+                    next_test = test + para[i + 1]
+                    next_bbox = font.getbbox(next_test)
+                    next_w = next_bbox[2] - next_bbox[0]
+                    if next_w > max_width:
+                        # Break before this NO_END char
+                        if current_line:
+                            all_lines.append(current_line)
+                        current_line = char
+                        continue
                 current_line = test
             else:
                 if char in _NO_START_CHARS and current_line:
-                    current_line += char
-                    all_lines.append(current_line)
-                    current_line = ""
+                    # Try to keep the kinsoku char on the current line
+                    test_with_char = current_line + char
+                    char_bbox = font.getbbox(test_with_char)
+                    char_w = char_bbox[2] - char_bbox[0]
+                    # Allow slight overflow for kinsoku (up to 1 char width extra)
+                    single_char_bbox = font.getbbox(char)
+                    tolerance = single_char_bbox[2] - single_char_bbox[0]
+                    if char_w <= max_width + tolerance:
+                        current_line += char
+                        all_lines.append(current_line)
+                        current_line = ""
+                    else:
+                        # Too wide even with tolerance -- force break before the char
+                        all_lines.append(current_line)
+                        current_line = char
                 else:
                     if current_line:
                         all_lines.append(current_line)
@@ -255,6 +348,24 @@ def text_block_height(lines: list[str], font_size: int, line_height_ratio: float
         return 0
     line_h = int(font_size * line_height_ratio)
     return line_h * len(lines)
+
+
+def _measure_text_block(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> tuple[list[str], int]:
+    """Wrap text and measure total pixel height using actual font metrics.
+
+    Returns (wrapped_lines, total_height_px).
+    Uses font.getbbox() for accurate measurement instead of character-count heuristics.
+    """
+    lines = wrap_text_jp(text, font, max_width)
+    if not lines:
+        return [], 0
+    total_height = 0
+    for line in lines:
+        bbox = font.getbbox(line)
+        total_height += bbox[3] - bbox[1]
+    line_spacing = int(font.size * 0.4)
+    total_height += line_spacing * (len(lines) - 1)
+    return lines, total_height
 
 
 # ===========================================================================
@@ -377,16 +488,16 @@ def draw_centered_text_block(
 # Decorative elements v3.0
 # ===========================================================================
 
-def _draw_dot_grid(draw: ImageDraw.ImageDraw, theme: dict, alpha: int = 15, spacing: int = 60):
+def _draw_dot_grid(draw: ImageDraw.ImageDraw, theme: dict, canvas_w: int = CANVAS_W, canvas_h: int = CANVAS_H, alpha: int = 15, spacing: int = 60):
     """Draw a subtle dot grid pattern across the canvas."""
     color = (*theme["accent"][:3], alpha)
-    for y in range(0, CANVAS_H, spacing):
-        for x in range(0, CANVAS_W, spacing):
+    for y in range(0, canvas_h, spacing):
+        for x in range(0, canvas_w, spacing):
             r = 2
             draw.ellipse((x - r, y - r, x + r, y + r), fill=color)
 
 
-def _draw_corner_accents(draw: ImageDraw.ImageDraw, theme: dict, alpha: int = 40):
+def _draw_corner_accents(draw: ImageDraw.ImageDraw, theme: dict, canvas_w: int = CANVAS_W, canvas_h: int = CANVAS_H, alpha: int = 40):
     """Draw decorative corner accent lines."""
     color = (*theme["accent"][:3], alpha)
     length = 120
@@ -398,28 +509,29 @@ def _draw_corner_accents(draw: ImageDraw.ImageDraw, theme: dict, alpha: int = 40
     draw.line([(margin, margin), (margin, margin + length)], fill=color, width=thickness)
 
     # Top-right
-    draw.line([(CANVAS_W - margin, margin), (CANVAS_W - margin - length, margin)], fill=color, width=thickness)
-    draw.line([(CANVAS_W - margin, margin), (CANVAS_W - margin, margin + length)], fill=color, width=thickness)
+    draw.line([(canvas_w - margin, margin), (canvas_w - margin - length, margin)], fill=color, width=thickness)
+    draw.line([(canvas_w - margin, margin), (canvas_w - margin, margin + length)], fill=color, width=thickness)
 
     # Bottom-left
-    draw.line([(margin, CANVAS_H - margin), (margin + length, CANVAS_H - margin)], fill=color, width=thickness)
-    draw.line([(margin, CANVAS_H - margin), (margin, CANVAS_H - margin - length)], fill=color, width=thickness)
+    draw.line([(margin, canvas_h - margin), (margin + length, canvas_h - margin)], fill=color, width=thickness)
+    draw.line([(margin, canvas_h - margin), (margin, canvas_h - margin - length)], fill=color, width=thickness)
 
     # Bottom-right
-    draw.line([(CANVAS_W - margin, CANVAS_H - margin), (CANVAS_W - margin - length, CANVAS_H - margin)], fill=color, width=thickness)
-    draw.line([(CANVAS_W - margin, CANVAS_H - margin), (CANVAS_W - margin, CANVAS_H - margin - length)], fill=color, width=thickness)
+    draw.line([(canvas_w - margin, canvas_h - margin), (canvas_w - margin - length, canvas_h - margin)], fill=color, width=thickness)
+    draw.line([(canvas_w - margin, canvas_h - margin), (canvas_w - margin, canvas_h - margin - length)], fill=color, width=thickness)
 
 
 def _draw_decorative_rings(img: Image.Image, theme: dict, count: int = 3, alpha: int = 12):
     """Draw decorative translucent rings on the image."""
+    iw, ih = img.size
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
     accent = theme["accent"]
 
     positions = [
-        (CANVAS_W * 0.85, CANVAS_H * 0.15, 180),
-        (CANVAS_W * 0.1, CANVAS_H * 0.7, 140),
-        (CANVAS_W * 0.75, CANVAS_H * 0.85, 100),
+        (iw * 0.85, ih * 0.15, 180),
+        (iw * 0.1, ih * 0.7, 140),
+        (iw * 0.75, ih * 0.85, 100),
     ]
 
     for i in range(min(count, len(positions))):
@@ -435,13 +547,14 @@ def _draw_decorative_rings(img: Image.Image, theme: dict, count: int = 3, alpha:
 
 def _draw_diagonal_stripes(img: Image.Image, theme: dict, alpha: int = 8):
     """Draw subtle diagonal stripe pattern."""
+    iw, ih = img.size
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
     color = (*theme["accent_light"][:3], alpha)
     spacing = 80
 
-    for offset in range(-CANVAS_H, CANVAS_W + CANVAS_H, spacing):
-        d.line([(offset, 0), (offset + CANVAS_H, CANVAS_H)], fill=color, width=1)
+    for offset in range(-ih, iw + ih, spacing):
+        d.line([(offset, 0), (offset + ih, ih)], fill=color, width=1)
 
     return Image.alpha_composite(img, overlay)
 
@@ -450,15 +563,15 @@ def _draw_diagonal_stripes(img: Image.Image, theme: dict, alpha: int = 8):
 # Background builders v3.0
 # ===========================================================================
 
-def _build_dark_bg(theme: dict) -> Image.Image:
+def _build_dark_bg(theme: dict, canvas_w: int = CANVAS_W, canvas_h: int = CANVAS_H) -> Image.Image:
     """Dark gradient background with glow and decorative elements."""
-    bg = create_gradient(CANVAS_W, CANVAS_H, theme["bg_dark_top"], theme["bg_dark_bottom"])
+    bg = create_gradient(canvas_w, canvas_h, theme["bg_dark_top"], theme["bg_dark_bottom"])
 
     # Radial glow from center-top
-    glow = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
+    glow = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
     glow_draw = ImageDraw.Draw(glow)
     accent = theme["accent"]
-    cx, cy = CANVAS_W // 2, CANVAS_H // 4
+    cx, cy = canvas_w // 2, canvas_h // 4
     for r in range(500, 0, -8):
         a = max(1, int(10 * (1 - r / 500)))
         glow_draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(*accent[:3], a))
@@ -469,43 +582,43 @@ def _build_dark_bg(theme: dict) -> Image.Image:
     bg = _draw_decorative_rings(bg, theme, count=2, alpha=10)
 
     draw = ImageDraw.Draw(bg)
-    _draw_corner_accents(draw, theme, alpha=30)
+    _draw_corner_accents(draw, theme, canvas_w=canvas_w, canvas_h=canvas_h, alpha=30)
 
     return bg
 
 
-def _build_light_bg(theme: dict) -> Image.Image:
+def _build_light_bg(theme: dict, canvas_w: int = CANVAS_W, canvas_h: int = CANVAS_H) -> Image.Image:
     """Light, clean background with subtle color tint."""
-    bg = create_gradient(CANVAS_W, CANVAS_H, theme["bg_primary"], theme["bg_secondary"])
+    bg = create_gradient(canvas_w, canvas_h, theme["bg_primary"], theme["bg_secondary"])
 
     # Top accent strip
     draw = ImageDraw.Draw(bg)
-    draw.rectangle([(0, 0), (CANVAS_W, 5)], fill=(*theme["accent"][:3], 140))
+    draw.rectangle([(0, 0), (canvas_w, 5)], fill=(*theme["accent"][:3], 140))
 
     # Subtle dot grid
-    _draw_dot_grid(draw, theme, alpha=12, spacing=80)
+    _draw_dot_grid(draw, theme, canvas_w=canvas_w, canvas_h=canvas_h, alpha=12, spacing=80)
 
     # Corner accents (lighter)
-    _draw_corner_accents(draw, theme, alpha=25)
+    _draw_corner_accents(draw, theme, canvas_w=canvas_w, canvas_h=canvas_h, alpha=25)
 
     return bg
 
 
-def _build_accent_gradient_bg(theme: dict) -> Image.Image:
+def _build_accent_gradient_bg(theme: dict, canvas_w: int = CANVAS_W, canvas_h: int = CANVAS_H) -> Image.Image:
     """Bold accent gradient for reveal/emphasis slides."""
-    bg = create_gradient(CANVAS_W, CANVAS_H, theme["gradient_a"], theme["gradient_b"], direction="diagonal")
+    bg = create_gradient(canvas_w, canvas_h, theme["gradient_a"], theme["gradient_b"], direction="diagonal")
     bg = _draw_decorative_rings(bg, theme, count=3, alpha=20)
     return bg
 
 
-def _build_brand_gradient_bg() -> Image.Image:
+def _build_brand_gradient_bg(canvas_w: int = CANVAS_W, canvas_h: int = CANVAS_H) -> Image.Image:
     """Brand gradient (blue-to-teal) for CTA slide."""
-    bg = create_gradient(CANVAS_W, CANVAS_H, COLOR_BRAND_BLUE, COLOR_BRAND_TEAL, direction="diagonal")
+    bg = create_gradient(canvas_w, canvas_h, COLOR_BRAND_BLUE, COLOR_BRAND_TEAL, direction="diagonal")
 
     # Glow
-    glow = Image.new("RGBA", (CANVAS_W, CANVAS_H), (0, 0, 0, 0))
+    glow = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
     gd = ImageDraw.Draw(glow)
-    cx, cy = CANVAS_W // 2, CANVAS_H // 2
+    cx, cy = canvas_w // 2, canvas_h // 2
     for r in range(600, 0, -10):
         a = max(1, int(6 * (1 - r / 600)))
         gd.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(255, 255, 255, a))
@@ -525,13 +638,14 @@ def _build_brand_gradient_bg() -> Image.Image:
 # Slide indicators v3.0
 # ===========================================================================
 
-def _draw_slide_indicator(draw: ImageDraw.ImageDraw, current: int, total: int, light_bg: bool = False):
+def _draw_slide_indicator(draw: ImageDraw.ImageDraw, current: int, total: int,
+                          light_bg: bool = False, canvas_w: int = CANVAS_W, safe_top: int = SAFE_TOP):
     """Draw slide progress dots at the top."""
     dot_r = 6
     dot_gap = 20
     total_w = total * (dot_r * 2) + (total - 1) * dot_gap
-    start_x = (CANVAS_W - total_w) // 2
-    y = SAFE_TOP + 30
+    start_x = (canvas_w - total_w) // 2
+    y = safe_top + 30
 
     for i in range(total):
         cx = start_x + i * (dot_r * 2 + dot_gap) + dot_r
@@ -551,41 +665,583 @@ def _draw_slide_indicator(draw: ImageDraw.ImageDraw, current: int, total: int, l
             draw.ellipse((cx - dot_r, y - dot_r, cx + dot_r, y + dot_r), fill=fill)
 
 
-def _draw_brand_watermark(draw: ImageDraw.ImageDraw, light_bg: bool = False):
-    """Draw subtle brand watermark."""
+def _draw_brand_watermark(draw: ImageDraw.ImageDraw, light_bg: bool = False,
+                          platform: str = "tiktok", canvas_w: int = CANVAS_W,
+                          canvas_h: int = CANVAS_H, safe_bottom: int = SAFE_BOTTOM):
+    """Draw subtle brand watermark with platform-specific handle."""
     font = load_font(bold=False, size=22)
-    text = "@robby15051"
+    text = PLATFORM_WATERMARKS.get(platform, "@robby15051")
     tw, _ = measure_text(text, font)
-    x = (CANVAS_W - tw) // 2
-    y = CANVAS_H - SAFE_BOTTOM + 15
+    x = (canvas_w - tw) // 2
+    y = canvas_h - safe_bottom + 15
     color = (0, 0, 0, 35) if light_bg else (255, 255, 255, 35)
     draw.text((x, y), text, fill=color, font=font)
+
+
+# ===========================================================================
+# Instagram Design System — Rendering Functions
+# ===========================================================================
+
+def _draw_progress_dots(
+    draw: ImageDraw.ImageDraw,
+    slide_index: int,
+    total_slides: int,
+    canvas_w: int,
+    canvas_h: int,
+):
+    """Draw Instagram-style progress dots at the bottom center of a slide.
+
+    Args:
+        slide_index: 1-based index of the current slide.
+        total_slides: Total number of slides in the carousel.
+        canvas_w: Width of the canvas (pixels).
+        canvas_h: Height of the canvas (pixels).
+    """
+    dot_diameter = 12
+    dot_radius = dot_diameter // 2
+    dot_spacing = 16  # gap between dots
+    y_center = canvas_h - 48  # 48px from bottom edge
+
+    total_w = total_slides * dot_diameter + (total_slides - 1) * dot_spacing
+    start_x = (canvas_w - total_w) // 2
+
+    coral = INSTAGRAM_COLORS["primary"]
+    gray_outline = (180, 180, 180)
+
+    for i in range(total_slides):
+        cx = start_x + i * (dot_diameter + dot_spacing) + dot_radius
+        cy = y_center
+        bbox = (cx - dot_radius, cy - dot_radius, cx + dot_radius, cy + dot_radius)
+
+        if i + 1 == slide_index:
+            # Current slide: filled coral
+            draw.ellipse(bbox, fill=coral)
+        else:
+            # Other slides: gray outline only
+            draw.ellipse(bbox, fill=None, outline=gray_outline, width=2)
+
+
+def _ig_draw_brand_logo(draw: ImageDraw.ImageDraw, canvas_w: int):
+    """Draw the small brand logo text at top-left for Instagram slides."""
+    font = load_font(bold=True, size=28)
+    text = "ナースロビー"
+    draw.text((40, 36), text, fill=INSTAGRAM_COLORS["primary"], font=font)
+
+
+def _ig_build_cream_bg(canvas_w: int, canvas_h: int) -> Image.Image:
+    """Create a flat cream background for Instagram."""
+    bg_color = INSTAGRAM_COLORS["background"]
+    return Image.new("RGBA", (canvas_w, canvas_h), (*bg_color, 255))
+
+
+def generate_ig_hook_slide(
+    hook_text: str,
+    total_slides: int = DEFAULT_SLIDE_COUNT,
+) -> Image.Image:
+    """Instagram cover slide (Slide 1).
+
+    Layout:
+    - Background: Cream (#FFF8F0)
+    - Top-left: Small brand logo text (28px, coral)
+    - Center: Large title (72-80px, charcoal, max 2 lines)
+    - Bottom: Coral bar (80px height) with swipe CTA
+    """
+    cw, ch = IG_CANVAS_W, IG_CANVAS_H
+    bg = _ig_build_cream_bg(cw, ch)
+    draw = ImageDraw.Draw(bg)
+    colors = INSTAGRAM_COLORS
+    center_x = cw // 2
+
+    # -- Brand logo top-left --
+    _ig_draw_brand_logo(draw, cw)
+
+    # -- Large centered title --
+    max_text_w = cw - 120  # 60px margin each side
+
+    # Try fitting at 80px, fall back to 72px if text wraps beyond 2 lines
+    best_size = IG_FONTS["cover_title"]
+    best_lines = [hook_text]
+    for size in (80, 72):
+        font = load_font(bold=True, size=size)
+        lines = wrap_text_jp(hook_text, font, max_text_w)
+        if len(lines) <= 2:
+            best_size = size
+            best_lines = lines
+            break
+    else:
+        font = load_font(bold=True, size=72)
+        best_size = 72
+        best_lines = wrap_text_jp(hook_text, font, max_text_w)[:2]
+
+    font = load_font(bold=True, size=best_size)
+    line_h = int(best_size * LINE_HEIGHT_RATIO)
+    block_h = line_h * len(best_lines)
+
+    # Vertical center: between brand logo (top ~100px) and coral bar (bottom 80px)
+    title_area_top = 100
+    title_area_bottom = ch - 80
+    text_y = title_area_top + (title_area_bottom - title_area_top - block_h) // 2
+
+    draw_centered_text_block(
+        draw, best_lines, font, best_size,
+        center_x, text_y,
+        fill=colors["text_primary"],
+        shadow=False,
+    )
+
+    # -- Bottom coral bar (80px height, full width) --
+    bar_h = 80
+    bar_y = ch - bar_h
+    draw.rectangle([(0, bar_y), (cw, ch)], fill=colors["primary"])
+
+    # "スワイプで解説 →" on coral bar
+    swipe_font = load_font(bold=True, size=28)
+    swipe_text = "スワイプで解説 →"
+    stw, _ = measure_text(swipe_text, swipe_font)
+    draw.text((center_x - stw // 2, bar_y + 12), swipe_text,
+              fill=COLOR_WHITE, font=swipe_font)
+
+    # "ナースロビー | 神奈川の転職" sub-line
+    sub_font = load_font(bold=False, size=24)
+    sub_text = "ナースロビー | 神奈川の転職"
+    subtw, _ = measure_text(sub_text, sub_font)
+    draw.text((center_x - subtw // 2, bar_y + 46), sub_text,
+              fill=(*COLOR_WHITE[:3], 210), font=sub_font)
+
+    # -- Progress dots (positioned above the coral bar) --
+    dots_layer = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+    dots_draw = ImageDraw.Draw(dots_layer)
+    _draw_progress_dots(dots_draw, 1, total_slides, cw, bar_y + 24)
+    bg = Image.alpha_composite(bg, dots_layer)
+
+    return bg.convert("RGB")
+
+
+def generate_ig_content_slide(
+    slide_num: int,
+    title: str,
+    body: str,
+    highlight_number: Optional[str] = None,
+    highlight_label: Optional[str] = None,
+    total_slides: int = DEFAULT_SLIDE_COUNT,
+) -> Image.Image:
+    """Instagram content slide (Slides 2 through N-1).
+
+    Layout (v3.2 - variable-height card, vertically centered):
+    - Background: Cream (#FFF8F0)
+    - Header bar: Coral rectangle (120px), white title text (48-56px bold)
+    - Content card: White rounded rectangle, height adapts to text content
+    - Card + header are vertically centered in the available space
+    - Body text: Charcoal (#2D2D2D), 36-40px
+    - Highlight box: Yellow accent background at 30% opacity for key stats
+    - Progress dots at bottom center
+    """
+    cw, ch = IG_CANVAS_W, IG_CANVAS_H
+    colors = INSTAGRAM_COLORS
+    center_x = cw // 2
+
+    # Layout constants
+    header_h = 120
+    header_card_gap = 40       # gap between header bar and card
+    card_left = 50
+    card_right = cw - 50
+    card_radius = 16
+    card_inner_pad = 45        # internal padding inside card (top/bottom)
+    card_inner_pad_side = 40   # internal padding inside card (left/right)
+    dots_zone_h = 80           # space reserved for progress dots at bottom
+    top_margin = 40            # minimum margin above header bar
+    content_max_w = (card_right - card_left) - card_inner_pad_side * 2
+
+    # ============================================================
+    # PASS 1: Measure all content to determine card height
+    # ============================================================
+
+    # -- Measure title for header bar --
+    title_font_size = IG_FONTS["slide_title"]  # 52px
+    title_font = load_font(bold=True, size=title_font_size)
+    title_max_w = cw - 100  # 50px margin each side
+    title_lines = wrap_text_jp(title, title_font, title_max_w)
+
+    if len(title_lines) > 1:
+        for try_size in (48, 44, 40):
+            title_font = load_font(bold=True, size=try_size)
+            title_lines = wrap_text_jp(title, title_font, title_max_w)
+            title_font_size = try_size
+            block_h = int(title_font_size * LINE_HEIGHT_RATIO) * len(title_lines)
+            if block_h <= header_h - 20:
+                break
+        else:
+            title_lines = title_lines[:2]
+
+    # -- Measure highlight section height --
+    hl_content_h = 0
+    if highlight_number:
+        num_font_size = IG_FONTS["accent_number"]  # 96px
+        hl_content_h += int(num_font_size * 1.3)
+        if highlight_label:
+            hl_content_h += 50
+        else:
+            hl_content_h += 30
+
+    # -- Determine body font size and measure body text height --
+    body_font_size = IG_FONTS["body"]  # 38px
+    body_paragraphs = body.split("\n")
+
+    # Maximum card height constraint: canvas - top_margin - header - gap - dots - bottom margin
+    max_card_h = ch - top_margin - header_h - header_card_gap - dots_zone_h - 20
+    max_body_h = max_card_h - card_inner_pad * 2 - hl_content_h
+
+    def _calc_body_height(font_size: int) -> tuple[int, list]:
+        """Calculate exact body text height and wrapped lines for each paragraph."""
+        test_font = load_font(bold=False, size=font_size)
+        test_line_h = int(font_size * LINE_HEIGHT_RATIO)
+        h = 0
+        para_data = []
+        for para in body_paragraphs:
+            para = para.strip()
+            if not para:
+                h += test_line_h // 2
+                para_data.append({"type": "blank", "height": test_line_h // 2})
+                continue
+            is_bullet = para.startswith(("・", "- ", "* "))
+            if is_bullet:
+                clean = para.lstrip("・- *").strip()
+                lines = wrap_text_jp(clean, test_font, content_max_w - 50)
+                ph = test_line_h * len(lines) + 10
+                h += ph
+                para_data.append({"type": "bullet", "lines": lines, "height": ph})
+            else:
+                lines = wrap_text_jp(para, test_font, content_max_w)
+                ph = test_line_h * len(lines) + 8
+                h += ph
+                para_data.append({"type": "text", "lines": lines, "height": ph})
+        return h, para_data
+
+    body_h, para_data = _calc_body_height(body_font_size)
+
+    # Shrink font if body text overflows
+    if body_h > max_body_h:
+        for try_size in range(36, 26, -2):
+            body_h, para_data = _calc_body_height(try_size)
+            if body_h <= max_body_h:
+                body_font_size = try_size
+                break
+        else:
+            body_font_size = 26
+            body_h, para_data = _calc_body_height(26)
+
+    body_font = load_font(bold=False, size=body_font_size)
+    line_h = int(body_font_size * LINE_HEIGHT_RATIO)
+
+    # -- Calculate actual card height based on content --
+    actual_content_h = hl_content_h + body_h
+    card_h = card_inner_pad * 2 + actual_content_h
+    # Enforce minimum card height for visual balance (just enough to avoid tiny cards)
+    min_card_h = 200
+    card_h = max(card_h, min_card_h)
+    # Cap at maximum
+    card_h = min(card_h, max_card_h)
+
+    # ============================================================
+    # PASS 2: Calculate vertical positioning (center the block)
+    # ============================================================
+    # Total block = header_h + header_card_gap + card_h
+    total_block_h = header_h + header_card_gap + card_h
+    available_space = ch - dots_zone_h  # space above dots
+    # Center the block vertically, but keep a minimum top margin
+    block_top = max(top_margin, (available_space - total_block_h) // 2)
+
+    header_top = block_top
+    card_top = header_top + header_h + header_card_gap
+    card_bottom = card_top + card_h
+
+    # ============================================================
+    # PASS 3: Draw everything
+    # ============================================================
+    bg = _ig_build_cream_bg(cw, ch)
+    draw = ImageDraw.Draw(bg)
+
+    # -- Coral header bar --
+    draw.rectangle([(0, header_top), (cw, header_top + header_h)], fill=colors["primary"])
+
+    # Title text inside header bar (vertically centered within bar)
+    title_line_h = int(title_font_size * LINE_HEIGHT_RATIO)
+    title_block_h = title_line_h * len(title_lines)
+    title_y = header_top + (header_h - title_block_h) // 2
+
+    draw_centered_text_block(
+        draw, title_lines, title_font, title_font_size,
+        center_x, title_y,
+        fill=COLOR_WHITE,
+        shadow=False,
+    )
+
+    # -- White content card with drop shadow --
+    # Card shadow
+    shadow_layer = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shadow_layer)
+    sd.rounded_rectangle(
+        (card_left + 3, card_top + 4, card_right + 3, card_bottom + 4),
+        radius=card_radius, fill=(0, 0, 0, 20),
+    )
+    bg = Image.alpha_composite(bg, shadow_layer)
+    draw = ImageDraw.Draw(bg)
+
+    # Card body
+    draw.rounded_rectangle(
+        (card_left, card_top, card_right, card_bottom),
+        radius=card_radius, fill=colors["card_bg"],
+    )
+
+    # -- Content inside card --
+    content_x = card_left + card_inner_pad_side
+    content_y = card_top + card_inner_pad
+
+    # Highlight number with yellow accent box
+    if highlight_number:
+        num_font_size = IG_FONTS["accent_number"]  # 96px
+        num_font = load_font(bold=True, size=num_font_size)
+        ntw, _ = measure_text(highlight_number, num_font)
+        nx = center_x - ntw // 2
+
+        # Yellow highlight box behind the number (30% opacity)
+        accent_yellow = colors["accent"]  # #FFD93D
+        hl_pad_x = 30
+        hl_pad_y = 10
+        hl_box = (
+            nx - hl_pad_x,
+            content_y - hl_pad_y,
+            nx + ntw + hl_pad_x,
+            content_y + int(num_font_size * 1.1) + hl_pad_y,
+        )
+        hl_overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+        hl_draw = ImageDraw.Draw(hl_overlay)
+        hl_draw.rounded_rectangle(
+            hl_box, radius=12,
+            fill=(*accent_yellow[:3], 77),  # ~30% opacity (77/255)
+        )
+        bg = Image.alpha_composite(bg, hl_overlay)
+        draw = ImageDraw.Draw(bg)
+
+        draw.text((nx, content_y), highlight_number,
+                  fill=colors["primary"], font=num_font)
+        content_y += int(num_font_size * 1.3)
+
+        if highlight_label:
+            label_font = load_font(bold=False, size=IG_FONTS["caption"])
+            ltw, _ = measure_text(highlight_label, label_font)
+            lx = center_x - ltw // 2
+            draw.text((lx, content_y), highlight_label,
+                      fill=colors["text_secondary"], font=label_font)
+            content_y += 50
+        else:
+            content_y += 30
+
+    # -- Draw body text using pre-measured paragraph data --
+    for pd in para_data:
+        if pd["type"] == "blank":
+            content_y += pd["height"]
+            continue
+
+        if pd["type"] == "bullet":
+            bullet_indent = 40
+            text_start_x = content_x + bullet_indent
+
+            # Coral bullet marker
+            marker_y = content_y + body_font_size // 2
+            draw.ellipse(
+                (content_x + 8, marker_y - 6, content_x + 20, marker_y + 6),
+                fill=colors["primary"],
+            )
+
+            for line in pd["lines"]:
+                draw.text((text_start_x, content_y), line,
+                          fill=colors["text_primary"], font=body_font)
+                content_y += line_h
+            content_y += 10
+        else:
+            for line in pd["lines"]:
+                draw.text((content_x, content_y), line,
+                          fill=colors["text_primary"], font=body_font)
+                content_y += line_h
+            content_y += 8
+
+    # -- Progress dots --
+    _draw_progress_dots(draw, slide_num, total_slides, cw, ch)
+
+    return bg.convert("RGB")
+
+
+def generate_ig_cta_slide(
+    cta_type: str = "soft",
+    summary_points: Optional[list[str]] = None,
+    total_slides: int = DEFAULT_SLIDE_COUNT,
+) -> Image.Image:
+    """Instagram CTA slide (last slide).
+
+    Layout:
+    - Background: Gradient from cream to light coral
+    - "まとめ" header (48px, bold)
+    - 2-3 bullet points summarizing the carousel (36px)
+    - Divider line
+    - CTA text for LINE or profile check (40px, bold)
+    - Brand footer (32px, coral)
+    - "保存・シェアお願いします！" (28px, gray)
+    """
+    cw, ch = IG_CANVAS_W, IG_CANVAS_H
+    colors = INSTAGRAM_COLORS
+    center_x = cw // 2
+
+    # -- Background: cream-to-light-coral gradient --
+    cream = colors["background"]
+    light_coral = (255, 200, 190)
+    bg = create_gradient(cw, ch, cream, light_coral, direction="vertical")
+    draw = ImageDraw.Draw(bg)
+
+    current_y = 60
+
+    # -- "まとめ" header --
+    header_font = load_font(bold=True, size=48)
+    header_text = "まとめ"
+    htw, _ = measure_text(header_text, header_font)
+    draw.text((center_x - htw // 2, current_y), header_text,
+              fill=colors["text_primary"], font=header_font)
+    current_y += 80
+
+    # -- Summary bullet points --
+    if summary_points is None:
+        summary_points = [
+            "手数料10%で病院の負担を軽減",
+            "あなたの転職がもっとスムーズに",
+            "神奈川県で看護師の味方",
+        ]
+
+    bullet_font = load_font(bold=False, size=36)
+    bullet_coral = colors["primary"]
+    bullet_line_h = int(36 * LINE_HEIGHT_RATIO)
+
+    for point in summary_points[:3]:
+        dot_y = current_y + 18
+        draw.ellipse((60, dot_y - 6, 72, dot_y + 6), fill=bullet_coral)
+
+        lines = wrap_text_jp(point, bullet_font, cw - 160)
+        for line in lines:
+            draw.text((90, current_y), line,
+                      fill=colors["text_primary"], font=bullet_font)
+            current_y += bullet_line_h
+        current_y += 12
+
+    current_y += 10
+
+    # -- Divider line --
+    divider_margin = 80
+    draw.line(
+        [(divider_margin, current_y), (cw - divider_margin, current_y)],
+        fill=(*colors["primary"][:3], 100), width=2,
+    )
+    current_y += 40
+
+    # -- CTA text --
+    cta_font = load_font(bold=True, size=40)
+    cta_line_h = int(40 * LINE_HEIGHT_RATIO)
+    if cta_type == "hard":
+        cta_text = "プロフィールのリンクから\nLINE登録してね！"
+    else:
+        cta_text = "気になったら\nプロフィールをチェック！"
+
+    for line in cta_text.split("\n"):
+        ltw, _ = measure_text(line, cta_font)
+        draw.text((center_x - ltw // 2, current_y), line,
+                  fill=colors["text_primary"], font=cta_font)
+        current_y += cta_line_h
+
+    current_y += 20
+
+    # -- Brand footer --
+    brand_font = load_font(bold=True, size=32)
+    brand_text = "手数料10%で、あなたの転職をもっと自由に。"
+    btw, _ = measure_text(brand_text, brand_font)
+    if btw > cw - 80:
+        brand_lines = wrap_text_jp(brand_text, brand_font, cw - 80)
+        for bl in brand_lines:
+            blw, _ = measure_text(bl, brand_font)
+            draw.text((center_x - blw // 2, current_y), bl,
+                      fill=colors["primary"], font=brand_font)
+            current_y += int(32 * LINE_HEIGHT_RATIO)
+    else:
+        draw.text((center_x - btw // 2, current_y), brand_text,
+                  fill=colors["primary"], font=brand_font)
+        current_y += 56
+
+    # -- Save/share request --
+    share_font = load_font(bold=False, size=28)
+    share_text = "保存・シェアお願いします！"
+    stw, _ = measure_text(share_text, share_font)
+    draw.text((center_x - stw // 2, current_y), share_text,
+              fill=colors["text_secondary"], font=share_font)
+
+    # -- Progress dots --
+    _draw_progress_dots(draw, total_slides, total_slides, cw, ch)
+
+    return bg.convert("RGB")
 
 
 # ===========================================================================
 # Slide generators v3.0
 # ===========================================================================
 
+def _get_platform_layout(platform: str) -> dict:
+    """Return canvas dimensions and safe zones for a given platform."""
+    canvas_w, canvas_h = PLATFORM_SIZES.get(platform, (CANVAS_W, CANVAS_H))
+    safe = SAFE_ZONES.get(platform, SAFE_ZONES["tiktok"])
+    content_w = canvas_w - safe["left"] - safe["right"]
+    content_h = canvas_h - safe["top"] - safe["bottom"]
+    return {
+        "canvas_w": canvas_w,
+        "canvas_h": canvas_h,
+        "safe_top": safe["top"],
+        "safe_bottom": safe["bottom"],
+        "safe_left": safe["left"],
+        "safe_right": safe["right"],
+        "content_w": content_w,
+        "content_h": content_h,
+        "content_x": safe["left"],
+        "content_y": safe["top"],
+    }
+
+
 def generate_slide_hook(
     hook_text: str,
     theme: dict,
     total_slides: int = DEFAULT_SLIDE_COUNT,
+    platform: str = "tiktok",
 ) -> Image.Image:
     """
     Slide 1 - HOOK: Massive text, center of screen.
     Goal: 3-second stop-scroll. 10 chars max, 120pt+ font.
     Dark bg with accent glow behind text.
     """
-    bg = _build_dark_bg(theme)
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top = layout["safe_top"]
+    s_bottom = layout["safe_bottom"]
+    c_w = layout["content_w"]
+    c_h = layout["content_h"]
+
+    bg = _build_dark_bg(theme, canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
     accent = theme["accent"]
-    center_x = CANVAS_W // 2
+    center_x = cw // 2
 
     # -- Compute font size for hook --
-    # Target: as large as possible, filling ~50% of screen height
-    hook_zone_top = SAFE_TOP + 200
-    hook_zone_height = int(CONTENT_H * 0.50)
-    max_text_width = CONTENT_W - 60
+    # For Instagram, center text vertically (no TikTok bottom bar offset)
+    if platform == "instagram":
+        hook_zone_top = s_top + 100
+        hook_zone_height = int(c_h * 0.55)
+    else:
+        hook_zone_top = s_top + 200
+        hook_zone_height = int(c_h * 0.50)
+    max_text_width = c_w - 60
 
     best_font_size = 60
     best_lines = [hook_text]
@@ -605,7 +1261,7 @@ def generate_slide_hook(
     font = load_font(bold=True, size=best_font_size)
     block_h = text_block_height(best_lines, best_font_size)
 
-    # Center vertically
+    # Center vertically in the hook zone
     text_y = hook_zone_top + (hook_zone_height - block_h) // 2
 
     # -- Accent glow behind text --
@@ -631,7 +1287,7 @@ def generate_slide_hook(
 
     # -- Accent underline --
     underline_y = text_y + block_h + 50
-    underline_w = min(400, CONTENT_W - 100)
+    underline_w = min(400, c_w - 100)
     underline_x = center_x - underline_w // 2
     draw.rounded_rectangle(
         (underline_x, underline_y, underline_x + underline_w, underline_y + 6),
@@ -643,14 +1299,28 @@ def generate_slide_hook(
     hint_text = ">>> スワイプ"
     tw, _ = measure_text(hint_text, hint_font)
     hint_x = center_x - tw // 2
-    hint_y = CANVAS_H - SAFE_BOTTOM - 90
+    hint_y = ch - s_bottom - 90
     draw.text((hint_x, hint_y), hint_text, fill=(*accent[:3], 140), font=hint_font)
 
     # -- Indicators --
-    _draw_slide_indicator(draw, 1, total_slides, light_bg=False)
-    _draw_brand_watermark(draw, light_bg=False)
+    _draw_slide_indicator(draw, 1, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=False, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
 
     return bg.convert("RGB")
+
+
+def _truncate_line_with_ellipsis(line: str, font: ImageFont.FreeTypeFont, max_width: int) -> str:
+    """Truncate a line and append ellipsis, ensuring it fits within max_width."""
+    ellipsis = "..."
+    if not line:
+        return ellipsis
+    # Binary search for the longest prefix that fits with ellipsis
+    for end in range(len(line), 0, -1):
+        candidate = line[:end] + ellipsis
+        bbox = font.getbbox(candidate)
+        if (bbox[2] - bbox[0]) <= max_width:
+            return candidate
+    return ellipsis
 
 
 def generate_slide_content(
@@ -662,21 +1332,32 @@ def generate_slide_content(
     dark_theme: bool = True,
     theme: dict = None,
     total_slides: int = DEFAULT_SLIDE_COUNT,
+    platform: str = "tiktok",
 ) -> Image.Image:
     """
     Slides 2-7 - CONTENT: Card-based layout.
     Title at top, body in rounded card with left accent bar.
     Alternating dark/light backgrounds.
+    Renders natively at the correct platform dimensions.
     """
     if theme is None:
         theme = DEFAULT_THEME
     accent = theme["accent"]
 
-    bg = _build_dark_bg(theme) if dark_theme else _build_light_bg(theme)
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top = layout["safe_top"]
+    s_bottom = layout["safe_bottom"]
+    s_left = layout["safe_left"]
+    s_right = layout["safe_right"]
+    c_w = layout["content_w"]
+    c_h = layout["content_h"]
+
+    bg = _build_dark_bg(theme, canvas_w=cw, canvas_h=ch) if dark_theme else _build_light_bg(theme, canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
     light_bg = not dark_theme
-    center_x = CANVAS_W // 2
-    max_text_width = CONTENT_W - 80
+    center_x = cw // 2
+    max_text_width = c_w - 80
 
     # ============================================================
     # PASS 1: Pre-calculate total content height for vertical centering
@@ -697,29 +1378,46 @@ def generate_slide_content(
 
     # Pre-calculate card dimensions
     card_margin = 25
-    card_x0 = SAFE_LEFT + card_margin
-    card_x1 = CANVAS_W - SAFE_RIGHT - card_margin
+    card_x0 = s_left + card_margin
+    card_x1 = cw - s_right - card_margin
     card_inner_pad = 35
 
     body_font_size = 40
     body_paragraphs = body.split("\n")
 
-    # Estimate body height
-    total_lines_est = 0
-    for para in body_paragraphs:
-        para = para.strip()
-        if not para:
-            total_lines_est += 0.5
-            continue
-        total_lines_est += max(1, len(para) / 12)
+    # Adaptive font sizing using actual pixel measurement
+    max_card_height = c_h - title_block_h - hl_block_h - 80  # leave margin
+    card_text_max_w = card_x1 - card_x0 - card_inner_pad * 2 - 12
 
-    max_card_height = CONTENT_H - title_block_h - hl_block_h - 80  # leave margin
-    estimated_card_height = int(total_lines_est * body_font_size * LINE_HEIGHT_RATIO) + card_inner_pad * 2 + 10
+    def _calc_card_content_height(font_size: int) -> int:
+        """Calculate exact card content height at a given font size."""
+        test_font = load_font(bold=False, size=font_size)
+        test_line_h = int(font_size * LINE_HEIGHT_RATIO)
+        h = 0
+        for para in body_paragraphs:
+            para = para.strip()
+            if not para:
+                h += test_line_h // 2
+                continue
+            is_bullet = para.startswith(("\u30fb", "- ", "* "))
+            if is_bullet:
+                clean = para.lstrip("\u30fb- *").strip()
+                _, block_h = _measure_text_block(clean, test_font, card_text_max_w - 60)
+                lines = wrap_text_jp(clean, test_font, card_text_max_w - 60)
+                h += test_line_h * len(lines) + 14
+            else:
+                lines = wrap_text_jp(para, test_font, card_text_max_w)
+                h += test_line_h * len(lines) + 10
+        return h
 
-    if estimated_card_height > max_card_height:
+    initial_content_h = _calc_card_content_height(body_font_size)
+    initial_card_h = card_inner_pad * 2 + initial_content_h + 10
+
+    if initial_card_h > max_card_height:
         for try_size in range(38, 26, -2):
-            est_h = int(total_lines_est * try_size * LINE_HEIGHT_RATIO) + card_inner_pad * 2 + 10
-            if est_h <= max_card_height:
+            test_h = _calc_card_content_height(try_size)
+            test_card_h = card_inner_pad * 2 + test_h + 10
+            if test_card_h <= max_card_height:
                 body_font_size = try_size
                 break
         else:
@@ -735,9 +1433,9 @@ def generate_slide_content(
         if not para:
             card_content_h += line_h // 2
             continue
-        is_bullet = para.startswith(("・", "- ", "* "))
+        is_bullet = para.startswith(("\u30fb", "- ", "* "))
         if is_bullet:
-            clean = para.lstrip("・- *").strip()
+            clean = para.lstrip("\u30fb- *").strip()
             lines = wrap_text_jp(clean, body_font, card_x1 - card_x0 - card_inner_pad * 2 - 60)
             card_content_h += line_h * len(lines) + 14
         else:
@@ -753,7 +1451,7 @@ def generate_slide_content(
     # PASS 2: Draw everything, vertically centered
     # ============================================================
     # Center the entire content block in the safe area
-    start_y = SAFE_TOP + max(60, (CONTENT_H - total_content_h) // 2)
+    start_y = s_top + max(60, (c_h - total_content_h) // 2)
     current_y = start_y
 
     # -- Section title --
@@ -762,12 +1460,12 @@ def generate_slide_content(
     # Accent dot
     dot_y = current_y + title_font_size // 2
     draw.ellipse(
-        (SAFE_LEFT + 20, dot_y - 10, SAFE_LEFT + 40, dot_y + 10),
+        (s_left + 20, dot_y - 10, s_left + 40, dot_y + 10),
         fill=(*accent[:3], 255),
     )
 
     # Title text
-    title_x = SAFE_LEFT + 55
+    title_x = s_left + 55
     for tl in title_lines:
         if dark_theme:
             draw_text_shadow(draw, title_x, current_y, tl, title_font,
@@ -805,7 +1503,7 @@ def generate_slide_content(
 
     # -- Body text in card --
     card_top = current_y
-    max_body_y = CANVAS_H - SAFE_BOTTOM - 70
+    max_body_y = ch - s_bottom - 70
     card_bottom = min(card_top + actual_card_h, max_body_y)
 
     # -- Draw card (multi-layer shadow for depth) --
@@ -855,23 +1553,26 @@ def generate_slide_content(
         radius=3, fill=(*accent[:3], 200),
     )
 
-    # -- Draw body text --
+    # -- Draw body text with ellipsis truncation --
     current_y = card_top + card_inner_pad
     body_left = card_x0 + card_inner_pad + 12
     body_max_w = card_x1 - card_x0 - card_inner_pad * 2 - 12
     body_color = COLOR_WHITE if dark_theme else theme["text_on_light"]
+    truncated = False
 
     for para in body_paragraphs:
         para = para.strip()
         if not para:
             current_y += line_h // 2
             continue
+        if truncated:
+            break
         if current_y >= max_body_y - line_h:
             break
 
-        is_bullet = para.startswith(("・", "- ", "* "))
+        is_bullet = para.startswith(("\u30fb", "- ", "* "))
         if is_bullet:
-            clean_text = para.lstrip("・- *").strip()
+            clean_text = para.lstrip("\u30fb- *").strip()
             text_start_x = body_left + 50
             text_max_w = body_max_w - 60
 
@@ -885,8 +1586,16 @@ def generate_slide_content(
                 fill=(*accent[:3], 220),
             )
 
-            for line in lines:
+            for li, line in enumerate(lines):
                 if current_y >= max_body_y - line_h:
+                    # Truncate: show ellipsis on this line
+                    trunc_line = _truncate_line_with_ellipsis(line, body_font, text_max_w)
+                    if dark_theme:
+                        draw_text_shadow(draw, text_start_x, current_y, trunc_line, body_font,
+                                         fill=body_color, shadow_offset=1, outline_width=1)
+                    else:
+                        draw.text((text_start_x, current_y), trunc_line, fill=body_color, font=body_font)
+                    truncated = True
                     break
                 if dark_theme:
                     draw_text_shadow(draw, text_start_x, current_y, line, body_font,
@@ -897,8 +1606,16 @@ def generate_slide_content(
             current_y += 14
         else:
             lines = wrap_text_jp(para, body_font, body_max_w)
-            for line in lines:
+            for li, line in enumerate(lines):
                 if current_y >= max_body_y - line_h:
+                    # Truncate: show ellipsis on this line
+                    trunc_line = _truncate_line_with_ellipsis(line, body_font, body_max_w)
+                    if dark_theme:
+                        draw_text_shadow(draw, body_left, current_y, trunc_line, body_font,
+                                         fill=body_color, shadow_offset=1, outline_width=1)
+                    else:
+                        draw.text((body_left, current_y), trunc_line, fill=body_color, font=body_font)
+                    truncated = True
                     break
                 if dark_theme:
                     draw_text_shadow(draw, body_left, current_y, line, body_font,
@@ -909,8 +1626,8 @@ def generate_slide_content(
             current_y += 10
 
     # -- Indicators --
-    _draw_slide_indicator(draw, slide_num, total_slides, light_bg=light_bg)
-    _draw_brand_watermark(draw, light_bg=light_bg)
+    _draw_slide_indicator(draw, slide_num, total_slides, light_bg=light_bg, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=light_bg, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
 
     return bg.convert("RGB")
 
@@ -919,6 +1636,7 @@ def generate_slide_cta(
     cta_type: str = "soft",
     theme: dict = None,
     total_slides: int = DEFAULT_SLIDE_COUNT,
+    platform: str = "tiktok",
 ) -> Image.Image:
     """
     Final slide - CTA: Brand gradient background.
@@ -928,9 +1646,14 @@ def generate_slide_cta(
     if theme is None:
         theme = DEFAULT_THEME
 
-    bg = _build_brand_gradient_bg()
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top = layout["safe_top"]
+    s_bottom = layout["safe_bottom"]
+
+    bg = _build_brand_gradient_bg(canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
-    center_x = CANVAS_W // 2
+    center_x = cw // 2
 
     # -- Brand logo --
     logo_font_size = 64
@@ -938,7 +1661,8 @@ def generate_slide_cta(
     logo_text = "ナースロビー"
     tw, _ = measure_text(logo_text, logo_font)
     logo_x = center_x - tw // 2
-    logo_y = SAFE_TOP + 140
+    # For Instagram, use less top offset (no large safe zone needed)
+    logo_y = s_top + (80 if platform == "instagram" else 140)
 
     draw_text_shadow(
         draw, logo_x, logo_y, logo_text, logo_font,
@@ -1101,8 +1825,8 @@ def generate_slide_cta(
         trust_y = prof_y + 70
         _draw_trust_badges(draw, center_x, trust_y)
 
-    _draw_slide_indicator(draw, total_slides, total_slides, light_bg=False)
-    _draw_brand_watermark(draw, light_bg=False)
+    _draw_slide_indicator(draw, total_slides, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=False, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
 
     return bg.convert("RGB")
 
@@ -1171,14 +1895,12 @@ def generate_carousel(
 
     theme = CATEGORY_THEMES.get(category, DEFAULT_THEME)
 
-    # Platform dimensions (slides are rendered at 1080x1920, then resized if needed)
+    # All slides are now rendered NATIVELY at the correct platform dimensions.
+    # No resize needed -- each render function creates the canvas at the right size.
     target_w, target_h = PLATFORM_SIZES.get(platform, (CANVAS_W, CANVAS_H))
-    needs_resize = (target_w != CANVAS_W or target_h != CANVAS_H)
 
     def _save_slide(img: Image.Image, path: Path) -> str:
-        """Save slide with optional platform resize."""
-        if needs_resize:
-            img = img.resize((target_w, target_h), Image.LANCZOS)
+        """Save slide (already rendered at correct platform dimensions)."""
         img.save(str(path), "PNG", quality=95)
         return str(path)
 
@@ -1207,42 +1929,62 @@ def generate_carousel(
     platform_label = f", platform: {platform} {target_w}x{target_h}" if platform != "tiktok" else ""
     print(f"  [{content_id}] Generating {total_slides_count}-slide carousel (category: {category}{platform_label})")
 
+    # --- Instagram: use dedicated IG design system ---
+    use_ig = (platform == "instagram")
+
     # --- Slide 1: HOOK ---
-    img1 = generate_slide_hook(hook, theme=theme, total_slides=total_slides_count)
+    if use_ig:
+        img1 = generate_ig_hook_slide(hook, total_slides=total_slides_count)
+    else:
+        img1 = generate_slide_hook(hook, theme=theme, total_slides=total_slides_count, platform=platform)
     p1 = out / f"{content_id}_slide_01_hook.png"
     saved_paths.append(_save_slide(img1, p1))
-    print(f"    slide 01 (HOOK): {hook[:30]}...")
+    print(f"    slide 01 (HOOK{'|IG' if use_ig else ''}): {hook[:30]}...")
 
-    # --- Slides 2-7: CONTENT (alternating dark/light) ---
+    # --- Slides 2-7: CONTENT ---
     for i, slide_data in enumerate(content_slides):
         slide_num = i + 2
-        dark = (i % 2 == 0)  # 2=dark, 3=light, 4=dark, 5=light, 6=dark, 7=light
+        dark = (i % 2 == 0)  # 2=dark, 3=light, 4=dark, ...
 
         title = slide_data.get("title", "")
         body = slide_data.get("body", "")
         hl_num = slide_data.get("highlight_number")
         hl_label = slide_data.get("highlight_label")
 
-        img = generate_slide_content(
-            slide_num=slide_num,
-            title=title,
-            body=body,
-            highlight_number=hl_num,
-            highlight_label=hl_label,
-            dark_theme=dark,
-            theme=theme,
-            total_slides=total_slides_count,
-        )
+        if use_ig:
+            img = generate_ig_content_slide(
+                slide_num=slide_num,
+                title=title,
+                body=body,
+                highlight_number=hl_num,
+                highlight_label=hl_label,
+                total_slides=total_slides_count,
+            )
+        else:
+            img = generate_slide_content(
+                slide_num=slide_num,
+                title=title,
+                body=body,
+                highlight_number=hl_num,
+                highlight_label=hl_label,
+                dark_theme=dark,
+                theme=theme,
+                total_slides=total_slides_count,
+                platform=platform,
+            )
         p = out / f"{content_id}_slide_{slide_num:02d}_content.png"
         saved_paths.append(_save_slide(img, p))
-        print(f"    slide {slide_num:02d} (CONTENT {'dark' if dark else 'light'}): {title[:30]}...")
+        print(f"    slide {slide_num:02d} (CONTENT{'|IG' if use_ig else (' dark' if dark else ' light')}): {title[:30]}...")
 
     # --- Final slide: CTA ---
     cta_slide_num = total_slides_count
-    img_cta = generate_slide_cta(cta_type=cta_type, theme=theme, total_slides=total_slides_count)
+    if use_ig:
+        img_cta = generate_ig_cta_slide(cta_type=cta_type, total_slides=total_slides_count)
+    else:
+        img_cta = generate_slide_cta(cta_type=cta_type, theme=theme, total_slides=total_slides_count, platform=platform)
     p_cta = out / f"{content_id}_slide_{cta_slide_num:02d}_cta.png"
     saved_paths.append(_save_slide(img_cta, p_cta))
-    print(f"    slide {cta_slide_num:02d} (CTA: {cta_type})")
+    print(f"    slide {cta_slide_num:02d} (CTA{'|IG' if use_ig else ''}: {cta_type})")
 
     print(f"  [{content_id}] Done: {len(saved_paths)} slides saved to {out}")
     return saved_paths
@@ -1462,6 +2204,38 @@ def generate_demo_aruaru(output_dir: str = "content/generated/carousel_demo_arua
     )
 
 
+def generate_demo_instagram(output_dir: str = "content/generated/carousel_demo_instagram") -> list[str]:
+    """Generate Instagram-specific demo carousel using the Warm Coral design system."""
+    print("=== Generating Instagram demo carousel (Warm Coral) ===\n")
+
+    return generate_carousel(
+        content_id="DEMO_IG",
+        hook="手数料\n知ってる？",
+        slides=[
+            {
+                "title": "看護師は無料で使える",
+                "body": "でも、病院側は年収の20〜30%を\nエージェントに支払っています。\n\n・年収400万 → 手数料80〜120万\n・年収500万 → 手数料100〜150万",
+            },
+            {
+                "title": "手数料が高いとどうなる？",
+                "body": "病院は高い手数料を払った分\n採用のハードルを上げます。\n\n・面接が厳しくなる\n・条件交渉が通りにくい\n・入職後の圧が強くなる",
+                "highlight_number": "120万円",
+                "highlight_label": "大手の平均手数料（年収400万の場合）",
+            },
+            {
+                "title": "手数料10%で解決",
+                "body": "病院の負担が軽い\n→ 採用されやすい\n→ 条件交渉もしやすい\n→ 入職後の関係も良好\n\nつまり、あなたが得をする。",
+                "highlight_number": "10%",
+                "highlight_label": "ナースロビーの紹介手数料",
+            },
+        ],
+        output_dir=output_dir,
+        category="転職・キャリア",
+        cta_type="hard",
+        platform="instagram",
+    )
+
+
 # ===========================================================================
 # CLI
 # ===========================================================================
@@ -1504,10 +2278,8 @@ def generate_carousel_backgrounds(
         "slides": [],
     }
 
-    # Slide 1: Hook background
-    bg1 = _build_dark_bg(theme)
-    if canvas_h != CANVAS_H:
-        bg1 = bg1.resize((canvas_w, canvas_h), Image.LANCZOS)
+    # Slide 1: Hook background (rendered natively at platform size)
+    bg1 = _build_dark_bg(theme, canvas_w=canvas_w, canvas_h=canvas_h)
     p1 = out / f"{content_id}_bg_01_hook.png"
     bg1.save(str(p1), "PNG")
     bg_paths.append(str(p1))
@@ -1529,18 +2301,15 @@ def generate_carousel_backgrounds(
         "duration": 2.5,
     })
 
-    # Content slides
+    # Content slides (rendered natively at platform size)
     for i, slide_data in enumerate(content_slides):
         slide_num = i + 2
         dark = (i % 2 == 0)
 
         if dark:
-            bg = _build_dark_bg(theme)
+            bg = _build_dark_bg(theme, canvas_w=canvas_w, canvas_h=canvas_h)
         else:
-            bg = _build_light_bg(theme)
-
-        if canvas_h != CANVAS_H:
-            bg = bg.resize((canvas_w, canvas_h), Image.LANCZOS)
+            bg = _build_light_bg(theme, canvas_w=canvas_w, canvas_h=canvas_h)
 
         p = out / f"{content_id}_bg_{slide_num:02d}_content.png"
         bg.save(str(p), "PNG")
@@ -1575,10 +2344,8 @@ def generate_carousel_backgrounds(
             "duration": 3.5,
         })
 
-    # CTA background
-    bg_cta = _build_brand_gradient_bg()
-    if canvas_h != CANVAS_H:
-        bg_cta = bg_cta.resize((canvas_w, canvas_h), Image.LANCZOS)
+    # CTA background (rendered natively at platform size)
+    bg_cta = _build_brand_gradient_bg(canvas_w=canvas_w, canvas_h=canvas_h)
     p_cta = out / f"{content_id}_bg_{total:02d}_cta.png"
     bg_cta.save(str(p_cta), "PNG")
     bg_paths.append(str(p_cta))
@@ -1614,6 +2381,7 @@ def main():
     )
     parser.add_argument("--demo", action="store_true", help="Generate a demo carousel set for review")
     parser.add_argument("--demo-aruaru", action="store_true", help="Generate aruaru-themed demo")
+    parser.add_argument("--demo-instagram", action="store_true", help="Generate Instagram Warm Coral design demo")
     parser.add_argument("--queue", help="Path to posting_queue.json")
     parser.add_argument("--output", default="content/generated/", help="Output base directory")
     parser.add_argument("--single-json", help="Generate carousel from a single slide JSON file")
@@ -1635,6 +2403,11 @@ def main():
         out = project_root / "content" / "generated" / "carousel_demo_aruaru_v3"
         paths = generate_demo_aruaru(str(out))
         print(f"\nAruaru demo complete. {len(paths)} slides saved to {out}")
+
+    elif args.demo_instagram:
+        out = project_root / "content" / "generated" / "carousel_demo_instagram"
+        paths = generate_demo_instagram(str(out))
+        print(f"\nInstagram demo complete. {len(paths)} slides saved to {out}")
 
     elif args.queue:
         queue_path = Path(args.queue)

@@ -340,7 +340,12 @@ def get_template_for_generation(category: str, cta_type: str = "soft") -> Option
 # ============================================================
 
 def load_env():
-    """Load .env file from PROJECT_DIR."""
+    """Load .env file from PROJECT_DIR.
+
+    Called at module level AND in main() to ensure env vars are available
+    even in cron environments where .zshrc is not sourced.
+    Uses os.environ.setdefault() so existing env vars are not overwritten.
+    """
     if ENV_FILE.exists():
         with open(ENV_FILE, "r", encoding="utf-8") as f:
             for line in f:
@@ -352,6 +357,11 @@ def load_env():
                     key = key.strip()
                     value = value.strip().strip('"').strip("'")
                     os.environ.setdefault(key, value)
+
+
+# Load .env at module level to ensure credentials are available
+# before any function calls (critical for cron execution)
+load_env()
 
 
 def get_cf_credentials() -> Tuple[str, str]:
@@ -1861,116 +1871,254 @@ def _parse_json_from_text(text: str) -> Optional[Any]:
 # Feedback Loop (--feedback-loop)
 # ============================================================
 
-def cmd_feedback_loop():
-    """Data-driven content generation: analyze performance → adjust mix → generate.
+def _content_type_to_category(content_type: str) -> str:
+    """Map English content_type back to Japanese category name."""
+    for jp, en in CATEGORY_TO_CONTENT_TYPE.items():
+        if en == content_type:
+            return jp
+    return "あるある"
 
-    1. Run tiktok_analytics.py --update to refresh performance data
-    2. Analyze which categories/hooks perform best
-    3. Dynamically adjust MIX_RATIOS based on data
-    4. Generate content with adjusted ratios
+
+def _collect_category_performance(queue: dict) -> Dict[str, Dict]:
+    """Collect per-category performance stats from posted entries.
+
+    Returns dict like:
+        {"あるある": {"count": 5, "total_views": 1200, "total_likes": 80,
+                     "total_saves": 30, "has_perf_data": 3}, ...}
+    """
+    category_stats: Dict[str, Dict] = {}
+
+    for post in queue.get("posts", []):
+        if post.get("status") != "posted":
+            continue
+
+        cat_name = _content_type_to_category(post.get("content_type", "aruaru"))
+        perf = post.get("performance", {})
+        if not isinstance(perf, dict):
+            perf = {}
+
+        views = perf.get("views")
+        likes = perf.get("likes")
+        saves = perf.get("saves")
+
+        if cat_name not in category_stats:
+            category_stats[cat_name] = {
+                "count": 0,
+                "total_views": 0,
+                "total_likes": 0,
+                "total_saves": 0,
+                "has_perf_data": 0,
+            }
+
+        stats = category_stats[cat_name]
+        stats["count"] += 1
+
+        # Only count posts that have at least views data
+        has_data = False
+        if views is not None:
+            stats["total_views"] += views
+            has_data = True
+        if likes is not None:
+            stats["total_likes"] += likes
+            has_data = True
+        if saves is not None:
+            stats["total_saves"] += saves
+            has_data = True
+        if has_data:
+            stats["has_perf_data"] += 1
+
+    return category_stats
+
+
+def _compute_composite_score(stats: Dict) -> float:
+    """Compute a weighted composite score for a category.
+
+    Formula: views * 1.0 + likes * 2.0 + saves * 3.0
+    Saves are weighted highest (algorithm signal + intent signal).
+    """
+    n = stats["has_perf_data"]
+    if n == 0:
+        return 0.0
+    avg_views = stats["total_views"] / n
+    avg_likes = stats["total_likes"] / n
+    avg_saves = stats["total_saves"] / n
+    return avg_views * 1.0 + avg_likes * 2.0 + avg_saves * 3.0
+
+
+def cmd_feedback_loop():
+    """Data-driven content generation: analyze performance -> adjust mix -> generate.
+
+    1. Load posting_queue.json
+    2. Analyze performance data per category (views, saves, likes averages)
+    3. If 5+ posts have performance data, adjust MIX_RATIOS:
+       - High-performing categories: +5% boost
+       - Low-performing categories: -5% reduction
+       - Normalize to 100%
+    4. Log adjustment to Slack
+    5. Save adjusted ratios to data/feedback_ratios.json
+    6. Generate content with adjusted ratios
     """
     global MIX_RATIOS
+
+    FEEDBACK_RATIOS_PATH = PROJECT_DIR / "data" / "feedback_ratios.json"
 
     print("=" * 60)
     print(f"[FEEDBACK] Performance-Based Content Loop - {timestamp_str()}")
     print("=" * 60)
 
-    # Step 1: Update analytics
+    # Step 1: Update analytics (best-effort)
     print("\n[FEEDBACK] Step 1: Refreshing TikTok analytics...")
     try:
-        result = subprocess.run(
-            ["python3", str(PROJECT_DIR / "scripts" / "tiktok_analytics.py"), "--update"],
-            capture_output=True, text=True, timeout=120
-        )
-        print(result.stdout[-500:] if result.stdout else "  (no output)")
+        analytics_script = PROJECT_DIR / "scripts" / "tiktok_analytics.py"
+        if analytics_script.exists():
+            result = subprocess.run(
+                ["python3", str(analytics_script), "--update"],
+                capture_output=True, text=True, timeout=120
+            )
+            print(result.stdout[-500:] if result.stdout else "  (no output)")
+        else:
+            print("  [INFO] tiktok_analytics.py not found, skipping refresh")
     except Exception as e:
         print(f"  [WARN] Analytics refresh failed: {e}")
 
-    # Step 2: Analyze performance by category
+    # Step 2: Load queue and analyze performance by category
     print("\n[FEEDBACK] Step 2: Analyzing performance by category...")
     queue = load_queue()
-    posted = [p for p in queue.get("posts", []) if p.get("status") == "posted"]
+    category_stats = _collect_category_performance(queue)
 
-    if len(posted) < 5:
-        print(f"  Only {len(posted)} posted. Need 5+ for meaningful analysis. Using default MIX.")
+    # Count total posts with actual performance data
+    total_posts_with_data = sum(s["has_perf_data"] for s in category_stats.values())
+    total_posted = sum(s["count"] for s in category_stats.values())
+
+    print(f"  Posted: {total_posted} total, {total_posts_with_data} with performance data")
+
+    if total_posts_with_data < 5:
+        print(f"  Need 5+ posts with performance data for meaningful analysis.")
+        print(f"  Using default MIX_RATIOS (no adjustment).")
+
+        # Load previously saved feedback ratios if they exist
+        if FEEDBACK_RATIOS_PATH.exists():
+            try:
+                with open(FEEDBACK_RATIOS_PATH, "r", encoding="utf-8") as f:
+                    saved = json.load(f)
+                saved_ratios = saved.get("adjusted_ratios", {})
+                if saved_ratios:
+                    print(f"  Loading previously saved feedback ratios from {FEEDBACK_RATIOS_PATH.name}")
+                    MIX_RATIOS = saved_ratios
+            except Exception as e:
+                print(f"  [WARN] Could not load saved ratios: {e}")
     else:
-        category_stats = {}
-        for post in posted:
-            cat = post.get("content_type", "aruaru")
-            # Map back to Japanese category names
-            cat_name = None
-            for jp, en in CATEGORY_TO_CONTENT_TYPE.items():
-                if en == cat:
-                    cat_name = jp
-                    break
-            if not cat_name:
-                cat_name = "あるある"
+        # Display per-category stats
+        print(f"\n  Per-category performance:")
+        cat_scores = {}
+        for cat_name, stats in category_stats.items():
+            if stats["has_perf_data"] > 0:
+                n = stats["has_perf_data"]
+                avg_views = stats["total_views"] / n
+                avg_likes = stats["total_likes"] / n
+                avg_saves = stats["total_saves"] / n
+                composite = _compute_composite_score(stats)
+                cat_scores[cat_name] = composite
+                print(f"    {cat_name}: {n} posts | avg views={avg_views:.0f}, "
+                      f"likes={avg_likes:.0f}, saves={avg_saves:.0f} | score={composite:.0f}")
+            else:
+                print(f"    {cat_name}: {stats['count']} posts | no performance data")
 
-            perf = post.get("performance", {})
-            views = perf.get("views") if isinstance(perf, dict) else None
-            saves = perf.get("saves") if isinstance(perf, dict) else None
-
-            if cat_name not in category_stats:
-                category_stats[cat_name] = {"count": 0, "total_views": 0, "total_saves": 0, "has_data": 0}
-
-            category_stats[cat_name]["count"] += 1
-            if views is not None:
-                category_stats[cat_name]["total_views"] += views
-                category_stats[cat_name]["has_data"] += 1
-            if saves is not None:
-                category_stats[cat_name]["total_saves"] += saves
-
-        # Calculate average performance per category
-        adjustments = {}
-        total_avg_views = 0
-        cats_with_data = 0
-
-        for cat, stats in category_stats.items():
-            if stats["has_data"] > 0:
-                avg_views = stats["total_views"] / stats["has_data"]
-                total_avg_views += avg_views
-                cats_with_data += 1
-                adjustments[cat] = avg_views
-                print(f"  {cat}: {stats['has_data']} posts with data, avg views={avg_views:.0f}")
-
-        # Adjust MIX_RATIOS: boost categories with above-average performance
-        if cats_with_data >= 2 and total_avg_views > 0:
-            global_avg = total_avg_views / cats_with_data
-            print(f"\n  Global average: {global_avg:.0f} views")
+        # Step 3: Adjust MIX_RATIOS with +/-5% per category
+        if len(cat_scores) >= 2:
+            global_avg_score = sum(cat_scores.values()) / len(cat_scores)
+            print(f"\n  Global average composite score: {global_avg_score:.0f}")
 
             new_ratios = dict(MIX_RATIOS)
-            for cat, avg_views in adjustments.items():
-                if cat in new_ratios:
-                    multiplier = avg_views / global_avg
-                    # Clamp adjustment: max ±15% change
-                    adjustment = max(-0.15, min(0.15, (multiplier - 1) * 0.1))
-                    new_ratios[cat] = max(0.05, min(0.60, new_ratios[cat] + adjustment))
+            adjustment_log = []
+
+            for cat_name, score in cat_scores.items():
+                if cat_name not in new_ratios:
+                    continue
+
+                old_val = new_ratios[cat_name]
+                if score > global_avg_score:
+                    # High-performing: +5%
+                    new_ratios[cat_name] = old_val + 0.05
+                    adjustment_log.append(f"{cat_name}: +5% (score {score:.0f} > avg {global_avg_score:.0f})")
+                elif score < global_avg_score:
+                    # Low-performing: -5%
+                    new_ratios[cat_name] = max(0.02, old_val - 0.05)
+                    adjustment_log.append(f"{cat_name}: -5% (score {score:.0f} < avg {global_avg_score:.0f})")
+                else:
+                    adjustment_log.append(f"{cat_name}: no change (score = avg)")
 
             # Normalize to sum=1.0
             total = sum(new_ratios.values())
-            new_ratios = {k: round(v / total, 2) for k, v in new_ratios.items()}
+            if total > 0:
+                new_ratios = {k: round(v / total, 2) for k, v in new_ratios.items()}
 
+            # Fix rounding: ensure sum is exactly 1.0
+            rounding_diff = round(1.0 - sum(new_ratios.values()), 2)
+            if rounding_diff != 0:
+                # Add difference to the largest category
+                largest_cat = max(new_ratios, key=new_ratios.get)
+                new_ratios[largest_cat] = round(new_ratios[largest_cat] + rounding_diff, 2)
+
+            # Display changes
             print(f"\n  Adjusted MIX_RATIOS:")
+            change_lines = []
             for cat in MIX_RATIOS:
-                old = MIX_RATIOS[cat] * 100
-                new = new_ratios.get(cat, MIX_RATIOS[cat]) * 100
-                arrow = "↑" if new > old else ("↓" if new < old else "=")
-                print(f"    {cat}: {old:.0f}% → {new:.0f}% {arrow}")
+                old_pct = MIX_RATIOS[cat] * 100
+                new_pct = new_ratios.get(cat, MIX_RATIOS[cat]) * 100
+                arrow = "+" if new_pct > old_pct else ("-" if new_pct < old_pct else "=")
+                line = f"    {cat}: {old_pct:.0f}% -> {new_pct:.0f}% ({arrow})"
+                print(line)
+                change_lines.append(f"{cat}: {old_pct:.0f}%->{new_pct:.0f}%")
 
+            # Apply new ratios
+            old_ratios = dict(MIX_RATIOS)
             MIX_RATIOS = new_ratios
-        else:
-            print(f"  Not enough data for adjustment. Using defaults.")
 
-    # Step 3: Generate with adjusted ratios
-    print(f"\n[FEEDBACK] Step 3: Running auto content generation...")
+            # Step 4: Save adjusted ratios to data/feedback_ratios.json
+            feedback_data = {
+                "timestamp": datetime.now().isoformat(),
+                "original_ratios": old_ratios,
+                "adjusted_ratios": new_ratios,
+                "category_stats": {
+                    cat: {
+                        "posts": stats["count"],
+                        "posts_with_data": stats["has_perf_data"],
+                        "avg_views": round(stats["total_views"] / stats["has_perf_data"], 1) if stats["has_perf_data"] > 0 else None,
+                        "avg_likes": round(stats["total_likes"] / stats["has_perf_data"], 1) if stats["has_perf_data"] > 0 else None,
+                        "avg_saves": round(stats["total_saves"] / stats["has_perf_data"], 1) if stats["has_perf_data"] > 0 else None,
+                        "composite_score": round(cat_scores.get(cat, 0), 1),
+                    }
+                    for cat, stats in category_stats.items()
+                },
+                "total_posts_analyzed": total_posted,
+                "total_with_performance": total_posts_with_data,
+                "adjustments": adjustment_log,
+            }
+            atomic_json_write(FEEDBACK_RATIOS_PATH, feedback_data)
+            print(f"\n  Feedback ratios saved to {FEEDBACK_RATIOS_PATH}")
+
+            # Step 5: Log adjustment to Slack
+            slack_msg = (
+                f"[Feedback Loop] MIX_RATIOS adjusted ({total_posts_with_data} posts analyzed)\n"
+                + " | ".join(change_lines)
+            )
+            slack_notify(slack_msg)
+
+        else:
+            print(f"  Only {len(cat_scores)} categories with data. Need 2+. Using defaults.")
+
+    # Step 6: Generate with adjusted ratios
+    print(f"\n[FEEDBACK] Step 3: Running auto content generation with adjusted ratios...")
     cmd_auto()
 
-    # Save performance analysis
+    # Save performance analysis (legacy compatibility)
     analysis_file = PROJECT_DIR / "data" / "performance_analysis.json"
     analysis = {
         "timestamp": datetime.now().isoformat(),
         "mix_ratios_used": MIX_RATIOS,
-        "posted_count": len(posted),
+        "posted_count": total_posted,
+        "posts_with_performance": total_posts_with_data,
     }
     atomic_json_write(analysis_file, analysis)
 

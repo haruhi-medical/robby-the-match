@@ -28,26 +28,69 @@ HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$PUBLIC_URL" 2>/dev/null)
 LOG_SIZE=$(du -sm logs/ 2>/dev/null | awk '{print $1}')
 [ "${LOG_SIZE:-0}" -gt 500 ] && ISSUES="${ISSUES}\n⚠️ logs/ ${LOG_SIZE}MB"
 
-# === TikTokハートビート（v2.0追加 / v2.2: フェッチ失敗検知強化）===
+# === TikTok健全性チェック v3.0 ===
+# upload_verification.json を主要指標とする。
+# TikTokプロフィールスクレイプはbot検出で頻繁に失敗するため参考情報扱い。
+
+# Step 1: upload_verification.json による主要健全性チェック（高速・確実）
+echo "[INFO] TikTokアップロード検証（upload_verification.json基準）" >> "$LOG"
+python3 -c "
+import json, sys
+from datetime import datetime, timedelta
+
+try:
+    with open('$PROJECT_DIR/data/upload_verification.json') as f:
+        data = json.load(f)
+    uploads = data.get('uploads', [])
+    cutoff = (datetime.now() - timedelta(days=7)).isoformat()
+    recent = [u for u in uploads if u.get('timestamp', '') >= cutoff]
+    recent_ok = sum(1 for u in recent if u.get('success'))
+    recent_fail = len(recent) - recent_ok
+    last_5 = uploads[-5:] if len(uploads) >= 5 else uploads
+    last_5_ok = sum(1 for u in last_5 if u.get('success'))
+    total_ok = sum(1 for u in uploads if u.get('success'))
+
+    print(f'[INFO] upload_verification: 全{len(uploads)}件(成功{total_ok}), 直近7日{len(recent)}件(成功{recent_ok}/失敗{recent_fail})')
+
+    if recent_fail >= 3 and last_5_ok < 3:
+        print(f'[WARNING] アップロード失敗が多発: 直近7日{recent_fail}件失敗, 直近5件中{last_5_ok}件成功')
+        sys.exit(1)
+    else:
+        print(f'[OK] アップロード健全: 直近5件中{last_5_ok}件成功')
+        sys.exit(0)
+except FileNotFoundError:
+    print('[WARN] upload_verification.json not found')
+    sys.exit(0)
+except Exception as e:
+    print(f'[WARN] upload_verification check failed: {e}')
+    sys.exit(0)
+" >> "$LOG" 2>&1
+UV_EXIT=$?
+if [ "$UV_EXIT" -eq 1 ]; then
+  ISSUES="${ISSUES}\n⚠️ TikTokアップロード失敗が連続中（upload_verification.json基準）"
+fi
+
+# Step 2: ハートビート（Cookie有効期限、venv、キュー状態など）
 echo "[INFO] TikTokハートビート実行" >> "$LOG"
 python3 "$PROJECT_DIR/scripts/tiktok_post.py" --heartbeat >> "$LOG" 2>&1
 HEARTBEAT_EXIT=$?
 
-# 投稿検証（キューとTikTok実投稿数の整合性チェック）
+# Step 3: 投稿検証 v2.1（upload_verification.json基準。プロフィール0件はbot検出として処理）
 echo "[INFO] TikTok投稿検証実行" >> "$LOG"
 python3 "$PROJECT_DIR/scripts/tiktok_post.py" --verify >> "$LOG" 2>&1
 VERIFY_EXIT=$?
 
-# ハートビート/検証の結果をログ解析してISSUESに追加
-# v2.0: プロフィール取得失敗はINFO扱い（bot検出の可能性大）
-# CRITICAL/WARNING判定はheartbeat() v2.0内で行う（upload_verification.json基準）
-if grep -q "直近.*件.*のアップロード失敗" "$LOG" 2>/dev/null; then
-  ISSUES="${ISSUES}\n⚠️ TikTokアップロード失敗が連続中"
+# heartbeat/検証の結果をログ解析してISSUESに追加
+# v3.0: upload_verification.json基準のみ。プロフィール取得失敗はINFO扱い
+if grep -q "アップロード健全性低下" "$LOG" 2>/dev/null; then
+  ISSUES="${ISSUES}\n⚠️ TikTokアップロード健全性低下"
 fi
 
-# === TikTok分析データ収集 + KPI記録（v2.1追加）===
-echo "[INFO] TikTok分析データ収集" >> "$LOG"
-python3 "$PROJECT_DIR/scripts/tiktok_analytics.py" --daily-kpi >> "$LOG" 2>&1 || echo "[WARN] TikTok分析スキップ" >> "$LOG"
+# Step 4: TikTok分析データ収集（オプション — bot検出で失敗しても問題なし）
+# tiktok_analytics.py --daily-kpi はPlaywrightでプロフィールをフェッチするため遅い。
+# bot検出で失敗することが多いのでWARN扱いで続行する。
+echo "[INFO] TikTok分析データ収集（参考・失敗OK）" >> "$LOG"
+python3 "$PROJECT_DIR/scripts/tiktok_analytics.py" --daily-kpi >> "$LOG" 2>&1 || echo "[INFO] TikTok分析スキップ（bot検出の可能性。問題なし）" >> "$LOG"
 
 # === Agent Team稼働状態チェック ===
 echo "[INFO] Agent Team稼働状態チェック" >> "$LOG"

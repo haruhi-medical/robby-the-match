@@ -1,10 +1,19 @@
 #!/bin/bash
 # ===========================================
-# ナースロビー SNS自動投稿 v5.0
-# cron: 0 12,17,18,20,21 * * 1-6
+# ナースロビー SNS自動投稿 v5.2
+# cron: 0 12,17,18,20,21 * * 0-6
 #   → 各時間帯でposting_schedule.jsonを確認し、
 #     当日の投稿時間でなければ即exit
 #
+# v5.2: Instagram carousel optimization
+# - auto_post.py v2.1: Instagram-specific slide optimization
+#   (1080x1350, pre-sharpen, progressive JPEG, no destructive humanization)
+# - image_humanizer "carousel" mode for designed graphics
+# - Dimension validation before Instagram upload
+# v5.1: posting_schedule.json format v2
+# - 曜日キー: lowercase full name (monday, tuesday, ...)
+# - "skip" で投稿休止日
+# - random_offset_minutes フィールド対応
 # v5.0: 投稿時間A/Bテスト対応
 # - posting_schedule.json で曜日別投稿時間を管理
 # - auto_post.py v2.0: humanizer + 行動パターン擬態
@@ -21,16 +30,20 @@ if [ -f "$SCHEDULE_FILE" ]; then
     CURRENT_HOUR=$(date +%H)
     CURRENT_MIN=$(date +%M)
     CURRENT_TIME="${CURRENT_HOUR}:${CURRENT_MIN}"
-    DAY_NAME=$(date +%a)
+
+    # Get full lowercase day name (monday, tuesday, ...)
+    DAY_NAME=$(python3 -c "import datetime; print(datetime.datetime.now().strftime('%A').lower())" 2>/dev/null)
 
     SCHEDULED_TIME=$(python3 -c "
 import json
 with open('$SCHEDULE_FILE') as f:
     s = json.load(f)
-print(s.get('schedule', {}).get('$DAY_NAME', ''))
+val = s.get('schedule', {}).get('$DAY_NAME', '')
+print(val)
 " 2>/dev/null)
 
-    if [ -z "$SCHEDULED_TIME" ]; then
+    # If day is "skip" or empty, exit (rest day)
+    if [ -z "$SCHEDULED_TIME" ] || [ "$SCHEDULED_TIME" = "skip" ]; then
         echo "[INFO] 本日(${DAY_NAME})は投稿休止日" >> "$LOG"
         exit 0
     fi
@@ -44,10 +57,19 @@ print(s.get('schedule', {}).get('$DAY_NAME', ''))
     echo "[INFO] 投稿時間一致 (${CURRENT_TIME} ≈ ${SCHEDULED_TIME})" >> "$LOG"
 fi
 
-echo "[INFO] SNS自動投稿 v5.0 開始" >> "$LOG"
+echo "[INFO] SNS自動投稿 v5.1 開始" >> "$LOG"
 
-# ランダム遅延（0-25分）でbot検出を回避
-RANDOM_DELAY=$((RANDOM % 1500))
+# ランダム遅延: posting_schedule.json の random_offset_minutes を使用（デフォルト25分=1500秒）
+OFFSET_MINUTES=$(python3 -c "
+import json
+try:
+    with open('$SCHEDULE_FILE') as f:
+        s = json.load(f)
+    print(s.get('random_offset_minutes', 25))
+except:
+    print(25)
+" 2>/dev/null)
+RANDOM_DELAY=$((RANDOM % (OFFSET_MINUTES * 60)))
 echo "[INFO] ランダム遅延: ${RANDOM_DELAY}秒" >> "$LOG"
 sleep $RANDOM_DELAY
 

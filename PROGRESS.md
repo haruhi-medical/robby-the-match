@@ -624,3 +624,118 @@ SNS自動投稿: IG済8件 / 未投稿3件 (IG=0, TK=0)
 
 [NOTE] pending (0) < threshold (7) -- --auto で自動補充が実行されます
 
+### pdca_ai_marketing（18:00:48）
+AI Marketing PDCA:
+  Queue: pending=0 ready=1 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 8
+  Status: Queue Low
+
+### pdca_ai_marketing（18:30:47）
+AI Marketing PDCA:
+  Queue: pending=0 ready=8 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 15
+  Status: Queue Low
+
+### pdca_ai_marketing（19:00:45）
+AI Marketing PDCA:
+  Queue: pending=0 ready=15 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 22
+  Status: Queue Low
+
+### pdca_ai_marketing（19:30:47）
+AI Marketing PDCA:
+  Queue: pending=0 ready=22 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 29
+  Status: Queue Low
+
+### pdca_ai_marketing（20:00:46）
+AI Marketing PDCA:
+  Queue: pending=0 ready=29 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 36
+  Status: Queue Low
+
+### pdca_ai_marketing（20:30:47）
+AI Marketing PDCA:
+  Queue: pending=0 ready=36 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 43
+  Status: Queue Low
+
+### pdca_ai_marketing（21:00:46）
+AI Marketing PDCA:
+  Queue: pending=0 ready=43 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 50
+  Status: Queue Low
+
+### pdca_ai_marketing（21:30:48）
+AI Marketing PDCA:
+  Queue: pending=0 ready=50 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Queue Low
+
+### pdca_ai_marketing（22:00:46）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（22:31:02）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（23:00:46）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（23:30:46）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+
+## 2026-03-04
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（07:00:01）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（07:31:18）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（08:01:01）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=7 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+

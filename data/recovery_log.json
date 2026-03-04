@@ -1,13 +1,32 @@
 {
-  "seo_batch_2026-02-25": 1,
-  "healthcheck_2026-02-25": 1,
-  "ai_marketing_2026-02-28": 2,
-  "healthcheck_2026-02-28": 2,
-  "seo_batch_2026-03-02": 2,
-  "ai_marketing_2026-03-02": 2,
-  "competitor_2026-03-02": 2,
-  "seo_batch_2026-03-03": 2,
-  "ai_marketing_2026-03-03": 2,
-  "healthcheck_2026-03-03": 2,
-  "competitor_2026-03-03": 2
+  "jobs": {
+    "seo_batch": {
+      "date": "2026-03-04",
+      "retries": 0,
+      "status": "config_error",
+      "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
+      "last_alert_ts": "2026-03-04T13:00:00.799261"
+    },
+    "healthcheck": {
+      "date": "2026-03-04",
+      "retries": 3,
+      "status": "recovered",
+      "last_error": "",
+      "last_alert_ts": "2026-03-04T09:30:00.902335"
+    },
+    "ai_marketing": {
+      "date": "2026-03-04",
+      "retries": 3,
+      "status": "retry_exhausted",
+      "last_error": "",
+      "last_alert_ts": "2026-03-04T13:00:00.800645"
+    },
+    "competitor": {
+      "date": "2026-03-04",
+      "retries": 0,
+      "status": "config_error",
+      "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
+      "last_alert_ts": "2026-03-04T10:30:00.486312"
+    }
+  }
 }

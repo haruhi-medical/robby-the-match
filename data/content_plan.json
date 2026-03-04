@@ -1,72 +1,72 @@
 {
-  "created": "2026-03-01T22:07:16.440992",
-  "updated": "2026-03-01T22:08:31.265598",
-  "week_of": "2026-03-01",
+  "created": "2026-03-03T21:30:55.401426",
+  "updated": "2026-03-03T21:33:25.629114",
+  "week_of": "2026-03-03",
   "total": 7,
-  "queue_pending_at_creation": 3,
+  "queue_pending_at_creation": 0,
   "plans": [
     {
       "day": 1,
       "category": "あるある",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_ある_0301_01",
-      "hint": "退院する患者さんが「もう会いたくないです」って笑った。最高の褒め言葉だった",
-      "hook_idea": "ロビー、褒め言葉が怖い"
+      "content_id": "ai_ある_0303_01",
+      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた。全部、担当患者からもらったやつ",
+      "hook_idea": "ロビー、PHSストラップが重い"
     },
     {
       "day": 2,
       "category": "あるある",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0301_02",
+      "content_id": "ai_ある_0303_02",
       "hint": "ナースコール鳴らない夜勤が一番怖い。静かすぎる病棟は何かが起きる前兆",
-      "hook_idea": "ロビー、静寂が怖い"
+      "hook_idea": "ロビー、夜勤の静寂が怖い"
     },
     {
       "day": 3,
-      "category": "あるある",
+      "category": "給与",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0301_03",
-      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
-      "hook_idea": "ロビー、看護師向いてない？"
+      "content_id": "ai_給与_0303_03",
+      "hint": "手取り24万。奨学金3万、家賃6万、車2万。残り13万で「命を預かる仕事」をしている",
+      "hook_idea": "ロビー、24万で命預かる"
     },
     {
       "day": 4,
       "category": "給与",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
-      "hint": "夜勤1回の手当8,000円。16時間拘束。時給換算したら深夜のコンビニと同じ",
-      "hook_idea": "ロビー、8,000円の価値"
+      "status": "generated",
+      "content_id": "ai_給与_0303_04",
+      "hint": "「お金のために働いてるんじゃない」。それを言い続けた結果が手取り24万",
+      "hook_idea": "ロビー、お金のために働く"
     },
     {
       "day": 5,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
-      "hint": "夜勤明け、駅のホームで電車を2本見送った。座れる電車を待つ体力すら残ってないから立てないだけ",
-      "hook_idea": "ロビー、座れない"
+      "status": "generated",
+      "content_id": "ai_ある_0303_05",
+      "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた夜勤明け",
+      "hook_idea": "ロビー、異常なしって言った後"
     },
     {
       "day": 6,
-      "category": "地域ネタ",
+      "category": "転職",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
-      "hint": "横浜で手取り28万。小田原で手取り24万。でも家に帰って夕飯を作れるのは小田原の方",
-      "hook_idea": "ロビー、24万の選択"
+      "status": "generated",
+      "content_id": "ai_転職_0303_06",
+      "hint": "「3年は続けなさい」。それ、誰のための3年？病院の離職率のための3年だった",
+      "hook_idea": "ロビー、3年は続けなさい"
     },
     {
       "day": 7,
       "category": "転職",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
-      "hint": "転職した先輩に「どう？」って聞いたら「前の方が良かった」。でも戻れない理由がある",
-      "hook_idea": "ロビー、戻れない"
+      "status": "generated",
+      "content_id": "ai_転職_0303_07",
+      "hint": "面接で「前の職場の不満は？」と聞かれた。不満がないなら転職しない。この茶番",
+      "hook_idea": "ロビー、面接で不満聞かれた"
     }
   ]
 }

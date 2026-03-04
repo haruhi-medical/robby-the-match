@@ -12,6 +12,14 @@ python3 "$PROJECT_DIR/scripts/tiktok_analytics.py" --update >> "$LOG" 2>&1 || ec
 echo "[INFO] パフォーマンス分析実行中..." >> "$LOG"
 python3 "$PROJECT_DIR/scripts/analyze_performance.py" --analyze >> "$LOG" 2>&1 || echo "[WARN] パフォーマンス分析失敗" >> "$LOG"
 
+# Claude CLI認証確認（cron環境対策）
+ensure_env || {
+  echo "[ABORT] Claude CLI 認証エラーのためスキップ" >> "$LOG"
+  update_agent_state "daily_reviewer" "config_error"
+  write_heartbeat "review" $EXIT_CONFIG_ERROR
+  exit $EXIT_CONFIG_ERROR
+}
+
 run_claude "
 STATE.mdを読め。data/performance_analysis.jsonも読め（パフォーマンス分析結果）。data/kpi_log.csvも読め。
 
@@ -39,6 +47,15 @@ STATE.mdを読め。data/performance_analysis.jsonも読め（パフォーマン
 10. STATE.md全面更新（KPI、全セクション最新化）
 11. PROGRESS.mdに「明日やること」記載
 " 30
+JOB_EXIT=$?
+
+# CONFIG_ERROR(78)の場合はgit_sync等を実行せずに終了
+if [ "$JOB_EXIT" -eq "$EXIT_CONFIG_ERROR" ]; then
+  echo "[ABORT] Claude CLI 認証エラー (run_claude exit=$JOB_EXIT)" >> "$LOG"
+  update_agent_state "daily_reviewer" "config_error"
+  write_heartbeat "review" $JOB_EXIT
+  exit $EXIT_CONFIG_ERROR
+fi
 
 # === sharedContext更新（他エージェント向け） ===
 echo "[INFO] sharedContext更新中..." >> "$LOG"
@@ -95,4 +112,5 @@ slack_notify "📊 ${TODAY} 日次レポート
 ━━━━━━━━━━━━━━━━━━
 ${TODAY_REPORT:-データなし}
 ━━━━━━━━━━━━━━━━━━" "daily"
-echo "[$TODAY] pdca_review完了" >> "$LOG"
+write_heartbeat "review" $JOB_EXIT
+echo "[$TODAY] pdca_review完了 (exit=$JOB_EXIT)" >> "$LOG"

@@ -107,7 +107,11 @@ CAPTION_TEMPLATES = {
 
 
 def load_env():
-    """Load .env file"""
+    """Load .env file.
+
+    Called at module level AND in main() to ensure env vars are available
+    even in cron environments where .zshrc is not sourced.
+    """
     if ENV_FILE.exists():
         with open(ENV_FILE) as f:
             for line in f:
@@ -115,6 +119,10 @@ def load_env():
                 if line and not line.startswith('#') and '=' in line:
                     key, value = line.split('=', 1)
                     os.environ.setdefault(key.strip(), value.strip())
+
+
+# Load .env at module level for cron compatibility
+load_env()
 
 
 # ============================================================

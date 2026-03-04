@@ -1,22 +1,13 @@
 {
-  "version": 1,
-  "description": "投稿時間A/Bテスト用スケジュール。曜日別に異なる時間で投稿。",
-  "test_phase": true,
   "schedule": {
-    "Mon": "17:30",
-    "Tue": "12:00",
-    "Wed": "21:00",
-    "Thu": "17:30",
-    "Fri": "18:00",
-    "Sat": "20:00"
+    "monday": "17:30",
+    "tuesday": "12:00",
+    "wednesday": "21:00",
+    "thursday": "17:30",
+    "friday": "18:00",
+    "saturday": "20:00",
+    "sunday": "skip"
   },
-  "notes": {
-    "Mon": "帰宅中（プライマリ時間帯）",
-    "Tue": "昼休憩（テスト時間帯）",
-    "Wed": "リラックスタイム（テスト時間帯）",
-    "Thu": "帰宅中（プライマリ時間帯）",
-    "Fri": "帰宅後（やや遅め）",
-    "Sat": "週末夜（テスト時間帯）"
-  },
-  "results": []
+  "random_offset_minutes": 25,
+  "notes": "A/B testing different times. Nurse shift patterns: 17:30=post-dayshift, 12:00=lunch, 21:00=relaxation"
 }

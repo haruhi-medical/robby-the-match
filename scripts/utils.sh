@@ -6,6 +6,12 @@ PROJECT_DIR="$HOME/robby-the-match"
 cd "$PROJECT_DIR"
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.npm-global/bin:$PATH"
 
+# Prevent nested Claude Code session detection in cron/subprocess
+unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT 2>/dev/null || true
+
+# Exit code for configuration errors (auth failures etc.) that should NOT be retried by watchdog
+EXIT_CONFIG_ERROR=78
+
 # cron環境用: gh CLIのトークンをgit認証に使う
 export GH_CONFIG_DIR="$HOME/.config/gh"
 if command -v gh &>/dev/null; then
@@ -26,6 +32,57 @@ TODAY=$(date +%Y-%m-%d)
 NOW=$(date +%H:%M:%S)
 DOW=$(date +%u)
 WEEK_NUM=$(date +%V)
+
+# ==========================================
+# ensure_env: cron環境でのClaude CLI認証確認
+# ==========================================
+# run_claude()を使うスクリプトは、run_claude呼び出し前にこれを実行する。
+# 戻り値:
+#   0 = OK（Claude CLIが使える状態）
+#   EXIT_CONFIG_ERROR(78) = 認証エラー（リトライ不可）
+ensure_env() {
+  local log_target="${LOG:-/dev/stderr}"
+
+  # Step 1: .envを再確認（既にsource済みだが念のため）
+  if [ -f "$PROJECT_DIR/.env" ]; then
+    set -a
+    source "$PROJECT_DIR/.env"
+    set +a
+  fi
+
+  # Step 2: claude CLIの存在確認
+  if ! command -v claude &>/dev/null; then
+    echo "[CONFIG_ERROR] claude CLI が見つかりません（PATH=$PATH）" >> "$log_target"
+    return $EXIT_CONFIG_ERROR
+  fi
+
+  # Step 3: 認証状態の確認
+  # claude auth status はJSON出力。loggedIn:true を確認。
+  local auth_output
+  auth_output=$(claude auth status 2>&1) || true
+
+  if echo "$auth_output" | grep -q '"loggedIn": true'; then
+    echo "[ENV_OK] Claude CLI 認証確認済み" >> "$log_target"
+    return 0
+  fi
+
+  # loggedIn:false の場合
+  # ANTHROPIC_API_KEY がセットされていれば claude -p は API key モードで動く可能性がある
+  if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    echo "[ENV_OK] Claude CLI未ログインだがANTHROPIC_API_KEY設定済み — APIキーモードで続行" >> "$log_target"
+    return 0
+  fi
+
+  # 認証もAPIキーもない → 設定エラー
+  echo "[CONFIG_ERROR] Claude CLI 認証失敗。ログインもAPIキーもありません。" >> "$log_target"
+  echo "[CONFIG_ERROR] 手動で 'claude auth login' または .env に ANTHROPIC_API_KEY を設定してください。" >> "$log_target"
+  echo "[CONFIG_ERROR] auth status出力: $auth_output" >> "$log_target"
+
+  # Slack通知（可能であれば）
+  slack_notify "⚠️ [CONFIG_ERROR] Claude CLI 認証失敗 — cron環境でログインできません。手動で 'claude auth login' を実行するか、.envにANTHROPIC_API_KEYを設定してください。" 2>/dev/null || true
+
+  return $EXIT_CONFIG_ERROR
+}
 
 init_log() {
   local name=$1
@@ -98,6 +155,12 @@ run_claude() {
   fi
   echo "[DEBUG] timeout_cmd=$timeout_cmd, max=${max_minutes}min" >> "$LOG"
 
+  # ログの現在位置を記録（後で新規出力のみチェックするため）
+  local log_size_before=0
+  if [ -f "$LOG" ]; then
+    log_size_before=$(wc -c < "$LOG" 2>/dev/null || echo 0)
+  fi
+
   if [ -n "$timeout_cmd" ]; then
     $timeout_cmd "${max_seconds}s" claude -p "$prompt" \
       --dangerously-skip-permissions \
@@ -129,7 +192,20 @@ run_claude() {
   if [ $exit_code -eq 124 ]; then
     echo "[TIMEOUT] ${max_minutes}分超過" >> "$LOG"
     slack_notify "⏰ タイムアウト（${max_minutes}分）"
+    return 124
   fi
+
+  # 認証エラー検出: claude CLIの出力に "Not logged in" や "Please run /login" が含まれるか確認
+  if [ -f "$LOG" ]; then
+    local new_output
+    new_output=$(tail -c +"$((log_size_before + 1))" "$LOG" 2>/dev/null || true)
+    if echo "$new_output" | grep -qiE "Not logged in|Please run /login|authentication.*failed|auth.*token.*expired"; then
+      echo "[CONFIG_ERROR] Claude CLI 認証エラーを検出。exit_code=$exit_code → $EXIT_CONFIG_ERROR に変更" >> "$LOG"
+      slack_notify "⚠️ [CONFIG_ERROR] Claude CLI 認証エラー — 手動で 'claude auth login' を実行してください" 2>/dev/null || true
+      return $EXIT_CONFIG_ERROR
+    fi
+  fi
+
   return $exit_code
 }
 

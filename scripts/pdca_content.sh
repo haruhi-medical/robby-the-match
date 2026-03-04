@@ -8,6 +8,14 @@ init_log "pdca_content"
 update_agent_state "content_creator" "running"
 check_instructions "content_creator"
 
+# === Claude CLI 環境チェック ===
+ensure_env || {
+    echo "[CONFIG_ERROR] Claude CLI利用不可。スキップ。" >> "$LOG"
+    handle_failure "content_creator" "Claude CLI not available in cron env"
+    write_heartbeat "content" $EXIT_CONFIG_ERROR
+    exit $EXIT_CONFIG_ERROR
+}
+
 # === エージェント間タスク消費 ===
 echo "[INFO] タスク確認中..." >> "$LOG"
 TASKS=$(consume_agent_tasks "content_creator")

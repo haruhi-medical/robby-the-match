@@ -32,6 +32,14 @@ echo "[INFO] =============================================" >> "$LOG"
 echo "[INFO] Weekly Content Planning v1.0 - $TODAY (Week $WEEK_NUM)" >> "$LOG"
 echo "[INFO] =============================================" >> "$LOG"
 
+# === Claude CLI 環境チェック ===
+ensure_env || {
+    echo "[CONFIG_ERROR] Claude CLI利用不可。スキップ。" >> "$LOG"
+    handle_failure "$AGENT_NAME" "Claude CLI not available in cron env"
+    write_heartbeat "weekly_content" $EXIT_CONFIG_ERROR
+    exit $EXIT_CONFIG_ERROR
+}
+
 # --- Agent state: running ---
 update_agent_state "$AGENT_NAME" "running"
 

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-03T12:08:58.760223",
+  "updated": "2026-03-03T21:34:00.998376",
   "posts": [
     {
       "id": 1,
@@ -244,9 +244,9 @@
       ],
       "cta_type": "soft",
       "content_type": "regional",
-      "status": "video_created",
+      "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_NEW-3_20260303.mp4",
-      "posted_at": null,
+      "posted_at": "2026-03-03T12:10:17.456882",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -255,7 +255,8 @@
         "saves": null,
         "comments": null
       },
-      "verified": true
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 8,
@@ -300,18 +301,32 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "failed",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": "slide_generation_failed",
+      "error": null,
       "performance": {
         "views": null,
         "likes": null,
         "saves": null,
         "comments": null
       },
-      "ai_score": null
+      "ai_score": 6,
+      "ai_review": {
+        "score": 6,
+        "persona_fit": 8,
+        "hook_strength": 4,
+        "legal_compliance": 9,
+        "cta_quality": 7,
+        "empathy": 8,
+        "issues": [
+          "スライド数が7枚を超えています",
+          "ハッシュタグが5個を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に収め、ハッシュタグを5個以内に絞り、フックを強化することで改善できる"
+      },
+      "scheduled_for": "2026-03-03 17:30"
     },
     {
       "id": 10,
@@ -328,18 +343,2273 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "failed",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": "slide_generation_failed",
+      "error": null,
       "performance": {
         "views": null,
         "likes": null,
         "saves": null,
         "comments": null
       },
-      "ai_score": null
+      "ai_score": 6,
+      "ai_review": {
+        "score": 6,
+        "persona_fit": 8,
+        "hook_strength": 4,
+        "legal_compliance": 9,
+        "cta_quality": 3,
+        "empathy": 7,
+        "issues": [
+          "フックが弱い",
+          "CTAが不明確",
+          "スライド数が多すぎる"
+        ],
+        "suggestion": "看護師の痛み点やニーズに寄り添った強いフックを作り、CTAを明確化してスライド数を減らす"
+      },
+      "scheduled_for": "2026-03-04 12:00"
+    },
+    {
+      "id": 11,
+      "content_id": "ai_給与_0303_01",
+      "batch": "ai_batch_20260303_1800",
+      "slide_dir": "content/generated/ai_batch_20260303_1800/ai_給与_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_1800/ai_給与_0303_01.json",
+      "caption": "神奈川県の看護師さん、給与に満足してる？\n\nロビーが調べた結果、看護師の平均給与は約280万だった。\n\nもっと良い給与をもたらす方法を探したい人、プロフのリンクから相談してね。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#給与",
+        "#転職"
+      ],
+      "cta_type": "hard",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 5,
+        "empathy": 8,
+        "issues": [
+          "CTAの8:2ルールに従っていない",
+          "ハッシュタグが5個を超えていないが、より関連性の高いタグを選択することが望ましい"
+        ],
+        "suggestion": "看護師のリアルな気持ちに寄り添った共感表現を強化し、CTAのバランスを調整することで、より効果的な投稿になる可能性がある"
+      },
+      "scheduled_for": "2026-03-05 21:00"
+    },
+    {
+      "id": 12,
+      "content_id": "ai_地域_0303_02",
+      "batch": "ai_batch_20260303_1800",
+      "slide_dir": "content/generated/ai_batch_20260303_1800/ai_地域_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_1800/ai_地域_0303_02.json",
+      "caption": "神奈川県の看護師さん\n\n給与に不満持ってる人は、8割なんです。\n\n友達にシェアして、知ってたかって驚かせて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#ナース"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 5,
+        "empathy": 8,
+        "issues": [
+          "フックが弱い",
+          "CTAがソフトすぎる"
+        ],
+        "suggestion": "フックを強化し、ハードCTAを追加してみてください"
+      },
+      "scheduled_for": "2026-03-06 17:30"
+    },
+    {
+      "id": 13,
+      "content_id": "ai_ある_0303_03",
+      "batch": "ai_batch_20260303_1800",
+      "slide_dir": "content/generated/ai_batch_20260303_1800/ai_ある_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_1800/ai_ある_0303_03.json",
+      "caption": "看護師の侮辱、神奈川県で起きた\n\n看護師の平均給与は手取り24万。\n\nこの情報、役に立った？保存しておくと後で見返せるよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#看護師"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 6,
+        "empathy": 9,
+        "issues": [
+          "CTAがソフトCTAのみでハードCTAが不足している",
+          "スライド枚数が7枚を超えている"
+        ],
+        "suggestion": "ハードCTAを追加し、スライド枚数を7枚以内に調整することで、より効果的な投稿になる可能性がある"
+      },
+      "scheduled_for": "2026-03-07 12:00"
+    },
+    {
+      "id": 14,
+      "content_id": "ai_給与_0303_04",
+      "batch": "ai_batch_20260303_1800",
+      "slide_dir": "content/generated/ai_batch_20260303_1800/ai_給与_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_1800/ai_給与_0303_04.json",
+      "caption": "夜勤明け、電車を2本見送ったことがある?\n\n神奈川県の看護師の平均手取りは24万。深夜コンビニバイトと同じ時給\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#横浜看護",
+        "#ナース 給与",
+        "#看護師転職",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 7,
+        "empathy": 8,
+        "issues": [
+          "フックが弱い",
+          "ハッシュタグが5個を超えている"
+        ],
+        "suggestion": "ロビーの口調をもっと反映させて、ハッシュタグを5個以内に調整する"
+      },
+      "scheduled_for": "2026-03-08 21:00"
+    },
+    {
+      "id": 15,
+      "content_id": "ai_ある_0303_05",
+      "batch": "ai_batch_20260303_1800",
+      "slide_dir": "content/generated/ai_batch_20260303_1800/ai_ある_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_1800/ai_ある_0303_05.json",
+      "caption": "夜勤明け、駅のホームで電車2本見送った。神奈川県西部の看護師さん\n\n看護師の市場価値って、本当は高いんだ\n\nこれ知らなかった人、正直に手あげて🙋",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースジョブ",
+        "#看護師転職",
+        "#看護師年収"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "CTAがソフトCTAに偏りすぎている",
+          "ハッシュタグが5個以内ではない"
+        ],
+        "suggestion": "CTAのバランスを調整し、ハッシュタグを5個以内に絞り込むとより効果的になる"
+      },
+      "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 16,
+      "content_id": "ai_ある_0303_01",
+      "batch": "ai_batch_20260303_1830",
+      "slide_dir": "content/generated/ai_batch_20260303_1830/ai_ある_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_1830/ai_ある_0303_01.json",
+      "caption": "神奈川県の看護師さん\n\n手数料30%、間違ってるよ\n\nロビーに無料で相談してみて",
+      "hashtags": [
+        "#看護師",
+        "#神奈川",
+        "#転職",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 5,
+        "empathy": 8,
+        "issues": [
+          "ハッシュタグが5個以内ではない",
+          "CTAがハードCTAのみである"
+        ],
+        "suggestion": "ソフトCTAとハードCTAのバランスを取ることで、ユーザーのエンゲージメントを高めることができる"
+      },
+      "scheduled_for": "2026-03-03 17:30"
+    },
+    {
+      "id": 17,
+      "content_id": "ai_転職_0303_02",
+      "batch": "ai_batch_20260303_1830",
+      "slide_dir": "content/generated/ai_batch_20260303_1830/ai_転職_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_1830/ai_転職_0303_02.json",
+      "caption": "看護師を辞める自由がある\n\nロビーが調べてみたんだけど...\n\nこの情報、保存しておいてください",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#自由"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、CTAをより明確にすることを提案します"
+      },
+      "scheduled_for": "2026-03-04 12:00"
+    },
+    {
+      "id": 18,
+      "content_id": "ai_地域_0303_03",
+      "batch": "ai_batch_20260303_1830",
+      "slide_dir": "content/generated/ai_batch_20260303_1830/ai_地域_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_1830/ai_地域_0303_03.json",
+      "caption": "神奈川県西部の看護師って、給料だけじゃ満足できないの？\n\nロビーが調べたんだけど、市場価値って給料だけじゃ決まらないんだ。\n\n保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#秦野市",
+        "#看護師転職",
+        "#ナースロビー",
+        "#神奈川県西部"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 8,
+        "empathy": 7,
+        "issues": [
+          "フックが弱い",
+          "ハッシュタグが5個を超えていないか確認する"
+        ],
+        "suggestion": "最初のスライドをよりアピール力のあるものに変更し、看護師の共感を高める内容にする"
+      },
+      "scheduled_for": "2026-03-05 21:00"
+    },
+    {
+      "id": 19,
+      "content_id": "ai_転職_0303_04",
+      "batch": "ai_batch_20260303_1830",
+      "slide_dir": "content/generated/ai_batch_20260303_1830/ai_転職_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_1830/ai_転職_0303_04.json",
+      "caption": "夜勤明け、電車を2本見送った\n\n転職先の給料は経験年数に比例して上がる\n\nこの情報、役に立ちそう？",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師年収",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが強すぎず、CTAが少し弱い"
+        ],
+        "suggestion": "もっと具体的なデータや事例を入れて、看護師のリアルな気持ちに寄り添う内容にし、CTAを強化する"
+      },
+      "scheduled_for": "2026-03-06 17:30"
+    },
+    {
+      "id": 20,
+      "content_id": "ai_ある_0303_05",
+      "batch": "ai_batch_20260303_1830",
+      "slide_dir": "content/generated/ai_batch_20260303_1830/ai_ある_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_1830/ai_ある_0303_05.json",
+      "caption": "夜勤明け、神奈川の駅で電車2本見送った\n\n夜勤やめたら月8万減る？\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#夜勤あるある",
+        "#看護師転職",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に絞り、情報を凝縮して看護師の共感度を高める"
+      },
+      "scheduled_for": "2026-03-07 12:00"
+    },
+    {
+      "id": 21,
+      "content_id": "ai_ある_0303_06",
+      "batch": "ai_batch_20260303_1830",
+      "slide_dir": "content/generated/ai_batch_20260303_1830/ai_ある_0303_06",
+      "json_path": "content/generated/ai_batch_20260303_1830/ai_ある_0303_06.json",
+      "caption": "神奈川県の看護師さん、夜勤明けに電車2本見送ったことはない？\n\n転職先選びは、超具体的な情報で選ぶべきなんだ。\n\n保存しておくと後で見返せるよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師あるある",
+        "#転職先選び",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、情報を凝縮して看護師さんの関心を維持する"
+      },
+      "scheduled_for": "2026-03-08 21:00"
+    },
+    {
+      "id": 22,
+      "content_id": "ai_ある_0303_07",
+      "batch": "ai_batch_20260303_1830",
+      "slide_dir": "content/generated/ai_batch_20260303_1830/ai_ある_0303_07",
+      "json_path": "content/generated/ai_batch_20260303_1830/ai_ある_0303_07.json",
+      "caption": "夜勤明け、駅のホームで電車2本見送った\n\n神奈川県の看護師さん、低賃金の仕事を続けてしまう\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#神奈川県",
+        "#ナースライフ",
+        "#看護師転職",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、情報を凝縮して看護師さんの共感を高める"
+      },
+      "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 23,
+      "content_id": "ai_ある_0303_01",
+      "batch": "ai_batch_20260303_1900",
+      "slide_dir": "content/generated/ai_batch_20260303_1900/ai_ある_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_1900/ai_ある_0303_01.json",
+      "caption": "夜勤明け、神奈川県の駅で電車見送ったことある？\n\n手取り24万、Deep夜コンビニバイトと同じ時給って思う？\n\n気になる人はプロフのリンクから相談してみて",
+      "hashtags": [
+        "#神奈川県",
+        "#ナース転職",
+        "#看護師あるある",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "ハードCTAが2つあり、8:2ルールに違反している"
+        ],
+        "suggestion": "Slide 6と7を統合し、ソフトCTAとハードCTAのバランスを調整する"
+      },
+      "scheduled_for": "2026-03-03 17:30"
+    },
+    {
+      "id": 24,
+      "content_id": "ai_ある_0303_02",
+      "batch": "ai_batch_20260303_1900",
+      "slide_dir": "content/generated/ai_batch_20260303_1900/ai_ある_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_1900/ai_ある_0303_02.json",
+      "caption": "夜勤明け、電車を2本見送った\n\n看護師の市場価値って何だろう。\n\n知らなかった人、いいねで教えて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#夜勤"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています",
+          "ハッシュタグが5個を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に絞り、ハッシュタグを5個以内に調整して、看護師の市場価値をより明確に伝える内容に改善する"
+      },
+      "scheduled_for": "2026-03-04 12:00"
+    },
+    {
+      "id": 25,
+      "content_id": "ai_給与_0303_03",
+      "batch": "ai_batch_20260303_1900",
+      "slide_dir": "content/generated/ai_batch_20260303_1900/ai_給与_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_1900/ai_給与_0303_03.json",
+      "caption": "神奈川県の看護師さん、年収24万？\n\nロビーが調べてみたら、同じ仕事をする看護師同士で30万も差が出ることがわかった。\n\n同じ状況の看護師さんに教えてあげて。シェアしてくれると嬉しいよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師給与",
+        "#ナース転職",
+        "#看護師市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚に収めることで、情報の濃度を高め、ユーザーの興味を維持できる可能性があります"
+      },
+      "scheduled_for": "2026-03-05 21:00"
+    },
+    {
+      "id": 26,
+      "content_id": "ai_地域_0303_04",
+      "batch": "ai_batch_20260303_1900",
+      "slide_dir": "content/generated/ai_batch_20260303_1900/ai_地域_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_1900/ai_地域_0303_04.json",
+      "caption": "神奈川県西部の看護師さん\n\nロビーの話、もっと知りたい人はいいね押してね\n\n保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#ナース"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 7,
+        "empathy": 8,
+        "issues": [
+          "フックが弱い",
+          "ハッシュタグが少ない"
+        ],
+        "suggestion": "もっと具体的な看護師の悩みを取り上げて、フックを強化し、ハッシュタグを増やしてみてください"
+      },
+      "scheduled_for": "2026-03-06 17:30"
+    },
+    {
+      "id": 27,
+      "content_id": "ai_給与_0303_05",
+      "batch": "ai_batch_20260303_1900",
+      "slide_dir": "content/generated/ai_batch_20260303_1900/ai_給与_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_1900/ai_給与_0303_05.json",
+      "caption": "神奈川の看護師さん\n\n手取り24万、納得できる？\n\nロビーが調べてみた",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師年収"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが弱い",
+          "ハードCTAが不足"
+        ],
+        "suggestion": "初めのフックを強化し、ハードCTAを適切に組み込むとより効果的になる"
+      },
+      "scheduled_for": "2026-03-07 12:00"
+    },
+    {
+      "id": 28,
+      "content_id": "ai_ある_0303_06",
+      "batch": "ai_batch_20260303_1900",
+      "slide_dir": "content/generated/ai_batch_20260303_1900/ai_ある_0303_06",
+      "json_path": "content/generated/ai_batch_20260303_1900/ai_ある_0303_06.json",
+      "caption": "夜勤明け、神奈川の駅のホームで電車2本見送った\n\n冷静に考えなくちゃいけないんだ。\n\n保存しておいてね",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#夜勤",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、看護師のストレスや年収に関する具体的なデータを追加して説得力を高める"
+      },
+      "scheduled_for": "2026-03-08 21:00"
+    },
+    {
+      "id": 29,
+      "content_id": "ai_ある_0303_07",
+      "batch": "ai_batch_20260303_1900",
+      "slide_dir": "content/generated/ai_batch_20260303_1900/ai_ある_0303_07",
+      "json_path": "content/generated/ai_batch_20260303_1900/ai_ある_0303_07.json",
+      "caption": "神奈川県西部の看護師さん\n\nロビーが調べてみた、手数料0%の転職先がある\n\n保存しておいてね",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師励まし",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "ハッシュタグが5個を超えている"
+        ],
+        "suggestion": "ハッシュタグを5個以内に絞り、フックを強化することで更に効果的な投稿になる可能性がある"
+      },
+      "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 30,
+      "content_id": "ai_給与_0303_01",
+      "batch": "ai_batch_20260303_1930",
+      "slide_dir": "content/generated/ai_batch_20260303_1930/ai_給与_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_1930/ai_給与_0303_01.json",
+      "caption": "神奈川県の看護師さん、給与安すぎない？\n\nロビーが調べてみたけど、手数料30%だと年収450万の紹介で手数料135万になるんだ。\n\nロビーにLINEで相談してみて。手数料10%で転職サポートするよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#給与安い",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています",
+          "ハッシュタグが5個を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に収め、ハッシュタグを5個以内に絞り込み、CTAのバランスを調整することで、投稿の品質を向上させることができます"
+      },
+      "scheduled_for": "2026-03-03 17:30"
+    },
+    {
+      "id": 31,
+      "content_id": "ai_ある_0303_02",
+      "batch": "ai_batch_20260303_1930",
+      "slide_dir": "content/generated/ai_batch_20260303_1930/ai_ある_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_1930/ai_ある_0303_02.json",
+      "caption": "神奈川県の看護師さん\n\n夜勤明けの思い出、あるある？\n\nこの情報、役に立った？保存しておくと後で見返せるよ。",
+      "hashtags": [
+        "#看護師あるある",
+        "#神奈川県",
+        "#ナースロビー",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、CTAのバランスを調整することで、より効果的な投稿になる可能性があります"
+      },
+      "scheduled_for": "2026-03-04 12:00"
+    },
+    {
+      "id": 32,
+      "content_id": "ai_ある_0303_03",
+      "batch": "ai_batch_20260303_1930",
+      "slide_dir": "content/generated/ai_batch_20260303_1930/ai_ある_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_1930/ai_ある_0303_03.json",
+      "caption": "夜勤明け、神奈川の駅のホームで電車を見送る看護師さん\n\n市場価値30万以上の看護師が、手取り24万で働いている\n\nこれ知らなかった人、正直に手あげて🙋",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースロビー",
+        "#看護師転職",
+        "#夜勤明け"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 6,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い",
+          "CTAがソフトすぎる"
+        ],
+        "suggestion": "1枚目のキャプションを20文字以内に短縮し、CTAをハードCTAに変更してみて"
+      },
+      "scheduled_for": "2026-03-05 21:00"
+    },
+    {
+      "id": 33,
+      "content_id": "ai_ある_0303_04",
+      "batch": "ai_batch_20260303_1930",
+      "slide_dir": "content/generated/ai_batch_20260303_1930/ai_ある_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_1930/ai_ある_0303_04.json",
+      "caption": "神奈川県の看護師さん\n\n夜勤明けの顔、すごい疲れてる\n\nわかる！って思った人、いいねで教えてね",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師市場価値",
+        "#ロビーの知恵"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、ハードCTAを適切に組み込むとより効果的です"
+      },
+      "scheduled_for": "2026-03-06 17:30"
+    },
+    {
+      "id": 34,
+      "content_id": "ai_トレ_0303_05",
+      "batch": "ai_batch_20260303_1930",
+      "slide_dir": "content/generated/ai_batch_20260303_1930/ai_トレ_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_1930/ai_トレ_0303_05.json",
+      "caption": "看護師の毎日が 疲れる理由\n\n看護師の市場価値を高めるために、もっと頑張る必要があるんだ。\n\nこの情報、役に立った？保存しておくと後で見返せるよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#労働条件"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 8,
+        "empathy": 7,
+        "issues": [
+          "スライドが多すぎる",
+          "ハッシュタグが5個を超えていないが、効果的なタグか?",
+          "CTAが2回出ている"
+        ],
+        "suggestion": "スライド数を減らし、看護師のリアルな声やデータをもっと活用して、共感度を高める"
+      },
+      "scheduled_for": "2026-03-07 12:00"
+    },
+    {
+      "id": 35,
+      "content_id": "ai_ある_0303_06",
+      "batch": "ai_batch_20260303_1930",
+      "slide_dir": "content/generated/ai_batch_20260303_1930/ai_ある_0303_06",
+      "json_path": "content/generated/ai_batch_20260303_1930/ai_ある_0303_06.json",
+      "caption": "夜勤明け、神奈川県の駅で電車見送り\n\n看護師の市場価値は、実際の価値よりも低く抑えられているんだ\n\n保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#ナースライフ",
+        "#看護師転職",
+        "#疲弊"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "ハッシュタグが5個以内ではない",
+          "スライド枚数が7枚を超えている"
+        ],
+        "suggestion": "ハッシュタグを調整し、スライド枚数を7枚以内に収めることで、品質をさらに向上させることができる。"
+      },
+      "scheduled_for": "2026-03-08 21:00"
+    },
+    {
+      "id": 36,
+      "content_id": "ai_給与_0303_07",
+      "batch": "ai_batch_20260303_1930",
+      "slide_dir": "content/generated/ai_batch_20260303_1930/ai_給与_0303_07",
+      "json_path": "content/generated/ai_batch_20260303_1930/ai_給与_0303_07.json",
+      "caption": "神奈川県西部の看護師さん\n\n給与の差、知ってた？\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#給与格差",
+        "#看護師転職",
+        "#ナースジョブ"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが少し長い",
+          "ハッシュタグが5個を超えている"
+        ],
+        "suggestion": "フックを20文字以内に短縮し、ハッシュタグを5個以内に絞り込むとより効果的になる"
+      },
+      "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 37,
+      "content_id": "ai_ある_0303_01",
+      "batch": "ai_batch_20260303_2000",
+      "slide_dir": "content/generated/ai_batch_20260303_2000/ai_ある_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_2000/ai_ある_0303_01.json",
+      "caption": "夜勤明け、駅のホームで電車見送った\n\n看護師さんの待遇を変える\n\nプロフのリンクからロビーに相談してみて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "ハッシュタグが5個以内ではない",
+          "スライド枚数が7枚を超えている"
+        ],
+        "suggestion": "ハッシュタグを調整し、スライド枚数を7枚以内に収めることで、投稿の品質を向上させることができる。"
+      },
+      "scheduled_for": "2026-03-03 17:30"
+    },
+    {
+      "id": 38,
+      "content_id": "ai_地域_0303_02",
+      "batch": "ai_batch_20260303_2000",
+      "slide_dir": "content/generated/ai_batch_20260303_2000/ai_地域_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_2000/ai_地域_0303_02.json",
+      "caption": "神奈川県の看護師さん\n\n夜勤明けの駅のホームで電車2本見送った。\n\nロビーに聞きたいこと、コメントで教えて。次の投稿で答えるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#看護師"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に制限し、冗長な部分を削減することで、投稿の効率と効果を高めることができます"
+      },
+      "scheduled_for": "2026-03-04 12:00"
+    },
+    {
+      "id": 39,
+      "content_id": "ai_地域_0303_03",
+      "batch": "ai_batch_20260303_2000",
+      "slide_dir": "content/generated/ai_batch_20260303_2000/ai_地域_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_2000/ai_地域_0303_03.json",
+      "caption": "神奈川県の看護師さん\n\n夜勤明け、電車を2本見送ったら\n\n同じ境遇の看護師さんにシェアして",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#手数料30%",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "ハッシュタグが5個以内ではない",
+          "スライド数が7枚を超えている"
+        ],
+        "suggestion": "スライド数を7枚以内に絞り、ハッシュタグを5個以内に調整することで、投稿の品質をさらに向上させることができる"
+      },
+      "scheduled_for": "2026-03-05 21:00"
+    },
+    {
+      "id": 40,
+      "content_id": "ai_給与_0303_04",
+      "batch": "ai_batch_20260303_2000",
+      "slide_dir": "content/generated/ai_batch_20260303_2000/ai_給与_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_2000/ai_給与_0303_04.json",
+      "caption": "神奈川県の看護師さん\n\n年収450万と月収28万\n\nこの情報、役に立った？保存しておくと後で見返せるよ。",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース給与",
+        "#看護師転職",
+        "#給与相談"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に収めることをお勧めします"
+      },
+      "scheduled_for": "2026-03-06 17:30"
+    },
+    {
+      "id": 41,
+      "content_id": "ai_ある_0303_05",
+      "batch": "ai_batch_20260303_2000",
+      "slide_dir": "content/generated/ai_batch_20260303_2000/ai_ある_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_2000/ai_ある_0303_05.json",
+      "caption": "夜勤明け、電車で帰宅\n\n手取り24万。深夜コンビニバイトと同じ時給\n\nわかる！って人はいいね押してほしい",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師あるある",
+        "#転職支援",
+        "#夜勤明け"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが弱い",
+          "ハッシュタグが多すぎる"
+        ],
+        "suggestion": "夜勤明けのストレスや給料への不満をより具体的に描写し、ハッシュタグを3つ以下に絞る"
+      },
+      "scheduled_for": "2026-03-07 12:00"
+    },
+    {
+      "id": 42,
+      "content_id": "ai_転職_0303_06",
+      "batch": "ai_batch_20260303_2000",
+      "slide_dir": "content/generated/ai_batch_20260303_2000/ai_転職_0303_06",
+      "json_path": "content/generated/ai_batch_20260303_2000/ai_転職_0303_06.json",
+      "caption": "夜勤明けのロビー\n\n看護師の自由ってある？\n\n保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#自由の価値",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド枚数が7枚を超えています"
+        ],
+        "suggestion": "スライド枚数を7枚以内に調整し、CTAをより明確にすることで、投稿の効果を高めることができます"
+      },
+      "scheduled_for": "2026-03-08 21:00"
+    },
+    {
+      "id": 43,
+      "content_id": "ai_転職_0303_07",
+      "batch": "ai_batch_20260303_2000",
+      "slide_dir": "content/generated/ai_batch_20260303_2000/ai_転職_0303_07",
+      "json_path": "content/generated/ai_batch_20260303_2000/ai_転職_0303_07.json",
+      "caption": "神奈川県の看護師さん\n\n手数料30%払ってた？\n\nこの情報、役に立った？保存しておくと後で見返せるよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#ナース",
+        "#転職",
+        "#手数料"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 8,
+        "empathy": 7,
+        "issues": [
+          "スライド数が7枚を超えています",
+          "ハッシュタグが5個を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に絞り、ハッシュタグを5個以内に調整して、見やすさと情報の集中性を高めましょう"
+      },
+      "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 44,
+      "content_id": "ai_給与_0303_01",
+      "batch": "ai_batch_20260303_2030",
+      "slide_dir": "content/generated/ai_batch_20260303_2030/ai_給与_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_2030/ai_給与_0303_01.json",
+      "caption": "神奈川県の看護師は年間80万も損している?\n\n手数料の差で年収が変わるんだ。\n\nロビーにLINEで相談してみて。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#給与改革",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 5,
+        "empathy": 8,
+        "issues": [
+          "ハッシュタグが5個を超えています",
+          "CTAがハードCTAのみでソフトCTAが不足しています"
+        ],
+        "suggestion": "ハッシュタグを5個以内に絞り込み、ソフトCTAを追加して8:2ルールに従うように改善してください"
+      },
+      "scheduled_for": "2026-03-03 17:30"
+    },
+    {
+      "id": 45,
+      "content_id": "ai_ある_0303_02",
+      "batch": "ai_batch_20260303_2030",
+      "slide_dir": "content/generated/ai_batch_20260303_2030/ai_ある_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_2030/ai_ある_0303_02.json",
+      "caption": "神奈川県の夜勤明け\n\n看護師さんの市場価値、誰も教えてくれない\n\nわかる！って思った人、いいねで教えてね",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースライフ",
+        "#夜勤明け"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが少し弱い",
+          "ハッシュタグが5個以内ではない"
+        ],
+        "suggestion": "1枚目のフックを強化し、ハッシュタグの数を調整することで、投稿の効果を高めることができる"
+      },
+      "scheduled_for": "2026-03-04 12:00"
+    },
+    {
+      "id": 46,
+      "content_id": "ai_ある_0303_03",
+      "batch": "ai_batch_20260303_2030",
+      "slide_dir": "content/generated/ai_batch_20260303_2030/ai_ある_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_2030/ai_ある_0303_03.json",
+      "caption": "夜勤明け、電車を待つロビー\n\n看護師の市場価値は高まっている\n\n友達にシェアしてみて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師あるある",
+        "#夜勤ライフ",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "CTAがソフトCTAに偏っている",
+          "ハッシュタグが5個を超えていないか確認する"
+        ],
+        "suggestion": "ハードCTAを追加して8:2ルールを徹底し、より具体的なアクションを促す"
+      },
+      "scheduled_for": "2026-03-05 21:00"
+    },
+    {
+      "id": 47,
+      "content_id": "ai_ある_0303_04",
+      "batch": "ai_batch_20260303_2030",
+      "slide_dir": "content/generated/ai_batch_20260303_2030/ai_ある_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_2030/ai_ある_0303_04.json",
+      "caption": "神奈川県西部の看護師さん、夜勤あるある\n\nロビーが教えてくれたんだけど...\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師あるある",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "ハッシュタグが5個以内ではない",
+          "8枚目は不要"
+        ],
+        "suggestion": "ハッシュタグを調整し、不要なスライドを削除して投稿を簡潔にする"
+      },
+      "scheduled_for": "2026-03-06 17:30"
+    },
+    {
+      "id": 48,
+      "content_id": "ai_ある_0303_05",
+      "batch": "ai_batch_20260303_2030",
+      "slide_dir": "content/generated/ai_batch_20260303_2030/ai_ある_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_2030/ai_ある_0303_05.json",
+      "caption": "夜勤明け、駅のホームで電車を見送ったことある？\n\nロビーが夜勤で見送った電車の数は150本超えてる\n\nロビーに聞きたいこと、コメントで教えて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師あるある",
+        "#夜勤明け",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています",
+          "ハードCTAが含まれていません"
+        ],
+        "suggestion": "スライド数を7枚以内に収め、ハードCTAを適切に含めるように改善してください"
+      },
+      "scheduled_for": "2026-03-07 12:00"
+    },
+    {
+      "id": 49,
+      "content_id": "ai_地域_0303_06",
+      "batch": "ai_batch_20260303_2030",
+      "slide_dir": "content/generated/ai_batch_20260303_2030/ai_地域_0303_06",
+      "json_path": "content/generated/ai_batch_20260303_2030/ai_地域_0303_06.json",
+      "caption": "秦野市の駐車場、夜勤明けの看護師を想う\n\n看護師の労働環境を改善するために、駐車場の料金を再考する必要がある。\n\nわかる！って思った人、いいねで教えてね。",
+      "hashtags": [
+        "#秦野市",
+        "#看護師",
+        "#駐車場問題",
+        "#労働環境"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが弱い",
+          "看護師のリアルな気持ちに寄り添っていない部分がある"
+        ],
+        "suggestion": "看護師の具体的なストーリーやデータを交えて、駐車場問題の痛み点を強調することで、共感度とフック強度を高めることができる"
+      },
+      "scheduled_for": "2026-03-08 21:00"
+    },
+    {
+      "id": 50,
+      "content_id": "ai_給与_0303_07",
+      "batch": "ai_batch_20260303_2030",
+      "slide_dir": "content/generated/ai_batch_20260303_2030/ai_給与_0303_07",
+      "json_path": "content/generated/ai_batch_20260303_2030/ai_給与_0303_07.json",
+      "caption": "神奈川県の看護師さん\n\n手取り24万って聞いたら驚いた\n\n同じ金額なのに印象が違うよね。ロビーも同じだよ。\n\nこの情報、役に立ったら保存しておいて。ロビーが調べたから、間違いないよ。",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師給与",
+        "#夜勤明け",
+        "#看護師転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に絞り、情報を凝縮して看護師の共感度を高めることを提案します"
+      },
+      "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 51,
+      "content_id": "ai_ある_0303_01",
+      "batch": "ai_batch_20260303_2100",
+      "slide_dir": "content/generated/ai_batch_20260303_2100/ai_ある_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_2100/ai_ある_0303_01.json",
+      "caption": "夜勤明け、駅のホームで電車2本見送った\n\n看護師の市場価値は、実際の給料より2倍以上高い\n\nロビーにLINEで相談してみて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師あるある",
+        "#転職サポート",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています",
+          "ハッシュタグが5個を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に絞り、ハッシュタグを5個以内に調整して、投稿の質を向上させる"
+      },
+      "scheduled_for": "2026-03-03 17:30"
+    },
+    {
+      "id": 52,
+      "content_id": "ai_ある_0303_02",
+      "batch": "ai_batch_20260303_2100",
+      "slide_dir": "content/generated/ai_batch_20260303_2100/ai_ある_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_2100/ai_ある_0303_02.json",
+      "caption": "夜勤明け、神奈川県の看護師さん\n\n手数料30%の時代、もう終わりにしない？\n\n保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、CTAをより明確にすることで、投稿の効果を高めることができます"
+      },
+      "scheduled_for": "2026-03-04 12:00"
+    },
+    {
+      "id": 53,
+      "content_id": "ai_ある_0303_03",
+      "batch": "ai_batch_20260303_2100",
+      "slide_dir": "content/generated/ai_batch_20260303_2100/ai_ある_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_2100/ai_ある_0303_03.json",
+      "caption": "夜勤明け、駅のホームで電車2本見送った\n\n看護師の市場価値は、勤務年数と給与の2倍\n\nわかる！って思った人、いいねで教えてね",
+      "hashtags": [
+        "#神奈川県",
+        "#ナース転職",
+        "#看護師の働き方改革",
+        "#サンクコスト"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、看護師の市場価値に関する具体的なデータや事例を追加して説得力を高める"
+      },
+      "scheduled_for": "2026-03-05 21:00"
+    },
+    {
+      "id": 54,
+      "content_id": "ai_地域_0303_04",
+      "batch": "ai_batch_20260303_2100",
+      "slide_dir": "content/generated/ai_batch_20260303_2100/ai_地域_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_2100/ai_地域_0303_04.json",
+      "caption": "神奈川県の看護師さん\n\n80万の矛盾に気づいたら、世界が変わった\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、CTAのバランスを調整してみてください"
+      },
+      "scheduled_for": "2026-03-06 17:30"
+    },
+    {
+      "id": 55,
+      "content_id": "ai_トレ_0303_05",
+      "batch": "ai_batch_20260303_2100",
+      "slide_dir": "content/generated/ai_batch_20260303_2100/ai_トレ_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_2100/ai_トレ_0303_05.json",
+      "caption": "看護師の現実、知ってた？\n\nロビーが調べてみた。\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 6,
+      "ai_review": {
+        "score": 6,
+        "persona_fit": 8,
+        "hook_strength": 4,
+        "legal_compliance": 9,
+        "cta_quality": 3,
+        "empathy": 7,
+        "issues": [
+          "フックが弱い",
+          "CTAのバランスが悪い"
+        ],
+        "suggestion": "看護師の痛み点を具体的に示し、ソフトCTAとハードCTAのバランスを調整する"
+      },
+      "scheduled_for": "2026-03-07 12:00"
+    },
+    {
+      "id": 56,
+      "content_id": "ai_地域_0303_06",
+      "batch": "ai_batch_20260303_2100",
+      "slide_dir": "content/generated/ai_batch_20260303_2100/ai_地域_0303_06",
+      "json_path": "content/generated/ai_batch_20260303_2100/ai_地域_0303_06.json",
+      "caption": "夜勤明け、駅のホームで電車2本見送った\n\n神奈川県の看護師は、疲労困憊なのに給料が低い\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#夜勤",
+        "#労働条件"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "スライド枚数が7枚を超えています",
+          "ハッシュタグが5個以内ではありません"
+        ],
+        "suggestion": "スライド枚数を7枚以内に調整し、ハッシュタグを5個以内に絞り込むとより効果的です"
+      },
+      "scheduled_for": "2026-03-08 21:00"
+    },
+    {
+      "id": 57,
+      "content_id": "ai_ある_0303_07",
+      "batch": "ai_batch_20260303_2100",
+      "slide_dir": "content/generated/ai_batch_20260303_2100/ai_ある_0303_07",
+      "json_path": "content/generated/ai_batch_20260303_2100/ai_ある_0303_07.json",
+      "caption": "神奈川県の看護師さん\n\nロビーが5年間の嘘を暴く\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 8,
+        "empathy": 7,
+        "issues": [
+          "1枚目フックが20文字以内ではない",
+          "ハッシュタグが5個以内ではない"
+        ],
+        "suggestion": "1枚目フックを短くし、ハッシュタグを減らしてみてください"
+      },
+      "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 58,
+      "content_id": "ai_ある_0303_01",
+      "batch": "ai_batch_20260303_2130",
+      "slide_dir": "content/generated/ai_batch_20260303_2130/ai_ある_0303_01",
+      "json_path": "content/generated/ai_batch_20260303_2130/ai_ある_0303_01.json",
+      "caption": "夜勤明け、駅のホームで電車2本見送った\n\n手取り24万。命を預かる対価が、深夜コンビニバイトと同じ時給\n\nロビーにLINEで相談してみて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "8枚目は不要。7枚目までで終了すべき"
+        ],
+        "suggestion": "看護師のリアルな声やデータをもっと盛り込むと共感度が高まる"
+      }
+    },
+    {
+      "id": 59,
+      "content_id": "ai_ある_0303_02",
+      "batch": "ai_batch_20260303_2130",
+      "slide_dir": "content/generated/ai_batch_20260303_2130/ai_ある_0303_02",
+      "json_path": "content/generated/ai_batch_20260303_2130/ai_ある_0303_02.json",
+      "caption": "夜勤明け、神奈川県の駅で電車を2本見送ったら\n\n看護師の強みって「思いやり」「忍耐力」「チームワーク」。これが最強スキルなんだよ\n\nこれ、友達に送ったら「知らなかった」って驚いてた。あなたの友達は？",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師あるある",
+        "#転職サポート",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 6,
+        "empathy": 8,
+        "issues": [
+          "CTAがソフトCTAのみで、ハードCTAが不足している"
+        ],
+        "suggestion": "ハードCTAを追加して8:2ルールを満たすようにする"
+      }
+    },
+    {
+      "id": 60,
+      "content_id": "ai_給与_0303_03",
+      "batch": "ai_batch_20260303_2130",
+      "slide_dir": "content/generated/ai_batch_20260303_2130/ai_給与_0303_03",
+      "json_path": "content/generated/ai_batch_20260303_2130/ai_給与_0303_03.json",
+      "caption": "夜勤明け、電車を待ってる看護師さん\n\n神奈川県西部の病院で24万で命を預かる対価\n\nわかる！って思った人、いいねで教えて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#夜勤明け",
+        "#メンタルアカウンティング"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "1枚目のキャプションが20文字以内ではない",
+          "ハッシュタグが5個を超えている"
+        ],
+        "suggestion": "1枚目のキャプションを短くし、ハッシュタグを5個以内に調整することで、品質を向上させることができる"
+      }
+    },
+    {
+      "id": 61,
+      "content_id": "ai_給与_0303_04",
+      "batch": "ai_batch_20260303_2130",
+      "slide_dir": "content/generated/ai_batch_20260303_2130/ai_給与_0303_04",
+      "json_path": "content/generated/ai_batch_20260303_2130/ai_給与_0303_04.json",
+      "caption": "夜勤明け、神奈川県の駅で電車2本見送った\n\n同じ仕事をしていても、勤める病院によって給料が違うのが不公平\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#ナース",
+        "#給与",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "スライド数が7枚を超えています"
+        ],
+        "suggestion": "スライド数を7枚以内に調整し、ロビーの決め台詞を自然に組み込むとより効果的です"
+      }
+    },
+    {
+      "id": 62,
+      "content_id": "ai_ある_0303_05",
+      "batch": "ai_batch_20260303_2130",
+      "slide_dir": "content/generated/ai_batch_20260303_2130/ai_ある_0303_05",
+      "json_path": "content/generated/ai_batch_20260303_2130/ai_ある_0303_05.json",
+      "caption": "看護師さん、疲れてる?\n\nロビーが調べてみた。看護師の平均年収は324万円。\n\nロビーに聞いてみよう",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 5,
+        "empathy": 8,
+        "issues": [
+          "フックが弱い",
+          "CTAが曖昧"
+        ],
+        "suggestion": "看護師の痛み点を具体的に示し、CTAを明確にすることで改善できる"
+      }
+    },
+    {
+      "id": 63,
+      "content_id": "ai_転職_0303_06",
+      "batch": "ai_batch_20260303_2130",
+      "slide_dir": "content/generated/ai_batch_20260303_2130/ai_転職_0303_06",
+      "json_path": "content/generated/ai_batch_20260303_2130/ai_転職_0303_06.json",
+      "caption": "看護師の自由を知っていますか？\n\n看護師は辞める自由がある\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川県",
+        "#夜勤明け",
+        "#自由"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックがやや弱い",
+          "ハッシュタグが5個以内ではない"
+        ],
+        "suggestion": "看護師の痛み点をより具体的に示し、ハッシュタグを調整することでより効果的な投稿になる可能性がある"
+      }
+    },
+    {
+      "id": 64,
+      "content_id": "ai_転職_0303_07",
+      "batch": "ai_batch_20260303_2130",
+      "slide_dir": "content/generated/ai_batch_20260303_2130/ai_転職_0303_07",
+      "json_path": "content/generated/ai_batch_20260303_2130/ai_転職_0303_07.json",
+      "caption": "夜勤明け、神奈川県で電車を見送ったことはない?\n\n知っておくべきことがあるんだ\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#手数料10%",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "ハッシュタグが5個以内ではない"
+        ],
+        "suggestion": "ハッシュタグを調整し、より具体的なCTAを追加してみて"
+      }
     }
   ],
   "archive": [

@@ -44,6 +44,24 @@
       gtag('config', 'G-X4G2BYW13B');
     </script>
 
+    <!-- Meta Pixel（Facebook/Instagram広告計測用） -->
+    <!-- TODO: PIXEL_ID を Meta Business Manager で取得後に置換 -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', 'PIXEL_ID');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+
     <!-- JSON-LD: Organization -->
     <script type="application/ld+json">
     {
@@ -280,18 +298,17 @@
     }
     </script>
 
-    <!-- JSON-LD: Person (E-E-A-T) -->
+    <!-- JSON-LD: Organization (E-E-A-T) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "平島禎之",
-      "jobTitle": "代表・キャリアアドバイザー",
-      "worksFor": {
+      "@type": "Organization",
+      "name": "ナースロビー編集部",
+      "parentOrganization": {
         "@type": "Organization",
         "name": "はるひメディカルサービス"
       },
-      "description": "看護師紹介事業の代表。手数料10%モデルで医療人材紹介の常識を変える。神奈川県内の病院と看護師の最適なマッチングを実現。",
+      "description": "看護師紹介事業の編集部。手数料10%モデルで医療人材紹介の常識を変える。神奈川県内の病院と看護師の最適なマッチングを実現。",
       "knowsAbout": ["看護師転職", "医療人材紹介", "看護師キャリア支援", "神奈川県 医療機関"]
     }
     </script>

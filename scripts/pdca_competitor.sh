@@ -4,6 +4,14 @@ init_log "pdca_competitor"
 update_agent_state "competitor_analyst" "running"
 check_instructions "competitor_analyst"
 
+# Claude CLI認証確認（cron環境対策）
+ensure_env || {
+  echo "[ABORT] Claude CLI 認証エラーのためスキップ" >> "$LOG"
+  update_agent_state "competitor_analyst" "config_error"
+  write_heartbeat "competitor" $EXIT_CONFIG_ERROR
+  exit $EXIT_CONFIG_ERROR
+}
+
 run_claude "
 STATE.mdを読め。docs/seo_strategy.mdも読め。
 
@@ -15,6 +23,14 @@ STATE.mdを読め。docs/seo_strategy.mdも読め。
 5. PROGRESS.mdに記録
 " 20
 JOB_EXIT=$?
+
+# CONFIG_ERROR(78)の場合はgit_sync等を実行せずに終了
+if [ "$JOB_EXIT" -eq "$EXIT_CONFIG_ERROR" ]; then
+  echo "[ABORT] Claude CLI 認証エラー (run_claude exit=$JOB_EXIT)" >> "$LOG"
+  update_agent_state "competitor_analyst" "config_error"
+  write_heartbeat "competitor" $JOB_EXIT
+  exit $EXIT_CONFIG_ERROR
+fi
 
 git_sync "competitor: ${TODAY} 競合監視"
 update_state "競合監視"
