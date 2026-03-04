@@ -21,11 +21,15 @@
   // 年収データ（透明な計算式で信頼感を出す）
   // --------------------------------------------------
   var SALARY_TABLE = {
-    kensei:       { base: { min: 24, max: 30 }, nightPer: 10000, nightCount: 4, bonus: 3.5 },
-    shonan_west:  { base: { min: 25, max: 32 }, nightPer: 11000, nightCount: 4, bonus: 3.8 },
-    shonan_east:  { base: { min: 26, max: 33 }, nightPer: 11000, nightCount: 5, bonus: 4.0 },
-    kenoh:        { base: { min: 25, max: 32 }, nightPer: 11000, nightCount: 4, bonus: 3.8 },
-    undecided:    { base: { min: 25, max: 31 }, nightPer: 10500, nightCount: 4, bonus: 3.7 },
+    yokohama:       { base: { min: 27, max: 35 }, nightPer: 12000, nightCount: 4, bonus: 4.0 },
+    kawasaki:       { base: { min: 27, max: 34 }, nightPer: 12000, nightCount: 4, bonus: 4.0 },
+    sagamihara:     { base: { min: 26, max: 33 }, nightPer: 11000, nightCount: 4, bonus: 3.8 },
+    yokosuka_miura: { base: { min: 26, max: 33 }, nightPer: 11000, nightCount: 4, bonus: 3.8 },
+    shonan_east:    { base: { min: 26, max: 33 }, nightPer: 11000, nightCount: 5, bonus: 4.0 },
+    shonan_west:    { base: { min: 25, max: 32 }, nightPer: 11000, nightCount: 4, bonus: 3.8 },
+    kenoh:          { base: { min: 25, max: 32 }, nightPer: 11000, nightCount: 4, bonus: 3.8 },
+    kensei:         { base: { min: 24, max: 30 }, nightPer: 10000, nightCount: 4, bonus: 3.5 },
+    undecided:      { base: { min: 25, max: 31 }, nightPer: 10500, nightCount: 4, bonus: 3.7 },
   };
 
   // 経験年数別の基本給補正（万円加算）
@@ -38,24 +42,36 @@
   // --------------------------------------------------
   var PRESCRIPTED = {
     areas: [
-      { label: "県西（小田原・南足柄・箱根）", value: "kensei" },
-      { label: "湘南西部（平塚・秦野・伊勢原・大磯）", value: "shonan_west" },
+      { label: "横浜市", value: "yokohama" },
+      { label: "川崎市", value: "kawasaki" },
+      { label: "相模原市", value: "sagamihara" },
+      { label: "横須賀・鎌倉・三浦", value: "yokosuka_miura" },
       { label: "湘南東部（藤沢・茅ヶ崎）", value: "shonan_east" },
-      { label: "県央（厚木・海老名）", value: "kenoh" },
+      { label: "湘南西部（平塚・秦野・伊勢原）", value: "shonan_west" },
+      { label: "県央（厚木・海老名・大和）", value: "kenoh" },
+      { label: "県西（小田原・南足柄・箱根）", value: "kensei" },
       { label: "まだ決めていない", value: "undecided" },
     ],
     areaLabels: {
-      kensei: "県西",
-      shonan_west: "湘南西部",
+      yokohama: "横浜",
+      kawasaki: "川崎",
+      sagamihara: "相模原",
+      yokosuka_miura: "横須賀・三浦",
       shonan_east: "湘南東部",
+      shonan_west: "湘南西部",
       kenoh: "県央",
+      kensei: "県西",
       undecided: "神奈川県",
     },
     areaCities: {
-      kensei: ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原"],
-      shonan_west: ["平塚", "秦野", "伊勢原", "大磯", "二宮"],
+      yokohama: ["横浜"],
+      kawasaki: ["川崎"],
+      sagamihara: ["相模原"],
+      yokosuka_miura: ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
       shonan_east: ["藤沢", "茅ヶ崎", "寒川"],
+      shonan_west: ["平塚", "秦野", "伊勢原", "大磯", "二宮"],
       kenoh: ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
+      kensei: ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原"],
     },
     // 関心事: 看護師転職理由の実態に基づく順序
     concerns: [
@@ -74,11 +90,15 @@
     ],
     // エリア別の施設数（BOT表示件数 / DB全体件数）
     areaFacilityCounts: {
-      kensei: 12,
-      shonan_west: 8,
+      yokohama: 10,
+      kawasaki: 5,
+      sagamihara: 3,
+      yokosuka_miura: 3,
       shonan_east: 2,
+      shonan_west: 8,
       kenoh: 1,
-      undecided: 23,
+      kensei: 12,
+      undecided: 44,
     },
   };
 

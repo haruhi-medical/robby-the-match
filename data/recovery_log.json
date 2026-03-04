@@ -5,28 +5,35 @@
       "retries": 0,
       "status": "config_error",
       "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
-      "last_alert_ts": "2026-03-04T13:00:00.799261"
+      "last_alert_ts": "2026-03-04T21:30:00.684780"
     },
     "healthcheck": {
       "date": "2026-03-04",
       "retries": 3,
       "status": "recovered",
       "last_error": "",
-      "last_alert_ts": "2026-03-04T09:30:00.902335"
+      "last_alert_ts": "2026-03-04T22:30:00.746225"
     },
     "ai_marketing": {
       "date": "2026-03-04",
       "retries": 3,
       "status": "retry_exhausted",
       "last_error": "",
-      "last_alert_ts": "2026-03-04T13:00:00.800645"
+      "last_alert_ts": "2026-03-04T21:30:00.686448"
     },
     "competitor": {
       "date": "2026-03-04",
       "retries": 0,
       "status": "config_error",
       "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
-      "last_alert_ts": "2026-03-04T10:30:00.486312"
+      "last_alert_ts": "2026-03-04T19:30:00.963534"
+    },
+    "content": {
+      "date": "2026-03-04",
+      "retries": 0,
+      "status": "config_error",
+      "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
+      "last_alert_ts": "2026-03-04T20:00:01.170412"
     }
   }
 }

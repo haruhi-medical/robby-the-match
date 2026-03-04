@@ -110,5 +110,23 @@
     "status": "dry_run",
     "slides": 5,
     "format": "reel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260228_day5_fri_A05",
+    "timestamp": "2026-03-04T15:02:08.449527",
+    "status": "dry_run",
+    "slides": 5,
+    "format": "single"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260228_day5_fri_A05",
+    "timestamp": "2026-03-04T21:21:09.108773",
+    "status": "success",
+    "media_id": "3845394658290237656_45884164083",
+    "code": "DVdlhFkkwDY",
+    "url": "https://www.instagram.com/p/DVdlhFkkwDY/",
+    "format": "single"
   }
 ]

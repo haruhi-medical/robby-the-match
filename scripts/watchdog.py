@@ -61,21 +61,19 @@ ALERT_COOLDOWN_SECONDS = 4 * 60 * 60
 
 # エラー分類パターン: ログにこれらの文字列が含まれていれば CONFIG_ERROR（リトライ不要）
 CONFIG_ERROR_PATTERNS = [
-    "Not logged in",
-    "Please run /login",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN",
     "authentication failed",
     "auth token expired",
-    "ANTHROPIC_API_KEY",
     "API key",
 ]
 
 # CONFIG_ERRORパターンに対応する人間向けメッセージ
 CONFIG_ERROR_MESSAGES = {
-    "Not logged in": "認証エラー (Not logged in) — Claude CLIの再ログインが必要",
-    "Please run /login": "認証エラー (Not logged in) — Claude CLIの再ログインが必要",
+    "CLOUDFLARE_ACCOUNT_ID": "認証エラー — CLOUDFLARE_ACCOUNT_IDが未設定",
+    "CLOUDFLARE_API_TOKEN": "認証エラー — CLOUDFLARE_API_TOKENが未設定または無効",
     "authentication failed": "認証エラー — APIキーまたはトークンの確認が必要",
     "auth token expired": "認証エラー — トークン期限切れ。再認証が必要",
-    "ANTHROPIC_API_KEY": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
     "API key": "認証エラー — APIキーの確認が必要",
 }
 

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-03T21:34:00.998376",
+  "updated": "2026-03-04T21:24:16.574932",
   "posts": [
     {
       "id": 1,
@@ -273,8 +273,8 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0301_01_20260304.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -2343,7 +2343,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2366,7 +2366,8 @@
           "8枚目は不要。7枚目までで終了すべき"
         ],
         "suggestion": "看護師のリアルな声やデータをもっと盛り込むと共感度が高まる"
-      }
+      },
+      "scheduled_for": "2026-03-03 17:30"
     },
     {
       "id": 59,
@@ -2383,7 +2384,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2406,7 +2407,8 @@
           "CTAがソフトCTAのみで、ハードCTAが不足している"
         ],
         "suggestion": "ハードCTAを追加して8:2ルールを満たすようにする"
-      }
+      },
+      "scheduled_for": "2026-03-04 12:00"
     },
     {
       "id": 60,
@@ -2423,7 +2425,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2447,7 +2449,8 @@
           "ハッシュタグが5個を超えている"
         ],
         "suggestion": "1枚目のキャプションを短くし、ハッシュタグを5個以内に調整することで、品質を向上させることができる"
-      }
+      },
+      "scheduled_for": "2026-03-05 21:00"
     },
     {
       "id": 61,
@@ -2464,7 +2467,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2487,7 +2490,8 @@
           "スライド数が7枚を超えています"
         ],
         "suggestion": "スライド数を7枚以内に調整し、ロビーの決め台詞を自然に組み込むとより効果的です"
-      }
+      },
+      "scheduled_for": "2026-03-06 17:30"
     },
     {
       "id": 62,
@@ -2504,7 +2508,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2528,7 +2532,8 @@
           "CTAが曖昧"
         ],
         "suggestion": "看護師の痛み点を具体的に示し、CTAを明確にすることで改善できる"
-      }
+      },
+      "scheduled_for": "2026-03-07 12:00"
     },
     {
       "id": 63,
@@ -2545,7 +2550,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2569,7 +2574,8 @@
           "ハッシュタグが5個以内ではない"
         ],
         "suggestion": "看護師の痛み点をより具体的に示し、ハッシュタグを調整することでより効果的な投稿になる可能性がある"
-      }
+      },
+      "scheduled_for": "2026-03-08 21:00"
     },
     {
       "id": 64,
@@ -2586,7 +2592,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2609,7 +2615,8 @@
           "ハッシュタグが5個以内ではない"
         ],
         "suggestion": "ハッシュタグを調整し、より具体的なCTAを追加してみて"
-      }
+      },
+      "scheduled_for": "2026-03-09 17:30"
     }
   ],
   "archive": [

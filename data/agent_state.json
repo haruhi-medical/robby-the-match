@@ -3,10 +3,10 @@
     "seo_optimizer": "2026-03-04T04:00:02",
     "health_monitor": "2026-03-04T09:01:23",
     "competitor_analyst": "2026-03-04T10:00:02",
-    "content_creator": "2026-03-03T15:00:31",
-    "daily_reviewer": "2026-03-03T23:00:19",
+    "content_creator": "2026-03-04T15:00:02",
+    "daily_reviewer": "2026-03-04T23:00:00",
     "weekly_strategist": "2026-03-01T06:00:04",
-    "sns_poster": "2026-03-03T12:10:18",
+    "sns_poster": "2026-03-04T21:25:15",
     "ai_marketing_orchestrator": "2026-03-04T08:01:02",
     "weekly_content_planner": "2026-03-01T05:00:27"
   },
@@ -14,8 +14,8 @@
     "seo_optimizer": "config_error",
     "health_monitor": "completed",
     "competitor_analyst": "config_error",
-    "content_creator": "completed",
-    "daily_reviewer": "config_error",
+    "content_creator": "failed",
+    "daily_reviewer": "running",
     "weekly_strategist": "completed",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
@@ -41,16 +41,16 @@
       "サービス紹介": 0,
       "トレンド": 0
     },
-    "totalPostsThisWeek": 6,
+    "totalPostsThisWeek": 8,
     "lastDeployTimestamp": null,
     "knownIssues": [],
-    "lastAnalysis": "2026-03-02T23:00:16",
+    "lastAnalysis": "2026-03-04T23:00:17",
     "recommendations": [
       "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。",
       "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
     ],
-    "queueRemaining": 2,
+    "queueRemaining": 0,
     "lastMarketingPDCA": "2026-03-04 08:01:01",
     "queuePending": 57,
     "dailyGeneratedCount": 0,
@@ -62,7 +62,7 @@
       "highPerformingPatterns": [],
       "failedPatterns": [],
       "contentIdCounter": 0,
-      "lastAnalysisDate": "2026-03-03",
+      "lastAnalysisDate": "2026-03-04",
       "bestHookPatterns": [],
       "avgMetrics": {
         "views": 0,
@@ -90,13 +90,13 @@
       "trendingTopics": []
     },
     "sns_poster": {
-      "totalPosted": 7,
+      "totalPosted": 8,
       "lastPostedContentId": null,
       "postingMethod": "tiktok-uploader",
       "authStatus": "cookie_required",
       "queueFile": "data/posting_queue.json",
       "averageViews": 0,
-      "lastAnalysisDate": "2026-03-03"
+      "lastAnalysisDate": "2026-03-04"
     },
     "weekly_content_planner": {
       "lastWeeklyRun": "2026-03-01",

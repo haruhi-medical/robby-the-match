@@ -12,46 +12,20 @@ python3 "$PROJECT_DIR/scripts/tiktok_analytics.py" --update >> "$LOG" 2>&1 || ec
 echo "[INFO] パフォーマンス分析実行中..." >> "$LOG"
 python3 "$PROJECT_DIR/scripts/analyze_performance.py" --analyze >> "$LOG" 2>&1 || echo "[WARN] パフォーマンス分析失敗" >> "$LOG"
 
-# Claude CLI認証確認（cron環境対策）
-ensure_env || {
-  echo "[ABORT] Claude CLI 認証エラーのためスキップ" >> "$LOG"
+# Cloudflare Workers AI認証確認
+ensure_cf_env || {
+  echo "[ABORT] Cloudflare認証エラーのためスキップ" >> "$LOG"
   update_agent_state "daily_reviewer" "config_error"
   write_heartbeat "review" $EXIT_CONFIG_ERROR
   exit $EXIT_CONFIG_ERROR
 }
 
-run_claude "
-STATE.mdを読め。data/performance_analysis.jsonも読め（パフォーマンス分析結果）。data/kpi_log.csvも読め。
-
-【日次レビュー+即時改善サイクル】サブエージェントでデータ収集と改善を同時実行。
-
-■ Check
-1. 今日の全ログ確認（seo_batch, competitor, content, sns_post）
-2. data/performance_analysis.json のパフォーマンス分析結果を確認
-3. data/kpi_log.csv のKPIトレンドを確認
-4. エラー確認（ログにERROR/WARN/TIMEOUTをgrep）
-5. data/agent_state.json で全エージェントの稼働状態を確認
-
-■ Do
-6. PROGRESS.mdに日次サマリ追記:
-   - 子ページ総数、今日の追加数
-   - TikTok: 投稿数/再生数/フォロワー数
-   - SEO施策数
-   - エラー数
-   - Agent Team稼働状況
-7. 改善点があればコード修正して即実行
-8. 明日のコンテンツ素材があるか確認→なければSlack警告
-9. STATE.mdのKPI欄を最新データで更新
-
-■ Act
-10. STATE.md全面更新（KPI、全セクション最新化）
-11. PROGRESS.mdに「明日やること」記載
-" 30
+# CF AI で日次レビュー
+python3 "$PROJECT_DIR/scripts/pdca_ai_engine.py" --job review >> "$LOG" 2>&1
 JOB_EXIT=$?
 
-# CONFIG_ERROR(78)の場合はgit_sync等を実行せずに終了
 if [ "$JOB_EXIT" -eq "$EXIT_CONFIG_ERROR" ]; then
-  echo "[ABORT] Claude CLI 認証エラー (run_claude exit=$JOB_EXIT)" >> "$LOG"
+  echo "[ABORT] Cloudflare認証エラー (exit=$JOB_EXIT)" >> "$LOG"
   update_agent_state "daily_reviewer" "config_error"
   write_heartbeat "review" $JOB_EXIT
   exit $EXIT_CONFIG_ERROR
@@ -108,9 +82,5 @@ update_state "日次レビュー"
 
 TODAY_REPORT=$(sed -n "/## ${TODAY}/,/## [0-9]/p" PROGRESS.md 2>/dev/null | head -50)
 update_agent_state "daily_reviewer" "completed"
-slack_notify "📊 ${TODAY} 日次レポート
-━━━━━━━━━━━━━━━━━━
-${TODAY_REPORT:-データなし}
-━━━━━━━━━━━━━━━━━━" "daily"
 write_heartbeat "review" $JOB_EXIT
 echo "[$TODAY] pdca_review完了 (exit=$JOB_EXIT)" >> "$LOG"
