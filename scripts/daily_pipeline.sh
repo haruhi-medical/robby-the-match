@@ -12,7 +12,7 @@ DOW=$(date +%u)  # 1=月曜 ... 7=日曜
 DOW_NAME=$(date +%A)
 
 echo "========================================"
-echo "ROBBY THE MATCH 日次パイプライン"
+echo "ナースロビー 日次パイプライン"
 echo "========================================"
 echo "日付: $TODAY ($DOW_NAME)"
 echo "時刻: $(date +%H:%M:%S)"

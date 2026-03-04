@@ -1,5 +1,5 @@
 #!/bin/bash
-# ROBBY THE MATCH 共通関数
+# ナースロビー 共通関数
 # 全PDCAスクリプトはこれをsourceして使う
 
 PROJECT_DIR="$HOME/robby-the-match"
@@ -82,6 +82,29 @@ ensure_env() {
   slack_notify "⚠️ [CONFIG_ERROR] Claude CLI 認証失敗 — cron環境でログインできません。手動で 'claude auth login' を実行するか、.envにANTHROPIC_API_KEYを設定してください。" 2>/dev/null || true
 
   return $EXIT_CONFIG_ERROR
+}
+
+# ==========================================
+# ensure_cf_env: Cloudflare Workers AI認証確認
+# ==========================================
+# run_claudeの代替。CF AIを使うスクリプトはこれを実行する。
+ensure_cf_env() {
+  local log_target="${LOG:-/dev/stderr}"
+
+  if [ -f "$PROJECT_DIR/.env" ]; then
+    set -a
+    source "$PROJECT_DIR/.env"
+    set +a
+  fi
+
+  if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] || [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+    echo "[CONFIG_ERROR] CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN not set in .env" >> "$log_target"
+    slack_notify "⚠️ [CONFIG_ERROR] Cloudflare認証情報が未設定 — .envにCLOUDFLARE_ACCOUNT_IDとCLOUDFLARE_API_TOKENを設定してください" 2>/dev/null || true
+    return $EXIT_CONFIG_ERROR
+  fi
+
+  echo "[ENV_OK] Cloudflare Workers AI認証確認済み" >> "$log_target"
+  return 0
 }
 
 init_log() {

@@ -1,7 +1,7 @@
-# ROBBY THE MATCH マーケティング & コンバージョン最適化 総合計画書
+# ナースロビー マーケティング & コンバージョン最適化 総合計画書
 
 **作成日:** 2026年2月16日
-**対象サイト:** ROBBY THE MATCH LP（index.html）
+**対象サイト:** ナースロビー LP（index.html）
 **ターゲット:** 神奈川県西部の看護師（転職検討中・情報収集中）
 **目標:** 登録CV率 3%以上 / チャット開始率 8%以上 / CPA 15,000円以下
 
@@ -75,7 +75,7 @@ index.htmlの`<head>`内に以下の構造化データを追加する。
 {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "ROBBY THE MATCH",
+  "name": "ナースロビー",
   "legalName": "株式会社はるひメディカルサービス",
   "url": "https://robby-the-match.com",
   "logo": "https://robby-the-match.com/assets/logo.png",
@@ -104,7 +104,7 @@ index.htmlの`<head>`内に以下の構造化データを追加する。
 {
   "@context": "https://schema.org",
   "@type": "EmploymentAgency",
-  "name": "ROBBY THE MATCH",
+  "name": "ナースロビー",
   "description": "神奈川県西部に特化した看護師転職サービス。手数料10%でAI×人のハイブリッド紹介。",
   "url": "https://robby-the-match.com",
   "areaServed": {
@@ -183,7 +183,7 @@ index.htmlの`<head>`内に以下の構造化データを追加する。
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "name": "ROBBY THE MATCH",
+  "name": "ナースロビー",
   "url": "https://robby-the-match.com",
   "description": "手数料10%の医療人材紹介サービス",
   "inLanguage": "ja"
@@ -197,10 +197,10 @@ index.htmlの`<head>`内に以下の構造化データを追加する。
 
 ```html
 <!-- 改善版 title（32文字以内） -->
-<title>看護師転職 神奈川|手数料10%のROBBY THE MATCH</title>
+<title>看護師転職 神奈川|手数料10%のナースロビー</title>
 
 <!-- 改善版 description（120文字以内、行動喚起含む） -->
-<meta name="description" content="神奈川県西部の看護師転職なら手数料10%のROBBY THE MATCH。AI×専門エージェントのハイブリッドサポートで24時間相談可能。入職後50%返金保証付き。3分で無料登録。">
+<meta name="description" content="神奈川県西部の看護師転職なら手数料10%のナースロビー。AI×専門エージェントのハイブリッドサポートで24時間相談可能。入職後50%返金保証付き。3分で無料登録。">
 
 <!-- canonical URL 追加 -->
 <link rel="canonical" href="https://robby-the-match.com/">
@@ -210,7 +210,7 @@ index.htmlの`<head>`内に以下の構造化データを追加する。
 
 <!-- OGP 修正 -->
 <meta property="og:url" content="https://robby-the-match.com/">
-<meta property="og:site_name" content="ROBBY THE MATCH">
+<meta property="og:site_name" content="ナースロビー">
 <meta property="og:image" content="https://robby-the-match.com/assets/ogp.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -251,7 +251,7 @@ index.htmlの`<head>`内に以下の構造化データを追加する。
 - `#flow`: 変更不要
 
 **img alt属性追加（将来画像追加時）:**
-- ヒーロー画像: `alt="神奈川県西部の看護師転職相談 ROBBY THE MATCH"`
+- ヒーロー画像: `alt="神奈川県西部の看護師転職相談 ナースロビー"`
 - 各セクション画像: 関連キーワードを含む自然な説明文
 
 ### 2.4 内部リンク構造

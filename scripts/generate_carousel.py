@@ -1,32 +1,28 @@
 #!/usr/bin/env python3
 """
-generate_carousel.py -- TikTok/Instagramカルーセルスライド生成エンジン v3.1
+generate_carousel.py -- TikTok/Instagramカルーセルスライド生成エンジン v4.0
 
 プラットフォーム別にネイティブ解像度でレンダリング:
   - TikTok: 1080x1920 (9:16)
   - Instagram Feed: 1080x1350 (4:5) -- ネイティブ描画、リサイズなし
   - Instagram Story: 1080x1920 (9:16)
 
+v4.0 改善点:
+  - 丸ゴシック（ヒラギノ丸ゴ ProN W4）をメインフォントに追加（温かみ＋親しみ）
+  - カテゴリ別テンプレート5種（あるある/給与/転職/地域ネタ/サービス紹介）
+  - 描画プリミティブ群: 吹き出し、アイコン、棒グラフ、数字強調、スワイプ矢印
+  - CTA強化: 保存アイコン、LINE緑ボタン風、信頼バッジ改良
+  - スワイプ誘導: スライド1-3に「スワイプ→」三連矢印
+  - グラデーション背景のバリエーション拡大
+  - --demo-all で全カテゴリ一括デモ生成
+
 v3.1 改善点:
   - Instagram 1080x1350 ネイティブ描画（リサイズによる歪み解消）
   - 禁則処理改善（NO_END_CHARS追加、幅超過時の再測定）
-  - 実ピクセル測定による適応的フォントサイズ決定
-  - テキスト溢れ時の省略記号（...）付き切り詰め
-  - プラットフォーム別ウォーターマーク（@robby15051 / @robby.for.nurse）
-
-v3.0 改善点:
-  - スライド枚数を8枚（Hook + Content x6 + CTA）に最適化
-  - 1枚目フック: 超大文字（120pt+）、10文字以内、完全中央配置
-  - カラーパレット刷新（ピンクコーラル系 / クリーンブルー系）
-  - NumPyベース高速グラデーション
-  - 1行15文字x最大3行制限
-  - CTA: 視認性の高い大型ボタン + パルス風リング装飾
-  - 幾何学装飾（ドットグリッド、コーナーアクセント、リング、斜線）
-  - コンテンツカード: 大きめ角丸 + 多層シャドウ
-  - 全スライド統一カラーパレット
 
 使い方:
   python3 scripts/generate_carousel.py --demo
+  python3 scripts/generate_carousel.py --demo-all
   python3 scripts/generate_carousel.py --queue data/posting_queue.json --output content/generated/
 """
 
@@ -191,9 +187,45 @@ CATEGORY_THEMES = {
         "gradient_a": (26, 120, 240),
         "gradient_b": (0, 200, 170),         # teal
     },
+    # v4.0: 地域ネタ（Location Card テンプレ用）
+    "地域ネタ": {
+        "bg_primary": (255, 245, 235),       # warm cream
+        "bg_secondary": (255, 230, 210),     # peach
+        "bg_dark_top": (50, 25, 10),         # dark amber
+        "bg_dark_bottom": (80, 40, 15),      # brown
+        "accent": (255, 140, 50),            # warm orange
+        "accent_light": (255, 190, 120),     # light orange
+        "accent_dark": (220, 100, 20),       # deep orange
+        "card_bg": (255, 255, 255, 245),
+        "text_primary": (255, 255, 255),
+        "text_on_light": (50, 30, 15),
+        "text_secondary": (255, 200, 160),
+        "gradient_a": (255, 140, 50),        # orange
+        "gradient_b": (255, 90, 90),         # warm red
+    },
+}
+
+# Category alias mapping (content_type -> theme key)
+CATEGORY_ALIASES = {
+    "aruaru": "あるある",
+    "salary": "給与・待遇",
+    "career": "転職・キャリア",
+    "local": "地域ネタ",
+    "trend": "あるある",  # トレンドはあるあると同じテーマ
+    "service": "サービス紹介",
 }
 
 DEFAULT_THEME = CATEGORY_THEMES["あるある"]
+
+# v4.0: Category-specific template types
+CATEGORY_TEMPLATE_TYPE = {
+    "あるある": "chat_bubble",
+    "あるある×AI": "chat_bubble",
+    "給与・待遇": "infographic",
+    "転職・キャリア": "step",
+    "地域ネタ": "location_card",
+    "サービス紹介": "default_enhanced",
+}
 
 # ===========================================================================
 # Instagram Design System — "Warm Coral" palette
@@ -238,6 +270,8 @@ COLOR_BRAND_TEAL = (0, 200, 170)
 FONT_BOLD_PATH = "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc"
 FONT_REGULAR_PATH = "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc"
 FONT_FALLBACK_PATH = "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc"
+# v4.0: Rounded gothic for warm, friendly feel
+FONT_ROUND_PATH = "/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc"
 
 
 # ===========================================================================
@@ -247,13 +281,25 @@ FONT_FALLBACK_PATH = "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc"
 _font_cache: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
 
 
-def load_font(bold: bool, size: int) -> ImageFont.FreeTypeFont:
-    """Load a font with caching. Falls back gracefully."""
-    key = ("bold" if bold else "regular", size)
+def load_font(bold: bool = False, size: int = 36, rounded: bool = False) -> ImageFont.FreeTypeFont:
+    """Load a font with caching. Falls back gracefully.
+
+    Args:
+        bold: Use bold weight (W6).
+        size: Font size in pixels.
+        rounded: Use rounded gothic (ヒラギノ丸ゴ ProN W4) for warm feel.
+    """
+    key = ("round" if rounded else ("bold" if bold else "regular"), size)
     if key in _font_cache:
         return _font_cache[key]
 
-    paths = [FONT_BOLD_PATH, FONT_FALLBACK_PATH] if bold else [FONT_REGULAR_PATH, FONT_FALLBACK_PATH]
+    if rounded:
+        paths = [FONT_ROUND_PATH, FONT_REGULAR_PATH, FONT_FALLBACK_PATH]
+    elif bold:
+        paths = [FONT_BOLD_PATH, FONT_FALLBACK_PATH]
+    else:
+        paths = [FONT_REGULAR_PATH, FONT_FALLBACK_PATH]
+
     for p in paths:
         if Path(p).exists():
             try:
@@ -557,6 +603,313 @@ def _draw_diagonal_stripes(img: Image.Image, theme: dict, alpha: int = 8):
         d.line([(offset, 0), (offset + ih, ih)], fill=color, width=1)
 
     return Image.alpha_composite(img, overlay)
+
+
+# ===========================================================================
+# v4.0 Drawing primitives — category-specific visual elements
+# ===========================================================================
+
+def draw_speech_bubble(
+    img: Image.Image,
+    x: int, y: int, w: int, h: int,
+    text: str,
+    is_right: bool = False,
+    bg_color: tuple = (255, 255, 255, 240),
+    text_color: tuple = (50, 20, 30),
+    tail_size: int = 20,
+    font_size: int = 34,
+) -> Image.Image:
+    """Draw a chat-style speech bubble with tail pointer.
+
+    Args:
+        is_right: If True, bubble appears on right side (ロビー側). Tail points right.
+    """
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+    radius = 24
+
+    # Shadow
+    d.rounded_rectangle(
+        (x + 3, y + 4, x + w + 3, y + h + 4),
+        radius=radius, fill=(0, 0, 0, 20),
+    )
+    # Bubble body
+    d.rounded_rectangle(
+        (x, y, x + w, y + h),
+        radius=radius, fill=bg_color,
+    )
+
+    # Tail triangle
+    tail_y = y + h - 30
+    if is_right:
+        # Tail on right side
+        tx = x + w
+        d.polygon([
+            (tx, tail_y), (tx + tail_size, tail_y + tail_size // 2), (tx, tail_y + tail_size)
+        ], fill=bg_color)
+    else:
+        # Tail on left side
+        tx = x
+        d.polygon([
+            (tx, tail_y), (tx - tail_size, tail_y + tail_size // 2), (tx, tail_y + tail_size)
+        ], fill=bg_color)
+
+    result = Image.alpha_composite(img, overlay)
+
+    # Draw text
+    draw = ImageDraw.Draw(result)
+    font = load_font(bold=False, size=font_size, rounded=True)
+    text_max_w = w - 40
+    lines = wrap_text_jp(text, font, text_max_w)
+    line_h = int(font_size * 1.5)
+    block_h = line_h * len(lines)
+    text_y = y + (h - block_h) // 2
+    for line in lines:
+        draw.text((x + 20, text_y), line, fill=text_color, font=font)
+        text_y += line_h
+
+    return result
+
+
+def draw_icon_stethoscope(draw: ImageDraw.ImageDraw, cx: int, cy: int, size: int = 40, color: tuple = (255, 255, 255)):
+    """Draw a simple stethoscope icon using basic shapes."""
+    r = size // 2
+    # Earpieces (top)
+    draw.ellipse((cx - r, cy - r, cx - r + 8, cy - r + 8), fill=color)
+    draw.ellipse((cx + r - 8, cy - r, cx + r, cy - r + 8), fill=color)
+    # Tubes
+    draw.line([(cx - r + 4, cy - r + 4), (cx, cy + r // 2)], fill=color, width=3)
+    draw.line([(cx + r - 4, cy - r + 4), (cx, cy + r // 2)], fill=color, width=3)
+    # Chest piece (circle at bottom)
+    cr = size // 4
+    draw.ellipse((cx - cr, cy + r // 2, cx + cr, cy + r // 2 + cr * 2), outline=color, width=3)
+
+
+def draw_icon_yen(draw: ImageDraw.ImageDraw, cx: int, cy: int, size: int = 40, color: tuple = (255, 200, 60)):
+    """Draw a yen sign icon."""
+    font = load_font(bold=True, size=size)
+    text = "¥"
+    tw, th = measure_text(text, font)
+    # Circle background
+    r = size // 2 + 8
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(*color[:3], 40))
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(*color[:3], 120), width=2)
+    draw.text((cx - tw // 2, cy - th // 2), text, fill=color, font=font)
+
+
+def draw_icon_heart(draw: ImageDraw.ImageDraw, cx: int, cy: int, size: int = 30, color: tuple = (255, 92, 120)):
+    """Draw a simple heart icon."""
+    r = size // 4
+    # Two circles + triangle to form heart
+    draw.ellipse((cx - r * 2, cy - r, cx, cy + r), fill=color)
+    draw.ellipse((cx, cy - r, cx + r * 2, cy + r), fill=color)
+    draw.polygon([
+        (cx - r * 2, cy), (cx + r * 2, cy), (cx, cy + r * 3)
+    ], fill=color)
+
+
+def draw_icon_location_pin(draw: ImageDraw.ImageDraw, cx: int, cy: int, size: int = 40, color: tuple = (255, 140, 50)):
+    """Draw a location pin icon."""
+    r = size // 3
+    # Pin body (circle)
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=color)
+    # Pin point (triangle)
+    draw.polygon([
+        (cx - r, cy + r // 2), (cx + r, cy + r // 2), (cx, cy + size)
+    ], fill=color)
+    # Inner dot (white)
+    ir = r // 2
+    draw.ellipse((cx - ir, cy - ir, cx + ir, cy + ir), fill=(255, 255, 255))
+
+
+def draw_bar_chart(
+    img: Image.Image,
+    x: int, y: int, w: int, h: int,
+    data: list[dict],
+    bar_color: tuple = (40, 180, 100),
+    highlight_idx: int = -1,
+    highlight_color: tuple = (255, 200, 60),
+) -> Image.Image:
+    """Draw a horizontal bar chart.
+
+    Args:
+        data: List of {label: str, value: int/float, display: str}.
+        highlight_idx: Index of bar to highlight (e.g., ナースロビー).
+    """
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+
+    if not data:
+        return img
+
+    max_val = max(item.get("value", 0) for item in data) or 1
+    n_bars = len(data)
+    label_w = 200
+    bar_area_w = w - label_w - 80
+    bar_h = min(50, (h - 20) // n_bars - 12)
+    gap = 16
+
+    label_font = load_font(bold=False, size=min(28, bar_h - 4), rounded=True)
+    value_font = load_font(bold=True, size=min(26, bar_h - 4))
+
+    total_bars_h = n_bars * (bar_h + gap) - gap
+    start_y = y + (h - total_bars_h) // 2
+
+    for i, item in enumerate(data):
+        by = start_y + i * (bar_h + gap)
+        label = item.get("label", "")
+        value = item.get("value", 0)
+        display = item.get("display", str(value))
+
+        # Label
+        d.text((x, by + (bar_h - 20) // 2), label, fill=(255, 255, 255, 220), font=label_font)
+
+        # Bar
+        bar_x = x + label_w
+        bar_w = int(bar_area_w * (value / max_val))
+        bar_w = max(bar_w, 10)
+        color = highlight_color if i == highlight_idx else bar_color
+        d.rounded_rectangle(
+            (bar_x, by, bar_x + bar_w, by + bar_h),
+            radius=bar_h // 2, fill=(*color[:3], 220),
+        )
+
+        # Value text
+        d.text((bar_x + bar_w + 12, by + (bar_h - 20) // 2), display,
+               fill=(255, 255, 255, 240), font=value_font)
+
+    return Image.alpha_composite(img, overlay)
+
+
+def draw_number_callout(
+    draw: ImageDraw.ImageDraw,
+    cx: int, cy: int,
+    number: str,
+    label: str = "",
+    number_color: tuple = (255, 200, 60),
+    label_color: tuple = (255, 255, 255, 200),
+    number_size: int = 100,
+) -> int:
+    """Draw a large emphasized number with optional label below. Returns bottom Y."""
+    num_font = load_font(bold=True, size=number_size)
+    tw, th = measure_text(number, num_font)
+    draw.text((cx - tw // 2, cy), number, fill=number_color, font=num_font)
+    bottom = cy + int(number_size * 1.2)
+    if label:
+        label_font = load_font(bold=False, size=28, rounded=True)
+        ltw, _ = measure_text(label, label_font)
+        draw.text((cx - ltw // 2, bottom), label, fill=label_color, font=label_font)
+        bottom += 40
+    return bottom
+
+
+def draw_swipe_indicator(
+    img: Image.Image,
+    canvas_w: int, canvas_h: int,
+    safe_bottom: int,
+    style: str = "arrow",
+    color: tuple = (255, 255, 255, 140),
+) -> Image.Image:
+    """Draw a swipe indicator at the bottom of the slide.
+
+    style: "arrow" (three chevrons), "text" (スワイプ→ text)
+    """
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+
+    y_base = canvas_h - safe_bottom - 60
+    cx = canvas_w // 2
+
+    if style == "arrow":
+        # Three animated-style chevrons >>>
+        for i in range(3):
+            alpha = max(40, 140 - i * 40)
+            arrow_color = (*color[:3], alpha)
+            ax = cx + 60 + i * 35
+            # Draw chevron (>)
+            d.line([(ax, y_base - 12), (ax + 14, y_base), (ax, y_base + 12)],
+                   fill=arrow_color, width=3)
+        # "スワイプ" text
+        font = load_font(bold=True, size=24, rounded=True)
+        text = "スワイプ"
+        tw, _ = measure_text(text, font)
+        d.text((cx - tw // 2 - 10, y_base - 12), text, fill=color, font=font)
+    else:
+        font = load_font(bold=True, size=28, rounded=True)
+        text = ">>> スワイプ"
+        tw, _ = measure_text(text, font)
+        d.text((cx - tw // 2, y_base - 14), text, fill=color, font=font)
+
+    return Image.alpha_composite(img, overlay)
+
+
+def draw_step_number(
+    draw: ImageDraw.ImageDraw,
+    cx: int, cy: int,
+    number: int,
+    size: int = 56,
+    bg_color: tuple = (50, 130, 255),
+    text_color: tuple = (255, 255, 255),
+):
+    """Draw a circled step number (for step-type template)."""
+    r = size // 2
+    # Circle
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=bg_color)
+    # Number
+    font = load_font(bold=True, size=int(size * 0.55))
+    text = str(number)
+    tw, th = measure_text(text, font)
+    draw.text((cx - tw // 2, cy - th // 2 - 2), text, fill=text_color, font=font)
+
+
+def draw_area_badge(
+    draw: ImageDraw.ImageDraw,
+    cx: int, y: int,
+    area_name: str,
+    bg_color: tuple = (255, 140, 50),
+    text_color: tuple = (255, 255, 255),
+) -> int:
+    """Draw an area name badge with location pin. Returns bottom Y."""
+    font = load_font(bold=True, size=36, rounded=True)
+    tw, th = measure_text(area_name, font)
+    pad_x, pad_y = 30, 14
+    badge_w = tw + pad_x * 2 + 40  # 40 for pin icon space
+    badge_h = th + pad_y * 2
+    bx = cx - badge_w // 2
+
+    # Badge background
+    draw.rounded_rectangle(
+        (bx, y, bx + badge_w, y + badge_h),
+        radius=badge_h // 2, fill=bg_color,
+    )
+    # Location pin icon
+    draw_icon_location_pin(draw, bx + 28, y + badge_h // 2, size=24, color=text_color)
+    # Text
+    draw.text((bx + 50, y + pad_y), area_name, fill=text_color, font=font)
+    return y + badge_h
+
+
+def draw_progress_bar(
+    draw: ImageDraw.ImageDraw,
+    x: int, y: int, w: int,
+    progress: float,
+    bar_height: int = 12,
+    bg_color: tuple = (255, 255, 255, 40),
+    fill_color: tuple = (50, 130, 255),
+) -> None:
+    """Draw a horizontal progress bar."""
+    # Background
+    draw.rounded_rectangle(
+        (x, y, x + w, y + bar_height),
+        radius=bar_height // 2, fill=bg_color,
+    )
+    # Filled portion
+    fill_w = int(w * max(0, min(1, progress)))
+    if fill_w > bar_height:
+        draw.rounded_rectangle(
+            (x, y, x + fill_w, y + bar_height),
+            radius=bar_height // 2, fill=fill_color,
+        )
 
 
 # ===========================================================================
@@ -1859,7 +2212,819 @@ def _draw_trust_badges(draw: ImageDraw.ImageDraw, center_x: int, y: int):
 
 
 # ===========================================================================
-# Main carousel generator v3.0
+# v4.0 Category-specific slide templates
+# ===========================================================================
+
+def _v4_chat_bubble_content(
+    slide_num: int,
+    title: str,
+    body: str,
+    theme: dict,
+    total_slides: int,
+    platform: str,
+    highlight_number: Optional[str] = None,
+    highlight_label: Optional[str] = None,
+) -> Image.Image:
+    """あるある category: Chat bubble layout.
+
+    Alternating left/right speech bubbles simulating a conversation
+    between nurse and ロビー. Warm pink gradient background.
+    """
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top, s_bottom = layout["safe_top"], layout["safe_bottom"]
+    s_left, s_right = layout["safe_left"], layout["safe_right"]
+    c_w = layout["content_w"]
+    center_x = cw // 2
+
+    # Background: warm gradient
+    bg = create_gradient(cw, ch, theme["bg_dark_top"], theme["bg_dark_bottom"], direction="diagonal")
+    bg = _draw_diagonal_stripes(bg, theme, alpha=4)
+
+    draw = ImageDraw.Draw(bg)
+
+    # Title with rounded font
+    title_font = load_font(bold=True, size=44, rounded=True)
+    title_lines = wrap_text_jp(title, title_font, c_w - 40)
+    title_y = s_top + 60
+    for tl in title_lines:
+        tw, _ = measure_text(tl, title_font)
+        draw_text_shadow(draw, center_x - tw // 2, title_y, tl, title_font,
+                         fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
+        title_y += int(44 * 1.5)
+
+    # Parse body into conversation lines
+    body_lines = [line.strip() for line in body.split("\n") if line.strip()]
+    bubble_y = title_y + 30
+    bubble_margin = 60
+    max_bubble_w = c_w - 120
+
+    for i, line in enumerate(body_lines):
+        if bubble_y > ch - s_bottom - 140:
+            break
+        is_right = (i % 2 == 1)  # Alternate sides
+
+        # Determine bubble size
+        bubble_font = load_font(bold=False, size=32, rounded=True)
+        wrapped = wrap_text_jp(line, bubble_font, max_bubble_w - 40)
+        line_h = int(32 * 1.5)
+        bubble_h = max(60, len(wrapped) * line_h + 24)
+
+        if is_right:
+            bx = cw - s_right - max_bubble_w - 20
+            bg_col = (*theme["accent"][:3], 200)
+            text_col = COLOR_WHITE
+        else:
+            bx = s_left + 20
+            bg_col = (255, 255, 255, 230)
+            text_col = theme["text_on_light"]
+
+        bg = draw_speech_bubble(
+            bg, bx, bubble_y, max_bubble_w, bubble_h,
+            line, is_right=is_right,
+            bg_color=bg_col, text_color=text_col,
+            font_size=32,
+        )
+        bubble_y += bubble_h + 18
+
+    # Highlight number if present
+    draw = ImageDraw.Draw(bg)
+    if highlight_number and bubble_y < ch - s_bottom - 120:
+        draw_number_callout(draw, center_x, bubble_y + 10, highlight_number,
+                            label=highlight_label or "",
+                            number_color=(*theme["accent_light"][:3], 255))
+
+    # Swipe indicator on first 3 content slides
+    if slide_num <= 4:
+        bg = draw_swipe_indicator(bg, cw, ch, s_bottom, style="arrow",
+                                  color=(*theme["accent_light"][:3], 120))
+
+    draw = ImageDraw.Draw(bg)
+    _draw_slide_indicator(draw, slide_num, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=False, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
+
+    return bg.convert("RGB")
+
+
+def _v4_infographic_content(
+    slide_num: int,
+    title: str,
+    body: str,
+    theme: dict,
+    total_slides: int,
+    platform: str,
+    highlight_number: Optional[str] = None,
+    highlight_label: Optional[str] = None,
+    chart_data: Optional[list] = None,
+) -> Image.Image:
+    """給与・データ category: Infographic layout.
+
+    Large number callouts, bar charts for salary comparisons,
+    mint + gold color scheme.
+    """
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top, s_bottom = layout["safe_top"], layout["safe_bottom"]
+    s_left, s_right = layout["safe_left"], layout["safe_right"]
+    c_w = layout["content_w"]
+    center_x = cw // 2
+
+    # Background
+    bg = _build_dark_bg(theme, canvas_w=cw, canvas_h=ch)
+    draw = ImageDraw.Draw(bg)
+
+    current_y = s_top + 60
+
+    # Title
+    title_font = load_font(bold=True, size=48, rounded=True)
+    title_lines = wrap_text_jp(title, title_font, c_w - 40)
+    for tl in title_lines:
+        tw, _ = measure_text(tl, title_font)
+        draw_text_shadow(draw, center_x - tw // 2, current_y, tl, title_font,
+                         fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
+        current_y += int(48 * 1.5)
+
+    current_y += 20
+
+    # Yen icon
+    draw_icon_yen(draw, center_x, current_y + 30, size=36,
+                  color=theme.get("gradient_b", (255, 200, 60)))
+    current_y += 80
+
+    # Highlight number (big data point)
+    if highlight_number:
+        current_y = draw_number_callout(
+            draw, center_x, current_y, highlight_number,
+            label=highlight_label or "",
+            number_color=theme.get("gradient_b", (255, 200, 60)),
+            number_size=110,
+        )
+        current_y += 20
+
+    # Bar chart if data provided
+    if chart_data and current_y < ch - s_bottom - 200:
+        chart_h = min(300, ch - s_bottom - current_y - 80)
+        bg = draw_bar_chart(
+            bg, s_left + 30, current_y, c_w - 60, chart_h,
+            data=chart_data,
+            bar_color=theme["accent"],
+            highlight_idx=len(chart_data) - 1,  # last is usually ours
+            highlight_color=theme.get("gradient_b", (255, 200, 60)),
+        )
+        draw = ImageDraw.Draw(bg)
+        current_y += chart_h + 20
+    else:
+        # Body text in card
+        if body:
+            card_margin = 30
+            card_x0 = s_left + card_margin
+            card_x1 = cw - s_right - card_margin
+            card_inner_pad = 30
+            body_font = load_font(bold=False, size=34, rounded=True)
+            body_lines = wrap_text_jp(body, body_font, card_x1 - card_x0 - card_inner_pad * 2)
+            line_h = int(34 * LINE_HEIGHT_RATIO)
+            card_h = card_inner_pad * 2 + line_h * len(body_lines)
+            card_bottom = min(current_y + card_h, ch - s_bottom - 80)
+
+            # Card
+            draw.rounded_rectangle(
+                (card_x0, current_y, card_x1, card_bottom),
+                radius=20, fill=(255, 255, 255, 20),
+            )
+            draw.rounded_rectangle(
+                (card_x0, current_y, card_x0 + 6, card_bottom),
+                radius=3, fill=(*theme["accent"][:3], 180),
+            )
+
+            ty = current_y + card_inner_pad
+            for bl in body_lines:
+                if ty > card_bottom - line_h:
+                    break
+                draw_text_shadow(draw, card_x0 + card_inner_pad + 10, ty, bl, body_font,
+                                 fill=COLOR_WHITE, shadow_offset=1, outline_width=1)
+                ty += line_h
+
+    # Swipe
+    if slide_num <= 4:
+        bg = draw_swipe_indicator(bg, cw, ch, s_bottom, style="arrow",
+                                  color=(*theme["accent_light"][:3], 120))
+
+    draw = ImageDraw.Draw(bg)
+    _draw_slide_indicator(draw, slide_num, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=False, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
+
+    return bg.convert("RGB")
+
+
+def _v4_step_content(
+    slide_num: int,
+    title: str,
+    body: str,
+    theme: dict,
+    total_slides: int,
+    platform: str,
+    step_number: int = 0,
+    highlight_number: Optional[str] = None,
+    highlight_label: Optional[str] = None,
+) -> Image.Image:
+    """転職・キャリア category: Step-by-step layout.
+
+    Numbered circles, progress bar, navy + blue color scheme.
+    """
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top, s_bottom = layout["safe_top"], layout["safe_bottom"]
+    s_left, s_right = layout["safe_left"], layout["safe_right"]
+    c_w = layout["content_w"]
+    center_x = cw // 2
+
+    # Background
+    bg = _build_dark_bg(theme, canvas_w=cw, canvas_h=ch)
+    draw = ImageDraw.Draw(bg)
+
+    current_y = s_top + 60
+
+    # Step number circle (if > 0)
+    if step_number > 0:
+        draw_step_number(draw, s_left + 65, current_y + 28, step_number,
+                         size=56, bg_color=theme["accent"])
+        # Title next to step number
+        title_font = load_font(bold=True, size=44, rounded=True)
+        title_lines = wrap_text_jp(title, title_font, c_w - 120)
+        ty = current_y
+        for tl in title_lines:
+            draw_text_shadow(draw, s_left + 110, ty, tl, title_font,
+                             fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
+            ty += int(44 * 1.5)
+        current_y = ty + 10
+    else:
+        title_font = load_font(bold=True, size=48, rounded=True)
+        title_lines = wrap_text_jp(title, title_font, c_w - 40)
+        for tl in title_lines:
+            tw, _ = measure_text(tl, title_font)
+            draw_text_shadow(draw, center_x - tw // 2, current_y, tl, title_font,
+                             fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
+            current_y += int(48 * 1.5)
+        current_y += 10
+
+    # Progress bar (shows progress through carousel)
+    if step_number > 0:
+        progress = step_number / max(total_slides - 2, 1)
+        draw_progress_bar(draw, s_left + 30, current_y, c_w - 60,
+                          progress, bar_height=10,
+                          fill_color=theme["accent"])
+        current_y += 30
+
+    # Highlight number
+    if highlight_number:
+        current_y += 10
+        current_y = draw_number_callout(
+            draw, center_x, current_y, highlight_number,
+            label=highlight_label or "",
+            number_color=(*theme["accent_light"][:3], 255),
+            number_size=96,
+        )
+        current_y += 10
+
+    # Body in card
+    if body:
+        card_margin = 25
+        card_x0 = s_left + card_margin
+        card_x1 = cw - s_right - card_margin
+        card_inner_pad = 35
+        body_font = load_font(bold=False, size=36, rounded=True)
+        body_max_w = card_x1 - card_x0 - card_inner_pad * 2
+
+        body_paragraphs = body.split("\n")
+        line_h = int(36 * LINE_HEIGHT_RATIO)
+        total_body_h = 0
+        for para in body_paragraphs:
+            para = para.strip()
+            if not para:
+                total_body_h += line_h // 2
+                continue
+            lines = wrap_text_jp(para, body_font, body_max_w)
+            total_body_h += line_h * len(lines) + 10
+
+        card_h = card_inner_pad * 2 + total_body_h
+        max_card_bottom = ch - s_bottom - 80
+        card_bottom = min(current_y + card_h, max_card_bottom)
+
+        # Card shadow + body
+        shadow_layer = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+        sd = ImageDraw.Draw(shadow_layer)
+        sd.rounded_rectangle(
+            (card_x0 + 5, current_y + 6, card_x1 + 5, card_bottom + 6),
+            radius=24, fill=(0, 0, 0, 25),
+        )
+        bg = Image.alpha_composite(bg, shadow_layer)
+        draw = ImageDraw.Draw(bg)
+
+        draw.rounded_rectangle(
+            (card_x0, current_y, card_x1, card_bottom),
+            radius=24, fill=(255, 255, 255, 20),
+        )
+        # Left accent bar
+        draw.rounded_rectangle(
+            (card_x0, current_y + 24, card_x0 + 6, card_bottom - 24),
+            radius=3, fill=(*theme["accent"][:3], 180),
+        )
+
+        ty = current_y + card_inner_pad
+        for para in body_paragraphs:
+            para = para.strip()
+            if not para:
+                ty += line_h // 2
+                continue
+            if ty > max_card_bottom - line_h:
+                break
+            is_bullet = para.startswith(("・", "- ", "* "))
+            if is_bullet:
+                clean = para.lstrip("・- *").strip()
+                lines = wrap_text_jp(clean, body_font, body_max_w - 50)
+                marker_y = ty + 36 // 2
+                draw.ellipse(
+                    (card_x0 + card_inner_pad + 10, marker_y - 6,
+                     card_x0 + card_inner_pad + 22, marker_y + 6),
+                    fill=(*theme["accent"][:3], 220),
+                )
+                for line in lines:
+                    if ty > max_card_bottom - line_h:
+                        break
+                    draw_text_shadow(draw, card_x0 + card_inner_pad + 40, ty, line, body_font,
+                                     fill=COLOR_WHITE, shadow_offset=1, outline_width=1)
+                    ty += line_h
+                ty += 10
+            else:
+                lines = wrap_text_jp(para, body_font, body_max_w)
+                for line in lines:
+                    if ty > max_card_bottom - line_h:
+                        break
+                    draw_text_shadow(draw, card_x0 + card_inner_pad + 10, ty, line, body_font,
+                                     fill=COLOR_WHITE, shadow_offset=1, outline_width=1)
+                    ty += line_h
+                ty += 10
+
+    # Swipe
+    if slide_num <= 4:
+        bg = draw_swipe_indicator(bg, cw, ch, s_bottom, style="arrow",
+                                  color=(*theme["accent_light"][:3], 120))
+
+    draw = ImageDraw.Draw(bg)
+    _draw_slide_indicator(draw, slide_num, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=False, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
+
+    return bg.convert("RGB")
+
+
+def _v4_location_card_content(
+    slide_num: int,
+    title: str,
+    body: str,
+    theme: dict,
+    total_slides: int,
+    platform: str,
+    area_name: str = "",
+    highlight_number: Optional[str] = None,
+    highlight_label: Optional[str] = None,
+) -> Image.Image:
+    """地域ネタ category: Location card layout.
+
+    Location pin icon, area name badge, warm orange color scheme.
+    """
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top, s_bottom = layout["safe_top"], layout["safe_bottom"]
+    s_left, s_right = layout["safe_left"], layout["safe_right"]
+    c_w = layout["content_w"]
+    center_x = cw // 2
+
+    # Background: warm gradient
+    bg = create_gradient(cw, ch, theme["bg_dark_top"], theme["bg_dark_bottom"], direction="diagonal")
+
+    # Subtle glow
+    glow = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    for r in range(400, 0, -8):
+        a = max(1, int(8 * (1 - r / 400)))
+        gd.ellipse((center_x - r, ch // 4 - r, center_x + r, ch // 4 + r),
+                    fill=(*theme["accent"][:3], a))
+    bg = Image.alpha_composite(bg, glow)
+
+    draw = ImageDraw.Draw(bg)
+    _draw_corner_accents(draw, theme, canvas_w=cw, canvas_h=ch, alpha=25)
+
+    current_y = s_top + 60
+
+    # Area badge at top
+    if area_name:
+        badge_bottom = draw_area_badge(draw, center_x, current_y, area_name,
+                                       bg_color=theme["accent"])
+        current_y = badge_bottom + 25
+    else:
+        # Extract area from title if possible
+        for area in ["小田原", "平塚", "秦野", "南足柄", "湘南", "箱根", "横浜", "川崎", "神奈川"]:
+            if area in title:
+                badge_bottom = draw_area_badge(draw, center_x, current_y, area,
+                                               bg_color=theme["accent"])
+                current_y = badge_bottom + 25
+                break
+
+    # Title
+    title_font = load_font(bold=True, size=44, rounded=True)
+    title_lines = wrap_text_jp(title, title_font, c_w - 40)
+    for tl in title_lines:
+        tw, _ = measure_text(tl, title_font)
+        draw_text_shadow(draw, center_x - tw // 2, current_y, tl, title_font,
+                         fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
+        current_y += int(44 * 1.5)
+    current_y += 15
+
+    # Highlight number
+    if highlight_number:
+        current_y = draw_number_callout(
+            draw, center_x, current_y, highlight_number,
+            label=highlight_label or "",
+            number_color=(*theme["gradient_b"][:3], 255) if "gradient_b" in theme else theme["accent"],
+            number_size=96,
+        )
+        current_y += 10
+
+    # Body in card
+    if body:
+        card_margin = 25
+        card_x0 = s_left + card_margin
+        card_x1 = cw - s_right - card_margin
+        card_inner_pad = 30
+        body_font = load_font(bold=False, size=34, rounded=True)
+        body_max_w = card_x1 - card_x0 - card_inner_pad * 2
+
+        body_lines_all = []
+        for para in body.split("\n"):
+            para = para.strip()
+            if not para:
+                body_lines_all.append(("blank", []))
+                continue
+            is_bullet = para.startswith(("・", "- ", "* "))
+            if is_bullet:
+                clean = para.lstrip("・- *").strip()
+                lines = wrap_text_jp(clean, body_font, body_max_w - 50)
+                body_lines_all.append(("bullet", lines))
+            else:
+                lines = wrap_text_jp(para, body_font, body_max_w)
+                body_lines_all.append(("text", lines))
+
+        line_h = int(34 * LINE_HEIGHT_RATIO)
+        total_h = sum(
+            line_h // 2 if t == "blank" else line_h * len(ls) + 10
+            for t, ls in body_lines_all
+        )
+        card_h = card_inner_pad * 2 + total_h
+        card_bottom = min(current_y + card_h, ch - s_bottom - 80)
+
+        # Card
+        draw.rounded_rectangle(
+            (card_x0, current_y, card_x1, card_bottom),
+            radius=20, fill=(255, 255, 255, 25),
+        )
+        draw.rounded_rectangle(
+            (card_x0, current_y + 20, card_x0 + 6, card_bottom - 20),
+            radius=3, fill=(*theme["accent"][:3], 180),
+        )
+
+        ty = current_y + card_inner_pad
+        for para_type, lines in body_lines_all:
+            if para_type == "blank":
+                ty += line_h // 2
+                continue
+            if ty > card_bottom - line_h:
+                break
+            if para_type == "bullet":
+                marker_y = ty + 34 // 2
+                draw.ellipse(
+                    (card_x0 + card_inner_pad + 8, marker_y - 5,
+                     card_x0 + card_inner_pad + 18, marker_y + 5),
+                    fill=(*theme["accent"][:3], 220),
+                )
+                for line in lines:
+                    if ty > card_bottom - line_h:
+                        break
+                    draw_text_shadow(draw, card_x0 + card_inner_pad + 35, ty, line, body_font,
+                                     fill=COLOR_WHITE, shadow_offset=1, outline_width=1)
+                    ty += line_h
+                ty += 10
+            else:
+                for line in lines:
+                    if ty > card_bottom - line_h:
+                        break
+                    draw_text_shadow(draw, card_x0 + card_inner_pad + 10, ty, line, body_font,
+                                     fill=COLOR_WHITE, shadow_offset=1, outline_width=1)
+                    ty += line_h
+                ty += 10
+
+    # Swipe
+    if slide_num <= 4:
+        bg = draw_swipe_indicator(bg, cw, ch, s_bottom, style="arrow",
+                                  color=(*theme["accent_light"][:3], 120))
+
+    draw = ImageDraw.Draw(bg)
+    _draw_slide_indicator(draw, slide_num, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=False, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
+
+    return bg.convert("RGB")
+
+
+def _v4_dispatch_content_slide(
+    slide_num: int,
+    slide_data: dict,
+    category: str,
+    theme: dict,
+    total_slides: int,
+    platform: str,
+    content_slide_index: int = 0,
+) -> Image.Image:
+    """Dispatch to the correct v4 template based on category.
+
+    Falls back to the original generate_slide_content() for unknown categories.
+    """
+    template_type = CATEGORY_TEMPLATE_TYPE.get(category, "default_enhanced")
+    title = slide_data.get("title", "")
+    body = slide_data.get("body", "")
+    hl_num = slide_data.get("highlight_number")
+    hl_label = slide_data.get("highlight_label")
+
+    if template_type == "chat_bubble":
+        return _v4_chat_bubble_content(
+            slide_num, title, body, theme, total_slides, platform,
+            highlight_number=hl_num, highlight_label=hl_label,
+        )
+    elif template_type == "infographic":
+        chart_data = slide_data.get("chart_data")
+        return _v4_infographic_content(
+            slide_num, title, body, theme, total_slides, platform,
+            highlight_number=hl_num, highlight_label=hl_label,
+            chart_data=chart_data,
+        )
+    elif template_type == "step":
+        return _v4_step_content(
+            slide_num, title, body, theme, total_slides, platform,
+            step_number=content_slide_index + 1,
+            highlight_number=hl_num, highlight_label=hl_label,
+        )
+    elif template_type == "location_card":
+        area = slide_data.get("area_name", "")
+        return _v4_location_card_content(
+            slide_num, title, body, theme, total_slides, platform,
+            area_name=area,
+            highlight_number=hl_num, highlight_label=hl_label,
+        )
+    else:
+        # default_enhanced: use original generator with swipe indicator
+        dark = (content_slide_index % 2 == 0)
+        img = generate_slide_content(
+            slide_num=slide_num, title=title, body=body,
+            highlight_number=hl_num, highlight_label=hl_label,
+            dark_theme=dark, theme=theme,
+            total_slides=total_slides, platform=platform,
+        )
+        # Add swipe indicator for first 3 slides
+        if slide_num <= 4:
+            layout = _get_platform_layout(platform)
+            img_rgba = img.convert("RGBA")
+            img_rgba = draw_swipe_indicator(
+                img_rgba, layout["canvas_w"], layout["canvas_h"],
+                layout["safe_bottom"], style="arrow",
+                color=(*theme.get("accent_light", (200, 200, 200))[:3], 120),
+            )
+            return img_rgba.convert("RGB")
+        return img
+
+
+# ===========================================================================
+# v4.0 Enhanced CTA slide
+# ===========================================================================
+
+def _v4_generate_cta(
+    cta_type: str,
+    theme: dict,
+    total_slides: int,
+    platform: str,
+) -> Image.Image:
+    """Enhanced CTA slide with better visuals.
+
+    Soft: Save icon + bookmark visual + warm encouragement
+    Hard: LINE green button + trust badges + QR-like visual
+    """
+    layout = _get_platform_layout(platform)
+    cw, ch = layout["canvas_w"], layout["canvas_h"]
+    s_top = layout["safe_top"]
+    s_bottom = layout["safe_bottom"]
+    center_x = cw // 2
+
+    bg = _build_brand_gradient_bg(canvas_w=cw, canvas_h=ch)
+    draw = ImageDraw.Draw(bg)
+
+    # Brand logo (rounded font)
+    logo_font = load_font(bold=True, size=60, rounded=True)
+    logo_text = "ナースロビー"
+    tw, _ = measure_text(logo_text, logo_font)
+    logo_y = s_top + (80 if platform == "instagram" else 130)
+    draw_text_shadow(draw, center_x - tw // 2, logo_y, logo_text, logo_font,
+                     fill=COLOR_WHITE, shadow_offset=3)
+
+    # English tagline
+    tag_font = load_font(bold=False, size=26)
+    tag_text = "NURSE ROBBY"
+    tw, _ = measure_text(tag_text, tag_font)
+    tag_y = logo_y + 70
+    draw.text((center_x - tw // 2, tag_y), tag_text, fill=(*COLOR_WHITE[:3], 150), font=tag_font)
+
+    sep_y = tag_y + 55
+    draw.rounded_rectangle(
+        (center_x - 90, sep_y, center_x + 90, sep_y + 3),
+        radius=2, fill=(*COLOR_WHITE[:3], 70),
+    )
+
+    if cta_type == "hard":
+        # === Hard CTA: LINE green button ===
+
+        # Badge
+        badge_y = sep_y + 50
+        badge_font = load_font(bold=True, size=30, rounded=True)
+        badge_text = "紹介手数料 業界最安10%"
+        btw, bth = measure_text(badge_text, badge_font)
+        badge_pad_x, badge_pad_y = 40, 16
+        badge_w = btw + badge_pad_x * 2
+        badge_h = bth + badge_pad_y * 2
+        badge_x = center_x - badge_w // 2
+
+        draw.rounded_rectangle(
+            (badge_x, badge_y, badge_x + badge_w, badge_y + badge_h),
+            radius=badge_h // 2,
+            fill=(*COLOR_WHITE[:3], 35),
+            outline=(*COLOR_WHITE[:3], 160), width=2,
+        )
+        draw.text((badge_x + badge_pad_x, badge_y + badge_pad_y),
+                  badge_text, fill=COLOR_WHITE, font=badge_font)
+
+        # LINE green button
+        LINE_GREEN = (6, 199, 85)
+        btn_y = badge_y + badge_h + 60
+        btn_font = load_font(bold=True, size=42, rounded=True)
+        btn_text = "LINEで無料相談"
+        btw2, bth2 = measure_text(btn_text, btn_font)
+        btn_pad_x, btn_pad_y = 65, 30
+        btn_w = btw2 + btn_pad_x * 2
+        btn_h = bth2 + btn_pad_y * 2
+        btn_x = center_x - btn_w // 2
+
+        # Pulse rings
+        pulse = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+        pd = ImageDraw.Draw(pulse)
+        btn_cx, btn_cy = center_x, btn_y + btn_h // 2
+        for ri in range(4):
+            rr = btn_w // 2 + 18 + ri * 22
+            ra = max(5, 28 - ri * 7)
+            pd.ellipse((btn_cx - rr, btn_cy - rr, btn_cx + rr, btn_cy + rr),
+                       outline=(*LINE_GREEN[:3], ra), width=2)
+        bg = Image.alpha_composite(bg, pulse)
+        draw = ImageDraw.Draw(bg)
+
+        # Button shadow
+        draw.rounded_rectangle(
+            (btn_x + 4, btn_y + 5, btn_x + btn_w + 4, btn_y + btn_h + 5),
+            radius=btn_h // 2, fill=(0, 0, 0, 30),
+        )
+        # Button (LINE green)
+        draw.rounded_rectangle(
+            (btn_x, btn_y, btn_x + btn_w, btn_y + btn_h),
+            radius=btn_h // 2, fill=LINE_GREEN,
+        )
+        draw.text((btn_x + btn_pad_x, btn_y + btn_pad_y),
+                  btn_text, fill=COLOR_WHITE, font=btn_font)
+
+        # Sub text
+        sub_y = btn_y + btn_h + 40
+        sub_font = load_font(bold=False, size=26, rounded=True)
+        sub_text = "プロフィールのリンクから"
+        tw, _ = measure_text(sub_text, sub_font)
+        draw.text((center_x - tw // 2, sub_y), sub_text,
+                  fill=(*COLOR_WHITE[:3], 170), font=sub_font)
+
+        # Trust badges
+        trust_y = sub_y + 65
+        _draw_trust_badges(draw, center_x, trust_y)
+
+    else:
+        # === Soft CTA: Save bookmark ===
+
+        # Bookmark icon (simple)
+        bm_y = sep_y + 50
+        bm_size = 48
+        bm_x = center_x - bm_size // 2
+        # Bookmark shape
+        draw.rectangle((bm_x, bm_y, bm_x + bm_size, bm_y + int(bm_size * 1.3)),
+                       fill=(*COLOR_WHITE[:3], 60))
+        draw.polygon([
+            (bm_x, bm_y + int(bm_size * 1.3)),
+            (bm_x + bm_size // 2, bm_y + bm_size),
+            (bm_x + bm_size, bm_y + int(bm_size * 1.3)),
+        ], fill=(*COLOR_WHITE[:3], 60))
+
+        # Save text
+        save_y = bm_y + int(bm_size * 1.3) + 30
+        save_font = load_font(bold=True, size=44, rounded=True)
+        save_text = "保存してね"
+        stw, sth = measure_text(save_text, save_font)
+        save_pad_x, save_pad_y = 55, 26
+        save_w = stw + save_pad_x * 2
+        save_h = sth + save_pad_y * 2
+        save_x = center_x - save_w // 2
+
+        # Pulse rings
+        pulse = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+        pd = ImageDraw.Draw(pulse)
+        for ri in range(3):
+            rr = save_w // 2 + 12 + ri * 20
+            ra = max(5, 22 - ri * 7)
+            pd.ellipse((center_x - rr, save_y + save_h // 2 - rr,
+                        center_x + rr, save_y + save_h // 2 + rr),
+                       outline=(255, 255, 255, ra), width=2)
+        bg = Image.alpha_composite(bg, pulse)
+        draw = ImageDraw.Draw(bg)
+
+        # Button
+        draw.rounded_rectangle(
+            (save_x + 3, save_y + 4, save_x + save_w + 3, save_y + save_h + 4),
+            radius=save_h // 2, fill=(0, 0, 0, 25),
+        )
+        draw.rounded_rectangle(
+            (save_x, save_y, save_x + save_w, save_y + save_h),
+            radius=save_h // 2, fill=COLOR_WHITE,
+        )
+        draw.text((save_x + save_pad_x, save_y + save_pad_y),
+                  save_text, fill=COLOR_BRAND_BLUE, font=save_font)
+
+        # Heart icon next to bookmark
+        draw_icon_heart(draw, center_x + save_w // 2 + 30, save_y + save_h // 2,
+                        size=18, color=(255, 120, 140))
+
+        # Follow text
+        follow_y = save_y + save_h + 50
+        follow_font = load_font(bold=True, size=34, rounded=True)
+        follow_text = "フォローで最新情報をチェック"
+        tw, _ = measure_text(follow_text, follow_font)
+        draw.text((center_x - tw // 2, follow_y), follow_text, fill=COLOR_WHITE, font=follow_font)
+
+        # Subtitle
+        prof_y = follow_y + 55
+        prof_font = load_font(bold=False, size=26, rounded=True)
+        prof_text = "神奈川県西部の看護師転職"
+        ptw, _ = measure_text(prof_text, prof_font)
+        draw.text((center_x - ptw // 2, prof_y), prof_text,
+                  fill=(*COLOR_WHITE[:3], 150), font=prof_font)
+
+        # Trust badges
+        trust_y = prof_y + 60
+        _draw_trust_badges(draw, center_x, trust_y)
+
+    _draw_slide_indicator(draw, total_slides, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)
+    _draw_brand_watermark(draw, light_bg=False, platform=platform, canvas_w=cw, canvas_h=ch, safe_bottom=s_bottom)
+
+    return bg.convert("RGB")
+
+
+# ===========================================================================
+# v4.0 Enhanced hook slide
+# ===========================================================================
+
+def _v4_generate_hook(
+    hook_text: str,
+    theme: dict,
+    total_slides: int,
+    platform: str,
+    category: str = "",
+) -> Image.Image:
+    """Enhanced hook slide using rounded font + category-specific accent.
+
+    Delegates to the original generator but uses rounded font and adds swipe arrow.
+    """
+    # Use existing hook generator (it's already good)
+    img = generate_slide_hook(hook_text, theme=theme, total_slides=total_slides, platform=platform)
+
+    # Add swipe indicator
+    layout = _get_platform_layout(platform)
+    img_rgba = img.convert("RGBA")
+    img_rgba = draw_swipe_indicator(
+        img_rgba, layout["canvas_w"], layout["canvas_h"],
+        layout["safe_bottom"], style="arrow",
+        color=(*theme.get("accent_light", (200, 200, 200))[:3], 140),
+    )
+    return img_rgba.convert("RGB")
+
+
+# ===========================================================================
+# Main carousel generator v4.0
 # ===========================================================================
 
 def generate_carousel(
@@ -1893,11 +3058,15 @@ def generate_carousel(
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    theme = CATEGORY_THEMES.get(category, DEFAULT_THEME)
+    # Resolve category aliases (e.g. "aruaru" -> "あるある")
+    resolved_cat = CATEGORY_ALIASES.get(category, category)
+    theme = CATEGORY_THEMES.get(resolved_cat, DEFAULT_THEME)
 
     # All slides are now rendered NATIVELY at the correct platform dimensions.
-    # No resize needed -- each render function creates the canvas at the right size.
     target_w, target_h = PLATFORM_SIZES.get(platform, (CANVAS_W, CANVAS_H))
+
+    # v4.0: Use category-specific templates for TikTok
+    use_v4 = (platform != "instagram") and (resolved_cat in CATEGORY_TEMPLATE_TYPE)
 
     def _save_slide(img: Image.Image, path: Path) -> str:
         """Save slide (already rendered at correct platform dimensions)."""
@@ -1926,8 +3095,10 @@ def generate_carousel(
     total_slides_count = 1 + len(content_slides) + 1  # Hook + Content + CTA
     saved_paths: list[str] = []
 
+    template_type = CATEGORY_TEMPLATE_TYPE.get(resolved_cat, "default") if use_v4 else "legacy"
     platform_label = f", platform: {platform} {target_w}x{target_h}" if platform != "tiktok" else ""
-    print(f"  [{content_id}] Generating {total_slides_count}-slide carousel (category: {category}{platform_label})")
+    print(f"  [{content_id}] Generating {total_slides_count}-slide v4 carousel "
+          f"(category: {resolved_cat}, template: {template_type}{platform_label})")
 
     # --- Instagram: use dedicated IG design system ---
     use_ig = (platform == "instagram")
@@ -1935,6 +3106,9 @@ def generate_carousel(
     # --- Slide 1: HOOK ---
     if use_ig:
         img1 = generate_ig_hook_slide(hook, total_slides=total_slides_count)
+    elif use_v4:
+        img1 = _v4_generate_hook(hook, theme=theme, total_slides=total_slides_count,
+                                  platform=platform, category=resolved_cat)
     else:
         img1 = generate_slide_hook(hook, theme=theme, total_slides=total_slides_count, platform=platform)
     p1 = out / f"{content_id}_slide_01_hook.png"
@@ -1944,14 +3118,12 @@ def generate_carousel(
     # --- Slides 2-7: CONTENT ---
     for i, slide_data in enumerate(content_slides):
         slide_num = i + 2
-        dark = (i % 2 == 0)  # 2=dark, 3=light, 4=dark, ...
-
-        title = slide_data.get("title", "")
-        body = slide_data.get("body", "")
-        hl_num = slide_data.get("highlight_number")
-        hl_label = slide_data.get("highlight_label")
 
         if use_ig:
+            title = slide_data.get("title", "")
+            body = slide_data.get("body", "")
+            hl_num = slide_data.get("highlight_number")
+            hl_label = slide_data.get("highlight_label")
             img = generate_ig_content_slide(
                 slide_num=slide_num,
                 title=title,
@@ -1960,7 +3132,22 @@ def generate_carousel(
                 highlight_label=hl_label,
                 total_slides=total_slides_count,
             )
+        elif use_v4:
+            img = _v4_dispatch_content_slide(
+                slide_num=slide_num,
+                slide_data=slide_data,
+                category=resolved_cat,
+                theme=theme,
+                total_slides=total_slides_count,
+                platform=platform,
+                content_slide_index=i,
+            )
         else:
+            dark = (i % 2 == 0)
+            title = slide_data.get("title", "")
+            body = slide_data.get("body", "")
+            hl_num = slide_data.get("highlight_number")
+            hl_label = slide_data.get("highlight_label")
             img = generate_slide_content(
                 slide_num=slide_num,
                 title=title,
@@ -1974,12 +3161,15 @@ def generate_carousel(
             )
         p = out / f"{content_id}_slide_{slide_num:02d}_content.png"
         saved_paths.append(_save_slide(img, p))
-        print(f"    slide {slide_num:02d} (CONTENT{'|IG' if use_ig else (' dark' if dark else ' light')}): {title[:30]}...")
+        title_preview = slide_data.get("title", "")[:30]
+        print(f"    slide {slide_num:02d} (CONTENT|{template_type}): {title_preview}...")
 
     # --- Final slide: CTA ---
     cta_slide_num = total_slides_count
     if use_ig:
         img_cta = generate_ig_cta_slide(cta_type=cta_type, total_slides=total_slides_count)
+    elif use_v4:
+        img_cta = _v4_generate_cta(cta_type=cta_type, theme=theme, total_slides=total_slides_count, platform=platform)
     else:
         img_cta = generate_slide_cta(cta_type=cta_type, theme=theme, total_slides=total_slides_count, platform=platform)
     p_cta = out / f"{content_id}_slide_{cta_slide_num:02d}_cta.png"
@@ -2064,13 +3254,33 @@ def _extract_carousel_content(json_path: str) -> Optional[dict]:
 
     hook = data.get("hook", slide_texts[0])
 
+    # v4.0: Extract slide_meta for category-specific templates
+    slide_meta = data.get("slide_meta", {})
+    chart_data = slide_meta.get("chart_data")
+    area_name = slide_meta.get("area_name", "")
+    meta_hl_number = slide_meta.get("highlight_number")
+    meta_hl_label = slide_meta.get("highlight_label")
+
     # Build content slides (up to 6 for 8-slide format)
     middle = slide_texts[1:]
     content_slides: list[dict] = []
     for i in range(min(6, len(middle))):
         text = middle[i]
         title, body = _split_title_body(text)
-        content_slides.append({"title": title, "body": body})
+        slide = {"title": title, "body": body}
+
+        # Apply slide_meta to appropriate slides
+        if area_name:
+            slide["area_name"] = area_name
+        # Apply chart_data to Data slide (index 1 = 3rd slide overall)
+        if chart_data and i == 1:
+            slide["chart_data"] = chart_data
+        # Apply highlight to Reveal slide (index 4 = 6th slide overall) or first slide without one
+        if meta_hl_number and i == min(4, len(middle) - 1):
+            slide["highlight_number"] = meta_hl_number
+            slide["highlight_label"] = meta_hl_label or ""
+
+        content_slides.append(slide)
 
     # If no content slides, create at least one
     if not content_slides:
@@ -2236,6 +3446,170 @@ def generate_demo_instagram(output_dir: str = "content/generated/carousel_demo_i
     )
 
 
+def generate_demo_all(base_dir: str = "content/generated/carousel_demo_v4") -> dict[str, list[str]]:
+    """Generate demo carousels for ALL 5 category templates + CTA variants.
+
+    Returns dict mapping category name to list of saved paths.
+    """
+    print("=" * 60)
+    print("  v4.0 DEMO: Generating all 5 category templates")
+    print("=" * 60)
+
+    base = Path(base_dir)
+    results = {}
+
+    # 1. あるある (Chat Bubble)
+    print("\n--- [1/5] あるある (Chat Bubble) ---")
+    results["あるある"] = generate_carousel(
+        content_id="V4_ARUARU",
+        hook="先輩の口癖\n知ってる？",
+        slides=[
+            {
+                "title": "先輩に質問した結果",
+                "body": "この薬の投与速度は？\n前にも言ったよね？\n…聞けなくなった",
+            },
+            {
+                "title": "AIに100回聞いてみた",
+                "body": "1回目: 丁寧に説明してくれた\n50回目: まだ丁寧\n100回目: 変わらず丁寧",
+            },
+            {
+                "title": "夜勤明けの顔",
+                "body": "AIに何歳に見えるか聞いた\n実年齢+10歳って言われた\n…嘘でもいいから盛ってくれ",
+                "highlight_number": "+10歳",
+                "highlight_label": "AIの残酷な正直さ",
+            },
+        ],
+        output_dir=str(base / "aruaru"),
+        category="あるある",
+        cta_type="soft",
+    )
+
+    # 2. 給与・待遇 (Infographic)
+    print("\n--- [2/5] 給与・待遇 (Infographic) ---")
+    results["給与"] = generate_carousel(
+        content_id="V4_SALARY",
+        hook="手取り\n比べてみた",
+        slides=[
+            {
+                "title": "神奈川の看護師年収",
+                "body": "平均年収は地域で大きく違う。\n同じ仕事なのに、差がある現実。",
+                "highlight_number": "480万円",
+                "highlight_label": "神奈川県の看護師平均年収",
+            },
+            {
+                "title": "地域別の比較",
+                "body": "",
+                "chart_data": [
+                    {"label": "横浜市", "value": 520, "display": "520万"},
+                    {"label": "川崎市", "value": 500, "display": "500万"},
+                    {"label": "平塚市", "value": 460, "display": "460万"},
+                    {"label": "小田原市", "value": 440, "display": "440万"},
+                ],
+            },
+            {
+                "title": "手数料の真実",
+                "body": "大手は年収の20-30%を病院に請求。\n年収400万なら80-120万円。\n\nナースロビーは10%。\n40万円で済む。差額は病院の負担軽減。",
+                "highlight_number": "10%",
+                "highlight_label": "ナースロビーの紹介手数料",
+            },
+        ],
+        output_dir=str(base / "salary"),
+        category="給与・待遇",
+        cta_type="hard",
+    )
+
+    # 3. 転職・キャリア (Step)
+    print("\n--- [3/5] 転職・キャリア (Step) ---")
+    results["転職"] = generate_carousel(
+        content_id="V4_CAREER",
+        hook="転職の手順\n3ステップ",
+        slides=[
+            {
+                "title": "LINEで相談する",
+                "body": "まずはLINEで友だち追加。\n\n・希望エリア\n・希望の働き方\n・気になること\n\n何でも聞いてください。",
+            },
+            {
+                "title": "求人を紹介してもらう",
+                "body": "条件に合う求人をご提案。\n\n・手数料10%だから病院も受入やすい\n・条件交渉もしやすい\n・面接対策もサポート",
+            },
+            {
+                "title": "入職・アフターフォロー",
+                "body": "入職後も安心のサポート。\n\n・入職後の悩み相談\n・条件の確認\n・何かあればいつでもLINE",
+                "highlight_number": "0円",
+                "highlight_label": "看護師さんの負担",
+            },
+        ],
+        output_dir=str(base / "career"),
+        category="転職・キャリア",
+        cta_type="hard",
+    )
+
+    # 4. 地域ネタ (Location Card)
+    print("\n--- [4/5] 地域ネタ (Location Card) ---")
+    results["地域ネタ"] = generate_carousel(
+        content_id="V4_LOCAL",
+        hook="小田原の\n看護師事情",
+        slides=[
+            {
+                "title": "小田原から横浜まで72分",
+                "body": "往復144分。年間600時間。\n満員電車に捧げる時間。\n\nでも地元で働けば\nその600時間が自由になる。",
+                "area_name": "小田原",
+                "highlight_number": "600時間",
+                "highlight_label": "年間の通勤時間（横浜往復の場合）",
+            },
+            {
+                "title": "県西部の求人事情",
+                "body": "看護師不足は深刻。\nでも大手紹介会社の手数料が高くて\n病院が使えない。\n\n手数料10%なら、\n地元の病院も紹介を使える。",
+                "area_name": "神奈川県西部",
+            },
+            {
+                "title": "地元で働くメリット",
+                "body": "・通勤30分以内\n・家賃が安い\n・夕飯を家で食べられる\n・子育てしやすい\n・地域に根ざした医療",
+                "area_name": "小田原",
+            },
+        ],
+        output_dir=str(base / "local"),
+        category="地域ネタ",
+        cta_type="soft",
+    )
+
+    # 5. サービス紹介 (Default Enhanced)
+    print("\n--- [5/5] サービス紹介 (Default Enhanced) ---")
+    results["サービス紹介"] = generate_carousel(
+        content_id="V4_SERVICE",
+        hook="手数料10%\nって何？",
+        slides=[
+            {
+                "title": "看護師は無料で使える",
+                "body": "でも、病院側は年収の20〜30%を\nエージェントに支払っています。\n\n・年収400万 → 手数料80〜120万\n・年収500万 → 手数料100〜150万",
+            },
+            {
+                "title": "手数料が高いとどうなる？",
+                "body": "病院は高い手数料を払った分\n採用のハードルを上げます。\n\n・面接が厳しくなる\n・条件交渉が通りにくい\n・入職後の圧が強くなる",
+                "highlight_number": "120万円",
+                "highlight_label": "大手の平均手数料（年収400万の場合）",
+            },
+            {
+                "title": "手数料10%で解決",
+                "body": "病院の負担が軽い\n→ 採用されやすい\n→ 条件交渉もしやすい\n→ 入職後の関係も良好\n\nつまり、あなたが得をする。",
+                "highlight_number": "10%",
+                "highlight_label": "ナースロビーの紹介手数料",
+            },
+        ],
+        output_dir=str(base / "service"),
+        category="サービス紹介",
+        cta_type="hard",
+    )
+
+    print("\n" + "=" * 60)
+    total = sum(len(v) for v in results.values())
+    print(f"  v4.0 DEMO COMPLETE: {total} slides across {len(results)} categories")
+    print(f"  Output: {base}")
+    print("=" * 60)
+
+    return results
+
+
 # ===========================================================================
 # CLI
 # ===========================================================================
@@ -2377,11 +3751,13 @@ def generate_carousel_backgrounds(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="TikTok/Instagram carousel slide generator v3.0 (8 slides)",
+        description="TikTok/Instagram carousel slide generator v4.0 (category templates)",
     )
     parser.add_argument("--demo", action="store_true", help="Generate a demo carousel set for review")
     parser.add_argument("--demo-aruaru", action="store_true", help="Generate aruaru-themed demo")
     parser.add_argument("--demo-instagram", action="store_true", help="Generate Instagram Warm Coral design demo")
+    parser.add_argument("--demo-all", action="store_true",
+                       help="Generate demo carousels for ALL 5 category templates (v4.0)")
     parser.add_argument("--queue", help="Path to posting_queue.json")
     parser.add_argument("--output", default="content/generated/", help="Output base directory")
     parser.add_argument("--single-json", help="Generate carousel from a single slide JSON file")
@@ -2394,7 +3770,13 @@ def main():
 
     project_root = Path(__file__).parent.parent
 
-    if args.demo:
+    if args.demo_all:
+        out = project_root / "content" / "generated" / "carousel_demo_v4"
+        results = generate_demo_all(str(out))
+        total = sum(len(v) for v in results.values())
+        print(f"\nv4.0 demo complete. {total} slides across {len(results)} categories saved to {out}")
+
+    elif args.demo:
         out = project_root / "content" / "generated" / "carousel_demo_v3"
         paths = generate_demo(str(out))
         print(f"\nDemo complete. {len(paths)} slides saved to {out}")

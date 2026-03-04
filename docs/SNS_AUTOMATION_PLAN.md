@@ -1,4 +1,4 @@
-# ROBBY THE MATCH SNS完全自動化プラン
+# ナースロビー SNS完全自動化プラン
 
 > 策定日: 2026-02-21
 > 策定者: Claude Opus 4.6
@@ -186,7 +186,7 @@ TikTok UIの変更         | tiktokautouploader更新待ち         | pip upgrad
 ```
 毎週日曜 06:00（pdca_weekly.sh）で自動生成:
 
-=== ROBBY THE MATCH 週次SNSレポート ===
+=== ナースロビー 週次SNSレポート ===
 期間: 2026-02-24 〜 2026-03-02
 
 ■ TikTok
@@ -380,7 +380,7 @@ python3 scripts/tiktok_auth.py --check
 #   - アイコン: content/base-images/robby_icon.png
 #   - BIO: 看護師の転職を、手数料10%で。AI×人のハイブリッドサポート。神奈川県西部。
 #   - リンク: https://quads-nurse.com/lp/job-seeker/
-#   - 名前: ROBBY THE MATCH」
+#   - 名前: ナースロビー」
 ```
 
 ### 5. Content Posting API（フォトカルーセル）

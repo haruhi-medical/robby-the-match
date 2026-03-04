@@ -1,6 +1,6 @@
 #!/bin/bash
 # ===========================================
-# ROBBY THE MATCH Agent Team検証スクリプト
+# ナースロビー Agent Team検証スクリプト
 # 全8エージェントの動作環境を一括チェック
 # ===========================================
 source ~/robby-the-match/scripts/utils.sh

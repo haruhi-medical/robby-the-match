@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ROBBY THE MATCH - ワークフロー自動化スクリプト
+ナースロビー - ワークフロー自動化スクリプト
 トピック生成 → 台本生成 → 画像プロンプト生成 → キャプション生成 → JSON保存
 オプション: 背景画像生成 → テキスト合成
 """
@@ -384,7 +384,7 @@ class WorkflowAutomation:
     def run(self, generate_images: bool = False, add_text: bool = False):
         """ワークフロー全体を実行"""
         print("\n" + "=" * 60)
-        print(f"🤖 ROBBY THE MATCH - ワークフロー自動化")
+        print(f"🤖 ナースロビー - ワークフロー自動化")
         print("=" * 60)
         print(f"投稿番号: {self.post_number}")
         print(f"保存先: {self.post_dir}")
@@ -436,7 +436,7 @@ class WorkflowAutomation:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ROBBY THE MATCH - ワークフロー自動化スクリプト",
+        description="ナースロビー - ワークフロー自動化スクリプト",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 使用例:

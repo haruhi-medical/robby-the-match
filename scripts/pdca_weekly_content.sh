@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# ROBBY THE MATCH / Nurse Robby
+# ナースロビー 週次コンテンツバッチ
 # Weekly Content Planning & Generation v1.0
 # cron: 0 6 * * 0 (Sunday 06:00)
 #

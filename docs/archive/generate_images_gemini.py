@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Google Gemini API (Imagen) を使った画像生成スクリプト
-ROBBY THE MATCH - SNS投稿用スライドショー画像生成
+ナースロビー - SNS投稿用スライドショー画像生成
 """
 
 import os

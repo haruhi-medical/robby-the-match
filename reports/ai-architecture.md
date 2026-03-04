@@ -1,8 +1,8 @@
-# ROBBY THE MATCH - AI統合アーキテクチャ設計書
+# ナースロビー - AI統合アーキテクチャ設計書
 
 **作成日:** 2026-02-16
 **バージョン:** 1.0
-**対象システム:** ROBBY THE MATCH 医療人材マッチングプラットフォーム
+**対象システム:** ナースロビー 医療人材マッチングプラットフォーム
 
 ---
 
@@ -310,7 +310,7 @@ const NurseProfile = {
 ```javascript
 function buildSystemPrompt(env) {
   // 既存のSYSTEM_PROMPTをベースに、サーバー側で構築
-  return `あなたは「ROBBY THE MATCH」のAI転職相談アシスタントです。
+  return `あなたは「ナースロビー」のAI転職相談アシスタントです。
 看護師の転職をサポートする、温かく専門的なカウンセラーとして会話してください。
 
 【厳守ルール】

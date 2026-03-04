@@ -38,8 +38,8 @@
   // --------------------------------------------------
   var PRESCRIPTED = {
     areas: [
-      { label: "県西（小田原・南足柄）", value: "kensei" },
-      { label: "湘南西部（平塚・秦野・伊勢原）", value: "shonan_west" },
+      { label: "県西（小田原・南足柄・箱根）", value: "kensei" },
+      { label: "湘南西部（平塚・秦野・伊勢原・大磯）", value: "shonan_west" },
       { label: "湘南東部（藤沢・茅ヶ崎）", value: "shonan_east" },
       { label: "県央（厚木・海老名）", value: "kenoh" },
       { label: "まだ決めていない", value: "undecided" },
@@ -52,8 +52,8 @@
       undecided: "神奈川県",
     },
     areaCities: {
-      kensei: ["小田原", "南足柄", "開成", "大井", "大磯", "二宮", "松田", "山北", "箱根", "真鶴", "湯河原"],
-      shonan_west: ["平塚", "秦野", "伊勢原"],
+      kensei: ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原"],
+      shonan_west: ["平塚", "秦野", "伊勢原", "大磯", "二宮"],
       shonan_east: ["藤沢", "茅ヶ崎", "寒川"],
       kenoh: ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
     },
@@ -72,13 +72,13 @@
       { label: "5〜10年", value: "5〜10年" },
       { label: "10年以上", value: "10年以上" },
     ],
-    // エリア別の施設数（ユーザーの好奇心を引くデータ）
+    // エリア別の施設数（BOT表示件数 / DB全体件数）
     areaFacilityCounts: {
-      kensei: 42,
-      shonan_west: 24,
-      shonan_east: 15,
-      kenoh: 16,
-      undecided: 97,
+      kensei: 12,
+      shonan_west: 8,
+      shonan_east: 2,
+      kenoh: 1,
+      undecided: 23,
     },
   };
 
@@ -700,7 +700,7 @@
     setTimeout(function () {
       hideTyping();
       // 温かい挨拶 + 個人情報不要の安心感
-      addMessage("ai", "こんにちは！看護師さんの転職をお手伝いしている、ナースロビーです。\n\n3つの質問に答えるだけで、あなたに合いそうな施設と年収の目安をお出しします。名前や電話番号の入力は不要です。");
+      addMessage("ai", "こんにちは！手数料10%で看護師さんの転職をお手伝いしている、ナースロビーです。\n\n3つの質問に答えるだけで、あなたに合いそうな施設と年収の目安をお出しします。名前や電話番号の入力は不要です。");
 
       setTimeout(function () {
         showTyping();
@@ -1581,6 +1581,23 @@
         var aBlank = (a.features && a.features.indexOf("ブランク") !== -1) ? 1 : 0;
         var bBlank = (b.features && b.features.indexOf("ブランク") !== -1) ? 1 : 0;
         if (aBlank !== bBlank) return bBlank - aBlank;
+      }
+      // salary: 大規模・高給施設を優先（病床数でソート）
+      if (concern === "salary") {
+        return (b.beds || 0) - (a.beds || 0);
+      }
+      // nightshift: 夜勤負担軽い施設（回復期・慢性期・二交代）を優先
+      if (concern === "nightshift") {
+        var aNight = (a.nightShift && a.nightShift.indexOf("二交代") !== -1) ? 1 : 0;
+        var bNight = (b.nightShift && b.nightShift.indexOf("二交代") !== -1) ? 1 : 0;
+        if (aNight !== bNight) return bNight - aNight;
+      }
+      // environment: 教育体制あり・看護師数多い施設を優先
+      if (concern === "environment") {
+        var aEnv = (a.features && a.features.indexOf("教育") !== -1) ? 1 : 0;
+        var bEnv = (b.features && b.features.indexOf("教育") !== -1) ? 1 : 0;
+        if (aEnv !== bEnv) return bEnv - aEnv;
+        return (b.beds || 0) - (a.beds || 0);
       }
       return 0;
     });

@@ -1,7 +1,7 @@
 # ファイル移動ログ — 2026-02-20
 
 ## 概要
-ROBBY THE MATCH関連ファイルの散在を解消するため、
+ナースロビー関連ファイルの散在を解消するため、
 ~/robby_content/、~/Desktop/claude/、~/Desktop/ 直下の関連ファイルを
 ~/robby-the-match/docs/archive/ に統合し、統合元を ~/Desktop/_archive_20260220/ に退避した。
 

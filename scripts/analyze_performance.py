@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ROBBY THE MATCH パフォーマンス分析スクリプト
+ナースロビー パフォーマンス分析スクリプト
 投稿データから高パフォーマンスパターンを抽出し、次のコンテンツ戦略に反映する
 
 使い方:
@@ -283,7 +283,7 @@ def update_agent_memory(analysis):
 
 def run_analysis():
     """全分析実行"""
-    print("=== ROBBY THE MATCH パフォーマンス分析 ===\n")
+    print("=== ナースロビー パフォーマンス分析 ===\n")
 
     queue = load_queue()
     kpi_rows = load_kpi_log()

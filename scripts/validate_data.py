@@ -124,7 +124,7 @@ def validate_jobs(data):
 
 def main():
     print("=" * 60)
-    print("ROBBY THE MATCH データベース検証")
+    print("ナースロビー データベース検証")
     print("=" * 60)
 
     all_errors = []

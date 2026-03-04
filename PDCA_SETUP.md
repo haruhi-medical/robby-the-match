@@ -1,4 +1,4 @@
-# ROBBY THE MATCH — 自律PDCAシステム構築+起動プロンプト
+# ナースロビー — 自律PDCAシステム構築+起動プロンプト
 
 > Claude Codeに投入する。YOLO 40ターンで環境構築→そのまま自動稼働。
 
@@ -18,7 +18,7 @@ claude -p "$(cat PDCA_SETUP.md)" \
 ## ↓ ここからがプロンプト本文（PDCA_SETUP.md として保存）↓
 
 ```markdown
-お前はROBBY THE MATCHの経営参謀だ。CLAUDE.mdを読め。
+お前はナースロビーの経営参謀だ。CLAUDE.mdを読め。
 
 # ═══════════════════════════════════════════════════════
 # ピーター・ティールの問い
@@ -100,7 +100,7 @@ LP-A（求職者向）が存在するか確認。
 存在する場合:
 - lp/job-seeker/index.html のSEO状態を診断
 - 不足があれば即修正:
-  □ <title> に「小田原 看護師 転職 | ROBBY THE MATCH」
+  □ <title> に「小田原 看護師 転職 | ナースロビー」
   □ <meta name="description" content="..."> 160文字以内
   □ <h1> にメインキーワード
   □ OGP設定（og:title, og:description, og:image）
@@ -130,7 +130,7 @@ scripts/utils.sh を作成:
 
 ```bash
 #!/bin/bash
-# ROBBY THE MATCH — 共通関数
+# ナースロビー — 共通関数
 
 PROJECT_DIR="$HOME/robby-the-match"
 cd "$PROJECT_DIR"
@@ -232,7 +232,7 @@ PROGRESS.mdが存在するか確認。存在する場合は既存内容を保持
 なければ以下で作成:
 
 ```markdown
-# ROBBY THE MATCH 進捗ログ
+# ナースロビー 進捗ログ
 
 ## 運用ルール
 - 各PDCAサイクルが自動で追記する
@@ -266,7 +266,7 @@ source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_morning"
 
 run_claude "
-お前はROBBY THE MATCHの経営参謀だ。CLAUDE.mdを読め。
+お前はナースロビーの経営参謀だ。CLAUDE.mdを読め。
 
 【SEO改善PDCAサイクル】
 
@@ -317,7 +317,7 @@ source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_content"
 
 run_claude "
-お前はROBBY THE MATCHの経営参謀だ。CLAUDE.mdを読め。
+お前はナースロビーの経営参謀だ。CLAUDE.mdを読め。
 今日は$(date +%A)（曜日${DOW}）。
 
 【コンテンツPDCAサイクル】
@@ -373,7 +373,7 @@ source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_review"
 
 run_claude "
-お前はROBBY THE MATCHの経営参謀だ。CLAUDE.mdを読め。
+お前はナースロビーの経営参謀だ。CLAUDE.mdを読め。
 
 【日次レビューPDCAサイクル】
 
@@ -439,7 +439,7 @@ source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_weekly"
 
 run_claude "
-お前はROBBY THE MATCHの経営参謀だ。CLAUDE.mdを読め。
+お前はナースロビーの経営参謀だ。CLAUDE.mdを読め。
 
 【週次PDCAサイクル】
 
@@ -569,7 +569,7 @@ chmod +x scripts/pdca_healthcheck.sh
 ```bash
 (crontab -l 2>/dev/null | grep -v "robby-the-match"; cat << 'CRON'
 # ============================================
-# ROBBY THE MATCH 自律PDCAループ
+# ナースロビー 自律PDCAループ
 # ============================================
 # 日次（月〜土）
 0  6 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_morning.sh
@@ -612,7 +612,7 @@ sudo pmset -a sleep 0 2>/dev/null \
 
 全テスト完了後、Slackに最終通知:
 
-slack_notify "🚀 ROBBY THE MATCH 自律PDCAシステム起動完了。
+slack_notify "🚀 ナースロビー 自律PDCAシステム起動完了。
 ━━━━━━━━━━━━━━━━━━
 スケジュール:
   06:00 SEO改善 → git push → GitHub Pages自動デプロイ

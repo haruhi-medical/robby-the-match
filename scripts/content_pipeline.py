@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ROBBY THE MATCH — 自律型コンテンツ生成パイプライン
+ナースロビー — 自律型コンテンツ生成パイプライン
 
 Usage:
   python3 scripts/content_pipeline.py --auto       # pending < 7 なら自動補充
@@ -516,7 +516,7 @@ def run_pipeline(count: int):
     Main pipeline: generate `count` pieces of content.
     """
     print("=" * 60)
-    print(f"ROBBY THE MATCH Content Pipeline - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"ナースロビー Content Pipeline - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"生成予定: {count}本")
     print("=" * 60)
 
@@ -732,7 +732,7 @@ def cmd_status():
     available = pending + ready  # Unposted content (used for threshold check)
 
     print("=" * 60)
-    print("ROBBY THE MATCH Content Pipeline Status")
+    print("ナースロビー Content Pipeline Status")
     print(f"  Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 60)
 
@@ -815,7 +815,7 @@ def cmd_force(count: int):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ROBBY THE MATCH 自律型コンテンツ生成パイプライン"
+        description="ナースロビー 自律型コンテンツ生成パイプライン"
     )
     parser.add_argument("--auto", action="store_true",
                         help="pending < 7 なら自動補充")

@@ -4,6 +4,12 @@
    Mobile-first / Warm Cream + Teal Theme
    ======================================== */
 
+:root {
+  --z-chat: 9999;
+  --transition: 0.3s ease;
+  --radius-xl: 16px;
+}
+
 /* ---------- Hidden utility ---------- */
 .hidden {
   display: none !important;
