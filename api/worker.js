@@ -836,6 +836,16 @@ export default {
       }
     }
 
+    // ========== 軽量アクセス解析 ==========
+    // ページビュー記録（beacon送信用）
+    if (url.pathname === "/api/track" && request.method === "POST") {
+      return handleTrackPageView(request, env, ctx);
+    }
+    // アクセスデータ取得（集約スクリプト用）
+    if (url.pathname === "/api/analytics" && request.method === "GET") {
+      return handleGetAnalytics(request, env);
+    }
+
     // ヘルスチェック
     if (url.pathname === "/api/health" && request.method === "GET") {
       return jsonResponse({ status: "ok", timestamp: new Date().toISOString() });
@@ -3616,6 +3626,92 @@ async function callLineAI(systemPrompt, history, env) {
   }
 
   return aiText;
+}
+
+// ========== 軽量アクセス解析 ==========
+// KVキー: analytics:YYYY-MM-DD → { views: N, pages: {path: N}, referrers: {ref: N}, chat_opens: N, line_clicks: N }
+async function handleTrackPageView(request, env, ctx) {
+  try {
+    const body = await request.json();
+    const { page, referrer, event } = body; // event: "pageview" | "chat_open" | "line_click"
+    if (!page) return jsonResponse({ ok: true }, 200, "*");
+
+    const today = new Date().toISOString().slice(0, 10);
+    const key = `analytics:${today}`;
+    const kv = env.LINE_SESSIONS; // 既存KVを共用
+
+    // waitUntilでバックグラウンド書き込み（レスポンスは即返す）
+    ctx.waitUntil((async () => {
+      const existing = await kv.get(key, "json") || {
+        views: 0, pages: {}, referrers: {}, chat_opens: 0, line_clicks: 0, unique_ips: []
+      };
+
+      existing.views++;
+      existing.pages[page] = (existing.pages[page] || 0) + 1;
+
+      if (referrer && referrer !== "" && !referrer.includes("quads-nurse.com")) {
+        const ref = new URL(referrer).hostname.replace("www.", "");
+        existing.referrers[ref] = (existing.referrers[ref] || 0) + 1;
+      }
+
+      if (event === "chat_open") existing.chat_opens++;
+      if (event === "line_click") existing.line_clicks++;
+
+      // ユニークIP（プライバシー配慮: ハッシュ化）
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+      const ipHash = ip.split(".").map((v,i) => i < 2 ? v : "x").join(".");
+      if (!existing.unique_ips.includes(ipHash)) {
+        existing.unique_ips.push(ipHash);
+      }
+
+      await kv.put(key, JSON.stringify(existing), { expirationTtl: 90 * 86400 }); // 90日保持
+    })());
+
+    return jsonResponse({ ok: true }, 200, "*");
+  } catch (e) {
+    return jsonResponse({ ok: true }, 200, "*"); // エラーでも200返す（ユーザー影響なし）
+  }
+}
+
+async function handleGetAnalytics(request, env) {
+  try {
+    const url = new URL(request.url);
+    const secret = url.searchParams.get("secret");
+    if (!secret || secret !== (env.LINE_PUSH_SECRET || "")) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+
+    const days = parseInt(url.searchParams.get("days") || "14");
+    const kv = env.LINE_SESSIONS;
+    const results = [];
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const data = await kv.get(`analytics:${date}`, "json");
+      if (data) {
+        results.push({
+          date,
+          views: data.views,
+          unique_visitors: data.unique_ips ? data.unique_ips.length : 0,
+          chat_opens: data.chat_opens || 0,
+          line_clicks: data.line_clicks || 0,
+          top_pages: Object.entries(data.pages || {}).sort((a,b) => b[1]-a[1]).slice(0, 10),
+          top_referrers: Object.entries(data.referrers || {}).sort((a,b) => b[1]-a[1]).slice(0, 5),
+        });
+      }
+    }
+
+    const totals = results.reduce((acc, d) => ({
+      views: acc.views + d.views,
+      unique_visitors: acc.unique_visitors + d.unique_visitors,
+      chat_opens: acc.chat_opens + d.chat_opens,
+      line_clicks: acc.line_clicks + d.line_clicks,
+    }), { views: 0, unique_visitors: 0, chat_opens: 0, line_clicks: 0 });
+
+    return jsonResponse({ totals, daily: results }, 200, "*");
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
 }
 
 // JSON レスポンス生成

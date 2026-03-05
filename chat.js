@@ -329,6 +329,7 @@
     els.window.classList.add("open");
     lockBodyScroll();
     trackEvent("chat_open");
+    if (window.__nrTrack) window.__nrTrack("chat_open");
     els.toggle.classList.add("active");
     els.toggle.querySelector(".chat-toggle-icon").textContent = "\u2715";
 
@@ -935,6 +936,7 @@
     if (btn) {
       btn.addEventListener("click", function () {
         trackEvent("chat_line_card_click", { phase: chatState.phase });
+        if (window.__nrTrack) window.__nrTrack("line_click");
       });
     }
   }
