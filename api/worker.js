@@ -2099,13 +2099,16 @@ const POSTBACK_LABELS = {
   q2_night:    "夜勤を減らしたい",
   q2_commute:  "通勤をラクにしたい",
   q2_career:   "スキルアップしたい",
-  // Q3 エリア
-  q3_odawara:   "小田原・南足柄あたり",
-  q3_hiratsuka: "平塚・大磯あたり",
-  q3_hadano:    "秦野・伊勢原あたり",
-  q3_shonan:    "藤沢・茅ヶ崎あたり",
-  q3_atsugi:    "厚木・海老名あたり",
-  q3_other:     "その他のエリア",
+  // Q3 エリア（9エリア — chat.jsと統一）
+  q3_yokohama:       "横浜市",
+  q3_kawasaki:       "川崎市",
+  q3_sagamihara:     "相模原市",
+  q3_yokosuka_miura: "横須賀・鎌倉・三浦",
+  q3_shonan_east:    "藤沢・茅ヶ崎",
+  q3_shonan_west:    "平塚・秦野・伊勢原",
+  q3_kenoh:          "厚木・海老名・大和",
+  q3_kensei:         "小田原・南足柄・箱根",
+  q3_undecided:      "まだ決めていない",
   // Q4 経験年数
   q4_under1:  "1年未満",
   q4_1to3:    "1〜3年",
@@ -2161,12 +2164,15 @@ const POSTBACK_LABELS = {
 
 // Q3エリア → データキーのマッピング
 const AREA_ZONE_MAP = {
-  q3_odawara:   ["小田原"],
-  q3_hiratsuka: ["平塚"],
-  q3_hadano:    ["秦野", "伊勢原"],
-  q3_shonan:    ["藤沢"],
-  q3_atsugi:    ["厚木", "海老名"],
-  q3_other:     [],
+  q3_yokohama:       ["横浜"],
+  q3_kawasaki:       ["川崎"],
+  q3_sagamihara:     ["相模原"],
+  q3_yokosuka_miura: ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
+  q3_shonan_east:    ["藤沢", "茅ヶ崎", "寒川"],
+  q3_shonan_west:    ["平塚", "秦野", "伊勢原", "大磯", "二宮"],
+  q3_kenoh:          ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
+  q3_kensei:         ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原"],
+  q3_undecided:      [],
 };
 
 // PC用テキスト→postbackキーマッピング
@@ -2183,11 +2189,15 @@ const TEXT_TO_POSTBACK = {
   "通勤": "q2=commute",
   "スキル": "q2=career", "キャリア": "q2=career",
   // Q3
-  "小田原": "q3=odawara", "南足柄": "q3=odawara",
-  "平塚": "q3=hiratsuka", "大磯": "q3=hiratsuka",
-  "秦野": "q3=hadano", "伊勢原": "q3=hadano",
-  "藤沢": "q3=shonan", "茅ヶ崎": "q3=shonan", "湘南": "q3=shonan",
-  "厚木": "q3=atsugi", "海老名": "q3=atsugi",
+  "横浜": "q3=yokohama",
+  "川崎": "q3=kawasaki",
+  "相模原": "q3=sagamihara",
+  "横須賀": "q3=yokosuka_miura", "鎌倉": "q3=yokosuka_miura", "三浦": "q3=yokosuka_miura", "逗子": "q3=yokosuka_miura",
+  "藤沢": "q3=shonan_east", "茅ヶ崎": "q3=shonan_east", "湘南": "q3=shonan_east",
+  "平塚": "q3=shonan_west", "秦野": "q3=shonan_west", "伊勢原": "q3=shonan_west", "大磯": "q3=shonan_west",
+  "厚木": "q3=kenoh", "海老名": "q3=kenoh", "大和": "q3=kenoh", "座間": "q3=kenoh",
+  "小田原": "q3=kensei", "南足柄": "q3=kensei", "箱根": "q3=kensei",
+  "まだ決めていない": "q3=undecided", "決めていない": "q3=undecided",
   // Q4
   "1年未満": "q4=under1", "新人": "q4=under1",
   "1〜3年": "q4=1to3", "1-3年": "q4=1to3",
@@ -2307,7 +2317,7 @@ function createLineEntry() {
     // Quick Reply収集データ
     urgency: null,          // q1: urgent/good/info
     change: null,           // q2: salary/rest/human/night/commute/career
-    area: null,             // q3: odawara/hiratsuka/hadano/shonan/atsugi/other
+    area: null,             // q3: yokohama/kawasaki/sagamihara/yokosuka_miura/shonan_east/shonan_west/kenoh/kensei/undecided
     areaLabel: null,        // 表示用エリア名
     experience: null,       // q4: under1/1to3/3to5/5to10/over10
     workStyle: null,        // q5: day/twoshift/part/night
@@ -2410,6 +2420,7 @@ function buildPhaseMessage(phase, entry) {
               qrItem("今すぐ転職したい", "q1=urgent"),
               qrItem("いい求人があれば", "q1=good"),
               qrItem("まずは情報収集", "q1=info"),
+              qrItem("HPのコードがある", "q1=handoff_code"),
             ],
           },
         },
@@ -2439,12 +2450,15 @@ function buildPhaseMessage(phase, entry) {
         text: "ありがとうございます！\n\n通える範囲はどのあたりですか？",
         quickReply: {
           items: [
-            qrItem("小田原・南足柄あたり", "q3=odawara"),
-            qrItem("平塚・大磯あたり", "q3=hiratsuka"),
-            qrItem("秦野・伊勢原あたり", "q3=hadano"),
-            qrItem("藤沢・茅ヶ崎あたり", "q3=shonan"),
-            qrItem("厚木・海老名あたり", "q3=atsugi"),
-            qrItem("その他のエリア", "q3=other"),
+            qrItem("横浜市", "q3=yokohama"),
+            qrItem("川崎市", "q3=kawasaki"),
+            qrItem("相模原市", "q3=sagamihara"),
+            qrItem("横須賀・鎌倉・三浦", "q3=yokosuka_miura"),
+            qrItem("藤沢・茅ヶ崎", "q3=shonan_east"),
+            qrItem("平塚・秦野・伊勢原", "q3=shonan_west"),
+            qrItem("厚木・海老名・大和", "q3=kenoh"),
+            qrItem("小田原・南足柄・箱根", "q3=kensei"),
+            qrItem("まだ決めていない", "q3=undecided"),
           ],
         },
       }];
@@ -2584,6 +2598,12 @@ function buildPhaseMessage(phase, entry) {
     case "matching":
       // マッチング結果はFlex Messageで別途生成
       return null;
+
+    case "await_handoff_code":
+      return [{
+        type: "text",
+        text: "HPで表示された6文字のコードをこのチャットに送ってください！\n\nすでにお聞きした情報を引き継いで、スムーズにご案内できます。\n\nコードがわからない場合は「スキップ」と送ってください。最初からご案内します！",
+      }];
 
     case "handoff":
       return [{
@@ -2993,9 +3013,15 @@ function handleLinePostback(dataStr, entry) {
 
   // Q1
   if (params.has("q1")) {
-    entry.urgency = params.get("q1");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q1_urgency;  // urgency設定後に呼ぶ
+    const q1val = params.get("q1");
+    if (q1val === "handoff_code") {
+      // HPコード入力待ちフェーズへ
+      nextPhase = "await_handoff_code";
+    } else {
+      entry.urgency = q1val;
+      entry.unexpectedTextCount = 0;
+      nextPhase = getFlowForEntry(entry).q1_urgency;  // urgency設定後に呼ぶ
+    }
   }
   // Q2
   else if (params.has("q2")) {
@@ -3321,12 +3347,32 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
 
-        // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはq1）
-        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "q1_urgency")) {
+        // await_handoff_codeフェーズで「スキップ」→ 通常Q1へ
+        if (entry.phase === "await_handoff_code" && /スキップ|skip/i.test(userText)) {
+          entry.phase = "q1_urgency";
+          entry.updatedAt = Date.now();
+          await saveLineEntry(userId, entry, env);
+          const msgs = [{
+            type: "text",
+            text: "では最初からご案内しますね！\n\nまず教えてください、今のお気持ちはどれに近いですか？",
+            quickReply: {
+              items: [
+                qrItem("今すぐ転職したい", "q1=urgent"),
+                qrItem("いい求人があれば", "q1=good"),
+                qrItem("まずは情報収集", "q1=info"),
+              ],
+            },
+          }];
+          await lineReply(event.replyToken, msgs, channelAccessToken);
+          continue;
+        }
+
+        // 引き継ぎコード検出（6文字英数字大文字、followフェーズ/q1/await_handoff_code）
+        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "q1_urgency" || entry.phase === "await_handoff_code")) {
           const webSession = webSessionMap.get(userText);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;
-            const webAreaMap = { kensei: "odawara", shonan_west: "hiratsuka", shonan_east: "shonan", kenoh: "atsugi" };
+            const webAreaMap = { yokohama: "yokohama", kawasaki: "kawasaki", sagamihara: "sagamihara", yokosuka_miura: "yokosuka_miura", shonan_east: "shonan_east", shonan_west: "shonan_west", kenoh: "kenoh", kensei: "kensei", undecided: "undecided" };
             if (webSession.area && webAreaMap[webSession.area]) {
               entry.area = webAreaMap[webSession.area];
               entry.areaLabel = POSTBACK_LABELS[`q3_${entry.area}`] || webSession.area;
@@ -3335,7 +3381,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             if (webSession.experience && webExpMap[webSession.experience]) {
               entry.experience = webExpMap[webSession.experience];
             }
-            const webConcernMap = { salary: "salary", commute: "commute", nightshift: "night", environment: "human" };
+            const webConcernMap = { salary: "salary", commute: "commute", nightshift: "night", environment: "human", workstyle: "rest", blank: "blank" };
             if (webSession.concern && webConcernMap[webSession.concern]) {
               entry.change = webConcernMap[webSession.concern];
             }

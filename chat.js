@@ -690,6 +690,9 @@
     var salaryRange = calculateSalaryRange(chatState.area);
     var facilityCount = PRESCRIPTED.areaFacilityCounts[chatState.area] || matches.length;
 
+    // 引き継ぎコードを先行取得（LINE遷移時にすぐ表示できるように）
+    requestHandoffCode(function () {});
+
     showTyping();
     setTimeout(function () {
       hideTyping();
@@ -807,7 +810,10 @@
       showTyping();
       setTimeout(function () {
         hideTyping();
-        addMessage("ai", "ありがとうございます！\n\nLINEではAIがもう少し詳しくヒアリングして、あなたにピッタリの病院をマッチングします。まずはAIの質問に答えるだけでOKです！");
+        var codeMsg = handoffCode
+          ? "\n\nLINE追加後に「HPのコードがある」を選んで、以下のコードを送ると今の情報を引き継げます。コードなしでも大丈夫です！"
+          : "";
+        addMessage("ai", "ありがとうございます！\n\nLINEではAIがもう少し詳しくヒアリングして、あなたにピッタリの病院をマッチングします。まずはAIの質問に答えるだけでOKです！" + codeMsg);
         chatState.phase = "done";
         chatState.done = true;
         showLineCard();
@@ -1088,7 +1094,10 @@
     showTyping();
     setTimeout(function () {
       hideTyping();
-      addMessage("ai", "LINEではAIがさらに詳しく分析して、あなたにピッタリの病院を見つけます。まずはAIの質問に答えるだけでOKです！");
+      var codeMsg = handoffCode
+        ? "\n\nLINE追加後に「HPのコードがある」を選んで、以下のコードを送ると今の情報を引き継げます。コードなしでも大丈夫です！"
+        : "";
+      addMessage("ai", "LINEではAIがさらに詳しく分析して、あなたにピッタリの病院を見つけます。まずはAIの質問に答えるだけでOKです！" + codeMsg);
 
       setTimeout(function () {
         showLineCard();
