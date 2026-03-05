@@ -773,3 +773,34 @@ SNS自動投稿: IG済9件 / 未投稿31件 (IG=0, TK=0)
 3. 内部リンクの改善提案：
    - 現在のページでは、関連する他のページへのリンクが不足しています。例えば、地域別の看護師求人ページから、看護師のキャリアチェンジガイドや、クリニックと病院の違いについてのページへのリンクを追加することで、ユーザーがより多くの情報を得ることができます。また、ブログ記事からガイドページへのリンクも追加することで、ユーザーが深く情報を探求できるようになります。さらに、footerやヘッダーに主要なページへのリンクを追加することで、ナビゲーションの改善にも繋がります。
 
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-03-05 SEO改善
+
+### pdca_ai_marketing（06:00:01）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=8 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
+### pdca_ai_marketing（07:00:00）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=8 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
+### pdca_ai_marketing（07:30:47）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=8 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
+### pdca_ai_marketing（08:00:45）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=8 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
