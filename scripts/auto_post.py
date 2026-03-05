@@ -96,6 +96,13 @@ DEVICE_PROFILES = [
 # Utilities
 # ============================================================
 
+def _get_dominant_color(img) -> tuple:
+    """Get the dominant edge color for padding background."""
+    from PIL import Image
+    small = img.resize((1, 1), Image.LANCZOS)
+    return small.getpixel((0, 0))
+
+
 def atomic_json_write(filepath, data, indent=2):
     """アトミックJSON書き込み（書き込み中クラッシュによるデータ破損を防止）"""
     filepath = Path(filepath)
@@ -220,7 +227,24 @@ def optimize_for_instagram(img_path: str, output_path: str) -> str:
     # Validate/enforce 1080x1350 (4:5 portrait)
     target_w, target_h = 1080, 1350
     if img.size != (target_w, target_h):
-        img = img.resize((target_w, target_h), Image.LANCZOS)
+        w, h = img.size
+        # If TikTok 9:16 (1080x1920), crop center instead of resize to avoid text distortion
+        if w == target_w and h > target_h:
+            # Center crop vertically (keep text area, trim top/bottom safe zones)
+            crop_top = (h - target_h) // 3  # Bias toward top (content is usually upper-center)
+            img = img.crop((0, crop_top, w, crop_top + target_h))
+        elif h == target_h and w > target_w:
+            # Center crop horizontally
+            crop_left = (w - target_w) // 2
+            img = img.crop((crop_left, 0, crop_left + target_w, h))
+        else:
+            # Different aspect ratio: fit within target, pad with background color
+            img.thumbnail((target_w, target_h), Image.LANCZOS)
+            bg = Image.new("RGB", (target_w, target_h), _get_dominant_color(img))
+            paste_x = (target_w - img.width) // 2
+            paste_y = (target_h - img.height) // 2
+            bg.paste(img, (paste_x, paste_y))
+            img = bg
 
     # Pre-sharpen to compensate for Instagram compression
     img = img.filter(ImageFilter.UnsharpMask(radius=1.0, percent=50, threshold=2))
