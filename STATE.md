@@ -48,10 +48,14 @@
 - instagram_engage.py: 12:00（月-土）ランダム遅延付き
 
 ## Meta広告状態
-- **Facebookページ**: 作成中（24-72時間の審査待ち）
-- **campaign_guide.md**: v2.0改訂済み（Ads Manager方式）
-- **広告画像**: 6枚生成済み
-- **Pixel ID**: 未設定（Facebookページ承認後に設定）
+- **Facebookページ**: 既存アカウント利用（Instagram: @robby.for.nurse）
+- **Meta Pixel**: ✅ ID `2326210157891886` 埋め込み済み（index.html + LP-A）
+- **Pixelイベント**: ✅ PageView（自動）+ Lead（LINEクリック9箇所）+ ChatOpen（チャット開封）
+- **イベントマネージャ**: ✅ PageView受信確認済み
+- **campaign_guide.md**: v2.0改訂済み（神奈川県全域版、Ads Manager方式）
+- **広告画像v3**: ✅ 6枚生成済み（content/meta_ads/v3/）— 神奈川県全域版
+- **広告コピー**: ✅ ad_copy.md 全域版更新済み
+- **次のステップ**: Ads Managerでキャンペーン作成（AD1 vs AD3のA/Bテスト、¥500/日×5日）
 
 ## cron状態（実稼働中）
 ```

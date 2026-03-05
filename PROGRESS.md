@@ -835,3 +835,25 @@ AI Marketing PDCA:
 
 [NOTE] available (134) >= threshold (7) -- --auto では生成スキップ
 
+### Meta広告出稿準備（手動セッション）
+**実施内容:**
+1. **広告画像v3生成（6枚）** — Pillow生成、神奈川県全域版
+   - AD1 地域密着型: feed(1080x1080) + story(1080x1920)
+   - AD2 手数料比較型: feed + story
+   - AD3 共感型: feed + story
+   - 変更点: 「小田原・平塚」→「神奈川県」、97施設→44施設、「県西部」→「全域対応」
+   - 保存先: `content/meta_ads/v3/`
+2. **ad_copy.md更新** — 地域名・ハッシュタグを全域版に（#小田原→#神奈川 #横浜）
+3. **campaign_guide.md更新** — ターゲット地域→神奈川県、画像パス→v3、既存アカウント利用注意点、Pixel置換手順
+4. **Meta Pixel fbqイベント実装**
+   - `fbq('track', 'Lead')`: LP-A 7箇所 + index.html 1箇所 + chat.js 1箇所 = 計9箇所
+   - `fbq('trackCustom', 'ChatOpen')`: chat.js openChat() 1箇所
+   - 全箇所 `typeof fbq !== 'undefined'` ガード付き
+5. **Meta Pixel ID埋め込み**: `2326210157891886` を index.html + lp/job-seeker/index.html に設定
+6. **イベントマネージャで動作確認**: PageView受信成功
+
+**デプロイ:** 2回（画像+fbqイベント / Pixel ID埋め込み）
+**コミット:** `77d2764` + `9e3e42b`
+
+**次のステップ:** Ads Managerでキャンペーン作成（AD1 vs AD3 A/Bテスト、¥500/日×5日）
+
