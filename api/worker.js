@@ -2420,7 +2420,6 @@ function buildPhaseMessage(phase, entry) {
               qrItem("今すぐ転職したい", "q1=urgent"),
               qrItem("いい求人があれば", "q1=good"),
               qrItem("まずは情報収集", "q1=info"),
-              qrItem("HPのコードがある", "q1=handoff_code"),
             ],
           },
         },
@@ -2598,12 +2597,6 @@ function buildPhaseMessage(phase, entry) {
     case "matching":
       // マッチング結果はFlex Messageで別途生成
       return null;
-
-    case "await_handoff_code":
-      return [{
-        type: "text",
-        text: "HPで表示された6文字のコードをこのチャットに送ってください！\n\nすでにお聞きした情報を引き継いで、スムーズにご案内できます。\n\nコードがわからない場合は「スキップ」と送ってください。最初からご案内します！",
-      }];
 
     case "handoff":
       return [{
@@ -3013,15 +3006,9 @@ function handleLinePostback(dataStr, entry) {
 
   // Q1
   if (params.has("q1")) {
-    const q1val = params.get("q1");
-    if (q1val === "handoff_code") {
-      // HPコード入力待ちフェーズへ
-      nextPhase = "await_handoff_code";
-    } else {
-      entry.urgency = q1val;
-      entry.unexpectedTextCount = 0;
-      nextPhase = getFlowForEntry(entry).q1_urgency;  // urgency設定後に呼ぶ
-    }
+    entry.urgency = params.get("q1");
+    entry.unexpectedTextCount = 0;
+    nextPhase = getFlowForEntry(entry).q1_urgency;  // urgency設定後に呼ぶ
   }
   // Q2
   else if (params.has("q2")) {
@@ -3347,28 +3334,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
 
-        // await_handoff_codeフェーズで「スキップ」→ 通常Q1へ
-        if (entry.phase === "await_handoff_code" && /スキップ|skip/i.test(userText)) {
-          entry.phase = "q1_urgency";
-          entry.updatedAt = Date.now();
-          await saveLineEntry(userId, entry, env);
-          const msgs = [{
-            type: "text",
-            text: "では最初からご案内しますね！\n\nまず教えてください、今のお気持ちはどれに近いですか？",
-            quickReply: {
-              items: [
-                qrItem("今すぐ転職したい", "q1=urgent"),
-                qrItem("いい求人があれば", "q1=good"),
-                qrItem("まずは情報収集", "q1=info"),
-              ],
-            },
-          }];
-          await lineReply(event.replyToken, msgs, channelAccessToken);
-          continue;
-        }
-
-        // 引き継ぎコード検出（6文字英数字大文字、followフェーズ/q1/await_handoff_code）
-        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "q1_urgency" || entry.phase === "await_handoff_code")) {
+        // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはq1）
+        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "q1_urgency")) {
           const webSession = webSessionMap.get(userText);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;

@@ -708,7 +708,7 @@
 
         setTimeout(function () {
           // LINE誘導メッセージ
-          addMessage("ai", "LINEでは、AIがあなたの経験年数やライフスタイルをヒアリングして、" + facilityCount + "件の中からピッタリの病院をマッチングします。");
+          addMessage("ai", "LINEでは、AIがあなたの経験年数やライフスタイルをヒアリングして、ピッタリの病院をマッチングします。");
 
           setTimeout(function () {
             // 2ボタンCTA
