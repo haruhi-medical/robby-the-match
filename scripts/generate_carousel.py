@@ -656,16 +656,17 @@ def draw_speech_bubble(
 
     result = Image.alpha_composite(img, overlay)
 
-    # Draw text
+    # Draw text - vertically centered within the bubble
     draw = ImageDraw.Draw(result)
     font = load_font(bold=False, size=font_size, rounded=True)
-    text_max_w = w - 40
+    pad_x = max(30, w // 15)  # Horizontal padding scales with bubble width
+    text_max_w = w - pad_x * 2
     lines = wrap_text_jp(text, font, text_max_w)
-    line_h = int(font_size * 1.5)
+    line_h = int(font_size * 1.7)
     block_h = line_h * len(lines)
     text_y = y + (h - block_h) // 2
     for line in lines:
-        draw.text((x + 20, text_y), line, fill=text_color, font=font)
+        draw.text((x + pad_x, text_y), line, fill=text_color, font=font)
         text_y += line_h
 
     return result
@@ -1735,7 +1736,7 @@ def generate_slide_content(
     card_x1 = cw - s_right - card_margin
     card_inner_pad = 35
 
-    body_font_size = 40
+    body_font_size = 48
     body_paragraphs = body.split("\n")
 
     # Adaptive font sizing using actual pixel measurement
@@ -1797,6 +1798,11 @@ def generate_slide_content(
 
     actual_card_h = card_inner_pad * 2 + card_content_h + 10
 
+    # Expand card to fill most of available space (like chat_bubble)
+    non_card_h = title_block_h + hl_block_h + 60
+    min_card_h = c_h - non_card_h - 120
+    actual_card_h = max(actual_card_h, min_card_h)
+
     # Total content height
     total_content_h = title_block_h + hl_block_h + actual_card_h
 
@@ -1804,7 +1810,7 @@ def generate_slide_content(
     # PASS 2: Draw everything, vertically centered
     # ============================================================
     # Center the entire content block in the safe area
-    start_y = s_top + max(60, (c_h - total_content_h) // 2)
+    start_y = s_top + max(30, (c_h - total_content_h) // 2)
     current_y = start_y
 
     # -- Section title --
@@ -1906,8 +1912,11 @@ def generate_slide_content(
         radius=3, fill=(*accent[:3], 200),
     )
 
-    # -- Draw body text with ellipsis truncation --
-    current_y = card_top + card_inner_pad
+    # -- Draw body text, vertically centered within card --
+    # Center text block within the expanded card
+    inner_card_h = card_bottom - card_top - card_inner_pad * 2
+    text_offset_y = max(0, (inner_card_h - card_content_h) // 2)
+    current_y = card_top + card_inner_pad + text_offset_y
     body_left = card_x0 + card_inner_pad + 12
     body_max_w = card_x1 - card_x0 - card_inner_pad * 2 - 12
     body_color = COLOR_WHITE if dark_theme else theme["text_on_light"]
@@ -2233,16 +2242,17 @@ def _v4_chat_bubble_content(
     highlight_number: Optional[str] = None,
     highlight_label: Optional[str] = None,
 ) -> Image.Image:
-    """あるある category: Chat bubble layout.
+    """あるある category: Chat bubble layout v2.
 
-    Alternating left/right speech bubbles simulating a conversation
-    between nurse and ロビー. Warm pink gradient background.
+    Full text in a large speech bubble, vertically centered.
+    Title as short header, body as main bubble content.
     """
     layout = _get_platform_layout(platform)
     cw, ch = layout["canvas_w"], layout["canvas_h"]
     s_top, s_bottom = layout["safe_top"], layout["safe_bottom"]
     s_left, s_right = layout["safe_left"], layout["safe_right"]
     c_w = layout["content_w"]
+    c_h = layout["content_h"]
     center_x = cw // 2
 
     # Background: warm gradient
@@ -2251,56 +2261,100 @@ def _v4_chat_bubble_content(
 
     draw = ImageDraw.Draw(bg)
 
-    # Title with rounded font
-    title_font = load_font(bold=True, size=44, rounded=True)
-    title_lines = wrap_text_jp(title, title_font, c_w - 40)
-    title_y = s_top + 60
-    for tl in title_lines:
-        tw, _ = measure_text(tl, title_font)
-        draw_text_shadow(draw, center_x - tw // 2, title_y, tl, title_font,
-                         fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
-        title_y += int(44 * 1.5)
+    # Combine title + body into full text for the bubble
+    # Avoid duplication: if body starts with title text, just use body
+    full_text = body if body else title
+    if not full_text:
+        full_text = title
+    if title and body and body.startswith(title.rstrip("、。？！…")):
+        # body already contains the title content, skip title header
+        title = ""
 
-    # Parse body into conversation lines
-    body_lines = [line.strip() for line in body.split("\n") if line.strip()]
-    bubble_y = title_y + 30
-    bubble_margin = 60
-    max_bubble_w = c_w - 120
+    # --- Layout: fill the canvas, not shrink-wrap ---
+    # Title block (only if short and distinct from body)
+    show_title = bool(title and body and len(title) <= 20)
+    title_font_size = 56
+    title_font = load_font(bold=True, size=title_font_size, rounded=True)
+    title_lines = wrap_text_jp(title, title_font, c_w - 60) if show_title else []
+    title_line_h = int(title_font_size * 1.5)
+    title_block_h = len(title_lines) * title_line_h + (40 if title_lines else 0)
 
-    for i, line in enumerate(body_lines):
-        if bubble_y > ch - s_bottom - 140:
-            break
-        is_right = (i % 2 == 1)  # Alternate sides
+    # Highlight block
+    hl_block_h = 0
+    if highlight_number:
+        hl_block_h = int(120 * 1.3) + (65 if highlight_label else 45)
 
-        # Determine bubble size
-        bubble_font = load_font(bold=False, size=32, rounded=True)
-        wrapped = wrap_text_jp(line, bubble_font, max_bubble_w - 40)
-        line_h = int(32 * 1.5)
-        bubble_h = max(60, len(wrapped) * line_h + 24)
+    # Bubble block - use large font, expand bubble to fill space
+    bubble_pad = 60
+    max_bubble_w = c_w - 40
+    bubble_inner_w = max_bubble_w - bubble_pad * 2
 
-        if is_right:
-            bx = cw - s_right - max_bubble_w - 20
-            bg_col = (*theme["accent"][:3], 200)
-            text_col = COLOR_WHITE
+    # Start with large font size (60px), only shrink if needed
+    bubble_font_size = 60
+    bubble_font = load_font(bold=False, size=bubble_font_size, rounded=True)
+    bubble_line_h = int(bubble_font_size * 1.7)
+    wrapped_lines = wrap_text_jp(full_text, bubble_font, bubble_inner_w)
+    bubble_text_h = len(wrapped_lines) * bubble_line_h
+
+    # The bubble should fill most of the content height (minus title/highlight)
+    non_bubble_h = title_block_h + hl_block_h + 60  # 60px for gaps
+    min_bubble_h = c_h - non_bubble_h - 120  # Leave only 120px total margin
+    bubble_h = max(bubble_text_h + bubble_pad * 2 + 10, min_bubble_h)
+
+    # If bubble would be too tall, shrink font
+    max_bubble_h = c_h - title_block_h - hl_block_h - 80
+    if bubble_h > max_bubble_h:
+        bubble_h = max_bubble_h
+        for try_size in range(52, 30, -2):
+            bubble_font = load_font(bold=False, size=try_size, rounded=True)
+            bubble_line_h = int(try_size * 1.7)
+            wrapped_lines = wrap_text_jp(full_text, bubble_font, bubble_inner_w)
+            bubble_text_h = len(wrapped_lines) * bubble_line_h
+            if bubble_text_h + bubble_pad * 2 + 10 <= max_bubble_h:
+                bubble_font_size = try_size
+                break
+
+    total_content_h = title_block_h + hl_block_h + bubble_h
+
+    # --- Draw: center the whole block vertically in safe area ---
+    available_space = c_h - total_content_h
+    start_y = s_top + max(30, available_space // 2)
+    current_y = start_y
+
+    # Title (short header above bubble)
+    if title_lines:
+        for tl in title_lines:
+            tw, _ = measure_text(tl, title_font)
+            draw_text_shadow(draw, center_x - tw // 2, current_y, tl, title_font,
+                             fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
+            current_y += title_line_h
+        current_y += 30
+
+    # Highlight number
+    if highlight_number:
+        num_font = load_font(bold=True, size=120)
+        tw, _ = measure_text(highlight_number, num_font)
+        draw_text_shadow(draw, center_x - tw // 2, current_y, highlight_number, num_font,
+                         fill=(*theme["accent_light"][:3], 255), shadow_offset=4, outline_width=2)
+        current_y += int(120 * 1.3)
+        if highlight_label:
+            label_font = load_font(bold=False, size=34)
+            tw2, _ = measure_text(highlight_label, label_font)
+            draw.text((center_x - tw2 // 2, current_y), highlight_label,
+                      fill=theme["text_secondary"], font=label_font)
+            current_y += 65
         else:
-            bx = s_left + 20
-            bg_col = (255, 255, 255, 230)
-            text_col = theme["text_on_light"]
+            current_y += 45
 
-        bg = draw_speech_bubble(
-            bg, bx, bubble_y, max_bubble_w, bubble_h,
-            line, is_right=is_right,
-            bg_color=bg_col, text_color=text_col,
-            font_size=32,
-        )
-        bubble_y += bubble_h + 18
-
-    # Highlight number if present
-    draw = ImageDraw.Draw(bg)
-    if highlight_number and bubble_y < ch - s_bottom - 120:
-        draw_number_callout(draw, center_x, bubble_y + 10, highlight_number,
-                            label=highlight_label or "",
-                            number_color=(*theme["accent_light"][:3], 255))
+    # Main speech bubble - large, left-aligned, expanded to fill space
+    bx = s_left + 30
+    bg = draw_speech_bubble(
+        bg, bx, current_y, max_bubble_w, bubble_h,
+        full_text, is_right=False,
+        bg_color=(255, 255, 255, 230),
+        text_color=theme["text_on_light"],
+        font_size=bubble_font_size,
+    )
 
     # Swipe indicator on first 3 content slides
     if slide_num <= 4:
@@ -3237,8 +3291,13 @@ def generate_carousel(
 # ===========================================================================
 
 def _split_title_body(text: str) -> tuple[str, str]:
-    """Split a slide text into a short title and longer body."""
-    MAX_TITLE = 18
+    """Split a slide text into a short title and longer body.
+
+    Title is a short header (max 20 chars), body is the full text.
+    If no good split point is found, title is a truncated version
+    and body gets the FULL original text (not the remainder).
+    """
+    MAX_TITLE = 20
 
     if "\n" in text:
         parts = text.split("\n", 1)
@@ -3246,22 +3305,27 @@ def _split_title_body(text: str) -> tuple[str, str]:
         if len(candidate) <= MAX_TITLE:
             return candidate, parts[1].strip()
 
-    if "。" in text:
-        parts = text.split("。", 1)
-        candidate = parts[0].strip()
-        if len(candidate) <= MAX_TITLE:
-            return candidate + "。", parts[1].strip()
-
-    for delim in ["、", "。", "？", "！", "…", ","]:
+    # Try splitting at sentence boundaries
+    for delim in ["。", "？", "！"]:
         if delim in text:
             parts = text.split(delim, 1)
             candidate = parts[0].strip()
             if len(candidate) <= MAX_TITLE:
-                return candidate + delim, parts[1].strip()
+                return candidate + delim, parts[1].strip() if parts[1].strip() else text
 
+    # Try comma as last resort
+    if "、" in text:
+        parts = text.split("、", 1)
+        candidate = parts[0].strip()
+        if len(candidate) <= MAX_TITLE:
+            # Body gets the FULL text so nothing is lost
+            return candidate + "、", text
+
+    # No good split: short title + full text as body
     if len(text) > MAX_TITLE:
         return text[:MAX_TITLE] + "...", text
 
+    # Short text: use as title only, body empty
     return text, ""
 
 
