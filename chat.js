@@ -1,8 +1,6 @@
 // ========================================
-// ナースロビー - AI Chat Widget v4.0
-// 心理学ドリブン コンバージョン設計
-// 施設探索フック + 好奇心ギャップ + IKEA効果
-// 行動経済学 + 動機づけ面接 + UX/CRO
+// ナースロビー - Chat Widget v5.0
+// LINE誘導特化 - 2問→ティーザー→LINE CTA
 // ========================================
 
 (function () {
@@ -38,7 +36,7 @@
   };
 
   // --------------------------------------------------
-  // Pre-scripted flow data（3ステップ: エリア → 関心事 → 経験年数）
+  // Pre-scripted flow data（2ステップ: エリア → 関心事）
   // --------------------------------------------------
   var PRESCRIPTED = {
     areas: [
@@ -112,63 +110,26 @@
   }
 
   // --------------------------------------------------
-  // Demo mode responses (when API unavailable)
-  // --------------------------------------------------
-  var DEMO_RESPONSES = [
-    {
-      reply: "お話しいただきありがとうございます。\n\n差し支えなければ、今回転職をお考えになったきっかけを教えていただけますか？",
-      done: false,
-    },
-    {
-      reply: "なるほど、そうだったのですね。\n\nちなみに、月収やお休みの日数など、特に重視されている条件はありますか？",
-      done: false,
-    },
-    {
-      reply: "ありがとうございます。いただいた条件をもとに、エリアの施設をいくつか候補として整理しています。\n\n夜勤の有無や通勤時間について、ご希望があればお聞かせください。",
-      done: false,
-    },
-    {
-      reply: "詳しくお聞かせいただきありがとうございました。\n\nお伺いした内容をもとに、条件に合う求人をお探しします。LINEで詳しい情報をお届けしますので、ぜひ友だち追加してくださいね。",
-      done: true,
-    },
-  ];
-
-  // --------------------------------------------------
   // State
   // --------------------------------------------------
   function generateSessionId() {
     return "sess_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9);
   }
 
-  var CLIENT_RATE_LIMIT = {
-    sendCooldownMs: 2000,
-    maxSessionMessages: 15,
-  };
-
   var chatState = {
     isOpen: false,
     messages: [],
-    apiMessages: [],
     sessionId: generateSessionId(),
-    demoIndex: 0,
-    score: null,
     done: false,
     isTyping: false,
-    lastSendTime: 0,
-    userMessageCount: 0,
-    sendCooldown: false,
-    demoMode: false,
     lineCtaShown: false,
     peekShown: false,
     peekDismissed: false,
-    // Conversational flow state (v4: 3-step)
-    phase: "greeting", // "greeting" | "area" | "concern" | "experience" | "value" | "curiosity_gap" | "ai" | "done"
+    // Conversational flow state (v5: 2-step + teaser)
+    phase: "greeting", // "greeting" | "area" | "concern" | "teaser" | "experience_extra" | "done"
     area: null,
     concern: null,
     experience: null,
-    // Sunk cost tracking
-    conversationStartTime: null,
-    sunkCostShown: false,
     // Salary calculation results
     salaryBreakdown: null,
   };
@@ -182,19 +143,13 @@
     try {
       var toSave = {
         messages: chatState.messages,
-        apiMessages: chatState.apiMessages,
         sessionId: chatState.sessionId,
         phase: chatState.phase,
         area: chatState.area,
         concern: chatState.concern,
         experience: chatState.experience,
-        userMessageCount: chatState.userMessageCount,
-        score: chatState.score,
         done: chatState.done,
         lineCtaShown: chatState.lineCtaShown,
-        demoIndex: chatState.demoIndex,
-        conversationStartTime: chatState.conversationStartTime,
-        sunkCostShown: chatState.sunkCostShown,
         salaryBreakdown: chatState.salaryBreakdown,
         savedAt: Date.now(),
       };
@@ -212,28 +167,18 @@
         return false;
       }
       chatState.messages = data.messages || [];
-      chatState.apiMessages = data.apiMessages || [];
       chatState.sessionId = data.sessionId || chatState.sessionId;
       chatState.phase = data.phase || "greeting";
       chatState.area = data.area || null;
       chatState.concern = data.concern || null;
       chatState.experience = data.experience || null;
-      chatState.userMessageCount = data.userMessageCount || 0;
-      chatState.score = data.score || null;
       chatState.done = data.done || false;
       chatState.lineCtaShown = data.lineCtaShown || false;
-      chatState.demoIndex = data.demoIndex || 0;
-      chatState.conversationStartTime = data.conversationStartTime || null;
-      chatState.sunkCostShown = data.sunkCostShown || false;
       chatState.salaryBreakdown = data.salaryBreakdown || null;
       return true;
     } catch (e) {
       return false;
     }
-  }
-
-  function clearState() {
-    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
   }
 
   // --------------------------------------------------
@@ -262,21 +207,6 @@
     els.toggle.addEventListener("click", toggleChat);
     els.closeBtn.addEventListener("click", closeChat);
     if (els.minimizeBtn) els.minimizeBtn.addEventListener("click", closeChat);
-    els.sendBtn.addEventListener("click", sendMessage);
-
-    els.input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    // Auto-resize textarea
-    els.input.addEventListener("input", function () {
-      els.input.style.height = "auto";
-      els.input.style.height = Math.min(els.input.scrollHeight, 100) + "px";
-      scrollToBottom();
-    });
 
     // iOS virtual keyboard handling
     if (window.visualViewport) {
@@ -323,7 +253,10 @@
       }
     });
 
-    // Proactive peek message after 30 seconds（LPを読む時間を確保）
+    // Hide text input area (button-only interaction)
+    setInputVisible(false);
+
+    // Proactive peek message after 30 seconds
     setTimeout(function () {
       if (!chatState.isOpen && !chatState.peekDismissed) {
         showPeekMessage();
@@ -332,7 +265,7 @@
   }
 
   // --------------------------------------------------
-  // Proactive Peek Message（施設探索フック）
+  // Proactive Peek Message
   // --------------------------------------------------
   function showPeekMessage() {
     if (chatState.peekShown || chatState.isOpen) return;
@@ -341,10 +274,9 @@
     var peek = document.createElement("div");
     peek.className = "chat-peek";
     peek.id = "chatPeek";
-    // 悩みベースのフック（ペルソナの共感を得る）
     var peekMessages = [
       "今の職場、このまま続けて大丈夫かな…<br><strong>って思ったことありませんか？</strong>",
-      "3つの質問だけで、<br><strong>あなたの年収相場が分かります</strong>",
+      "2つの質問だけで、<br><strong>あなたの年収相場が分かります</strong>",
       "看護師の求人、<br><strong>個人情報なしで探せます</strong>",
     ];
     var peekMsg = peekMessages[Math.floor(Math.random() * peekMessages.length)];
@@ -432,10 +364,6 @@
       startConversation();
     } else {
       showChatView();
-      if (chatState.phase === "ai") {
-        setInputVisible(true);
-        els.input.focus();
-      }
     }
   }
 
@@ -474,12 +402,10 @@
   var handoffCodeRequested = false;
 
   function requestHandoffCode(callback) {
-    // すでにコードがあれば即返す
     if (handoffCode) {
       if (callback) callback(handoffCode);
       return;
     }
-    // リクエスト中の重複防止
     if (handoffCodeRequested) {
       if (callback) callback(null);
       return;
@@ -512,7 +438,6 @@
         concern: chatState.concern || null,
         experience: chatState.experience || null,
         salaryEstimate: salaryEst,
-        temperatureScore: detectTemperatureScore(),
         facilitiesShown: facilitiesShown,
       }),
     }).then(function (res) {
@@ -543,49 +468,7 @@
   }
 
   // --------------------------------------------------
-  // サンクコスト: 3分タイマー → LINE保存誘導
-  // --------------------------------------------------
-  function startSunkCostTimer() {
-    if (chatState.sunkCostShown) return;
-    chatState.conversationStartTime = chatState.conversationStartTime || Date.now();
-    saveState();
-
-    var elapsed = Date.now() - chatState.conversationStartTime;
-    var remaining = Math.max(0, 300000 - elapsed);
-
-    setTimeout(function () {
-      if (chatState.sunkCostShown || chatState.done || !chatState.isOpen) return;
-      if (chatState.phase !== "ai") return;
-      chatState.sunkCostShown = true;
-      showSunkCostCTA();
-      saveState();
-    }, remaining);
-  }
-
-  function showSunkCostCTA() {
-    // ツァイガルニク効果: 「まだ確認していない情報がある」
-    requestHandoffCode(function (code) {
-      var cta = document.createElement("div");
-      cta.className = "chat-curiosity-card";
-      cta.innerHTML =
-        '<div class="curiosity-header">ここまでの相談内容を保存できます</div>' +
-        '<div class="curiosity-body">担当者が、あなたの条件に合う求人を<strong>直接お探しします</strong></div>' +
-        buildHandoffCodeHtml(code) +
-        '<a href="https://lin.ee/oUgDB3x" target="_blank" rel="noopener" class="curiosity-btn">LINEで相談を続ける</a>' +
-        '<div class="curiosity-note">完全無料・電話なし・翌営業日までにご連絡</div>';
-
-      els.body.appendChild(cta);
-      scrollToBottom();
-      trackEvent("chat_sunk_cost_shown", { elapsed_min: Math.round((Date.now() - chatState.conversationStartTime) / 60000) });
-
-      cta.querySelector(".curiosity-btn").addEventListener("click", function () {
-        trackEvent("chat_sunk_cost_line_click");
-      });
-    });
-  }
-
-  // --------------------------------------------------
-  // 年収計算（透明な内訳を表示して信頼感を出す）
+  // 年収計算（透明な計算式で信頼感を出す）
   // --------------------------------------------------
   function calculateSalary(area, experience, concern) {
     var data = SALARY_TABLE[area] || SALARY_TABLE.undecided;
@@ -634,6 +517,23 @@
   }
 
   // --------------------------------------------------
+  // 年収レンジ計算（経験年数なし — ティーザー用）
+  // --------------------------------------------------
+  function calculateSalaryRange(area) {
+    var data = SALARY_TABLE[area] || SALARY_TABLE.undecided;
+    // 経験年数の最小(0)〜最大(+8)を考慮した幅広レンジ
+    var nightMonthly = Math.round(data.nightPer * data.nightCount / 10000 * 10) / 10;
+    var certMonthly = 1.5;
+    var monthlyMin = data.base.min + nightMonthly + certMonthly;
+    var monthlyMax = data.base.max + 8 + nightMonthly + certMonthly; // 10年以上の+8万
+    var baseMidMin = Math.round((data.base.min + data.base.max) / 2);
+    var baseMidMax = Math.round((data.base.min + 8 + data.base.max + 8) / 2);
+    var annualMin = Math.round(monthlyMin * 12 + baseMidMin * data.bonus);
+    var annualMax = Math.round(monthlyMax * 12 + baseMidMax * data.bonus);
+    return { annualMin: annualMin, annualMax: annualMax };
+  }
+
+  // --------------------------------------------------
   // プログレスバー
   // --------------------------------------------------
   function updateProgress(step, total) {
@@ -674,14 +574,9 @@
     }
 
     showChatView();
+    setInputVisible(false);
 
-    if (chatState.phase === "ai" && !chatState.done) {
-      setInputVisible(true);
-      els.input.focus();
-    } else if (chatState.done) {
-      setInputVisible(false);
-    } else {
-      setInputVisible(false);
+    if (!chatState.done) {
       resumeFlow();
     }
   }
@@ -694,14 +589,11 @@
       case "concern":
         showButtonGroup(PRESCRIPTED.concerns, handleConcernSelect);
         break;
-      case "experience":
-        showButtonGroup(PRESCRIPTED.experiences, handleExperienceSelect);
+      case "teaser":
+        deliverTeaser();
         break;
-      case "value":
-        deliverValue();
-        break;
-      case "curiosity_gap":
-        showCuriosityGapCTA();
+      case "experience_extra":
+        showButtonGroup(PRESCRIPTED.experiences, handleExperienceExtraSelect);
         break;
       default:
         break;
@@ -709,18 +601,16 @@
   }
 
   // --------------------------------------------------
-  // Conversational Flow（v4: 3ステップ）
+  // Conversational Flow（v5: 2ステップ + ティーザー）
   // --------------------------------------------------
   function startConversation() {
     chatState.phase = "greeting";
-    chatState.conversationStartTime = Date.now();
     setInputVisible(false);
 
     showTyping();
     setTimeout(function () {
       hideTyping();
-      // 温かい挨拶 + 個人情報不要の安心感
-      addMessage("ai", "こんにちは！手数料10%で看護師さんの転職をお手伝いしている、ナースロビーです。\n\n3つの質問に答えるだけで、あなたに合いそうな施設と年収の目安をお出しします。名前や電話番号の入力は不要です。");
+      addMessage("ai", "こんにちは！ナースロビーです。\n\n30秒で、あなたのエリアの年収相場がわかります。名前や電話番号の入力は不要です。");
 
       setTimeout(function () {
         showTyping();
@@ -728,7 +618,7 @@
           hideTyping();
           addMessage("ai", "まず、どのエリアで働きたいですか？");
           chatState.phase = "area";
-          updateProgress(1, 3);
+          updateProgress(1, 2);
           showButtonGroup(PRESCRIPTED.areas, handleAreaSelect);
           saveState();
         }, 250);
@@ -737,7 +627,7 @@
   }
 
   // --------------------------------------------------
-  // Step 1: エリア選択 + 即時フィードバック
+  // Step 1: エリア選択
   // --------------------------------------------------
   function handleAreaSelect(value, label) {
     chatState.area = value;
@@ -751,23 +641,21 @@
     setTimeout(function () {
       hideTyping();
       var areaName = getAreaDisplayName(value);
-      addMessage("ai", areaName + "エリアですね！条件に合う施設をお探しします。\n\n候補を絞り込むために、今一番気になっていることを教えてください（他の条件も後で考慮します）。");
-      updateProgress(2, 3);
+      addMessage("ai", areaName + "エリアですね！\n\n候補を絞り込むために、今一番気になっていることを教えてください。");
+      updateProgress(2, 2);
       showButtonGroup(PRESCRIPTED.concerns, handleConcernSelect);
       saveState();
     }, 300);
   }
 
   // --------------------------------------------------
-  // Step 2: 関心事選択 + 即時フィードバック
+  // Step 2: 関心事選択 → ティーザーへ
   // --------------------------------------------------
   function handleConcernSelect(value, label) {
     chatState.concern = value;
     trackEvent("chat_concern_selected", { concern: value });
     removeButtonGroup();
     addMessage("user", label);
-
-    chatState.phase = "experience";
 
     // 選択した関心事に合わせたフィードバック
     var selectedConcern = null;
@@ -782,23 +670,172 @@
     setTimeout(function () {
       hideTyping();
       var feedbackText = selectedConcern ? selectedConcern.feedback : "";
-      addMessage("ai", feedbackText + "\n\n最後に、看護師としてのご経験年数を教えてください。");
-      updateProgress(3, 3);
-      showButtonGroup(PRESCRIPTED.experiences, handleExperienceSelect);
+      addMessage("ai", feedbackText + "\n\n条件に合う施設を検索しています...");
+      removeProgress();
+      chatState.phase = "teaser";
       saveState();
+
+      setTimeout(function () {
+        deliverTeaser();
+      }, 500);
     }, 300);
   }
 
   // --------------------------------------------------
-  // Step 3: 経験年数選択 → 価値提供へ
+  // ティーザー表示: 年収レンジ + 施設1件 + LINE CTA
   // --------------------------------------------------
-  function handleExperienceSelect(value, label) {
+  function deliverTeaser() {
+    var matches = findMatchingHospitals(chatState.area);
+    var areaName = getAreaDisplayName(chatState.area);
+    var salaryRange = calculateSalaryRange(chatState.area);
+    var facilityCount = PRESCRIPTED.areaFacilityCounts[chatState.area] || matches.length;
+
+    showTyping();
+    setTimeout(function () {
+      hideTyping();
+
+      // 年収レンジメッセージ
+      addMessage("ai", areaName + "エリアの看護師の年収相場は " + salaryRange.annualMin + "〜" + salaryRange.annualMax + " 万円です。");
+
+      setTimeout(function () {
+        // 施設1件だけカード表示
+        if (matches.length > 0) {
+          showSingleFacilityCard(matches[0], facilityCount);
+        }
+
+        setTimeout(function () {
+          // LINE誘導メッセージ
+          addMessage("ai", "LINEでは、AIがあなたの経験年数やライフスタイルをヒアリングして、" + facilityCount + "件の中からピッタリの病院をマッチングします。");
+
+          setTimeout(function () {
+            // 2ボタンCTA
+            showTeaserCTA();
+            saveState();
+          }, 400);
+        }, 400);
+      }, 300);
+    }, 350);
+  }
+
+  // --------------------------------------------------
+  // 施設1件カード（ティーザー用）
+  // --------------------------------------------------
+  function showSingleFacilityCard(hospital, totalCount) {
+    var h = hospital;
+    var container = document.createElement("div");
+    container.className = "chat-facility-cards";
+
+    var card = document.createElement("div");
+    card.className = "chat-facility-card chat-facility-card--info";
+
+    var isReferral = h.referral === true;
+    var badgeHtml = isReferral
+      ? '<div class="facility-card-badge facility-card-badge--referral">直接ご紹介できます</div>'
+      : '<div class="facility-card-badge facility-card-badge--info">参考情報</div>';
+
+    // Enriched tags
+    var enrichedTags = [];
+    if (h.nursingRatio) enrichedTags.push(h.nursingRatio);
+    if (h.emergencyLevel) enrichedTags.push(h.emergencyLevel);
+    if (h.ownerType) enrichedTags.push(h.ownerType);
+    if (h.dpcHospital) enrichedTags.push("DPC対象");
+    var enrichedTagsHtml = "";
+    if (enrichedTags.length > 0) {
+      enrichedTagsHtml = '<div class="facility-card-tags">';
+      for (var t = 0; t < enrichedTags.length; t++) {
+        enrichedTagsHtml += '<span class="facility-card-tag">' + escapeHtml(enrichedTags[t]) + '</span>';
+      }
+      enrichedTagsHtml += '</div>';
+    }
+
+    card.innerHTML =
+      badgeHtml +
+      '<div class="facility-card-name">' + escapeHtml(h.displayName) + '</div>' +
+      enrichedTagsHtml +
+      '<div class="facility-card-details">' +
+        '<span>' + escapeHtml(h.salary || "") + '</span>' +
+        '<span>' + escapeHtml(h.holidays || "") + '</span>' +
+      '</div>';
+
+    container.appendChild(card);
+
+    if (totalCount > 1) {
+      var more = document.createElement("div");
+      more.className = "facility-card-more";
+      more.textContent = "他にも " + (totalCount - 1) + " 件の施設があります";
+      container.appendChild(more);
+    }
+
+    els.body.appendChild(container);
+    scrollToBottom();
+  }
+
+  // --------------------------------------------------
+  // ティーザーCTA（LINE or もう少し教えて）
+  // --------------------------------------------------
+  function showTeaserCTA() {
+    var options = [
+      { label: "LINEでAI診断を受ける", value: "line", isLine: true },
+      { label: "もう少し教えて", value: "more", isLine: false },
+    ];
+
+    var container = document.createElement("div");
+    container.className = "chat-quick-replies";
+    container.id = "chatButtonGroup";
+
+    for (var i = 0; i < options.length; i++) {
+      (function (opt) {
+        var btn = document.createElement("button");
+        btn.className = "chat-quick-reply" + (opt.isLine ? " chat-quick-reply-line" : "");
+        btn.textContent = opt.label;
+        btn.addEventListener("click", function () {
+          removeButtonGroup();
+          addMessage("user", opt.label);
+          handleTeaserChoice(opt.value);
+        });
+        container.appendChild(btn);
+      })(options[i]);
+    }
+
+    els.body.appendChild(container);
+    scrollToBottom();
+  }
+
+  function handleTeaserChoice(choice) {
+    if (choice === "line") {
+      trackEvent("chat_line_click", { phase: "teaser", area: chatState.area, concern: chatState.concern });
+      showTyping();
+      setTimeout(function () {
+        hideTyping();
+        addMessage("ai", "ありがとうございます！\n\nLINEではAIがもう少し詳しくヒアリングして、あなたにピッタリの病院をマッチングします。まずはAIの質問に答えるだけでOKです！");
+        chatState.phase = "done";
+        chatState.done = true;
+        showLineCard();
+        saveState();
+      }, 300);
+    } else {
+      // 「もう少し教えて」→ 経験年数を聞く
+      trackEvent("chat_more_detail", { area: chatState.area, concern: chatState.concern });
+      chatState.phase = "experience_extra";
+      showTyping();
+      setTimeout(function () {
+        hideTyping();
+        addMessage("ai", "もう少し詳しくお出ししますね！\n\n看護師としてのご経験年数を教えてください。");
+        showButtonGroup(PRESCRIPTED.experiences, handleExperienceExtraSelect);
+        saveState();
+      }, 300);
+    }
+  }
+
+  // --------------------------------------------------
+  // 「もう少し教えて」→ 経験年数 → 詳細表示 → 再LINE CTA
+  // --------------------------------------------------
+  function handleExperienceExtraSelect(value, label) {
     chatState.experience = value;
     trackEvent("chat_experience_selected", { experience: value });
     removeButtonGroup();
     addMessage("user", label);
 
-    // 経験年数に応じた即時フィードバック
     var expFeedbacks = {
       "1年未満": "新人さんでも受け入れてくれる職場は意外とたくさんありますよ。",
       "1〜3年": "基本スキルが身についた時期ですね。選べる職場の幅が広がっています。",
@@ -811,40 +848,46 @@
     setTimeout(function () {
       hideTyping();
       var fb = expFeedbacks[value] || "";
-      addMessage("ai", fb + "\n\n条件に合う施設を検索しています...");
-      removeProgress();
-      chatState.phase = "value";
+      addMessage("ai", fb + "\n\n詳しい年収シミュレーションと施設情報をお出しします。");
       saveState();
 
       setTimeout(function () {
-        deliverValue();
+        deliverDetailedResults();
       }, 500);
     }, 300);
   }
 
   // --------------------------------------------------
-  // 価値提供: 施設カード → 年収内訳 → 好奇心ギャップCTA
+  // 詳細結果: 年収内訳 + 施設3件 + 再LINE CTA
   // --------------------------------------------------
-  function deliverValue() {
-    var matches = findMatchingHospitals(chatState.area);
-    var areaName = getAreaDisplayName(chatState.area);
+  function deliverDetailedResults() {
     var salary = calculateSalary(chatState.area, chatState.experience, chatState.concern);
+    var areaName = getAreaDisplayName(chatState.area);
 
     showTyping();
     setTimeout(function () {
       hideTyping();
-      addMessage("ai", areaName + "エリアで " + matches.length + " 件の施設が見つかりました。あなたの条件に合いそうな施設をご紹介します。");
+      addMessage("ai", areaName + "エリア・" + chatState.experience + "の年収シミュレーション結果です。");
 
       setTimeout(function () {
-        showFacilityCards();
+        showSalaryBreakdownCard(salary);
 
         setTimeout(function () {
-          showSalaryBreakdownCard(salary);
+          var matches = findMatchingHospitals(chatState.area);
+          if (matches.length > 0) {
+            addMessage("ai", "条件に合いそうな施設をご紹介します。");
+            setTimeout(function () {
+              showFacilityCards(matches);
 
-          setTimeout(function () {
-            showCuriosityGapCTA();
+              setTimeout(function () {
+                showFinalLineCTA();
+                saveState();
+              }, 500);
+            }, 300);
+          } else {
+            showFinalLineCTA();
             saveState();
-          }, 600);
+          }
         }, 400);
       }, 300);
     }, 350);
@@ -912,7 +955,7 @@
         '<span class="salary-bd-label">パート時給目安</span>' +
         '<span class="salary-bd-value">' + hourlyMin.toLocaleString() + '〜' + hourlyMax.toLocaleString() + '円/時</span>' +
       '</div>' +
-      '<div class="salary-bd-note">※施設・勤務形態により変動します。詳しい条件はLINEでお聞きください</div>';
+      '<div class="salary-bd-note">※施設・勤務形態により変動します。LINEのAI診断でさらに精度の高い結果が出ます</div>';
 
     els.body.appendChild(card);
     scrollToBottom();
@@ -920,11 +963,10 @@
   }
 
   // --------------------------------------------------
-  // 施設カード（IKEA効果: 自分で選ぶ感覚）
+  // 施設カード表示（3件 — 「もう少し教えて」時）
   // --------------------------------------------------
-  function showFacilityCards() {
-    var matches = findMatchingHospitals(chatState.area);
-    if (matches.length === 0) return;
+  function showFacilityCards(matches) {
+    if (!matches || matches.length === 0) return;
 
     var showCount = Math.min(matches.length, 3);
     var container = document.createElement("div");
@@ -936,30 +978,25 @@
       var card = document.createElement("div");
       card.className = "chat-facility-card" + (isReferral ? " chat-facility-card--referral" : " chat-facility-card--info");
 
-      // ユーザーの関心事に合わせたハイライト（ペルソナ最適化）
+      // ユーザーの関心事に合わせたハイライト
       var highlightTag = "";
       if (chatState.concern === "salary") {
         highlightTag = h.salary;
-      } else if (chatState.concern === "commute") {
-        highlightTag = h.commute;
       } else if (chatState.concern === "nightshift") {
         highlightTag = h.nightShift ? "夜勤: " + h.nightShift : "夜勤情報なし";
       } else if (chatState.concern === "environment") {
-        // 人間関係重視: 規模感+教育体制を見せる
         var envParts = [];
         if (h.nurseCount) envParts.push("看護師" + h.nurseCount + "名");
         if (h.features && h.features.indexOf("教育") !== -1) envParts.push("教育体制あり");
         if (h.features && h.features.indexOf("ブランク") !== -1) envParts.push("ブランクOK");
         highlightTag = envParts.length > 0 ? envParts.join("・") : (h.features ? h.features.split("・")[0] : "");
       } else if (chatState.concern === "workstyle") {
-        // 勤務時間重視: 日勤のみ可否+休日
         var wsParts = [];
         if (h.type && (h.type.indexOf("慢性期") !== -1 || h.type.indexOf("回復期") !== -1)) wsParts.push("日勤のみ相談可");
         wsParts.push(h.holidays || "");
         if (h.nightShift) wsParts.push("夜勤: " + h.nightShift);
         highlightTag = wsParts.filter(function(s){return s;}).join("・");
       } else if (chatState.concern === "blank") {
-        // ブランク復帰: 教育体制+受入れ実績
         var blParts = [];
         if (h.features && h.features.indexOf("ブランク") !== -1) blParts.push("ブランクOK");
         if (h.features && h.features.indexOf("教育") !== -1) blParts.push("教育体制充実");
@@ -972,11 +1009,6 @@
       var badgeHtml = isReferral
         ? '<div class="facility-card-badge facility-card-badge--referral">直接ご紹介できます</div>'
         : '<div class="facility-card-badge facility-card-badge--info">参考情報</div>';
-
-      // CTA: 紹介可能→詳細を聞く（AI遷移）、情報→LINE誘導
-      var ctaHtml = isReferral
-        ? '<div class="facility-card-cta" data-facility="' + escapeHtml(h.displayName) + '">この施設についてもっと聞く</div>'
-        : '<div class="facility-card-notify">実際の職場環境はLINEでお伝えできます</div>';
 
       // Enriched tags
       var enrichedTags = [];
@@ -1024,12 +1056,12 @@
         enrichedTagsHtml +
         '<div class="facility-card-highlight">' + escapeHtml(highlightTag) + '</div>' +
         '<div class="facility-card-details">' +
-          '<span>' + escapeHtml(h.salary) + '</span>' +
-          '<span>' + escapeHtml(h.holidays) + '</span>' +
+          '<span>' + escapeHtml(h.salary || "") + '</span>' +
+          '<span>' + escapeHtml(h.holidays || "") + '</span>' +
         '</div>' +
         statsHtml +
         sourceHtml +
-        ctaHtml;
+        '<div class="facility-card-notify">LINEのAI診断でさらに詳しく</div>';
 
       container.appendChild(card);
     }
@@ -1043,134 +1075,31 @@
 
     els.body.appendChild(container);
     scrollToBottom();
-
-    // 施設カードCTAのclickイベント（「この施設についてもっと聞く」→ AI会話へ遷移）
-    var ctaBtns = container.querySelectorAll(".facility-card-cta");
-    for (var fc = 0; fc < ctaBtns.length; fc++) {
-      (function(btn) {
-        btn.style.cursor = "pointer";
-        btn.addEventListener("click", function() {
-          var facilityName = btn.getAttribute("data-facility") || "";
-          trackEvent("chat_facility_detail_click", { facility: facilityName });
-          addMessage("user", facilityName + "について詳しく知りたいです");
-          chatState.apiMessages.push({ role: "user", content: facilityName + "について、職場環境・教育体制・夜勤体制・離職状況など詳しく教えてください。" });
-          chatState.phase = "ai";
-          setInputVisible(true);
-          startSunkCostTimer();
-          initAPISession();
-          processResponse();
-        });
-      })(ctaBtns[fc]);
-    }
   }
 
   // --------------------------------------------------
-  // 好奇心ギャップ LINE CTA（1回目: 価値提供後）
+  // 最終LINE CTA（「もう少し教えて」後）
   // --------------------------------------------------
-  function showCuriosityGapCTA() {
-    chatState.phase = "curiosity_gap";
+  function showFinalLineCTA() {
+    chatState.phase = "done";
+    chatState.done = true;
     chatState.lineCtaShown = true;
 
     showTyping();
     setTimeout(function () {
       hideTyping();
+      addMessage("ai", "LINEではAIがさらに詳しく分析して、あなたにピッタリの病院を見つけます。まずはAIの質問に答えるだけでOKです！");
 
-      // concern別の具体的な価値提示（テンプレ営業文句を避ける）
-      var concernText = "";
-      if (chatState.concern === "environment") {
-        concernText = "職場の雰囲気や人間関係は、実際に転職した看護師さんの声が一番参考になります。";
-      } else if (chatState.concern === "nightshift") {
-        concernText = "夜勤の忙しさ・仮眠の取りやすさ・スタッフ配置は、施設ごとにかなり違います。";
-      } else if (chatState.concern === "salary") {
-        concernText = "実際の手取り額や昇給ペースは、この地域を知っている担当者に聞くのが確実です。";
-      } else if (chatState.concern === "workstyle") {
-        concernText = "日勤のみ・時短勤務の受け入れ状況は、施設に直接確認する必要があります。";
-      } else if (chatState.concern === "blank") {
-        concernText = "ブランクからの復帰は不安がつきものです。受入れ体制を一緒に確認しましょう。";
-      } else {
-        concernText = "通勤ルートの混雑状況や車通勤の可否など、細かい条件も確認できます。";
-      }
-
-      addMessage("ai", concernText + "\n\nLINEでは担当者が直接お答えします。電話はしません。もちろん、ここでもう少しお話しすることもできますよ。");
-
-      // 選択肢: LINE / もう少し相談 / 今日はここまで
-      var options = [
-        { label: "LINEで担当者に相談する", value: "line" },
-        { label: "もう少し話を聞きたい", value: "ai" },
-        { label: "今日はここまで", value: "close" },
-      ];
-
-      var container = document.createElement("div");
-      container.className = "chat-quick-replies";
-      container.id = "chatButtonGroup";
-
-      for (var i = 0; i < options.length; i++) {
-        (function (opt) {
-          var btn = document.createElement("button");
-          btn.className = "chat-quick-reply" + (opt.value === "line" ? " chat-quick-reply-line" : "");
-          btn.textContent = opt.label;
-          btn.addEventListener("click", function () {
-            removeButtonGroup();
-            addMessage("user", opt.label);
-            handlePostValueChoice(opt.value);
-          });
-          container.appendChild(btn);
-        })(options[i]);
-      }
-
-      els.body.appendChild(container);
-      scrollToBottom();
-    }, 500);
-  }
-
-  function handlePostValueChoice(choice) {
-    if (choice === "line") {
-      trackEvent("chat_line_click", { phase: "curiosity_gap", area: chatState.area, concern: chatState.concern });
-      showTyping();
       setTimeout(function () {
-        hideTyping();
-        addMessage("ai", "ありがとうございます！\n\n担当者がLINEで直接お答えします。翌営業日までにご連絡しますね。電話はしませんのでご安心ください。");
         showLineCard();
         saveState();
-      }, 300);
-    } else if (choice === "ai") {
-      trackEvent("chat_continue_ai", { area: chatState.area });
-      transitionToAIPhase();
-    } else {
-      trackEvent("chat_close_soft", { area: chatState.area });
-      showTyping();
-      setTimeout(function () {
-        hideTyping();
-        addMessage("ai", "もちろんです！この結果は24時間保存されますので、またいつでもどうぞ。\n\n気が向いた時にLINEでご相談いただくこともできます。電話はしませんので、お気軽にどうぞ。");
-
-        // ソフトリード: LINE以外の受け皿も提供
-        var softOptions = document.createElement("div");
-        softOptions.className = "chat-quick-replies";
-        var lineOpt = document.createElement("button");
-        lineOpt.className = "chat-quick-reply chat-quick-reply-line";
-        lineOpt.textContent = "LINEだけ追加しておく";
-        lineOpt.addEventListener("click", function() {
-          trackEvent("chat_soft_line_click");
-          softOptions.remove();
-          showSoftLineCard();
-        });
-        softOptions.appendChild(lineOpt);
-
-        var closeOpt = document.createElement("button");
-        closeOpt.className = "chat-quick-reply";
-        closeOpt.textContent = "閉じる";
-        closeOpt.addEventListener("click", function() {
-          softOptions.remove();
-          closeChat();
-        });
-        softOptions.appendChild(closeOpt);
-        els.body.appendChild(softOptions);
-        scrollToBottom();
-        saveState();
-      }, 300);
-    }
+      }, 400);
+    }, 400);
   }
 
+  // --------------------------------------------------
+  // LINE Card
+  // --------------------------------------------------
   function showLineCard() {
     requestHandoffCode(function (code) {
       var card = document.createElement("div");
@@ -1178,10 +1107,10 @@
       card.innerHTML =
         buildHandoffCodeHtml(code) +
         '<a href="https://lin.ee/oUgDB3x" target="_blank" rel="noopener" class="chat-line-card-btn" id="chatLineMainBtn">' +
-          'LINEで担当者に相談する' +
+          'LINEでAIマッチングを受ける' +
         '</a>' +
         '<div class="chat-line-card-trust">' +
-          '<span>完全無料</span><span>電話しません</span><span>あなたの費用ゼロ</span>' +
+          '<span>完全無料</span><span>AIが即分析</span><span>あなたの費用ゼロ</span>' +
         '</div>';
 
       els.body.appendChild(card);
@@ -1193,110 +1122,6 @@
           trackEvent("chat_line_card_click", { phase: chatState.phase, handoff_code: code || "none" });
         });
       }
-    });
-  }
-
-  function showSoftLineCard() {
-    requestHandoffCode(function (code) {
-      var card = document.createElement("div");
-      card.className = "chat-line-card chat-line-card-soft";
-      card.innerHTML =
-        '<div class="chat-line-card-note">気が向いた時にいつでもご相談ください</div>' +
-        buildHandoffCodeHtml(code) +
-        '<a href="https://lin.ee/oUgDB3x" target="_blank" rel="noopener" class="chat-line-card-btn chat-line-card-btn-soft">' +
-          'LINEで相談する（電話なし）' +
-        '</a>';
-
-      els.body.appendChild(card);
-      scrollToBottom();
-    });
-  }
-
-  // --------------------------------------------------
-  // AI Phase (free conversation)
-  // --------------------------------------------------
-  function transitionToAIPhase() {
-    chatState.phase = "ai";
-    setInputVisible(true);
-
-    // サンクコスト: 3分タイマー開始
-    startSunkCostTimer();
-
-    // API初期化
-    initAPISession();
-
-    // Build context from pre-scripted flow
-    var areaDisplay = getAreaDisplayName(chatState.area);
-    var concernLabels = { salary: "給与・待遇", commute: "通勤のしやすさ", nightshift: "夜勤の負担", environment: "職場の雰囲気・人間関係", workstyle: "勤務時間の柔軟さ", blank: "ブランク復帰の不安" };
-    var salaryContext = chatState.salaryBreakdown ? " / 推定年収: " + chatState.salaryBreakdown.annualMin + "〜" + chatState.salaryBreakdown.annualMax + "万円" : "";
-    var expContext = chatState.experience ? " / 経験年数: " + chatState.experience : "";
-    var contextMsg = "【事前ヒアリング結果】希望エリア: " + (areaDisplay || "未選択") +
-      expContext +
-      " / 一番の関心事: " + (concernLabels[chatState.concern] || "未選択") + salaryContext +
-      "。\n\n重要ルール:\n1. 質問は1回の返答で必ず1つだけ\n2. 看護師の転職理由1位は人間関係、2位は夜勤。年収は3位。相手の関心事に合わせた会話をする\n3. まずは共感と具体的なアドバイスに集中する。LINE誘導は3往復以上会話してから、自然な流れで「担当者に詳しく聞いてみませんか」と提案\n4. 共感を示しながら、具体的な施設名・数字を含めて1つずつ質問してください。";
-    chatState.apiMessages.push({ role: "user", content: contextMsg });
-
-    showTyping();
-
-    if (isAPIAvailable() && !chatState.demoMode) {
-      callAPI(chatState.apiMessages).then(function (response) {
-        hideTyping();
-        if (response && isValidReply(response.reply)) {
-          addMessage("ai", response.reply);
-          chatState.apiMessages.push({ role: "assistant", content: response.reply });
-        } else {
-          var fallback = "ありがとうございます！もう少し詳しくお伺いしますね。\n\n今のお仕事で、特に変えたいなと感じていることはどんなことですか？";
-          addMessage("ai", fallback);
-          chatState.apiMessages.push({ role: "assistant", content: fallback });
-        }
-        els.input.focus();
-        saveState();
-      }).catch(function () {
-        hideTyping();
-        chatState.demoMode = true;
-        var fallback = "ありがとうございます！もう少し詳しくお伺いしますね。\n\n今のお仕事で、特に変えたいなと感じていることはどんなことですか？";
-        addMessage("ai", fallback);
-        chatState.apiMessages.push({ role: "assistant", content: fallback });
-        els.input.focus();
-        saveState();
-      });
-    } else {
-      setTimeout(function () {
-        hideTyping();
-        var response = DEMO_RESPONSES[chatState.demoIndex] || DEMO_RESPONSES[0];
-        chatState.demoIndex = Math.min(chatState.demoIndex + 1, DEMO_RESPONSES.length - 1);
-        addMessage("ai", response.reply);
-        chatState.apiMessages.push({ role: "assistant", content: response.reply });
-        els.input.focus();
-        saveState();
-      }, 800);
-    }
-  }
-
-  function initAPISession() {
-    if (!isAPIAvailable()) return;
-    fetch(CHAT_CONFIG.workerEndpoint + "/api/chat-init", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        phone: "anonymous",
-        honeypot: "",
-        formShownAt: Date.now() - 5000,
-      }),
-    }).then(function (resp) {
-      if (resp.ok) {
-        return resp.json();
-      }
-      chatState.demoMode = true;
-      return null;
-    }).then(function (data) {
-      if (data) {
-        chatState.token = data.token || null;
-        chatState.tokenTimestamp = data.timestamp || null;
-        if (data.sessionId) chatState.sessionId = data.sessionId;
-      }
-    }).catch(function () {
-      chatState.demoMode = true;
     });
   }
 
@@ -1331,186 +1156,6 @@
     scrollToBottom();
 
     if (!skipSave) saveState();
-  }
-
-  function sendMessage() {
-    if (chatState.phase !== "ai") return;
-
-    var text = els.input.value.trim();
-    if (!text || chatState.isTyping || chatState.done || chatState.sendCooldown) return;
-
-    if (chatState.userMessageCount >= CLIENT_RATE_LIMIT.maxSessionMessages) {
-      addMessage("ai", "たくさんお話しいただきありがとうございます。\n\nあなたの条件に合う求人情報をLINEで詳しくお伝えします。");
-      els.input.disabled = true;
-      els.sendBtn.disabled = true;
-      showLineCard();
-      chatState.done = true;
-      saveState();
-      return;
-    }
-
-    chatState.userMessageCount++;
-    trackEvent("chat_message_sent", { message_count: chatState.userMessageCount });
-    addMessage("user", text);
-    els.input.value = "";
-    els.input.style.height = "auto";
-
-    chatState.apiMessages.push({ role: "user", content: text });
-    startSendCooldown();
-    processResponse();
-  }
-
-  function startSendCooldown() {
-    chatState.sendCooldown = true;
-    chatState.lastSendTime = Date.now();
-    els.sendBtn.disabled = true;
-    els.input.disabled = true;
-
-    setTimeout(function () {
-      chatState.sendCooldown = false;
-      if (!chatState.isTyping && !chatState.done) {
-        els.sendBtn.disabled = false;
-        els.input.disabled = false;
-        els.input.focus();
-      }
-    }, CLIENT_RATE_LIMIT.sendCooldownMs);
-  }
-
-  // --------------------------------------------------
-  // AI Response Processing
-  // --------------------------------------------------
-  function processResponse() {
-    showTyping();
-
-    if (isAPIAvailable() && !chatState.demoMode) {
-      callAPI(chatState.apiMessages).then(function (response) {
-        hideTyping();
-        if (response && response.isError) {
-          addMessage("ai", response.reply);
-          if (chatState.userMessageCount > 0) chatState.userMessageCount--;
-          chatState.apiMessages.pop();
-        } else if (response && isValidReply(response.reply)) {
-          handleAIResponse(response);
-        } else {
-          addMessage("ai", getFallbackMessage());
-        }
-        saveState();
-      });
-    } else {
-      var delay = 800 + Math.random() * 1000;
-      setTimeout(function () {
-        hideTyping();
-        var response = DEMO_RESPONSES[chatState.demoIndex] || DEMO_RESPONSES[DEMO_RESPONSES.length - 1];
-        chatState.demoIndex = Math.min(chatState.demoIndex + 1, DEMO_RESPONSES.length - 1);
-        handleAIResponse(response);
-        saveState();
-      }, delay);
-    }
-  }
-
-  function handleAIResponse(response) {
-    addMessage("ai", response.reply);
-    chatState.apiMessages.push({ role: "assistant", content: response.reply });
-
-    if (response.score) chatState.score = response.score;
-
-    if (response.done || chatState.userMessageCount >= CLIENT_RATE_LIMIT.maxSessionMessages) {
-      chatState.done = true;
-      onConversationComplete();
-    }
-  }
-
-  // --------------------------------------------------
-  // Conversation Complete
-  // --------------------------------------------------
-  function onConversationComplete() {
-    els.input.disabled = true;
-    els.sendBtn.disabled = true;
-    els.input.placeholder = "会話が完了しました";
-    setInputVisible(false);
-
-    var summaryData = buildConversationSummary();
-    trackEvent("chat_completed", { score: summaryData.score, message_count: summaryData.messageCount, area: chatState.area || "none" });
-
-    sendChatComplete(summaryData);
-
-    // 2回目のLINE CTA（最終）: 好奇心ギャップで締める
-    var score = summaryData.score;
-    var closingMessages = {
-      A: "詳しくお聞かせいただきありがとうございました！あなたの経験なら、かなり良い条件の施設が見つかりそうです。担当者がLINEで詳しくご案内しますね。",
-      B: "お話しいただきありがとうございました！条件に合いそうな施設について、LINEで担当者が直接お答えします。",
-      C: "ありがとうございました！気になることがあれば、LINEでいつでもご相談ください。電話はしません。",
-      D: "お話しいただきありがとうございました。この結果は24時間保存されます。",
-    };
-
-    setTimeout(function () {
-      addMessage("ai", closingMessages[score] || closingMessages.C);
-      setTimeout(function () {
-        showLineCard();
-        saveState();
-      }, 600);
-    }, 600);
-  }
-
-  // --------------------------------------------------
-  // Temperature Score Detection
-  // --------------------------------------------------
-  function detectTemperatureScore() {
-    if (chatState.score) return chatState.score;
-
-    var score = 0;
-    var userMessages = [];
-    for (var i = 0; i < chatState.messages.length; i++) {
-      if (chatState.messages[i].role === "user") {
-        userMessages.push(chatState.messages[i].content);
-      }
-    }
-    var allText = userMessages.join(" ");
-
-    var urgentKeywords = ["すぐ", "急ぎ", "今月", "来月", "退職済", "辞めた", "決まっている", "早く", "なるべく早"];
-    for (var u = 0; u < urgentKeywords.length; u++) {
-      if (allText.indexOf(urgentKeywords[u]) !== -1) { score += 3; break; }
-    }
-
-    var activeKeywords = ["面接", "見学", "応募", "給与", "年収", "月給", "具体的", "いつから", "条件"];
-    for (var a = 0; a < activeKeywords.length; a++) {
-      if (allText.indexOf(activeKeywords[a]) !== -1) { score += 1; }
-    }
-
-    if (chatState.userMessageCount >= 5) { score += 2; }
-    else if (chatState.userMessageCount >= 3) { score += 1; }
-
-    var totalLen = 0;
-    for (var l = 0; l < userMessages.length; l++) { totalLen += userMessages[l].length; }
-    if (totalLen > 200) { score += 1; }
-
-    // Concern-based scoring
-    if (chatState.concern === "salary") score += 1;
-    if (chatState.concern === "environment") score += 1;
-    if (chatState.concern === "workstyle") score += 1;
-    if (chatState.concern === "blank") score += 1;
-
-    if (score >= 6) return "A";
-    if (score >= 3) return "B";
-    if (score >= 1) return "C";
-    return "D";
-  }
-
-  function buildConversationSummary() {
-    var score = detectTemperatureScore();
-    chatState.score = score;
-
-    return {
-      sessionId: chatState.sessionId,
-      phone: "anonymous",
-      area: chatState.area || null,
-      concern: chatState.concern || null,
-      experience: chatState.experience || null,
-      score: score,
-      messageCount: chatState.userMessageCount,
-      messages: chatState.messages,
-      completedAt: new Date().toISOString(),
-    };
   }
 
   // --------------------------------------------------
@@ -1629,12 +1274,17 @@
   }
 
   // --------------------------------------------------
+  // API availability check (for handoff code)
+  // --------------------------------------------------
+  function isAPIAvailable() {
+    return CHAT_CONFIG.workerEndpoint && CHAT_CONFIG.workerEndpoint.length > 0;
+  }
+
+  // --------------------------------------------------
   // Typing Indicator
   // --------------------------------------------------
   function showTyping() {
     chatState.isTyping = true;
-    if (els.sendBtn) els.sendBtn.disabled = true;
-    if (els.sendBtn) els.sendBtn.classList.add("loading");
 
     var typing = document.createElement("div");
     typing.className = "chat-typing";
@@ -1656,145 +1306,10 @@
 
   function hideTyping() {
     chatState.isTyping = false;
-    if (els.sendBtn) els.sendBtn.classList.remove("loading");
-
-    if (!chatState.sendCooldown && !chatState.done) {
-      if (els.sendBtn) els.sendBtn.disabled = false;
-      if (els.input) els.input.disabled = false;
-    }
 
     var indicator = document.getElementById("chatTypingIndicator");
     if (indicator) indicator.remove();
     scrollToBottom();
-  }
-
-  // --------------------------------------------------
-  // Response Validation
-  // --------------------------------------------------
-  function isValidReply(reply) {
-    if (!reply || typeof reply !== "string") return false;
-    if (reply.length < 5) return false;
-    if (reply.trim().charAt(0) === "{" || reply.trim().charAt(0) === "[") return false;
-    return true;
-  }
-
-  // --------------------------------------------------
-  // API Integration
-  // --------------------------------------------------
-  function isAPIAvailable() {
-    return CHAT_CONFIG.workerEndpoint && CHAT_CONFIG.workerEndpoint.length > 0;
-  }
-
-  function fetchWithTimeout(url, options, timeoutMs) {
-    timeoutMs = timeoutMs || 20000;
-    return new Promise(function (resolve, reject) {
-      var aborted = false;
-      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-      if (controller) {
-        options = Object.assign({}, options, { signal: controller.signal });
-      }
-
-      var timer = setTimeout(function () {
-        aborted = true;
-        if (controller) controller.abort();
-        reject(new Error("Request timeout"));
-      }, timeoutMs);
-
-      fetch(url, options).then(function (res) {
-        clearTimeout(timer);
-        if (!aborted) resolve(res);
-      }).catch(function (err) {
-        clearTimeout(timer);
-        if (!aborted) reject(err);
-      });
-    });
-  }
-
-  var FALLBACK_MESSAGES = [
-    "申し訳ございません。一時的に接続が不安定です。少し時間をおいて再度お試しください。",
-    "通信環境をご確認のうえ、再度メッセージを送信してください。",
-    "ただいま混み合っております。しばらくお待ちいただいてから再度お試しください。",
-  ];
-
-  function getFallbackMessage() {
-    return FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)];
-  }
-
-  async function callAPI(messages) {
-    try {
-      var response = await fetchWithTimeout(CHAT_CONFIG.workerEndpoint + "/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: messages,
-          sessionId: chatState.sessionId,
-          phone: "anonymous",
-          token: chatState.token || null,
-          timestamp: chatState.tokenTimestamp || null,
-          profession: "看護師",
-          area: chatState.area,
-          station: null,
-          experience: chatState.experience || null,
-        }),
-      }, 20000);
-
-      if (response.status === 429) {
-        var errData = {};
-        try { errData = await response.json(); } catch (e) { /* ignore */ }
-        return {
-          reply: errData.error || "リクエストが多すぎます。少しお待ちください。",
-          done: false,
-        };
-      }
-
-      if (!response.ok) {
-        throw new Error("API response " + response.status);
-      }
-
-      var data = await response.json();
-
-      if (typeof data.reply === "string") return data;
-      if (data.content) {
-        try { return JSON.parse(data.content); } catch (e) {
-          return { reply: data.content, done: false };
-        }
-      }
-      return null;
-    } catch (err) {
-      console.error("[Chat API Error]", err);
-      if (err.message === "Request timeout") {
-        return { reply: "応答に時間がかかっております。もう一度お試しいただけますか？", done: false, isError: true };
-      }
-      return { reply: getFallbackMessage(), done: false, isError: true };
-    }
-  }
-
-  async function sendChatComplete(summaryData) {
-    if (!CHAT_CONFIG.workerEndpoint || chatState.messages.length < 2) return null;
-    try {
-      var response = await fetchWithTimeout(CHAT_CONFIG.workerEndpoint + "/api/chat-complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: "anonymous",
-          sessionId: chatState.sessionId,
-          token: chatState.token || null,
-          timestamp: chatState.tokenTimestamp || null,
-          messages: chatState.messages,
-          profession: "看護師",
-          area: chatState.area,
-          station: null,
-          score: summaryData ? summaryData.score : null,
-          messageCount: summaryData ? summaryData.messageCount : chatState.userMessageCount,
-          completedAt: summaryData ? summaryData.completedAt : new Date().toISOString(),
-        }),
-      }, 15000);
-      if (response.ok) return await response.json();
-      return null;
-    } catch (err) {
-      console.error("[Chat] chat-complete error:", err);
-      return null;
-    }
   }
 
   // --------------------------------------------------
