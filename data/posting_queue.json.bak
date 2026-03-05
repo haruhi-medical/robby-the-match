@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-04T21:24:16.574932",
+  "updated": "2026-03-05T09:32:44.568571",
   "posts": [
     {
       "id": 1,
@@ -273,9 +273,9 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "video_created",
+      "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0301_01_20260304.mp4",
-      "posted_at": null,
+      "posted_at": "2026-03-04T21:25:14.312869",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -284,7 +284,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null
+      "ai_score": null,
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 9,
@@ -2617,6 +2619,146 @@
         "suggestion": "ハッシュタグを調整し、より具体的なCTAを追加してみて"
       },
       "scheduled_for": "2026-03-09 17:30"
+    },
+    {
+      "id": 65,
+      "content_id": "ai_ある_0305_01",
+      "batch": "ai_batch_20260305_0930",
+      "slide_dir": "content/generated/ai_batch_20260305_0930/ai_ある_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_0930/ai_ある_0305_01.json",
+      "caption": "神奈川県在住の看護師さん、転職を考えてる?\n\nロビーの話を聞いて、同じ状況の看護師さんが黙った。\n\nロビーにLINEで相談してみて。手数料10%で転職サポートするよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 66,
+      "content_id": "ai_ある_0305_02",
+      "batch": "ai_batch_20260305_0930",
+      "slide_dir": "content/generated/ai_batch_20260305_0930/ai_ある_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_0930/ai_ある_0305_02.json",
+      "caption": "看護師さんだけが知っている『先生には言わないで』\n\n看護師さんの市場価値は、給与だけでは決まらない\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#看護師",
+        "#神奈川県",
+        "#夜勤",
+        "#看護師の価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 67,
+      "content_id": "ai_給与_0305_03",
+      "batch": "ai_batch_20260305_0930",
+      "slide_dir": "content/generated/ai_batch_20260305_0930/ai_給与_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_0930/ai_給与_0305_03.json",
+      "caption": "横浜市在住の看護師さん\n\nロビーが調べた給与の真実\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#看護師",
+        "#給与",
+        "#横浜市",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 68,
+      "content_id": "ai_地域_0305_04",
+      "batch": "ai_batch_20260305_0930",
+      "slide_dir": "content/generated/ai_batch_20260305_0930/ai_地域_0305_04",
+      "json_path": "content/generated/ai_batch_20260305_0930/ai_地域_0305_04.json",
+      "caption": "小田原から横浜まで、片道72分。\n\n看護師の平均年収、横浜市が520万、小田原市が440万。\n\nロビーの無料相談会に興味がある人は、コメントしてね",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#地域ネタ",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 69,
+      "content_id": "ai_トレ_0305_05",
+      "batch": "ai_batch_20260305_0930",
+      "slide_dir": "content/generated/ai_batch_20260305_0930/ai_トレ_0305_05",
+      "json_path": "content/generated/ai_batch_20260305_0930/ai_トレ_0305_05.json",
+      "caption": "夜勤明け、電車を2本見送った\n\n看護師の価値とは?\n\nこの情報、役に立った？保存しておくと後で見返せるよ",
+      "hashtags": [
+        "#横浜市",
+        "#看護師",
+        "#転職",
+        "#医療"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
     }
   ],
   "archive": [
