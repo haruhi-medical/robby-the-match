@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-05T09:32:44.568571",
+  "updated": "2026-03-05T13:56:48.541189",
   "posts": [
     {
       "id": 1,
@@ -2759,6 +2759,2102 @@
         "comments": null
       },
       "ai_score": null
+    },
+    {
+      "id": 70,
+      "content_id": "ai_ある_0305_01",
+      "batch": "ai_batch_20260305_0944",
+      "slide_dir": "content/generated/ai_batch_20260305_0944/ai_ある_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_0944/ai_ある_0305_01.json",
+      "caption": "夜勤の後、駅のホームで電車を2本見送った\n\n手数料30%の時代は終わりにしよう。\n\nロビーにLINEで相談してみて",
+      "hashtags": [
+        "#神奈川県西部",
+        "#看護師あるある",
+        "#転職サポート",
+        "#手数料10%"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 71,
+      "content_id": "ai_業界_0305_01",
+      "batch": "ai_batch_20260305_1031",
+      "slide_dir": "content/generated/ai_batch_20260305_1031/ai_業界_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1031/ai_業界_0305_01.json",
+      "caption": "神奈川県在住の看護師さん\n\n小田原と横浜、年収60万差って知ってた?\n\nプロフのリンクから、手数料10%の転職サポートについて",
+      "hashtags": [
+        "#神奈川",
+        "#看護師転職",
+        "#ナース",
+        "#給与"
+      ],
+      "cta_type": "hard",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 72,
+      "content_id": "ai_業界_0305_01",
+      "batch": "ai_batch_20260305_1042",
+      "slide_dir": "content/generated/ai_batch_20260305_1042/ai_業界_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1042/ai_業界_0305_01.json",
+      "caption": "看護師5年目、手取り24万\n\n神奈川県在住の看護師さん、転職したいって思ったことない?\n\nプロフのリンクから気軽に相談できるよ。",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川県",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 73,
+      "content_id": "ai_業界_0305_02",
+      "batch": "ai_batch_20260305_1042",
+      "slide_dir": "content/generated/ai_batch_20260305_1042/ai_業界_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1042/ai_業界_0305_02.json",
+      "caption": "看護師5年目、神奈川県で働いてる人の給料\n\n市場価値って、何か大切なものを決める基準になってるんだ\n\n同じ状況の看護師さん、多いよね？",
+      "hashtags": [
+        "#看護師",
+        "#神奈川県",
+        "#ナース",
+        "#看護"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 74,
+      "content_id": "ai_業界_0305_03",
+      "batch": "ai_batch_20260305_1042",
+      "slide_dir": "content/generated/ai_batch_20260305_1042/ai_業界_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1042/ai_業界_0305_03.json",
+      "caption": "神奈川県の看護師さん\n\n手取り24万って、高い？低い？\n\nこの情報、100人中60人が知らなかった",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#業界裏側",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 75,
+      "content_id": "ai_業界_0305_01",
+      "batch": "ai_batch_20260305_1044",
+      "slide_dir": "content/generated/ai_batch_20260305_1044/ai_業界_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1044/ai_業界_0305_01.json",
+      "caption": "夜勤明け、座りたいんじゃないよ\n\n看護師5年目、手取り24万。神奈川県在住\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#業界裏側"
+      ],
+      "cta_type": "hard",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 76,
+      "content_id": "ai_業界_0305_02",
+      "batch": "ai_batch_20260305_1044",
+      "slide_dir": "content/generated/ai_batch_20260305_1044/ai_業界_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1044/ai_業界_0305_02.json",
+      "caption": "神奈川の看護師、手取り24万\n\n看護師の価値を高く見積もってもらうために、ロビーは戦っていくんだ\n\nこの情報、保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナースコミュニティ",
+        "#看護師市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 77,
+      "content_id": "ai_業界_0305_03",
+      "batch": "ai_batch_20260305_1044",
+      "slide_dir": "content/generated/ai_batch_20260305_1044/ai_業界_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1044/ai_業界_0305_03.json",
+      "caption": "神奈川の看護師さん\n\n看護師の収入が上がることで、病院の設備も改善されるはず\n\nこの情報、知らなかった人いる？保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師の収入"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 78,
+      "content_id": "ai_業界_0305_01",
+      "batch": "ai_batch_20260305_1054",
+      "slide_dir": "content/generated/ai_batch_20260305_1054/ai_業界_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1054/ai_業界_0305_01.json",
+      "caption": "夜勤明け、電車で座れない\n\n看護師の価値を高めよう。\n\nプロフのリンクから気軽に相談できるよ",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#ナース"
+      ],
+      "cta_type": "hard",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 79,
+      "content_id": "ai_業界_0305_02",
+      "batch": "ai_batch_20260305_1054",
+      "slide_dir": "content/generated/ai_batch_20260305_1054/ai_業界_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1054/ai_業界_0305_02.json",
+      "caption": "夜勤明け、電車に座れない\n\n看護師の紹介料、知ってた？\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師紹介料",
+        "#医療業界"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 80,
+      "content_id": "ai_業界_0305_03",
+      "batch": "ai_batch_20260305_1054",
+      "slide_dir": "content/generated/ai_batch_20260305_1054/ai_業界_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1054/ai_業界_0305_03.json",
+      "caption": "看護師5年目、手取り24万\n\n同じ時給の深夜コンビニバイトと比べたら、値段がわかる\n\n同じ状況の看護師さんに送ってあげて",
+      "hashtags": [
+        "#看護師",
+        "#神奈川県",
+        "#ナース",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 81,
+      "content_id": "ai_給与_0305_01",
+      "batch": "ai_batch_20260305_1056",
+      "slide_dir": "content/generated/ai_batch_20260305_1056/ai_給与_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1056/ai_給与_0305_01.json",
+      "caption": "夜勤8回の時給、同じコンビニ?\n\n看護師5年目、手取り24万。神奈川県在住。\n\n気になる人はプロフのリンクから相談できるよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#給与"
+      ],
+      "cta_type": "hard",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 82,
+      "content_id": "ai_給与_0305_03",
+      "batch": "ai_batch_20260305_1056",
+      "slide_dir": "content/generated/ai_batch_20260305_1056/ai_給与_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1056/ai_給与_0305_03.json",
+      "caption": "夜勤明け、神奈川の電車で何してる？\n\n同じ5年目でも年収100万差があることがわかったよ\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースコミュニティ",
+        "#看護師転職",
+        "#給与って"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 83,
+      "content_id": "ai_地域_0305_01",
+      "batch": "ai_batch_20260305_1058",
+      "slide_dir": "content/generated/ai_batch_20260305_1058/ai_地域_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1058/ai_地域_0305_01.json",
+      "caption": "横浜と小田原、手取りが違う理由\n\n同じ5年目の看護師でも、勤務地によって給料に差が出る\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#看護師",
+        "#神奈川県",
+        "#転職",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 84,
+      "content_id": "ai_地域_0305_03",
+      "batch": "ai_batch_20260305_1058",
+      "slide_dir": "content/generated/ai_batch_20260305_1058/ai_地域_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1058/ai_地域_0305_03.json",
+      "caption": "神奈川で看護師5年目、手取りが...\n\nコンビニと同じ時給って本当？\n\nわかる！って思ったらいいね押してね",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースロビー",
+        "#看護師転職",
+        "#地域ネタ"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 85,
+      "content_id": "ai_業界_0305_01",
+      "batch": "ai_batch_20260305_1103",
+      "slide_dir": "content/generated/ai_batch_20260305_1103/ai_業界_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1103/ai_業界_0305_01.json",
+      "caption": "看護師5年目で手取り24万、普通なの？\n\n神奈川の看護師も同じ思いをしてるはず。\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川",
+        "#ナース",
+        "#転職"
+      ],
+      "cta_type": "hard",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 86,
+      "content_id": "ai_転職_0305_02",
+      "batch": "ai_batch_20260305_1103",
+      "slide_dir": "content/generated/ai_batch_20260305_1103/ai_転職_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1103/ai_転職_0305_02.json",
+      "caption": "神奈川の看護師さん\n\n夜勤明け、電車2本見送る理由って？\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースジョブ",
+        "#看護師転職",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 87,
+      "content_id": "ai_転職_0305_03",
+      "batch": "ai_batch_20260305_1103",
+      "slide_dir": "content/generated/ai_batch_20260305_1103/ai_転職_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1103/ai_転職_0305_03.json",
+      "caption": "夜勤明け、座りたいって思ったことはない？\n\n看護師さんの市場価値って、自由にあるんだ。\n\n同じ状況の看護師さんに送ってあげて。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 88,
+      "content_id": "ai_給与_0305_01",
+      "batch": "ai_batch_20260305_1109",
+      "slide_dir": "content/generated/ai_batch_20260305_1109/ai_給与_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1109/ai_給与_0305_01.json",
+      "caption": "横浜市の看護師さん、お給料ってどう思う?\n\n夜勤の時給がコンビニと同じって本当?\n\n市場価値を知っておこう\n\nプロフのリンクから無料で調べてみて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#給与",
+        "#転職"
+      ],
+      "cta_type": "hard",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 89,
+      "content_id": "ai_給与_0305_02",
+      "batch": "ai_batch_20260305_1109",
+      "slide_dir": "content/generated/ai_batch_20260305_1109/ai_給与_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1109/ai_給与_0305_02.json",
+      "caption": "夜勤明け、コンビニと同じ時給って本当？\n\n看護師の価値って何なの？\n\n同じ状況の看護師さんに送ってあげて。",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師価値",
+        "#夜勤生活"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 90,
+      "content_id": "ai_業界_0305_03",
+      "batch": "ai_batch_20260305_1109",
+      "slide_dir": "content/generated/ai_batch_20260305_1109/ai_業界_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1109/ai_業界_0305_03.json",
+      "caption": "夜勤明けの時給がコンビニと同じって本当?\n\n看護師の価値って本当は高くない?\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#夜勤",
+        "#時給"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null
+    },
+    {
+      "id": 91,
+      "content_id": "ai_地域_0305_01",
+      "batch": "ai_batch_20260305_1112",
+      "slide_dir": "content/generated/ai_batch_20260305_1112/ai_地域_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1112/ai_地域_0305_01.json",
+      "caption": "湘南の海が見える病室、看護師は海を見る暇ある？\n\n看護師の価値って何だ？\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#湘南",
+        "#看護師",
+        "#転職",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 92,
+      "content_id": "ai_地域_0305_02",
+      "batch": "ai_batch_20260305_1112",
+      "slide_dir": "content/generated/ai_batch_20260305_1112/ai_地域_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1112/ai_地域_0305_02.json",
+      "caption": "神奈川県西部で看護師って何が一番大変?\n\n看護師の価値を上げるために、ロビーは看護師の市場価値を上げることに尽力するんだ\n\n保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#転職サポート"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 93,
+      "content_id": "ai_トレ_0305_03",
+      "batch": "ai_batch_20260305_1112",
+      "slide_dir": "content/generated/ai_batch_20260305_1112/ai_トレ_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1112/ai_トレ_0305_03.json",
+      "caption": "神奈川の看護師、夜勤明けの電車で何してる？\n\n看護師の転職市場、驚きの事実\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#社会貢献"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 94,
+      "content_id": "ai_給与_0305_01",
+      "batch": "ai_batch_20260305_1128",
+      "slide_dir": "content/generated/ai_batch_20260305_1128/ai_給与_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1128/ai_給与_0305_01.json",
+      "caption": "看護師5年目で手取り24万、普通？\n\n看護師の給与、紹介会社の影響受けてる。\n\n気になる人はプロフのリンクから相談できるよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#給与"
+      ],
+      "cta_type": "hard",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 95,
+      "content_id": "ai_給与_0305_02",
+      "batch": "ai_batch_20260305_1128",
+      "slide_dir": "content/generated/ai_batch_20260305_1128/ai_給与_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1128/ai_給与_0305_02.json",
+      "caption": "看護師5年目で時給3,500円って高すぎじゃない？\n\n神奈川県の看護師さん、夜勤明けに電車に座る暇ある？\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 96,
+      "content_id": "ai_業界_0305_03",
+      "batch": "ai_batch_20260305_1128",
+      "slide_dir": "content/generated/ai_batch_20260305_1128/ai_業界_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1128/ai_業界_0305_03.json",
+      "caption": "看護師5年目、手取り24万って高すぎない？\n\n看護師の紹介料が高くて、収入が低いのは、看護師にとってはマイナスだね。病院にもマイナスだね。\n\nこの情報、100人中80人って知らなかった。保存しておくと、転職する時に役立つよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#紹介料"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 97,
+      "content_id": "ai_ある_0305_01",
+      "batch": "ai_batch_20260305_1144",
+      "slide_dir": "content/generated/ai_batch_20260305_1144/ai_ある_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1144/ai_ある_0305_01.json",
+      "caption": "夜勤明け、神奈川の電車で座る暇ない？\n\n看護師5年目は手取り24万。夜勤月8回だと時給は?\n\n気になったらプロフのリンクから無料で市場価値を調べてみて",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#ナース"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 98,
+      "content_id": "ai_ある_0305_02",
+      "batch": "ai_batch_20260305_1144",
+      "slide_dir": "content/generated/ai_batch_20260305_1144/ai_ある_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1144/ai_ある_0305_02.json",
+      "caption": "神奈川県の人気看護師転職情報\n\n看護師5年目は手取り24万？\n\nこの情報、知らなかった人いる？保存しておくと、転職する時に役立つよ。",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川県",
+        "#ナースロビー",
+        "#転職支援"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 99,
+      "content_id": "ai_給与_0305_03",
+      "batch": "ai_batch_20260305_1144",
+      "slide_dir": "content/generated/ai_batch_20260305_1144/ai_給与_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1144/ai_給与_0305_03.json",
+      "caption": "神奈川県の看護師5年目、手取り24万って普通？\n\n看護師の価値はどれくらいなのかな？\n\nこの情報、知らなかった人いる？",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#給与",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 100,
+      "content_id": "ai_業界_0305_04",
+      "batch": "ai_batch_20260305_1144",
+      "slide_dir": "content/generated/ai_batch_20260305_1144/ai_業界_0305_04",
+      "json_path": "content/generated/ai_batch_20260305_1144/ai_業界_0305_04.json",
+      "caption": "神奈川県の看護師は77,188人\n\n看護師5年目、時給1,500円って普通?\n\nこの情報、知らなかった人いる？保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#医療業界"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 101,
+      "content_id": "ai_地域_0305_05",
+      "batch": "ai_batch_20260305_1144",
+      "slide_dir": "content/generated/ai_batch_20260305_1144/ai_地域_0305_05",
+      "json_path": "content/generated/ai_batch_20260305_1144/ai_地域_0305_05.json",
+      "caption": "神奈川県の看護師\n\n時給1,500円で夜勤を続ける理由\n\n同じ状況の看護師さんにシェアして",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースジョブ",
+        "#看護師転職",
+        "#小田原"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 102,
+      "content_id": "ai_転職_0305_06",
+      "batch": "ai_batch_20260305_1144",
+      "slide_dir": "content/generated/ai_batch_20260305_1144/ai_転職_0305_06",
+      "json_path": "content/generated/ai_batch_20260305_1144/ai_転職_0305_06.json",
+      "caption": "看護師5年目、時給1,500円なら?\n\n夜勤明け、電車で座る暇ある？\n\nこの情報、100人中80人が知らなかった。わかったらいいねして教えてね",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#自由"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 103,
+      "content_id": "ai_転職_0305_07",
+      "batch": "ai_batch_20260305_1144",
+      "slide_dir": "content/generated/ai_batch_20260305_1144/ai_転職_0305_07",
+      "json_path": "content/generated/ai_batch_20260305_1144/ai_転職_0305_07.json",
+      "caption": "神奈川県の看護師さん\n\n看護師5年目で時給1,500円、コンビニと同じって本当?\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 104,
+      "content_id": "ai_ある_0305_01",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_01.json",
+      "caption": "神奈川の看護師さん\n\n転職市場の実態\n\nプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師不足",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 105,
+      "content_id": "ai_ある_0305_02",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_02.json",
+      "caption": "看護師さん、退職届け出して何があった？\n\n神奈川県の看護師の現状\n\n手数料10%の転職サポート、詳しくはプロフのリンクから",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師募集",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 106,
+      "content_id": "ai_ある_0305_03",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_03.json",
+      "caption": "神奈川の看護師5年目で手取り24万って普通なの？\n\n夜勤明けの電車は 混雑してて座る暇ないよ。\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#ナース",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 107,
+      "content_id": "ai_ある_0305_04",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_04",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_04.json",
+      "caption": "看護師5年目で時給1,500円って...\n\n夜勤明け、電車の中で見る景色は神奈川の海か山か\n\n同じ状況の看護師さんも多いんだよね\n保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースライフ",
+        "#看護師転職",
+        "#夜勤ナース"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 108,
+      "content_id": "ai_給与_0305_05",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_給与_0305_05",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_給与_0305_05.json",
+      "caption": "夜勤手当、全部使ってない？\n\n横浜市在住の看護師さん、夜勤明けは電車で帰る途中に、夜勤手当が全部使えてないって考えるよね。\n\n同じ状況の看護師さんに送ってあげて",
+      "hashtags": [
+        "#看護師",
+        "#夜勤手当",
+        "#メンタルアカウンティング",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 109,
+      "content_id": "ai_給与_0305_06",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_給与_0305_06",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_給与_0305_06.json",
+      "caption": "看護師5年目で手取り24万って普通なの？\n\n夜勤ありの看護師5年目は、実際の手取りは22-26万。\n\n保存しておくと、転職する時に役立つよ。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナース",
+        "#給与"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 110,
+      "content_id": "ai_業界_0305_07",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_業界_0305_07",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_業界_0305_07.json",
+      "caption": "神奈川の看護師さん\n\n看護師5年目で時給1,500円って...\n\nわかる！って人はいいね押して",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#ナース"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 111,
+      "content_id": "ai_業界_0305_08",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_業界_0305_08",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_業界_0305_08.json",
+      "caption": "看護師1人の紹介で135万払っちゃうの？\n\n看護師の紹介料って...\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#ナース"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 112,
+      "content_id": "ai_地域_0305_09",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_地域_0305_09",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_地域_0305_09.json",
+      "caption": "神奈川の看護師の夜勤\n\nコンビニバイトと時給同じ？\n\n同じ状況の看護師さんに送ってあげて",
+      "hashtags": [
+        "#秦野",
+        "#看護師",
+        "#夜勤",
+        "#コンビニバイト"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 113,
+      "content_id": "ai_地域_0305_10",
+      "batch": "ai_batch_20260305_1332",
+      "slide_dir": "content/generated/ai_batch_20260305_1332/ai_地域_0305_10",
+      "json_path": "content/generated/ai_batch_20260305_1332/ai_地域_0305_10.json",
+      "caption": "神奈川と小田原の看護師手取り、24万差って本当?\n\n看護師5年目で手取り24万って普通なの?\n\nこの情報、保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#看護師",
+        "#地域ネタ",
+        "#転職",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 114,
+      "content_id": "ai_ある_0305_01",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_ある_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_ある_0305_01.json",
+      "caption": "看護師5年目で手取り24万、普通?\n夜勤明けの神奈川の電車、座る暇ある?\nロビーは手数料10%で転職サポートしてるよ\n気になる人はプロフのリンクから",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 115,
+      "content_id": "ai_ある_0305_02",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_ある_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_ある_0305_02.json",
+      "caption": "神奈川の看護師さん、時給1,500円って知ってた?\n\n看護師の市場価値を高めて、病院の負担も減る\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 116,
+      "content_id": "ai_ある_0305_03",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_ある_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_ある_0305_03.json",
+      "caption": "夜勤明け、電車で座る暇ある？\n\n看護師5年目は月8万減る？\n\nこの情報、知らなかった人いる？",
+      "hashtags": [
+        "#看護師",
+        "#ナースロビー",
+        "#転職",
+        "#神奈川"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 117,
+      "content_id": "ai_ある_0305_04",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_ある_0305_04",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_ある_0305_04.json",
+      "caption": "看護師5年目、時給1,500円って本当?\n\n神奈川県の看護師は77,188人。なのに、時給はコンビニと同じ?\n\nこれ知らなかった人、正直に手上げて。ロビーもっと調べるから",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#ナース",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 118,
+      "content_id": "ai_給与_0305_05",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_給与_0305_05",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_給与_0305_05.json",
+      "caption": "夜勤専従の看護師\n\n手取り35万？本当？\n\n保存しておくと役立つよ",
+      "hashtags": [
+        "#看護師",
+        "#夜勤専従",
+        "#神奈川",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 119,
+      "content_id": "ai_給与_0305_06",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_給与_0305_06",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_給与_0305_06.json",
+      "caption": "夜勤手当は別財布にしている？\n\n神奈川県の看護師さん、どう思う？\n\nこの情報、保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース給与",
+        "#看護師転職",
+        "#夜勤手当"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 120,
+      "content_id": "ai_転職_0305_07",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_転職_0305_07",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_転職_0305_07.json",
+      "caption": "神奈川の看護師さん\n\n同じ看護師免許でも、時給が違う理由って？\n\n保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#看護師",
+        "#転職",
+        "#神奈川",
+        "#夜勤"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 121,
+      "content_id": "ai_転職_0305_08",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_転職_0305_08",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_転職_0305_08.json",
+      "caption": "看護師5年目、退職理由は何?\n\n自由に仕事が選べる人生の方が大切\n\nロビーと一緒に、新しい看護師ライフを始めてみない？",
+      "hashtags": [
+        "#神奈川県",
+        "#ナース",
+        "#転職",
+        "#自由"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 122,
+      "content_id": "ai_トレ_0305_09",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_トレ_0305_09",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_トレ_0305_09.json",
+      "caption": "看護師5年目、時給はいくら？\n\n年収450万の看護師、紹介会社へ20-30%の手数料払ってる\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#転職",
+        "#ナース"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 123,
+      "content_id": "ai_トレ_0305_10",
+      "batch": "ai_batch_20260305_1337",
+      "slide_dir": "content/generated/ai_batch_20260305_1337/ai_トレ_0305_10",
+      "json_path": "content/generated/ai_batch_20260305_1337/ai_トレ_0305_10.json",
+      "caption": "看護師5年目で退職届出したら...\n\n年収450万、手数料135万。本当？\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#看護師",
+        "#神奈川県",
+        "#ナースロビー",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 124,
+      "content_id": "ai_ある_0305_01",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_ある_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_ある_0305_01.json",
+      "caption": "看護師5年目で手取り24万、普通?\n\n看護師の収入を増やすには、手数料を下げることが鍵\n\n神奈川で転職考えてる看護師さん、プロフのリンクから気軽に相談できるよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師収入",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 125,
+      "content_id": "ai_ある_0305_02",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_ある_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_ある_0305_02.json",
+      "caption": "看護師5年目、夜勤8回で時給1500円って本当？\n\n夜勤明けの看護師の姿を見てみよう。\n\n気になる人はプロフのリンクからLINEで相談できるよ。",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナースジョブ",
+        "#看護師転職",
+        "#夜勤手当"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 126,
+      "content_id": "ai_給与_0305_03",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_給与_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_給与_0305_03.json",
+      "caption": "神奈川の看護師\n\n夜勤手当は全部使い切れない。\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#夜勤手当",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 127,
+      "content_id": "ai_給与_0305_04",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_給与_0305_04",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_給与_0305_04.json",
+      "caption": "神奈川の看護師5年目、日勤だけの手取り22万って本当?\n\nクリニックと病棟の給料の違いって?\n\n同じ状況の看護師さんにシェアして",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師給与",
+        "#ナース転職",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 128,
+      "content_id": "ai_業界_0305_05",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_業界_0305_05",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_業界_0305_05.json",
+      "caption": "神奈川の看護師5年目、時給1500円って本当?\n\n看護師の待遇ってこんなにも低いのかな。\n\nこの事実をシェアして、もっと多くの看護師が知ってほしいよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師待遇",
+        "#紹介会社手数料",
+        "#看護師転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 129,
+      "content_id": "ai_業界_0305_06",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_業界_0305_06",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_業界_0305_06.json",
+      "caption": "看護師の時給、コンビニと同じ?\n\nロビーが調べたデータ\n\n同じ状況の看護師さんにシェアして",
+      "hashtags": [
+        "#神奈川",
+        "#看護師",
+        "#ナース",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 130,
+      "content_id": "ai_業界_0305_07",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_業界_0305_07",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_業界_0305_07.json",
+      "caption": "夜勤明けの電車、座る暇なくて立ち読む該当者は多いんだけどさ。\n\n看護師5年目、夜勤代は本当に払われてるの？\n\n同じ状況の看護師さんに送ってあげて。",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#業界裏側",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 131,
+      "content_id": "ai_地域_0305_09",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_地域_0305_09",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_地域_0305_09.json",
+      "caption": "神奈川県内の看護師収入\n\n横浜と小田原、どっちが得？\n\nこの表、保存しておくと役立つよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#地域別収入",
+        "#ナースライフ"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 132,
+      "content_id": "ai_地域_0305_10",
+      "batch": "ai_batch_20260305_1343",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/ai_地域_0305_10",
+      "json_path": "content/generated/ai_batch_20260305_1343/ai_地域_0305_10.json",
+      "caption": "看護師の給与って、地域によってこんなに差があるの？\n\n横浜と小田原、どっちが得なのかな？\n\nあとで見返したい人は保存しておいてね",
+      "hashtags": [
+        "#看護師",
+        "#神奈川県",
+        "#給与",
+        "#地域別"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 133,
+      "content_id": "ai_ある_0305_01",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_ある_0305_01",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_01.json",
+      "caption": "看護師5年目で手取り24万って普通なの？\n\n神奈川県の看護師平均年収は546万円。手取り24万は低い方だよ\n\n自分の市場価値、気になったらプロフのリンクから無料で調べられるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#ナースロビー"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 134,
+      "content_id": "ai_ある_0305_02",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_ある_0305_02",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_02.json",
+      "caption": "神奈川の看護師さん、夜勤後報告書書いてたら朝になっちゃったの?\n\n看護師不足と過重労働の真実\n\n気になる人はプロフのリンクから無料で相談できるよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師転職",
+        "#ナースロビー",
+        "#看護師不足"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 135,
+      "content_id": "ai_ある_0305_03",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_ある_0305_03",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_03.json",
+      "caption": "夜勤明け、涙を堪える看護師\n\n市場価値を再評価する\n\nこの事実知ってた? 保存しておいて",
+      "hashtags": [
+        "#看護師",
+        "#夜勤",
+        "#神奈川県",
+        "#市場価値"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 136,
+      "content_id": "ai_ある_0305_04",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_ある_0305_04",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_04.json",
+      "caption": "神奈川の看護師は夜勤が多いでしょう\n\n夜勤看護師の時給は約1,500-2,000円です\n\nこの情報、知らなかった人いる？",
+      "hashtags": [
+        "#看護師転職",
+        "#夜勤看護師",
+        "#神奈川県",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 137,
+      "content_id": "ai_給与_0305_05",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_給与_0305_05",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_給与_0305_05.json",
+      "caption": "神奈川県の看護師の平均年収は546万円\n\n夜勤手当が年間120万もある\n\n産業看護師と病棟看護師、同じ看護師免許で年収が100万も違う。そういう現実がある\n\n同じ看護師免許を持っていても、働き方によって年収が100-200万円も違う",
+      "hashtags": [
+        "#看護師",
+        "#神奈川県",
+        "#産業看護師",
+        "#年収"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 138,
+      "content_id": "ai_給与_0305_06",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_給与_0305_06",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_給与_0305_06.json",
+      "caption": "横浜の看護師5年目、手取り24万って高いの？\n\n実際の給与は？\n\n保存しておくと、自分の将来の選択に役立つよ",
+      "hashtags": [
+        "#横浜",
+        "#看護師",
+        "#給与",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 139,
+      "content_id": "ai_業界_0305_07",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_業界_0305_07",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_業界_0305_07.json",
+      "caption": "神奈川県の看護師さん\n\n転職の舞台裏って?\n\nシェアしてほしい情報だよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#転職",
+        "#業界裏側"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 140,
+      "content_id": "ai_地域_0305_08",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_地域_0305_08",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_地域_0305_08.json",
+      "caption": "小田原から横浜、片道72分って正しい？\n\n看護師の通勤時間って、どれくらいか知ってる？\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#通勤",
+        "#ナースロビー"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 141,
+      "content_id": "ai_地域_0305_09",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_地域_0305_09",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_地域_0305_09.json",
+      "caption": "神奈川県の看護師\n\n横浜と小田原、給与はどっちが得？\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師",
+        "#給与",
+        "#転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 142,
+      "content_id": "ai_転職_0305_10",
+      "batch": "ai_batch_20260305_1351",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/ai_転職_0305_10",
+      "json_path": "content/generated/ai_batch_20260305_1351/ai_転職_0305_10.json",
+      "caption": "横浜の看護師5年目、夜勤だけやったら月10回で手取り35万？\n\n夜勤専従の実態\n\nこの表、保存しといて損ないよ。",
+      "hashtags": [
+        "#看護師転職",
+        "#夜勤専従",
+        "#横浜",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
     }
   ],
   "archive": [

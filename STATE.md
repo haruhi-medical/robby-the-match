@@ -1,5 +1,5 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-03-05 10:00 by 競合分析
+# 最終更新: 2026-03-05 10:00 by 競合監視
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -9,7 +9,7 @@
 ## 現在のフェーズ
 - マイルストーン: **Week 3**（2026-03-03〜03-09）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: **SNS自動投稿パイプライン稼働中 + Meta広告準備中 + Instagram運用開始**
+- 状態: **コンテンツ戦略v2.0移行完了 + SNS自動投稿パイプライン稼働中 + Meta広告準備中**
 
 ## KPI
 | 指標 | 目標 | 現在 | 状態 |
@@ -38,6 +38,7 @@
 - **TikTok自動投稿パイプライン**: tiktok_post.py + pdca_sns_post.sh（7本投稿済み + 57本キュー待ち）
 - **Instagram投稿開始**: auto_post.py v2.1 + generate_carousel.py Instagram対応済み（1本投稿済み: https://www.instagram.com/p/DVbDfg0k6vb/）
 - **構築済みツール**: image_humanizer.py、instagram_engage.py、video_text_animator.py、tiktok_analytics v3.0
+- **コンテンツ戦略v2.0**: robby_character.py v2.0 + ai_content_engine.py MIX改定（あるある35%/給与20%/業界裏側15%/地域15%/転職10%/トレンド5%）
 
 ## SNS状態
 - **TikTok**: @robby15051 — 7本投稿済み、57本キュー待ち、自動投稿パイプライン稼働中
@@ -95,10 +96,10 @@
 ## 次にやるべきこと（優先順）
 
 ### 🔴 即座に実行
-1. **Meta広告**: Facebookページ承認待ち → 承認後にPixel設定 → 広告開始
-2. **Instagramオーガニック投稿増やす**: 週3本ペースへ（10本投稿済み、31本未投稿あり。auto_post.pyで毎日投稿中）
-3. ~~**カルーセル余白修正**~~: ✅ 完了（垂直中央配置に修正）
-4. ~~**BGM差し替え**~~: ✅ 完了（和音+エコー+フェード付きステレオBGMに差し替え）
+1. ~~**コンテンツ戦略v2.0移行**~~: ✅ 完了（robby_character.py v2.0 + ai_content_engine.py改定）
+2. **新戦略でコンテンツ再生成**: キュー内の旧コンテンツを新ルールで差し替え
+3. **Meta広告**: Facebookページ承認待ち → 承認後にPixel設定 → 広告開始
+4. **Instagramオーガニック投稿増やす**: 週3本ペースへ
 5. **Instagram投稿頻度を上げる**: auto_post.pyをcronに追加して自動化（現在手動実行）
 
 ### 🟢 自動化済み（人間の操作不要）
