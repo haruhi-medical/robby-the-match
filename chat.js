@@ -330,6 +330,7 @@
     lockBodyScroll();
     trackEvent("chat_open");
     if (window.__nrTrack) window.__nrTrack("chat_open");
+    if (typeof fbq !== "undefined") fbq("trackCustom", "ChatOpen");
     els.toggle.classList.add("active");
     els.toggle.querySelector(".chat-toggle-icon").textContent = "\u2715";
 
@@ -937,6 +938,7 @@
       btn.addEventListener("click", function () {
         trackEvent("chat_line_card_click", { phase: chatState.phase });
         if (window.__nrTrack) window.__nrTrack("line_click");
+        if (typeof fbq !== "undefined") fbq("track", "Lead");
       });
     }
   }

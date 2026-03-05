@@ -28,6 +28,14 @@ LINE友だち追加（lin.ee/oUgDB3x）
 
 ---
 
+## 既存Facebookページでの出稿について
+
+Facebookページが別サービス名であっても、Instagram広告はInstagramアカウント名で表示されるため問題ありません。
+Ads Managerで広告を作成する際、「Instagramアカウント」として@robby.for.nurseを選択すれば、
+ユーザーに表示される広告主名は「robby.for.nurse」になります。
+
+---
+
 ## Step 1: Meta Pixel IDの取得（5分）
 
 1. https://business.facebook.com/events_manager/ にアクセス
@@ -63,7 +71,7 @@ https://www.facebook.com/adsmanager/
 | 最適化対象 | **ランディングページビュー** |
 | 日予算 | **¥500** |
 | 期間 | 5日間 |
-| 地域 | **小田原市**（半径25km）※平塚・秦野・南足柄もカバー |
+| 地域 | **神奈川県**（県全域） |
 | 年齢 | 25-40歳 |
 | 性別 | 女性 |
 | 興味関心 | 「看護」「看護師」「医療」「転職」 |
@@ -77,17 +85,17 @@ https://www.facebook.com/adsmanager/
 |------|--------|
 | 広告名 | `ad1_local_feed` |
 | フォーマット | シングル画像 |
-| 画像 | `content/meta_ads/v2/20260303_ad1_local_feed.png` をアップロード |
+| 画像 | `content/meta_ads/v3/ad1_local_feed.png` をアップロード |
 | メインテキスト | 下記参照 |
 | リンク先URL | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=paid&utm_campaign=ad1_local` |
 | CTAボタン | **「詳しくはこちら」** |
 
 **メインテキスト（125文字以内）:**
 ```
-小田原・平塚エリアの看護師さんへ
+神奈川県の看護師さんへ
 
 転職エージェントの手数料、10%って知ってた？
-神奈川西部に特化した転職サポート。相談無料。
+神奈川県全域対応の転職サポート。相談無料。
 
 ▶ 詳しくはリンクから
 ```
@@ -97,7 +105,7 @@ https://www.facebook.com/adsmanager/
 | 項目 | 設定値 |
 |------|--------|
 | 広告名 | `ad3_empathy_feed` |
-| 画像 | `content/meta_ads/v2/20260303_ad3_empathy_feed.png` をアップロード |
+| 画像 | `content/meta_ads/v3/ad3_empathy_feed.png` をアップロード |
 | リンク先URL | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=paid&utm_campaign=ad3_empathy` |
 | CTAボタン | **「詳しくはこちら」** |
 
@@ -107,7 +115,7 @@ https://www.facebook.com/adsmanager/
 この言葉、何回聞いた？
 
 それ、環境を変えるだけで解決するかも。
-神奈川西部で、あなたに合う職場を見つけませんか？
+神奈川県で、あなたに合う職場を見つけませんか？
 
 ▶ 相談無料・営業電話なし
 ```
@@ -164,10 +172,12 @@ Day 12:   月次レビュー
 ## Meta Pixel ID取得後にClaude Codeがやること
 
 Pixel IDを教えてもらったら:
-1. LP-A（`lp/job-seeker/index.html`）の `PIXEL_ID` プレースホルダーを置換
-2. LINEボタンクリックを `fbq('track', 'Lead')` で計測するコード追加
-3. デプロイ（git push）
-4. Metaのイベントテストツールで動作確認
+1. `index.html` + `lp/job-seeker/index.html` の `PIXEL_ID` を実際のIDに置換（2ファイル計4箇所）
+2. デプロイ: `git push origin main && git push origin main:master`
+3. Metaイベントテストツールで PageView + Lead イベントを確認
+
+> LINEボタンクリック時の `fbq('track', 'Lead')` およびチャット開封時の
+> `fbq('trackCustom', 'ChatOpen')` は実装済み（Pixel ID未設定時は自動スキップ）。
 
 ---
 
