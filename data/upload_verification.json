@@ -131,7 +131,13 @@
       "content_id": "ai_ある_0301_01",
       "success": true,
       "method": "tiktokautouploader"
+    },
+    {
+      "timestamp": "2026-03-05T17:25:23.850061",
+      "content_id": "ai_地域_0305_01",
+      "success": true,
+      "method": "tiktokautouploader"
     }
   ],
-  "last_updated": "2026-03-04T21:25:14.319464"
+  "last_updated": "2026-03-05T17:25:23.850084"
 }
