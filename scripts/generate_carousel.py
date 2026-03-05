@@ -2014,8 +2014,16 @@ def generate_slide_cta(
     logo_text = "ナースロビー"
     tw, _ = measure_text(logo_text, logo_font)
     logo_x = center_x - tw // 2
-    # For Instagram, use less top offset (no large safe zone needed)
-    logo_y = s_top + (80 if platform == "instagram" else 140)
+
+    # Pre-calculate total CTA content height for vertical centering
+    _cta_content_h = logo_font_size + 18 + 28 + 65 + 3  # logo + gap + tag + gap + sep
+    if cta_type == "hard":
+        _cta_content_h += 60 + 72 + 80 + 106 + 45 + 28 + 70 + 30  # badge+gap+btn+gap+sub+gap+trust
+    else:
+        _cta_content_h += 80 + 102 + 60 + 36 + 65 + 28 + 70 + 30  # save+gap+follow+gap+prof+gap+trust
+    _available_h = ch - s_top - s_bottom - 80
+    _cta_offset = max(40, (_available_h - _cta_content_h) // 2)
+    logo_y = s_top + _cta_offset
 
     draw_text_shadow(
         draw, logo_x, logo_y, logo_text, logo_font,
@@ -2442,7 +2450,41 @@ def _v4_step_content(
     bg = _build_dark_bg(theme, canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
 
-    current_y = s_top + 60
+    # --- Pre-calculate total content height for vertical centering ---
+    _title_font_size = 44 if step_number > 0 else 48
+    _title_font = load_font(bold=True, size=_title_font_size, rounded=True)
+    _title_max_w = (c_w - 120) if step_number > 0 else (c_w - 40)
+    _title_lines = wrap_text_jp(title, _title_font, _title_max_w)
+    _title_h = int(_title_font_size * 1.5) * len(_title_lines) + 10
+    _progress_h = 30 if step_number > 0 else 0
+    _highlight_h = 0
+    if highlight_number:
+        _highlight_h = 96 + 40 + 20  # number_size + label + padding
+    _card_h = 0
+    _card_inner_pad = 35
+    if body:
+        _body_font = load_font(bold=False, size=36, rounded=True)
+        card_margin = 25
+        card_x0 = s_left + card_margin
+        card_x1 = cw - s_right - card_margin
+        _body_max_w = card_x1 - card_x0 - _card_inner_pad * 2
+        _body_paragraphs = body.split("\n")
+        _line_h = int(36 * LINE_HEIGHT_RATIO)
+        _total_body_h = 0
+        for _para in _body_paragraphs:
+            _para = _para.strip()
+            if not _para:
+                _total_body_h += _line_h // 2
+                continue
+            _lines = wrap_text_jp(_para, _body_font, _body_max_w)
+            _total_body_h += _line_h * len(_lines) + 10
+        _card_h = _card_inner_pad * 2 + _total_body_h
+
+    total_content_h = _title_h + _progress_h + _highlight_h + _card_h
+    available_h = ch - s_top - s_bottom - 80  # 80 for watermark/indicator
+    start_y = s_top + max(40, (available_h - total_content_h) // 2)
+
+    current_y = start_y
 
     # Step number circle (if > 0)
     if step_number > 0:
@@ -2824,11 +2866,21 @@ def _v4_generate_cta(
     bg = _build_brand_gradient_bg(canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
 
+    # Pre-calculate total CTA content height for vertical centering
+    _header_h = 60 + 70 + 26 + 55 + 3  # logo + gap + tagline + gap + separator
+    if cta_type == "hard":
+        _body_h = 50 + 62 + 60 + 102 + 40 + 26 + 65 + 30  # badge+btn+sub+trust
+    else:
+        _body_h = 50 + 62 + 30 + 96 + 50 + 44 + 60 + 26 + 65 + 30  # bookmark+save+follow+prof+trust
+    _total_cta_h = _header_h + _body_h
+    _available_h = ch - s_top - s_bottom - 80
+    _cta_start = s_top + max(40, (_available_h - _total_cta_h) // 2)
+
     # Brand logo (rounded font)
     logo_font = load_font(bold=True, size=60, rounded=True)
     logo_text = "ナースロビー"
     tw, _ = measure_text(logo_text, logo_font)
-    logo_y = s_top + (80 if platform == "instagram" else 130)
+    logo_y = _cta_start
     draw_text_shadow(draw, center_x - tw // 2, logo_y, logo_text, logo_font,
                      fill=COLOR_WHITE, shadow_offset=3)
 
