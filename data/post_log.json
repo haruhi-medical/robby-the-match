@@ -166,5 +166,12 @@
     "code": "DVfu6IREyGs",
     "url": "https://www.instagram.com/p/DVfu6IREyGs/",
     "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0301_02",
+    "timestamp": "2026-03-06T18:02:03.319410",
+    "status": "error",
+    "error": "No slides found"
   }
 ]
