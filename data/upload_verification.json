@@ -143,7 +143,13 @@
       "content_id": "ai_地域_0305_02",
       "success": true,
       "method": "tiktokautouploader"
+    },
+    {
+      "timestamp": "2026-03-07T20:20:24.996032",
+      "content_id": "ai_トレ_0305_03",
+      "success": true,
+      "method": "tiktokautouploader"
     }
   ],
-  "last_updated": "2026-03-06T18:06:24.203153"
+  "last_updated": "2026-03-07T20:20:24.996043"
 }
