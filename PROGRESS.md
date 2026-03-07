@@ -1042,3 +1042,47 @@ Claude CLIのエラーが発生しており、エラーメッセージはpdca_co
    - ブログ記事の中で、関連するガイドや地域別ページへのリンクを追加することで、ユーザーがより深く情報を探索できるようにする。
    - メインページから主要なガイドや地域別ページへのリンクを明確にすることで、ユーザーが目的の情報に迅速にアクセスできるようにする。
 
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-03-07 SEO改善
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=60 ready=60 posted=10 failed=0
+  Generated today: 0
+  Quality issues: 60
+  Status: Healthy
+
+### pdca_ai_marketing（07:00:00）
+AI Marketing PDCA:
+  Queue: pending=60 ready=60 posted=10 failed=0
+  Generated today: 0
+  Quality issues: 60
+  Status: Healthy
+
+### pdca_ai_marketing（07:30:47）
+AI Marketing PDCA:
+  Queue: pending=60 ready=60 posted=10 failed=0
+  Generated today: 0
+  Quality issues: 60
+  Status: Healthy
+
+### pdca_ai_marketing（08:00:46）
+AI Marketing PDCA:
+  Queue: pending=60 ready=60 posted=10 failed=0
+  Generated today: 0
+  Quality issues: 60
+  Status: Healthy
+
+### 🔎 競合・SEOギャップ分析（10:00:00）
+1. カバレッジの穴：現在のページ数は地域別ページが22ページ、転職ガイドが44ページ、ブログが19記事です。しかし、対象エリアである神奈川県西部のすべての地域や、看護師転職に関連するすべてのガイドテーマに対応しているわけではありません。特に、小田原や秦野、平塚などの地域や、看護師のキャリア開発や転職先の選び方などのテーマについてのページが不足しています。
+
+2. 改善優先度の高いアクション：
+   - 地域別ページの充実：現在の22ページを増やし、特にカバーが不足している地域についてのページを作成する。
+   - 転職ガイドの詳細化：44ページのガイドをさらに詳細化し、看護師のニーズに応えた内容を提供する。
+   - ブログ記事の増加とバリエーション：ブログ記事を増やし、看護師転職に関連する様々なトピックについて掘り下げる。
+
+3. 次に作るべきページの提案：
+   - 「小田原市の看護師転職ガイド」
+   - 「看護師のキャリア開発戦略」
+   - 「神奈川県内の看護師求人トレンド」
+

@@ -8,18 +8,18 @@
       "last_alert_ts": "2026-03-04T21:30:00.684780"
     },
     "healthcheck": {
-      "date": "2026-03-06",
+      "date": "2026-03-07",
       "retries": 3,
       "status": "recovered",
       "last_error": "",
-      "last_alert_ts": "2026-03-06T22:00:00.786147"
+      "last_alert_ts": "2026-03-07T09:30:00.856372"
     },
     "ai_marketing": {
-      "date": "2026-03-06",
+      "date": "2026-03-07",
       "retries": 3,
       "status": "retry_exhausted",
       "last_error": "",
-      "last_alert_ts": "2026-03-06T21:30:00.544856"
+      "last_alert_ts": "2026-03-07T08:30:48.858054"
     },
     "competitor": {
       "date": "2026-03-04",
