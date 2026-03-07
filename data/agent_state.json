@@ -4,22 +4,22 @@
     "health_monitor": "2026-03-07T09:00:49",
     "competitor_analyst": "2026-03-07T10:00:12",
     "content_creator": "2026-03-07T15:00:35",
-    "daily_reviewer": "2026-03-07T23:00:01",
-    "weekly_strategist": "2026-03-01T06:00:04",
+    "daily_reviewer": "2026-03-07T23:00:28",
+    "weekly_strategist": "2026-03-08T06:00:00",
     "sns_poster": "2026-03-07T20:20:25",
     "ai_marketing_orchestrator": "2026-03-07T08:00:48",
-    "weekly_content_planner": "2026-03-01T05:00:27"
+    "weekly_content_planner": "2026-03-08T05:00:03"
   },
   "status": {
     "seo_optimizer": "completed",
     "health_monitor": "completed",
     "competitor_analyst": "completed",
     "content_creator": "completed",
-    "daily_reviewer": "running",
-    "weekly_strategist": "completed",
+    "daily_reviewer": "completed",
+    "weekly_strategist": "running",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
-    "weekly_content_planner": "pending"
+    "weekly_content_planner": "failed"
   },
   "pendingTasks": {
     "content_creator": [
@@ -69,7 +69,7 @@
       "highPerformingPatterns": [],
       "failedPatterns": [],
       "contentIdCounter": 0,
-      "lastAnalysisDate": "2026-03-07",
+      "lastAnalysisDate": "2026-03-08",
       "bestHookPatterns": [],
       "avgMetrics": {
         "views": 0,
@@ -103,7 +103,7 @@
       "authStatus": "cookie_required",
       "queueFile": "data/posting_queue.json",
       "averageViews": 0,
-      "lastAnalysisDate": "2026-03-07"
+      "lastAnalysisDate": "2026-03-08"
     },
     "weekly_content_planner": {
       "lastWeeklyRun": "2026-03-01",
