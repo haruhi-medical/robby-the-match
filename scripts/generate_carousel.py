@@ -617,7 +617,7 @@ def draw_speech_bubble(
     bg_color: tuple = (255, 255, 255, 240),
     text_color: tuple = (50, 20, 30),
     tail_size: int = 20,
-    font_size: int = 34,
+    font_size: int = 48,
 ) -> Image.Image:
     """Draw a chat-style speech bubble with tail pointer.
 
@@ -2289,10 +2289,11 @@ def _v4_chat_bubble_content(
     max_bubble_w = c_w - 40
     bubble_inner_w = max_bubble_w - bubble_pad * 2
 
-    # Start with large font size (60px), only shrink if needed
-    bubble_font_size = 60
+    # Start with large font size (80px), shrink only if needed
+    # Try largest size first for maximum readability on mobile
+    bubble_font_size = 80
     bubble_font = load_font(bold=False, size=bubble_font_size, rounded=True)
-    bubble_line_h = int(bubble_font_size * 1.7)
+    bubble_line_h = int(bubble_font_size * 1.55)
     wrapped_lines = wrap_text_jp(full_text, bubble_font, bubble_inner_w)
     bubble_text_h = len(wrapped_lines) * bubble_line_h
 
@@ -2301,13 +2302,13 @@ def _v4_chat_bubble_content(
     min_bubble_h = c_h - non_bubble_h - 120  # Leave only 120px total margin
     bubble_h = max(bubble_text_h + bubble_pad * 2 + 10, min_bubble_h)
 
-    # If bubble would be too tall, shrink font
+    # If bubble would be too tall, shrink font (min 42px for readability)
     max_bubble_h = c_h - title_block_h - hl_block_h - 80
     if bubble_h > max_bubble_h:
         bubble_h = max_bubble_h
-        for try_size in range(52, 30, -2):
+        for try_size in range(72, 40, -2):
             bubble_font = load_font(bold=False, size=try_size, rounded=True)
-            bubble_line_h = int(try_size * 1.7)
+            bubble_line_h = int(try_size * 1.55)
             wrapped_lines = wrap_text_jp(full_text, bubble_font, bubble_inner_w)
             bubble_text_h = len(wrapped_lines) * bubble_line_h
             if bubble_text_h + bubble_pad * 2 + 10 <= max_bubble_h:
@@ -2395,16 +2396,43 @@ def _v4_infographic_content(
     bg = _build_dark_bg(theme, canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
 
-    current_y = s_top + 60
+    # --- Pre-calculate total content height for vertical centering ---
+    _title_font_size = 52
+    _title_font = load_font(bold=True, size=_title_font_size, rounded=True)
+    _title_lines = wrap_text_jp(title, _title_font, c_w - 40)
+    _title_h = int(_title_font_size * 1.5) * len(_title_lines) + 20
+    _yen_h = 80
+    _hl_h = 0
+    if highlight_number:
+        _hl_h = 110 + 40 + 20  # number + label + padding
+    _chart_h = 0
+    _card_h = 0
+    if chart_data:
+        _chart_h = min(350, 300) + 20
+    elif body:
+        # Estimate with 56px (will be dynamically sized during rendering)
+        _body_font_size = 56
+        _body_font = load_font(bold=False, size=_body_font_size, rounded=True)
+        card_margin = 30
+        card_x0 = s_left + card_margin
+        card_x1 = cw - s_right - card_margin
+        _card_inner_pad = 35
+        _body_lines = wrap_text_jp(body, _body_font, card_x1 - card_x0 - _card_inner_pad * 2)
+        _line_h = int(_body_font_size * LINE_HEIGHT_RATIO)
+        _card_h = _card_inner_pad * 2 + _line_h * len(_body_lines) + 20
+
+    total_content_h = _title_h + _yen_h + _hl_h + max(_chart_h, _card_h)
+    available_h = ch - s_top - s_bottom - 80
+    current_y = s_top + max(40, (available_h - total_content_h) // 2)
 
     # Title
-    title_font = load_font(bold=True, size=48, rounded=True)
+    title_font = load_font(bold=True, size=52, rounded=True)
     title_lines = wrap_text_jp(title, title_font, c_w - 40)
     for tl in title_lines:
         tw, _ = measure_text(tl, title_font)
         draw_text_shadow(draw, center_x - tw // 2, current_y, tl, title_font,
                          fill=COLOR_WHITE, shadow_offset=2, outline_width=1)
-        current_y += int(48 * 1.5)
+        current_y += int(52 * 1.5)
 
     current_y += 20
 
@@ -2425,7 +2453,7 @@ def _v4_infographic_content(
 
     # Bar chart if data provided
     if chart_data and current_y < ch - s_bottom - 200:
-        chart_h = min(300, ch - s_bottom - current_y - 80)
+        chart_h = min(350, ch - s_bottom - current_y - 80)
         bg = draw_bar_chart(
             bg, s_left + 30, current_y, c_w - 60, chart_h,
             data=chart_data,
@@ -2436,15 +2464,26 @@ def _v4_infographic_content(
         draw = ImageDraw.Draw(bg)
         current_y += chart_h + 20
     else:
-        # Body text in card
+        # Body text in card — larger font for mobile readability
         if body:
             card_margin = 30
             card_x0 = s_left + card_margin
             card_x1 = cw - s_right - card_margin
-            card_inner_pad = 30
-            body_font = load_font(bold=False, size=34, rounded=True)
-            body_lines = wrap_text_jp(body, body_font, card_x1 - card_x0 - card_inner_pad * 2)
-            line_h = int(34 * LINE_HEIGHT_RATIO)
+            card_inner_pad = 35
+            # Dynamic font sizing: try large first, shrink to fit
+            max_card_h = ch - s_bottom - 80 - current_y
+            body_text_w = card_x1 - card_x0 - card_inner_pad * 2
+            body_font_size = 56
+            for try_size in range(56, 38, -2):
+                test_font = load_font(bold=False, size=try_size, rounded=True)
+                test_lines = wrap_text_jp(body, test_font, body_text_w)
+                test_h = card_inner_pad * 2 + int(try_size * LINE_HEIGHT_RATIO) * len(test_lines)
+                if test_h <= max_card_h:
+                    body_font_size = try_size
+                    break
+            body_font = load_font(bold=False, size=body_font_size, rounded=True)
+            body_lines = wrap_text_jp(body, body_font, body_text_w)
+            line_h = int(body_font_size * LINE_HEIGHT_RATIO)
             card_h = card_inner_pad * 2 + line_h * len(body_lines)
             card_bottom = min(current_y + card_h, ch - s_bottom - 80)
 
@@ -2517,13 +2556,13 @@ def _v4_step_content(
     _card_h = 0
     _card_inner_pad = 35
     if body:
-        _body_font = load_font(bold=False, size=36, rounded=True)
+        _body_font = load_font(bold=False, size=42, rounded=True)
         card_margin = 25
         card_x0 = s_left + card_margin
         card_x1 = cw - s_right - card_margin
         _body_max_w = card_x1 - card_x0 - _card_inner_pad * 2
         _body_paragraphs = body.split("\n")
-        _line_h = int(36 * LINE_HEIGHT_RATIO)
+        _line_h = int(42 * LINE_HEIGHT_RATIO)
         _total_body_h = 0
         for _para in _body_paragraphs:
             _para = _para.strip()
@@ -2588,11 +2627,11 @@ def _v4_step_content(
         card_x0 = s_left + card_margin
         card_x1 = cw - s_right - card_margin
         card_inner_pad = 35
-        body_font = load_font(bold=False, size=36, rounded=True)
+        body_font = load_font(bold=False, size=42, rounded=True)
         body_max_w = card_x1 - card_x0 - card_inner_pad * 2
 
         body_paragraphs = body.split("\n")
-        line_h = int(36 * LINE_HEIGHT_RATIO)
+        line_h = int(42 * LINE_HEIGHT_RATIO)
         total_body_h = 0
         for para in body_paragraphs:
             para = para.strip()
@@ -2638,7 +2677,7 @@ def _v4_step_content(
             if is_bullet:
                 clean = para.lstrip("・- *").strip()
                 lines = wrap_text_jp(clean, body_font, body_max_w - 50)
-                marker_y = ty + 36 // 2
+                marker_y = ty + 42 // 2
                 draw.ellipse(
                     (card_x0 + card_inner_pad + 10, marker_y - 6,
                      card_x0 + card_inner_pad + 22, marker_y + 6),

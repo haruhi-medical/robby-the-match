@@ -1,0 +1,1472 @@
+[
+  {
+    "name": "ふれあい鶴見ホスピタル",
+    "city": "横浜市鶴見区",
+    "beds": 210,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 102,
+    "mansei": 108
+  },
+  {
+    "name": "平和病院",
+    "city": "横浜市鶴見区",
+    "beds": 146,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 43,
+    "kaifuku": 63,
+    "mansei": 40
+  },
+  {
+    "name": "汐田総合病院",
+    "city": "横浜市鶴見区",
+    "beds": 324,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 104,
+    "kaifuku": 220,
+    "mansei": 0
+  },
+  {
+    "name": "済生会横浜市東部病院",
+    "city": "横浜市鶴見区",
+    "beds": 512,
+    "area": "横浜",
+    "koudo": 423,
+    "kyusei": 89,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団協友会横浜鶴見リハビリテーション病院",
+    "city": "横浜市鶴見区",
+    "beds": 228,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 114,
+    "mansei": 114
+  },
+  {
+    "name": "大口東総合病院",
+    "city": "横浜市神奈川区",
+    "beds": 162,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 162,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "新横浜リハビリテーション病院",
+    "city": "横浜市神奈川区",
+    "beds": 230,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 210,
+    "mansei": 20
+  },
+  {
+    "name": "社会福祉法人恩賜財団済生会支部神奈川県済生会神奈川県病院",
+    "city": "横浜市神奈川区",
+    "beds": 199,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 145,
+    "kaifuku": 36,
+    "mansei": 18
+  },
+  {
+    "name": "社会福祉法人 恩賜財団 済生会支部神奈川県済生会 東神奈川リハビリテーション病院",
+    "city": "横浜市神奈川区",
+    "beds": 106,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 106,
+    "mansei": 0
+  },
+  {
+    "name": "横浜市立市民病院",
+    "city": "横浜市神奈川区",
+    "beds": 624,
+    "area": "横浜",
+    "koudo": 474,
+    "kyusei": 125,
+    "kaifuku": 0,
+    "mansei": 25
+  },
+  {
+    "name": "菊名記念病院",
+    "city": "横浜市港北区",
+    "beds": 218,
+    "area": "横浜",
+    "koudo": 21,
+    "kyusei": 197,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "独立行政法人労働者健康安全機構 横浜労災病院",
+    "city": "横浜市港北区",
+    "beds": 650,
+    "area": "横浜",
+    "koudo": 52,
+    "kyusei": 598,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "新横浜こころのホスピタル",
+    "city": "横浜市港北区",
+    "beds": 118,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 118
+  },
+  {
+    "name": "大倉山記念病院",
+    "city": "横浜市港北区",
+    "beds": 114,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 65,
+    "mansei": 49
+  },
+  {
+    "name": "鴨居病院",
+    "city": "横浜市緑区",
+    "beds": 150,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 54,
+    "kaifuku": 0,
+    "mansei": 96
+  },
+  {
+    "name": "医療法人社団武蔵野会 牧野記念病院",
+    "city": "横浜市緑区",
+    "beds": 183,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 101,
+    "kaifuku": 32,
+    "mansei": 50
+  },
+  {
+    "name": "医療法人社団元気会横浜病院",
+    "city": "横浜市緑区",
+    "beds": 220,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 220
+  },
+  {
+    "name": "医療法人社団三喜会横浜新緑総合病院",
+    "city": "横浜市緑区",
+    "beds": 236,
+    "area": "横浜",
+    "koudo": 7,
+    "kyusei": 192,
+    "kaifuku": 37,
+    "mansei": 0
+  },
+  {
+    "name": "横浜田園都市病院",
+    "city": "横浜市緑区",
+    "beds": 375,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 375
+  },
+  {
+    "name": "医療法人社団武蔵野会 牧野リハビリテーション病院",
+    "city": "横浜市緑区",
+    "beds": 120,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 60,
+    "mansei": 60
+  },
+  {
+    "name": "昭和大学藤が丘病院",
+    "city": "横浜市青葉区",
+    "beds": 575,
+    "area": "横浜",
+    "koudo": 575,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団 明芳会 江田記念病院",
+    "city": "横浜市青葉区",
+    "beds": 177,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 57,
+    "mansei": 120
+  },
+  {
+    "name": "医療法人社団一成会 たちばな台病院",
+    "city": "横浜市青葉区",
+    "beds": 134,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 134,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団明芳会 横浜新都市脳神経外科病院",
+    "city": "横浜市青葉区",
+    "beds": 317,
+    "area": "横浜",
+    "koudo": 30,
+    "kyusei": 227,
+    "kaifuku": 60,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団博慈会青葉さわい病院",
+    "city": "横浜市青葉区",
+    "beds": 170,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 70,
+    "mansei": 100
+  },
+  {
+    "name": "医療法人社団緑成会横浜総合病院",
+    "city": "横浜市青葉区",
+    "beds": 300,
+    "area": "横浜",
+    "koudo": 16,
+    "kyusei": 284,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "昭和大学藤が丘リハビリテーション病院",
+    "city": "横浜市青葉区",
+    "beds": 197,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 41,
+    "kaifuku": 156,
+    "mansei": 0
+  },
+  {
+    "name": "緑協和病院",
+    "city": "横浜市青葉区",
+    "beds": 145,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 34,
+    "mansei": 111
+  },
+  {
+    "name": "市ヶ尾病院",
+    "city": "横浜市青葉区",
+    "beds": 120,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 60,
+    "mansei": 60
+  },
+  {
+    "name": "昭和大学横浜市北部病院",
+    "city": "横浜市都筑区",
+    "beds": 597,
+    "area": "横浜",
+    "koudo": 26,
+    "kyusei": 546,
+    "kaifuku": 0,
+    "mansei": 25
+  },
+  {
+    "name": "医療法人社団若葉会 つづき病院",
+    "city": "横浜市都筑区",
+    "beds": 123,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 123
+  },
+  {
+    "name": "山本記念病院",
+    "city": "横浜市都筑区",
+    "beds": 213,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 131,
+    "kaifuku": 0,
+    "mansei": 82
+  },
+  {
+    "name": "一般財団法人神奈川県警友会 けいゆう病院",
+    "city": "横浜市西区",
+    "beds": 410,
+    "area": "横浜",
+    "koudo": 5,
+    "kyusei": 405,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "独立行政法人地域医療機能推進機構 横浜保土ケ谷中央病院",
+    "city": "横浜市保土ケ谷区",
+    "beds": 236,
+    "area": "横浜",
+    "koudo": 8,
+    "kyusei": 228,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "一般財団法人育生会横浜病院",
+    "city": "横浜市保土ケ谷区",
+    "beds": 106,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 49,
+    "mansei": 57
+  },
+  {
+    "name": "聖隷横浜病院",
+    "city": "横浜市保土ケ谷区",
+    "beds": 367,
+    "area": "横浜",
+    "koudo": 17,
+    "kyusei": 232,
+    "kaifuku": 98,
+    "mansei": 20
+  },
+  {
+    "name": "医療法人社団明芳会　イムス横浜狩場脳神経外科病院",
+    "city": "横浜市保土ケ谷区",
+    "beds": 147,
+    "area": "横浜",
+    "koudo": 9,
+    "kyusei": 48,
+    "kaifuku": 90,
+    "mansei": 0
+  },
+  {
+    "name": "重症心身障害児（者）施設横浜療育医療センター",
+    "city": "横浜市旭区",
+    "beds": 113,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 113
+  },
+  {
+    "name": "医療法人社団 明芳会 横浜旭中央総合病院",
+    "city": "横浜市旭区",
+    "beds": 515,
+    "area": "横浜",
+    "koudo": 17,
+    "kyusei": 380,
+    "kaifuku": 58,
+    "mansei": 60
+  },
+  {
+    "name": "赤枝病院",
+    "city": "横浜市旭区",
+    "beds": 199,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 199
+  },
+  {
+    "name": "医療法人社団恵生会 上白根病院",
+    "city": "横浜市旭区",
+    "beds": 150,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 99,
+    "kaifuku": 51,
+    "mansei": 0
+  },
+  {
+    "name": "横浜鶴ヶ峰病院",
+    "city": "横浜市旭区",
+    "beds": 108,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 108,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "聖マリアンナ医科大学横浜市西部病院",
+    "city": "横浜市旭区",
+    "beds": 518,
+    "area": "横浜",
+    "koudo": 114,
+    "kyusei": 352,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "神奈川県立がんセンター",
+    "city": "横浜市旭区",
+    "beds": 415,
+    "area": "横浜",
+    "koudo": 8,
+    "kyusei": 387,
+    "kaifuku": 0,
+    "mansei": 20
+  },
+  {
+    "name": "医療法人社団明芳会 イムス横浜旭リハビリテーション病院【新規】",
+    "city": "横浜市旭区",
+    "beds": 120,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 120,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人横浜未来ヘルスケアシステム 戸塚共立第2病院",
+    "city": "横浜市戸塚区",
+    "beds": 101,
+    "area": "横浜",
+    "koudo": 14,
+    "kyusei": 87,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "西横浜国際総合病院",
+    "city": "横浜市戸塚区",
+    "beds": 188,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 110,
+    "kaifuku": 78,
+    "mansei": 0
+  },
+  {
+    "name": "独立行政法人国立病院機構横浜医療センター",
+    "city": "横浜市戸塚区",
+    "beds": 470,
+    "area": "横浜",
+    "koudo": 52,
+    "kyusei": 418,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人横浜未来ヘルスケアシステム 戸塚共立第1病院",
+    "city": "横浜市戸塚区",
+    "beds": 148,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 148,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "平成横浜病院",
+    "city": "横浜市戸塚区",
+    "beds": 183,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 50,
+    "kaifuku": 133,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団明芳会イムス横浜東戸塚総合リハビリテーション病院（旧：医療法人社団明芳会新戸塚病院）",
+    "city": "横浜市戸塚区",
+    "beds": 333,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 115,
+    "mansei": 218
+  },
+  {
+    "name": "医療法人財団 明理会 東戸塚記念病院",
+    "city": "横浜市戸塚区",
+    "beds": 304,
+    "area": "横浜",
+    "koudo": 12,
+    "kyusei": 272,
+    "kaifuku": 20,
+    "mansei": 0
+  },
+  {
+    "name": "ふれあい東戸塚ホスピタル",
+    "city": "横浜市戸塚区",
+    "beds": 150,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 53,
+    "mansei": 97
+  },
+  {
+    "name": "社会福祉法人 親善福祉協会 国際親善総合病院",
+    "city": "横浜市泉区",
+    "beds": 287,
+    "area": "横浜",
+    "koudo": 6,
+    "kyusei": 247,
+    "kaifuku": 34,
+    "mansei": 0
+  },
+  {
+    "name": "新中川病院",
+    "city": "横浜市泉区",
+    "beds": 145,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 145
+  },
+  {
+    "name": "横浜いずみ台病院",
+    "city": "横浜市泉区",
+    "beds": 176,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 176
+  },
+  {
+    "name": "ゆめが丘総合病院（旧：湘南泉病院）",
+    "city": "横浜市泉区",
+    "beds": 156,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 156,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人横浜未来ヘルスケアシステム 戸塚共立いずみ野病院（旧：医療法人横浜未来ヘルスケアシステム　戸塚共立リハビリテーション病院）",
+    "city": "横浜市泉区",
+    "beds": 100,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 50,
+    "kaifuku": 50,
+    "mansei": 0
+  },
+  {
+    "name": "独立行政法人地域医療機能推進機構 横浜中央病院",
+    "city": "横浜市中区",
+    "beds": 250,
+    "area": "横浜",
+    "koudo": 6,
+    "kyusei": 194,
+    "kaifuku": 50,
+    "mansei": 0
+  },
+  {
+    "name": "横浜掖済会病院",
+    "city": "横浜市中区",
+    "beds": 151,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 111,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "横浜市立みなと赤十字病院",
+    "city": "横浜市中区",
+    "beds": 566,
+    "area": "横浜",
+    "koudo": 373,
+    "kyusei": 178,
+    "kaifuku": 0,
+    "mansei": 15
+  },
+  {
+    "name": "公立大学法人横浜市立大学附属市民総合医療センター",
+    "city": "横浜市南区",
+    "beds": 654,
+    "area": "横浜",
+    "koudo": 73,
+    "kyusei": 540,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人佐藤病院",
+    "city": "横浜市南区",
+    "beds": 116,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 56,
+    "kaifuku": 60,
+    "mansei": 0
+  },
+  {
+    "name": "神奈川県立こども医療センター",
+    "city": "横浜市南区",
+    "beds": 390,
+    "area": "横浜",
+    "koudo": 87,
+    "kyusei": 213,
+    "kaifuku": 50,
+    "mansei": 40
+  },
+  {
+    "name": "横浜医療福祉センター港南",
+    "city": "横浜市港南区",
+    "beds": 168,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 168
+  },
+  {
+    "name": "社会福祉法人恩賜財団済生会支部神奈川県済生会横浜市南部病院",
+    "city": "横浜市港南区",
+    "beds": 500,
+    "area": "横浜",
+    "koudo": 345,
+    "kyusei": 155,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人裕徳会　よこはま港南台地域包括ケア病院",
+    "city": "横浜市港南区",
+    "beds": 120,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 120,
+    "mansei": 0
+  },
+  {
+    "name": "磯子中央病院",
+    "city": "横浜市磯子区",
+    "beds": 180,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 120,
+    "kaifuku": 60,
+    "mansei": 0
+  },
+  {
+    "name": "康心会汐見台病院",
+    "city": "横浜市磯子区",
+    "beds": 225,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 106,
+    "kaifuku": 70,
+    "mansei": 49
+  },
+  {
+    "name": "関東病院",
+    "city": "横浜市磯子区",
+    "beds": 199,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 41,
+    "mansei": 158
+  },
+  {
+    "name": "横浜市立脳卒中・神経脊椎センター",
+    "city": "横浜市磯子区",
+    "beds": 300,
+    "area": "横浜",
+    "koudo": 18,
+    "kyusei": 128,
+    "kaifuku": 154,
+    "mansei": 0
+  },
+  {
+    "name": "社会福祉法人恩賜財団済生会支部神奈川県済生会若草病院",
+    "city": "横浜市金沢区",
+    "beds": 177,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 177,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団協友会金沢文庫病院",
+    "city": "横浜市金沢区",
+    "beds": 147,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 109,
+    "kaifuku": 0,
+    "mansei": 38
+  },
+  {
+    "name": "医療法人社団 景翠会 金沢病院",
+    "city": "横浜市金沢区",
+    "beds": 121,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 78,
+    "kaifuku": 43,
+    "mansei": 0
+  },
+  {
+    "name": "神奈川県立循環器呼吸器病センター",
+    "city": "横浜市金沢区",
+    "beds": 179,
+    "area": "横浜",
+    "koudo": 6,
+    "kyusei": 131,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "公立大学法人 横浜市立大学附属病院",
+    "city": "横浜市金沢区",
+    "beds": 630,
+    "area": "横浜",
+    "koudo": 610,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団 協友会 横浜なみきリハビリテーション病院",
+    "city": "横浜市金沢区",
+    "beds": 224,
+    "area": "横浜",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 144,
+    "mansei": 80
+  },
+  {
+    "name": "国家公務員共済組合連合会 横浜南共済病院",
+    "city": "横浜市金沢区",
+    "beds": 565,
+    "area": "横浜",
+    "koudo": 545,
+    "kyusei": 20,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "国家公務員共済組合連合会 横浜栄共済病院",
+    "city": "横浜市栄区",
+    "beds": 430,
+    "area": "横浜",
+    "koudo": 125,
+    "kyusei": 305,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "虎の門病院分院",
+    "city": "川崎市高津区",
+    "beds": 300,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 260,
+    "kaifuku": 40,
+    "mansei": 0
+  },
+  {
+    "name": "総合高津中央病院",
+    "city": "川崎市高津区",
+    "beds": 260,
+    "area": "川崎北部",
+    "koudo": 7,
+    "kyusei": 197,
+    "kaifuku": 56,
+    "mansei": 0
+  },
+  {
+    "name": "帝京大学医学部附属溝口病院",
+    "city": "川崎市高津区",
+    "beds": 400,
+    "area": "川崎北部",
+    "koudo": 11,
+    "kyusei": 389,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "聖マリアンナ医科大学病院",
+    "city": "川崎市宮前区",
+    "beds": 924,
+    "area": "川崎北部",
+    "koudo": 117,
+    "kyusei": 807,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "川崎市立多摩病院",
+    "city": "川崎市多摩区",
+    "beds": 376,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 357,
+    "kaifuku": 0,
+    "mansei": 19
+  },
+  {
+    "name": "医療法人社団晃進会 たま日吉台病院",
+    "city": "川崎市麻生区",
+    "beds": 199,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 199
+  },
+  {
+    "name": "医療法人社団晃進会 川崎みどりの病院",
+    "city": "川崎市麻生区",
+    "beds": 120,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 120
+  },
+  {
+    "name": "医療法人社団三成会 新百合ヶ丘総合病院",
+    "city": "川崎市麻生区",
+    "beds": 563,
+    "area": "川崎北部",
+    "koudo": 19,
+    "kyusei": 444,
+    "kaifuku": 100,
+    "mansei": 0
+  },
+  {
+    "name": "重症児・者福祉医療施設ソレイユ川崎",
+    "city": "川崎市麻生区",
+    "beds": 120,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 120
+  },
+  {
+    "name": "医療法人社団総生会麻生リハビリ総合病院",
+    "city": "川崎市麻生区",
+    "beds": 180,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 180,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人社団総生会 麻生総合病院",
+    "city": "川崎市麻生区",
+    "beds": 199,
+    "area": "川崎北部",
+    "koudo": 8,
+    "kyusei": 141,
+    "kaifuku": 50,
+    "mansei": 0
+  },
+  {
+    "name": "川崎田園都市病院",
+    "city": "川崎市麻生区",
+    "beds": 194,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 194
+  },
+  {
+    "name": "柿生記念病院",
+    "city": "川崎市麻生区",
+    "beds": 270,
+    "area": "川崎北部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 270
+  },
+  {
+    "name": "川崎市立川崎病院",
+    "city": "川崎市川崎区",
+    "beds": 663,
+    "area": "川崎南部",
+    "koudo": 56,
+    "kyusei": 607,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "日本鋼管病院",
+    "city": "川崎市川崎区",
+    "beds": 395,
+    "area": "川崎南部",
+    "koudo": 0,
+    "kyusei": 310,
+    "kaifuku": 48,
+    "mansei": 0
+  },
+  {
+    "name": "川崎医療生活協同組合 川崎協同病院",
+    "city": "川崎市川崎区",
+    "beds": 267,
+    "area": "川崎南部",
+    "koudo": 0,
+    "kyusei": 137,
+    "kaifuku": 93,
+    "mansei": 37
+  },
+  {
+    "name": "総合新川橋病院",
+    "city": "川崎市川崎区",
+    "beds": 208,
+    "area": "川崎南部",
+    "koudo": 0,
+    "kyusei": 208,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "宮川病院",
+    "city": "川崎市川崎区",
+    "beds": 175,
+    "area": "川崎南部",
+    "koudo": 0,
+    "kyusei": 113,
+    "kaifuku": 46,
+    "mansei": 16
+  },
+  {
+    "name": "総合川崎臨港病院",
+    "city": "川崎市川崎区",
+    "beds": 199,
+    "area": "川崎南部",
+    "koudo": 39,
+    "kyusei": 160,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "AOI国際病院",
+    "city": "川崎市川崎区",
+    "beds": 328,
+    "area": "川崎南部",
+    "koudo": 6,
+    "kyusei": 174,
+    "kaifuku": 60,
+    "mansei": 88
+  },
+  {
+    "name": "太田総合病院",
+    "city": "川崎市川崎区",
+    "beds": 261,
+    "area": "川崎南部",
+    "koudo": 6,
+    "kyusei": 251,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "社会医療法人財団石心会 川崎幸病院",
+    "city": "川崎市幸区",
+    "beds": 326,
+    "area": "川崎南部",
+    "koudo": 53,
+    "kyusei": 273,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "川崎市立井田病院",
+    "city": "川崎市中原区",
+    "beds": 343,
+    "area": "川崎南部",
+    "koudo": 8,
+    "kyusei": 290,
+    "kaifuku": 45,
+    "mansei": 0
+  },
+  {
+    "name": "日本医科大学武蔵小杉病院",
+    "city": "川崎市中原区",
+    "beds": 372,
+    "area": "川崎南部",
+    "koudo": 41,
+    "kyusei": 331,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "京浜総合病院",
+    "city": "川崎市中原区",
+    "beds": 140,
+    "area": "川崎南部",
+    "koudo": 0,
+    "kyusei": 56,
+    "kaifuku": 0,
+    "mansei": 84
+  },
+  {
+    "name": "関東労災病院",
+    "city": "川崎市中原区",
+    "beds": 610,
+    "area": "川崎南部",
+    "koudo": 18,
+    "kyusei": 592,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "横須賀市立うわまち病院",
+    "city": "横須賀市",
+    "beds": 428,
+    "area": "横須賀・三浦",
+    "koudo": 141,
+    "kyusei": 246,
+    "kaifuku": 41,
+    "mansei": 0
+  },
+  {
+    "name": "国家公務員共済組合連合会 横須賀共済病院",
+    "city": "横須賀市",
+    "beds": 730,
+    "area": "横須賀・三浦",
+    "koudo": 634,
+    "kyusei": 96,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "聖ヨゼフ病院",
+    "city": "横須賀市",
+    "beds": 182,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 89,
+    "kaifuku": 46,
+    "mansei": 47
+  },
+  {
+    "name": "自衛隊横須賀病院",
+    "city": "横須賀市",
+    "beds": 100,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 100,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "社会福祉法人 日本医療伝道会 総合病院 衣笠病院",
+    "city": "横須賀市",
+    "beds": 198,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 50,
+    "kaifuku": 124,
+    "mansei": 20
+  },
+  {
+    "name": "医療法人社団聖ルカ会 パシフィックホスピタル",
+    "city": "横須賀市",
+    "beds": 300,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 209
+  },
+  {
+    "name": "横須賀市立市民病院",
+    "city": "横須賀市",
+    "beds": 339,
+    "area": "横須賀・三浦",
+    "koudo": 72,
+    "kyusei": 149,
+    "kaifuku": 68,
+    "mansei": 0
+  },
+  {
+    "name": "社会福祉法人湘南福祉協会総合病院湘南病院",
+    "city": "横須賀市",
+    "beds": 167,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 60,
+    "kaifuku": 57,
+    "mansei": 50
+  },
+  {
+    "name": "医療法人徳洲会 清川病院",
+    "city": "鎌倉市",
+    "beds": 198,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 89,
+    "mansei": 109
+  },
+  {
+    "name": "医療法人徳洲会 湘南鎌倉総合病院",
+    "city": "鎌倉市",
+    "beds": 663,
+    "area": "横須賀・三浦",
+    "koudo": 663,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "鎌倉リハビリテーション聖テレジア病院",
+    "city": "鎌倉市",
+    "beds": 128,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 128,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人湘和会 湘南記念病院",
+    "city": "鎌倉市",
+    "beds": 147,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 50,
+    "kaifuku": 60,
+    "mansei": 37
+  },
+  {
+    "name": "大船中央病院",
+    "city": "鎌倉市",
+    "beds": 247,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 207,
+    "kaifuku": 0,
+    "mansei": 40
+  },
+  {
+    "name": "鈴木病院",
+    "city": "鎌倉市",
+    "beds": 125,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 54,
+    "kaifuku": 0,
+    "mansei": 71
+  },
+  {
+    "name": "医療法人大樹会 ふれあい鎌倉ホスピタル",
+    "city": "鎌倉市",
+    "beds": 156,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 58,
+    "kaifuku": 50,
+    "mansei": 48
+  },
+  {
+    "name": "三浦市立病院",
+    "city": "三浦市",
+    "beds": 136,
+    "area": "横須賀・三浦",
+    "koudo": 0,
+    "kyusei": 89,
+    "kaifuku": 47,
+    "mansei": 0
+  },
+  {
+    "name": "一般財団法人同友会藤沢湘南台病院",
+    "city": "藤沢市",
+    "beds": 330,
+    "area": "湘南東部",
+    "koudo": 38,
+    "kyusei": 229,
+    "kaifuku": 63,
+    "mansei": 0
+  },
+  {
+    "name": "クローバーホスピタル",
+    "city": "藤沢市",
+    "beds": 170,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 110,
+    "mansei": 60
+  },
+  {
+    "name": "医療法人長谷川会湘南ホスピタル",
+    "city": "藤沢市",
+    "beds": 104,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 44,
+    "mansei": 60
+  },
+  {
+    "name": "医療法人徳洲会 湘南藤沢徳洲会病院",
+    "city": "藤沢市",
+    "beds": 419,
+    "area": "湘南東部",
+    "koudo": 138,
+    "kyusei": 281,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "藤沢市民病院",
+    "city": "藤沢市",
+    "beds": 530,
+    "area": "湘南東部",
+    "koudo": 484,
+    "kyusei": 46,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "湘南長寿園病院",
+    "city": "藤沢市",
+    "beds": 120,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 120
+  },
+  {
+    "name": "藤沢御所見病院",
+    "city": "藤沢市",
+    "beds": 154,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 56,
+    "kaifuku": 0,
+    "mansei": 98
+  },
+  {
+    "name": "湘南中央病院",
+    "city": "藤沢市",
+    "beds": 199,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 68,
+    "kaifuku": 88,
+    "mansei": 43
+  },
+  {
+    "name": "医療法人社団 健育会 湘南慶育病院",
+    "city": "藤沢市",
+    "beds": 230,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 50,
+    "kaifuku": 180,
+    "mansei": 0
+  },
+  {
+    "name": "茅ヶ崎中央病院",
+    "city": "茅ヶ崎市",
+    "beds": 324,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 104,
+    "kaifuku": 48,
+    "mansei": 172
+  },
+  {
+    "name": "医療法人社団湘南健友会 長岡病院",
+    "city": "茅ヶ崎市",
+    "beds": 162,
+    "area": "湘南東部",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 162
+  },
+  {
+    "name": "医療法人徳洲会 茅ヶ崎徳洲会病院",
+    "city": "茅ヶ崎市",
+    "beds": 144,
+    "area": "湘南東部",
+    "koudo": 20,
+    "kyusei": 124,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "湘南東部総合病院",
+    "city": "茅ヶ崎市",
+    "beds": 283,
+    "area": "湘南東部",
+    "koudo": 4,
+    "kyusei": 207,
+    "kaifuku": 40,
+    "mansei": 32
+  },
+  {
+    "name": "茅ヶ崎市立病院",
+    "city": "茅ヶ崎市",
+    "beds": 401,
+    "area": "湘南東部",
+    "koudo": 109,
+    "kyusei": 292,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人 小林病院",
+    "city": "小田原市",
+    "beds": 163,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 56,
+    "kaifuku": 47,
+    "mansei": 60
+  },
+  {
+    "name": "小田原市立病院",
+    "city": "小田原市",
+    "beds": 417,
+    "area": "県西",
+    "koudo": 325,
+    "kyusei": 92,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "西湘病院",
+    "city": "小田原市",
+    "beds": 102,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 45,
+    "kaifuku": 0,
+    "mansei": 57
+  },
+  {
+    "name": "独立行政法人国立病院機構箱根病院",
+    "city": "小田原市",
+    "beds": 199,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 180
+  },
+  {
+    "name": "医療法人 同愛会 小澤病院",
+    "city": "小田原市",
+    "beds": 202,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 202,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人尽誠会 山近記念総合病院",
+    "city": "小田原市",
+    "beds": 152,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 108,
+    "kaifuku": 0,
+    "mansei": 0
+  },
+  {
+    "name": "医療法人勝又高台病院",
+    "city": "開成町",
+    "beds": 310,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 310
+  },
+  {
+    "name": "神奈川県立足柄上病院",
+    "city": "松田町",
+    "beds": 290,
+    "area": "県西",
+    "koudo": 46,
+    "kyusei": 152,
+    "kaifuku": 60,
+    "mansei": 0
+  },
+  {
+    "name": "独立行政法人地域医療機能推進機構 湯河原病院",
+    "city": "湯河原町",
+    "beds": 150,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 100,
+    "kaifuku": 50,
+    "mansei": 0
+  },
+  {
+    "name": "一般財団法人生活保健協会湯河原中央温泉病院",
+    "city": "湯河原町",
+    "beds": 223,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 0,
+    "mansei": 223
+  },
+  {
+    "name": "湯河原胃腸病院",
+    "city": "湯河原町",
+    "beds": 108,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 58,
+    "kaifuku": 0,
+    "mansei": 50
+  },
+  {
+    "name": "特定医療法人社団研精会 箱根リハビリテーション病院",
+    "city": "箱根町",
+    "beds": 109,
+    "area": "県西",
+    "koudo": 0,
+    "kyusei": 0,
+    "kaifuku": 54,
+    "mansei": 55
+  }
+]
