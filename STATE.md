@@ -32,8 +32,8 @@
 - PDCA cron稼働（SEO/監視/競合/コンテンツ/レビュー/週次）
 - Slack双方向連携（slack_bridge.py）
 - 画像生成パイプライン（Cloudflare Workers AI + Pillow テキスト焼き込み）
-- 医療機関DB: 97施設 / 求人DB: 看護師36件+PT9件
-- AIチャットUX v2.0（Cloudflare Worker + 97施設Haversine距離計算 + 駅選択UI）
+- 医療機関DB: **212施設**（config.js / 厚労省病床機能報告R6ベース + エージェント調査追加）/ 求人DB: 看護師36件+PT9件
+- AIチャットUX v2.0（Cloudflare Worker + 212施設Haversine距離計算 + 駅選択UI）
 - AI自律コンテンツ生成（ai_content_engine.py + content_pipeline.py）
 - **TikTok自動投稿パイプライン**: tiktok_post.py + pdca_sns_post.sh（7本投稿済み + 57本キュー待ち）
 - **Instagram投稿開始**: auto_post.py v2.1 + generate_carousel.py Instagram対応済み（1本投稿済み: https://www.instagram.com/p/DVbDfg0k6vb/）
@@ -122,7 +122,7 @@
 ## 戦略メモ
 - 3軸: 手数料破壊(10%) x 地域密着(9市) x 転職品質
 - 大手の隙間: TikTokオーガニック未参入
-- 全97施設DB + Haversine距離計算 + AIチャットUX稼働
+- 全212施設DB（厚労省R6データベース + エージェント調査） + Haversine距離計算 + AIチャットUX稼働
 - AI自動化: ai_content_engine.py（品質スコア8.0/10）+ 日次/週次PDCA
 - 投稿方式: カルーセル（+81%エンゲージメント）+ 自動投稿パイプライン
 
