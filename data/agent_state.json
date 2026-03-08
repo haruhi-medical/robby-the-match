@@ -5,7 +5,7 @@
     "competitor_analyst": "2026-03-07T10:00:12",
     "content_creator": "2026-03-07T15:00:35",
     "daily_reviewer": "2026-03-07T23:00:28",
-    "weekly_strategist": "2026-03-08T06:00:00",
+    "weekly_strategist": "2026-03-08T06:01:00",
     "sns_poster": "2026-03-07T20:20:25",
     "ai_marketing_orchestrator": "2026-03-07T08:00:48",
     "weekly_content_planner": "2026-03-08T05:00:03"
@@ -16,7 +16,7 @@
     "competitor_analyst": "completed",
     "content_creator": "completed",
     "daily_reviewer": "completed",
-    "weekly_strategist": "running",
+    "weekly_strategist": "completed",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
     "weekly_content_planner": "failed"
