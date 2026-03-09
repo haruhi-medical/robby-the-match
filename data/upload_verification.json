@@ -149,7 +149,13 @@
       "content_id": "ai_トレ_0305_03",
       "success": true,
       "method": "tiktokautouploader"
+    },
+    {
+      "timestamp": "2026-03-09T17:07:24.066178",
+      "content_id": "ai_給与_0305_01",
+      "success": true,
+      "method": "tiktokautouploader"
     }
   ],
-  "last_updated": "2026-03-07T20:20:24.996043"
+  "last_updated": "2026-03-09T17:07:24.066194"
 }
