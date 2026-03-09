@@ -321,7 +321,7 @@ def generate_ad3(width, height, filename):
     stat_y = ai_y + int(45 * s)
     stat_font = font(int(28 * s))
     stat_sub_font = font(int(14 * s), bold=False)
-    stats = [("44施設", "の求人データ"), ("手数料10%", "で病院も安心"), ("相談無料", "LINEでOK")]
+    stats = [("212施設", "の求人データ"), ("手数料10%", "で病院も安心"), ("相談無料", "LINEでOK")]
     stat_w = width // 3
     for i, (val, label) in enumerate(stats):
         sx = stat_w * i + (stat_w - draw.textbbox((0, 0), val, font=stat_font)[2]) // 2

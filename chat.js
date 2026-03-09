@@ -330,7 +330,7 @@
     lockBodyScroll();
     trackEvent("chat_open");
     if (window.__nrTrack) window.__nrTrack("chat_open");
-    if (typeof fbq !== "undefined") fbq("trackCustom", "ChatOpen");
+    if (typeof fbq !== "undefined") fbq("trackCustom", "ChatOpen", {content_name: "AIチャット開始"});
     els.toggle.classList.add("active");
     els.toggle.querySelector(".chat-toggle-icon").textContent = "\u2715";
 
@@ -496,7 +496,7 @@
     showTyping();
     setTimeout(function () {
       hideTyping();
-      addMessage("ai", "こんにちは！ナースロビーです。\n\n2つだけ質問させてください。あなたのエリアの年収相場と、条件に合いそうな施設をAIが分析します。\n\n名前や電話番号は一切不要です。");
+      addMessage("ai", "こんにちは！神奈川の看護師転職をサポートする、ナースロビーです。\n\n2つだけ質問させてください。あなたのエリアの年収相場と、条件に合いそうな施設をAIが分析します。\n\n名前や電話番号は一切不要。30秒で終わります。");
 
       setTimeout(function () {
         showTyping();
@@ -938,7 +938,7 @@
       btn.addEventListener("click", function () {
         trackEvent("chat_line_card_click", { phase: chatState.phase });
         if (window.__nrTrack) window.__nrTrack("line_click");
-        if (typeof fbq !== "undefined") fbq("track", "Lead");
+        if (typeof fbq !== "undefined") fbq("track", "Lead", {content_name: "LINE友だち追加", content_category: "看護師転職", value: 1, currency: "JPY"});
       });
     }
   }
@@ -961,7 +961,7 @@
     if (role === "ai") {
       var avatar = document.createElement("div");
       avatar.className = "chat-msg-avatar";
-      avatar.textContent = "R";
+      avatar.textContent = "NR";
       msgEl.appendChild(avatar);
     }
 
