@@ -1183,3 +1183,47 @@ Claude CLIのエラーが発生しています。PDCAコンテンツのログに
 
 3. **主要ページからのリンク**: トップページや主要ガイドページから、他の重要なページ（エリアページ、ブログ記事など）へのリンクを明示的に追加します。これにより、ユーザーが重要な情報を見つけやすくなります。
 
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-03-09 SEO改善
+
+### pdca_ai_marketing（06:00:01）
+AI Marketing PDCA:
+  Queue: pending=59 ready=59 posted=11 failed=0
+  Generated today: 0
+  Quality issues: 59
+  Status: Healthy
+
+### pdca_ai_marketing（07:00:01）
+AI Marketing PDCA:
+  Queue: pending=59 ready=59 posted=11 failed=0
+  Generated today: 0
+  Quality issues: 59
+  Status: Healthy
+
+### pdca_ai_marketing（07:30:00）
+AI Marketing PDCA:
+  Queue: pending=59 ready=59 posted=11 failed=0
+  Generated today: 0
+  Quality issues: 59
+  Status: Healthy
+
+### pdca_ai_marketing（08:00:01）
+AI Marketing PDCA:
+  Queue: pending=59 ready=59 posted=11 failed=0
+  Generated today: 0
+  Quality issues: 59
+  Status: Healthy
+
+### 🔎 競合・SEOギャップ分析（10:00:00）
+1. カバレッジの穴：現在のページ数では、対象エリアの全地域やガイドテーマをカバーしていない可能性がある。特に、地域別ページ（area/）が22ページしかないため、神奈川県西部の全地域を網羅していない可能性がある。また、ガイドテーマも44ページしかないため、看護師の転職に関する全てのテーマをカバーしていない可能性がある。
+
+2. 改善優先度の高いアクション：
+   - 現在のページ数を増やして、対象エリアの全地域とガイドテーマをカバーする。
+   - 内部リンク構造を強化して、ユーザーが関連するページを見つけやすくする。
+   - 構造化データを追加して、検索エンジンがページの内容を理解しやすくする。
+
+3. 次に作るべきページ：
+   - 「秦野市の看護師転職ガイド」
+   - 「平塚市の看護師求人情報」
+   - 「南足柄市の看護師紹介サービス」
+
