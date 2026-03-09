@@ -29,19 +29,21 @@ UNCHECKED=$(python3 -c "
 import json, sys
 from pathlib import Path
 
-queue = json.loads(Path('$QUEUE_FILE').read_text())
+data = json.loads(Path('$QUEUE_FILE').read_text())
+posts = data.get('posts', data if isinstance(data, list) else [])
 unchecked = []
-for item in queue:
+for idx, item in enumerate(posts):
+    if not isinstance(item, dict):
+        continue
     status = item.get('status', '')
     if status not in ('ready', 'pending'):
         continue
-    # quality_checked フラグがないものを対象
     if item.get('quality_checked'):
         continue
-    img_dir = item.get('image_dir', '')
+    img_dir = item.get('slide_dir', item.get('image_dir', ''))
     if img_dir and Path(img_dir).exists():
-        unchecked.append(json.dumps({'index': queue.index(item), 'dir': img_dir, 'hook': item.get('hook', '')[:30]}))
-# 最大5件まで
+        hook = item.get('hook', item.get('caption', ''))[:30]
+        unchecked.append(json.dumps({'index': idx, 'dir': img_dir, 'hook': hook}))
 for u in unchecked[:5]:
     print(u)
 " 2>> "$LOG")
@@ -153,10 +155,11 @@ else:
         python3 -c "
 import json
 from pathlib import Path
-queue = json.loads(Path('$QUEUE_FILE').read_text())
-queue[$INDEX]['quality_checked'] = True
-queue[$INDEX]['quality_score'] = $SCORE
-Path('$QUEUE_FILE').write_text(json.dumps(queue, ensure_ascii=False, indent=2))
+data = json.loads(Path('$QUEUE_FILE').read_text())
+posts = data.get('posts', data if isinstance(data, list) else [])
+posts[$INDEX]['quality_checked'] = True
+posts[$INDEX]['quality_score'] = $SCORE
+Path('$QUEUE_FILE').write_text(json.dumps(data, ensure_ascii=False, indent=2))
 " 2>> "$LOG"
     else
         FAIL_COUNT=$((FAIL_COUNT + 1))
@@ -165,12 +168,13 @@ Path('$QUEUE_FILE').write_text(json.dumps(queue, ensure_ascii=False, indent=2))
         python3 -c "
 import json
 from pathlib import Path
-queue = json.loads(Path('$QUEUE_FILE').read_text())
-queue[$INDEX]['quality_checked'] = True
-queue[$INDEX]['quality_score'] = $SCORE
-queue[$INDEX]['quality_issues'] = '''${ISSUES}'''
-queue[$INDEX]['status'] = 'quality_failed'
-Path('$QUEUE_FILE').write_text(json.dumps(queue, ensure_ascii=False, indent=2))
+data = json.loads(Path('$QUEUE_FILE').read_text())
+posts = data.get('posts', data if isinstance(data, list) else [])
+posts[$INDEX]['quality_checked'] = True
+posts[$INDEX]['quality_score'] = $SCORE
+posts[$INDEX]['quality_issues'] = '''${ISSUES}'''
+posts[$INDEX]['status'] = 'quality_failed'
+Path('$QUEUE_FILE').write_text(json.dumps(data, ensure_ascii=False, indent=2))
 " 2>> "$LOG"
     fi
 
