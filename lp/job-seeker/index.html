@@ -67,8 +67,7 @@
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "神奈川ナース転職（はるひメディカルサービス）",
-      "alternateName": "神奈川ナース転職",
+      "name": "神奈川ナース転職",
       "url": "https://quads-nurse.com/",
       "logo": "https://quads-nurse.com/assets/ogp.png",
       "description": "神奈川県の看護師転職をAI×人のハイブリッドでサポートする神奈川ナース転職。手数料10%の有料職業紹介事業者です。",
@@ -102,7 +101,7 @@
       "validThrough": "2026-12-31",
       "hiringOrganization": {
         "@type": "Organization",
-        "name": "神奈川ナース転職（はるひメディカルサービス）",
+        "name": "神奈川ナース転職",
         "sameAs": "https://quads-nurse.com/"
       },
       "jobLocation": [
@@ -358,10 +357,6 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "神奈川ナース転職編集部",
-      "parentOrganization": {
-        "@type": "Organization",
-        "name": "はるひメディカルサービス"
-      },
       "description": "看護師紹介事業の編集部。手数料10%モデルで医療人材紹介の常識を変える。神奈川県内の病院と看護師の最適なマッチングを実現。",
       "knowsAbout": ["看護師転職", "医療人材紹介", "看護師キャリア支援", "神奈川県 医療機関"]
     }
@@ -394,7 +389,7 @@
     {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      "name": "神奈川ナース転職（はるひメディカルサービス）",
+      "name": "神奈川ナース転職",
       "description": "神奈川県の看護師転職サポート。神奈川ナース転職はAI×人のハイブリッドで、手数料10%の転職エージェント。",
       "url": "https://quads-nurse.com/",
       "address": {
@@ -1013,8 +1008,18 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            header {
+                padding: 32px 16px;
+            }
+
             h1 {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
+                margin-bottom: 12px;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 16px;
             }
 
             .steps {
@@ -1132,17 +1137,14 @@
 
     <header>
         <div class="container">
-            <!-- 損失回避: 「今失っているもの」を先に見せる -->
             <p class="loss-aversion-hook" style="font-size: 1.1rem; color: #FFD700; margin-bottom: 10px; font-weight: bold;">あなたの年収、相場より低いかもしれません</p>
-            <h1>看護師5年目の平均年収は<span style="color: #FFD700;">480万円</span>。<br>今の給与と比べてみませんか？<br><small style="font-size: 0.55em;">神奈川県の看護師転職（横浜・川崎・小田原ほか神奈川県全域）主要医療機関の求人データから算出</small></h1>
-            <p class="subtitle">大手エージェントの手数料は<strong style="text-decoration: line-through; color: #ff6b6b;">25%</strong>。神奈川ナース転職は<strong style="color: #FFD700; font-size: 1.3em;">10%</strong>。<br>だから病院が採用しやすく、あなたの内定率が上がります。</p>
-            <!-- 即時性バイアス: 登録した瞬間に価値を返す -->
+            <h1>看護師5年目の平均年収は<span style="color: #FFD700;">480万円</span>。<br>今の給与と比べてみませんか？</h1>
+            <p class="subtitle">手数料が安いから病院が採用しやすい。<br>だから<strong style="color: #FFD700; font-size: 1.2em;">あなたの内定率が上がる</strong>。しつこい電話も一切なし。</p>
             <a href="https://lin.ee/oUgDB3x" rel="noopener" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'header_line_button'}); if(typeof fbq!=='undefined')fbq('track','Lead',{content_name:'LINE友だち追加',content_category:'看護師転職',value:1,currency:'JPY'});" aria-label="30秒で年収診断する" style="font-size: 1.2rem; padding: 18px 50px;">30秒で年収診断する</a>
             <p style="margin-top: 12px; font-size: 0.9rem; opacity: 0.8;">費用は完全無料 / 最短2週間で内定 / いつでもブロックOK</p>
             <p style="text-align:center;margin-top:12px;font-size:0.85rem;color:rgba(255,255,255,0.7);">
               転職を決めていなくてもOK。情報収集だけでも気軽にどうぞ。
             </p>
-            <!-- 社会的証明 -->
             <p class="social-proof" style="margin-top: 15px; font-size: 0.95rem; color: #a8dadc; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <span style="display: inline-block; width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; animation: pulse 2s infinite;"></span>
                 神奈川県の看護師転職相談、受付中
@@ -1182,17 +1184,14 @@
             <h2>神奈川ナース転職が選ばれる3つの理由</h2>
             <div class="advantages">
                 <div class="advantage-card">
-                    <!-- アンカリング + フレーミング -->
                     <h3>従来比60%コスト削減で病院が即採用</h3>
                     <p>大手エージェントは年収の<strong style="text-decoration: line-through;">20〜30%（平均25%＝約100万円）</strong>を病院に請求。神奈川ナース転職は<strong style="color: #5B787D;">10%（=40万円）</strong>。病院のコスト負担が<strong>大幅に軽く</strong>なるから、書類選考も面接も通りやすい。</p>
                 </div>
                 <div class="advantage-card">
-                    <!-- 損失回避: 今失っているものを見せる -->
                     <h3>しつこい電話で時間を失わない</h3>
                     <p>大手エージェントに登録すると、1日に何度も営業電話が。神奈川ナース転職は連絡は基本<strong>LINE</strong>のみ。夜勤明けに電話で起こされることはありません。</p>
                 </div>
                 <div class="advantage-card">
-                    <!-- 社会的証明 + 地域密着 -->
                     <h3>神奈川県の医療機関に精通</h3>
                     <p>横浜・川崎・小田原をはじめ神奈川県全域の病院・クリニック・訪問看護ステーションの求人に対応。元病院人事の経験を活かし、求人票だけでは分からない情報もお伝えします。</p>
                 </div>
@@ -1203,7 +1202,6 @@
     <!-- 3 Steps -->
     <section style="background: #f8f9fa;">
         <div class="container">
-            <!-- 即時性バイアス + デフォルト効果 -->
             <h2>登録した瞬間から、あなたの市場価値がわかる</h2>
             <div class="steps">
                 <div class="step">
@@ -1253,7 +1251,6 @@
     <!-- Fee Comparison -->
     <section>
         <div class="container">
-            <!-- 損失回避 + アンカリング -->
             <h2>知らないと損する、転職エージェントの裏側</h2>
             <p style="text-align: center; margin-bottom: 20px;">転職エージェントの手数料は、<strong>病院が支払う採用コスト</strong>です。<br>手数料が高い＝病院のコスト負担が大きい＝<strong style="color: #e65100;">あなたの内定が出にくくなる</strong>。</p>
             <div class="comparison-table-wrap">
@@ -1301,7 +1298,6 @@
             </div>
             <p style="text-align:center;margin-top:15px;"><a href="guide/fee-comparison.html" style="color:#5B787D;font-weight:bold;">手数料の詳しい比較・解説はこちら &rarr;</a></p>
             <div class="savings-note">
-                <!-- フレーミング: ポジティブフレーム -->
                 <p>手数料10%だから<strong style="color: #5B787D;">病院の採用ハードルが低い</strong> = 内定が出やすい</p>
                 <p style="margin-top: 5px;">病院のコスト<strong>60%削減</strong> = 採用ハードルが下がる = <strong>あなたが選ばれやすい</strong></p>
             </div>
@@ -1314,7 +1310,6 @@
             </div>
             <!-- Inline CTA: After fee comparison -->
             <p style="text-align: center; margin-top: 30px;">
-                <!-- 損失回避CTA -->
                 <a href="https://lin.ee/oUgDB3x" rel="noopener" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'fee_comparison_line_button'}); if(typeof fbq!=='undefined')fbq('track','Lead',{content_name:'LINE友だち追加',content_category:'看護師転職',value:1,currency:'JPY'});" aria-label="他の看護師が知っている情報をチェック" style="font-size: 1.1rem; padding: 18px 45px;">他の看護師が知っている情報をチェック</a>
             </p>
             <p style="text-align: center; margin-top: 8px; font-size: 0.85rem; color: #888;">費用は完全無料 / 30秒で登録 / しつこい電話なし</p>
@@ -1339,6 +1334,10 @@
                     <p>ヒアリング・条件交渉・面接対策は経験豊富なスタッフが丁寧に対応。<strong>効率化と品質を両立</strong>しています。</p>
                 </div>
             </div>
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="https://lin.ee/oUgDB3x" rel="noopener" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'why_low_fee_line_button'}); if(typeof fbq!=='undefined')fbq('track','Lead',{content_name:'LINE友だち追加',content_category:'看護師転職',value:1,currency:'JPY'});" aria-label="まずは無料で相談する" style="font-size: 1.1rem; padding: 16px 40px;">まずは無料で相談する</a>
+            </p>
+            <p style="text-align: center; margin-top: 8px; font-size: 0.85rem; color: #888;">30秒で登録 / 履歴書不要 / いつでもブロックOK</p>
         </div>
     </section>
 
@@ -1349,7 +1348,7 @@
         </div>
     </section>
 
-    <!-- Social Proof: 社会的証明（属性を匿名で出す） -->
+    <!-- Social Proof -->
     <section>
         <div class="container">
             <div class="social-proof">
@@ -1399,6 +1398,9 @@
             <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.85rem;">
                 有料職業紹介事業許可番号: 23-ユ-302928
             </p>
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="https://lin.ee/oUgDB3x" rel="noopener" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'social_proof_line_button'}); if(typeof fbq!=='undefined')fbq('track','Lead',{content_name:'LINE友だち追加',content_category:'看護師転職',value:1,currency:'JPY'});" aria-label="LINEで年収診断する" style="font-size: 1.1rem; padding: 16px 40px;">LINEで年収診断する</a>
+            </p>
         </div>
     </section>
 
@@ -1414,9 +1416,12 @@
                     <span style="font-size: 0.9rem; color: #888;">※ 求職者の方に費用負担は一切ありません</span>
                 </p>
             </div>
+            <p style="text-align: center; margin-top: 24px;">
+                <a href="https://lin.ee/oUgDB3x" rel="noopener" class="cta-button" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'refund_guarantee_line_button'}); if(typeof fbq!=='undefined')fbq('track','Lead',{content_name:'LINE友だち追加',content_category:'看護師転職',value:1,currency:'JPY'});" aria-label="安心して相談する" style="font-size: 1.1rem; padding: 16px 40px;">安心して相談する</a>
+            </p>
+            <p style="text-align: center; margin-top: 8px; font-size: 0.85rem; color: #888;">費用は完全無料 / しつこい電話なし</p>
         </div>
     </section>
-
 
     <!-- FAQ -->
     <section id="faq">
@@ -1473,16 +1478,13 @@
         </div>
     </section>
 
-    <!-- Final CTA: 損失回避 + 即時性バイアス + サンクコスト -->
+    <!-- Final CTA -->
     <section style="background: linear-gradient(135deg, #5B787D 0%, #264653 100%); color: white; padding: 60px 0;">
         <div class="container" style="text-align: center;">
-            <!-- 損失回避: 「今動かないと失うもの」を見せる -->
             <h2 style="color: white; margin-bottom: 20px;">看護師の市場価値は経験4〜7年目がピーク。<br>今が一番選択肢が多い時期です。</h2>
-            <!-- 即時性バイアス -->
             <p style="font-size: 1.2rem; margin-bottom: 10px;">LINE登録した瞬間に、あなたの推定年収レンジをお伝えします。</p>
             <p style="font-size: 1rem; margin-bottom: 30px; opacity: 0.9;">30秒で登録 / 履歴書不要 / いつでもブロックOK</p>
             <a href="https://lin.ee/oUgDB3x" rel="noopener" class="cta-button" style="background: white; color: #5B787D; font-size: 1.2rem; padding: 20px 50px;" onclick="gtag('event', 'line_click', {'event_category': 'cta', 'event_label': 'footer_line_button'}); if(typeof fbq!=='undefined')fbq('track','Lead',{content_name:'LINE友だち追加',content_category:'看護師転職',value:1,currency:'JPY'});" aria-label="LINEで無料相談する">LINEで無料相談する</a>
-            <!-- 社会的証明 -->
             <p style="margin-top: 20px; font-size: 0.95rem; opacity: 0.85;">神奈川県全域の看護師さん、まずはLINEで気軽にご相談ください</p>
         </div>
     </section>
@@ -1756,7 +1758,6 @@
     <div id="exitPopup" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
         <div style="background:#fff;border-radius:16px;padding:40px 32px;max-width:420px;width:90%;text-align:center;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
             <button onclick="document.getElementById('exitPopup').style.display='none'" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#999;" aria-label="閉じる">&times;</button>
-            <!-- 損失回避 + サンクコスト -->
             <div style="font-size:2.5rem;margin-bottom:12px;">&#x1F4B0;</div>
             <h3 style="font-size:1.3rem;color:#e65100;margin-bottom:8px;">今の年収、相場と比べてみませんか？</h3>
             <p style="color:#666;font-size:0.95rem;line-height:1.6;margin-bottom:8px;">神奈川県の看護師平均年収は<strong style="color:#5B787D;">480万円</strong>。<br>あなたの経験年数で、いくら貰えるはずか<br><strong>30秒で診断</strong>できます。</p>
