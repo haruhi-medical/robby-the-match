@@ -36,7 +36,7 @@ FONT_REGULAR_PATHS = [
 
 # TikTok安全領域
 SAFE_TOP = 180      # 上部UIエリア回避
-SAFE_BOTTOM = 120   # 下部UIエリア回避
+SAFE_BOTTOM = 250   # 下部UIエリア（いいね/コメント/シェアボタン）回避
 SIDE_MARGIN = 60    # 左右マージン
 
 
@@ -214,11 +214,11 @@ def create_slide(base_image_path, text, output_path, slide_num=1, is_hook=False)
 
         main_font, main_lines, main_size, main_lh = auto_fit_fontsize(
             main_text, FONT_BOLD_PATHS, width, main_max_h,
-            start_size=main_start_size, min_size=40, line_spacing=1.25
+            start_size=main_start_size, min_size=52, line_spacing=1.25
         )
         sub_font, sub_lines, sub_size, sub_lh = auto_fit_fontsize(
             sub_text, FONT_REGULAR_PATHS, width, sub_max_h,
-            start_size=sub_start_size, min_size=32, line_spacing=1.3
+            start_size=sub_start_size, min_size=44, line_spacing=1.3
         )
 
         main_block_h = calc_text_block_height(main_lines, main_lh)
@@ -240,7 +240,7 @@ def create_slide(base_image_path, text, output_path, slide_num=1, is_hook=False)
 
         main_font, main_lines, main_size, main_lh = auto_fit_fontsize(
             main_text, FONT_BOLD_PATHS, width, text_max_h,
-            start_size=main_start_size, min_size=40, line_spacing=1.3
+            start_size=main_start_size, min_size=52, line_spacing=1.3
         )
 
         main_block_h = calc_text_block_height(main_lines, main_lh)

@@ -20,7 +20,7 @@ FONT_PATHS = [
 ]
 
 SAFE_TOP = 180
-SAFE_BOTTOM = 120
+SAFE_BOTTOM = 250    # TikTok下部UI（いいね/コメント/シェアボタン）回避
 SIDE_MARGIN = 60
 
 
@@ -58,7 +58,7 @@ def wrap_text(text, font, max_width):
     return lines
 
 
-def auto_fit_fontsize(text, max_width, max_height, start_size=80, min_size=36):
+def auto_fit_fontsize(text, max_width, max_height, start_size=80, min_size=48):
     """テキストが領域に収まる最大フォントサイズを自動計算"""
     for size in range(start_size, min_size - 1, -2):
         font = find_japanese_font(size)
@@ -89,12 +89,12 @@ def overlay_text(input_path, text, output_path, position="center", fontsize=None
         # はみ出しチェック: 収まらなければ自動縮小
         if total_text_height > max_text_height:
             font, lines, fontsize, line_height = auto_fit_fontsize(
-                text, width, max_text_height, start_size=fontsize, min_size=36
+                text, width, max_text_height, start_size=fontsize, min_size=48
             )
             total_text_height = line_height * len(lines)
     else:
         font, lines, fontsize, line_height = auto_fit_fontsize(
-            text, width, max_text_height, start_size=80, min_size=36
+            text, width, max_text_height, start_size=80, min_size=48
         )
         total_text_height = line_height * len(lines)
 

@@ -285,11 +285,17 @@ def render_hook_frame(bg_img, slide_meta, font_path, t, duration, slide_index=0)
     fade_dur = 0.4
     alpha = min(255, int(255 * min(t / fade_dur, 1.0)))
 
+    # Center text within TikTok safe zone (scaled 2x for oversized canvas)
+    safe_top_2x = 150 * 2
+    safe_bottom_2x = 250 * 2
+    safe_area_h = canvas_2h - safe_top_2x - safe_bottom_2x
+    text_start_y = safe_top_2x + (safe_area_h - total_text_h) // 2
+
     for i, line in enumerate(lines):
         bbox = font.getbbox(line)
         tw = bbox[2] - bbox[0]
         x = (canvas_2w - tw) // 2
-        y = (canvas_2h - total_text_h) // 2 + i * line_height
+        y = text_start_y + i * line_height
         # Shadow
         tdraw.text((x + 6, y + 6), line, fill=(0, 0, 0, alpha // 2), font=font)
         # Main text
@@ -614,9 +620,12 @@ def render_cta_frame(bg_img, slide_meta, font_path, t, duration, slide_index=0):
             para_gaps.append(len(all_lines))
         all_lines.extend(wrapped)
 
-    # Calculate total height and center vertically
+    # Calculate total height and center within TikTok safe zone
+    safe_top = 150
+    safe_bottom = 250
+    safe_area_h = h - safe_top - safe_bottom
     total_h = len(all_lines) * line_h + len(para_gaps) * int(line_h * 0.5)
-    start_y = (h - total_h) // 2 - 40  # slightly above center
+    start_y = safe_top + (safe_area_h - total_h) // 2
 
     # Draw on oversized text layer
     text_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -635,12 +644,12 @@ def render_cta_frame(bg_img, slide_meta, font_path, t, duration, slide_index=0):
         tdraw.text((x, current_y), wl, fill=(255, 255, 255, alpha), font=font)
         current_y += line_h
 
-    # Brand watermark (bottom area)
+    # Brand watermark (above TikTok bottom safe zone)
     font_brand = load_font(font_path, 36)
     brand = "ナースロビー"
     brand_bbox = font_brand.getbbox(brand)
     brand_w = brand_bbox[2] - brand_bbox[0]
-    brand_y = h - 520  # above TikTok bottom UI
+    brand_y = h - safe_bottom - 80  # just above safe zone boundary
     tdraw.text(((w - brand_w) // 2, brand_y), brand,
                fill=(255, 255, 255, int(alpha * 0.5)), font=font_brand)
 
