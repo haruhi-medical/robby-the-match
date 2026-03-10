@@ -1,4 +1,4 @@
-# /pdca — ナースロビー PDCAサイクル実行
+# /pdca — 神奈川ナース転職 PDCAサイクル実行
 
 STATE.mdベースのPDCAサイクルを実行する。
 

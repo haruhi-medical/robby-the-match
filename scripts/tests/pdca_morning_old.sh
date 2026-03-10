@@ -3,7 +3,7 @@ source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_morning"
 
 run_claude "
-お前はナースロビーの経営参謀だ。CLAUDE.mdを読め。
+お前は神奈川ナース転職の経営参謀だ。CLAUDE.mdを読め。
 
 【SEO改善PDCAサイクル】
 

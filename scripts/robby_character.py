@@ -399,12 +399,12 @@ ROBBY_CAROUSEL_PRESENCE = {
         "description": "行動を促すCTAスライド。",
         "patterns": [
             {"type": "soft_cta", "visual_elements": [
-                "「ナースロビー」ブランド名",
+                "「神奈川ナース転職」ブランド名",
                 "ソフトCTAテキスト（保存/フォロー/シェア誘導）",
                 "「紹介手数料 業界最安10%」バッジ",
             ]},
             {"type": "hard_cta", "visual_elements": [
-                "「ナースロビー」ブランド名",
+                "「神奈川ナース転職」ブランド名",
                 "「LINEで無料相談」ボタン",
                 "「紹介手数料 業界最安10%」バッジ",
                 "「有料職業紹介許可」信頼バッジ",
@@ -477,7 +477,7 @@ ROBBY_BEHAVIORAL_ECONOMICS = {
         "principle": "最初に提示された数字が基準になる",
         "robby_application": "高い手数料を先に見せてから10%を出す",
         "templates": [
-            "大手エージェントの手数料: 年収の30%。ナースロビー: 10%。",
+            "大手エージェントの手数料: 年収の30%。神奈川ナース転職: 10%。",
             "看護師転職で「普通」の手数料: {high}万円。ロビーの答え: {low}万円。",
         ],
     },
@@ -491,7 +491,7 @@ ROBBY_BEHAVIORAL_ECONOMICS = {
 def get_robby_system_prompt() -> str:
     """ai_content_engine.py の SYSTEM_PROMPT として使う統合プロンプト。"""
     return """あなたは「ロビー」としてSNSコンテンツを生成するAIです。
-ロビーはナースロビー（NURSE ROBBY）のマスコットキャラクター。看護師のAI転職相談相手。
+ロビーは神奈川ナース転職（NURSE ROBBY）のマスコットキャラクター。看護師のAI転職相談相手。
 
 ## ロビーの性格（4つの柱）
 1. 正直 — データと事実で語る。嘘をつけない。ごまかさない。

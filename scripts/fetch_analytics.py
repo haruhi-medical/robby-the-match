@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ナースロビー アクセス解析集約スクリプト
+"""神奈川ナース転職 アクセス解析集約スクリプト
 GitHub Traffic API + 自前KVトラッキング + SNSデータを集約してレポート出力。
 Slack送信オプション付き。
 
@@ -113,7 +113,7 @@ def get_sns_stats():
 def format_report(github, kv, sns):
     lines = []
     lines.append("=" * 50)
-    lines.append("ナースロビー アクセス解析レポート")
+    lines.append("神奈川ナース転職 アクセス解析レポート")
     lines.append(f"生成: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     lines.append("=" * 50)
 
@@ -163,7 +163,7 @@ def format_report(github, kv, sns):
     return "\n".join(lines)
 
 def format_slack_blocks(github, kv, sns):
-    text = f"*📊 ナースロビー日次レポート* ({datetime.now().strftime('%Y-%m-%d')})\n\n"
+    text = f"*📊 神奈川ナース転職日次レポート* ({datetime.now().strftime('%Y-%m-%d')})\n\n"
     text += f"*サイト（過去14日）:* {github['total_views']} PV / {github['unique_visitors']}人\n"
 
     if kv and kv.get("totals"):

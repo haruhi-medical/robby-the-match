@@ -1,5 +1,5 @@
 #!/bin/bash
-# ナースロビー 共通関数
+# 神奈川ナース転職 共通関数
 # 全PDCAスクリプトはこれをsourceして使う
 
 PROJECT_DIR="$HOME/robby-the-match"

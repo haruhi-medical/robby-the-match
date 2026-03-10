@@ -168,7 +168,7 @@ def generate_ad1(width, height, filename):
 
     # Footer
     footer_font = font(int(16 * s), bold=False)
-    footer_text = "ナースロビー｜手数料10%の看護師転職"
+    footer_text = "神奈川ナース転職｜手数料10%の看護師転職"
     fx = text_center_x(draw, footer_text, footer_font, width)
     draw.text((fx, height - int(50 * s)), footer_text, fill=(120, 140, 160), font=footer_font)
 
@@ -223,12 +223,12 @@ def generate_ad2(width, height, filename):
     draw.ellipse((vs_x, vs_y, vs_x + int(40 * s), vs_y + int(40 * s)), fill=(80, 120, 80))
     draw.text((vs_x + int(5 * s), vs_y + int(6 * s)), "VS", fill="white", font=font(int(16 * s)))
 
-    # Right: ナースロビー
+    # Right: 神奈川ナース転職
     right_x = vs_x + int(45 * s)
     right_w = width - right_x - int(40 * s)
     draw.rounded_rectangle((right_x, box_y, right_x + right_w, box_y + box_h), radius=10, fill=(30, 80, 50))
     draw.rectangle((right_x, box_y, right_x + right_w, box_y + int(40 * s)), fill=(60, 140, 80))
-    rh_text = "ナースロビー"
+    rh_text = "神奈川ナース転職"
     draw.text((right_x + (right_w - draw.textbbox((0, 0), rh_text, font=lh_font)[2]) // 2, box_y + 8), rh_text, fill="white", font=lh_font)
     draw.text((right_x + (right_w - draw.textbbox((0, 0), "10%", font=big_font)[2]) // 2, box_y + int(50 * s)), "10%", fill=(100, 220, 130), font=big_font)
     for i, t in enumerate(["年収400万の場合", "→ 40万円"]):
@@ -251,7 +251,7 @@ def generate_ad2(width, height, filename):
 
     # Footer
     footer_font = font(int(16 * s), bold=False)
-    footer_text = "ナースロビー｜神奈川県の看護師転職"
+    footer_text = "神奈川ナース転職｜神奈川県の看護師転職"
     draw.text((text_center_x(draw, footer_text, footer_font, width), height - int(50 * s)), footer_text, fill=(120, 150, 130), font=footer_font)
 
     img.save(OUTPUT_DIR / filename, "PNG")
@@ -336,7 +336,7 @@ def generate_ad3(width, height, filename):
 
     # Footer
     footer_font = font(int(16 * s), bold=False)
-    footer_text = "ナースロビー｜神奈川県の看護師転職サポート"
+    footer_text = "神奈川ナース転職｜神奈川県の看護師転職サポート"
     draw.text((text_center_x(draw, footer_text, footer_font, width), height - int(50 * s)), footer_text, fill=(140, 110, 120), font=footer_font)
 
     img.save(OUTPUT_DIR / filename, "PNG")

@@ -40,7 +40,7 @@ Ads Managerで広告を作成する際、「Instagramアカウント」として
 
 1. https://business.facebook.com/events_manager/ にアクセス
 2. 左メニュー「データソース」→「ピクセル」
-3. 「ピクセルを追加」→ 名前: 「ナースロビー」
+3. 「ピクセルを追加」→ 名前: 「神奈川ナース転職」
 4. 「手動でコードをインストール」を選択
 5. **16桁の数字（Pixel ID）をコピー**
 6. Slackで平島さんがPixel IDを共有 → Claude CodeがLPに埋め込み

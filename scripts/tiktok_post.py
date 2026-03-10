@@ -1250,7 +1250,7 @@ def heartbeat():
       INFO:     TikTokプロフィール取得失敗(TikTok側のbot検出。検証不能だが問題ではない)
     """
     print(f"\n{'='*50}")
-    print(f"ナースロビー ハートビート v2.0")
+    print(f"神奈川ナース転職 ハートビート v2.0")
     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*50}\n")
 

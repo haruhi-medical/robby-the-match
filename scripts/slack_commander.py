@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Slack Commander v3.0 — ナースロビー
+Slack Commander v3.0 — 神奈川ナース転職
 Slackチャンネルからのメッセージを監視し、コマンド実行 & 指示受けを行う。
 
 対応コマンド:
@@ -72,7 +72,7 @@ def post_message(channel: str, text: str = "", blocks: list = None) -> bool:
     payload = {"channel": channel}
     if blocks:
         payload["blocks"] = blocks
-        payload["text"] = text or "ナースロビー"
+        payload["text"] = text or "神奈川ナース転職"
     else:
         payload["text"] = text
 
@@ -287,7 +287,7 @@ def handle_site(channel: str, **kwargs):
     blocks = [
         {
             "type": "header",
-            "text": {"type": "plain_text", "text": "ナースロビー サイト構成レポート"},
+            "text": {"type": "plain_text", "text": "神奈川ナース転職 サイト構成レポート"},
         },
         {
             "type": "section",
@@ -556,7 +556,7 @@ def handle_help(channel: str, **kwargs):
     blocks = [
         {
             "type": "header",
-            "text": {"type": "plain_text", "text": "ナースロビー Commander v3.0"},
+            "text": {"type": "plain_text", "text": "神奈川ナース転職 Commander v3.0"},
         },
         {
             "type": "section",
@@ -691,7 +691,7 @@ def process_message(message: dict, channel: str):
 
 def run_polling(channel: str, interval: int = 30):
     """常駐ポーリングモード"""
-    print(f"ナースロビー Commander v3.0 起動 (ポーリング, {interval}秒間隔)")
+    print(f"神奈川ナース転職 Commander v3.0 起動 (ポーリング, {interval}秒間隔)")
     print(f"監視チャンネル: {channel}")
     print("終了: Ctrl+C")
     print("---")
@@ -754,7 +754,7 @@ def run_once(channel: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ナースロビー Commander v3.0 — Slack監視 & コマンド応答 & 指示受け"
+        description="神奈川ナース転職 Commander v3.0 — Slack監視 & コマンド応答 & 指示受け"
     )
     parser.add_argument("--poll", action="store_true", help="常駐ポーリングモード")
     parser.add_argument("--once", action="store_true", help="1回チェックして終了（cron用）")

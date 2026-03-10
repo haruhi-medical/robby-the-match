@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ナースロビー - sitemap.xml 自動更新スクリプト
+神奈川ナース転職 - sitemap.xml 自動更新スクリプト
 
 走査対象:
   - lp/job-seeker/area/*.html
@@ -173,7 +173,7 @@ def write_sitemap(xml_content, output_path):
 
 def main():
     print("=" * 60)
-    print("ナースロビー - sitemap.xml 自動更新")
+    print("神奈川ナース転職 - sitemap.xml 自動更新")
     print("=" * 60)
     print(f"プロジェクトルート: {PROJECT_ROOT}")
     print(f"ベースURL: {BASE_URL}")

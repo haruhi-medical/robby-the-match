@@ -1,4 +1,4 @@
-// ナースロビー 軽量アクセス解析 (自前トラッキング)
+// 神奈川ナース転職 軽量アクセス解析 (自前トラッキング)
 // GA4/Clarityに加え、API経由で直接データ取得可能
 (function() {
   var endpoint = "https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/track";

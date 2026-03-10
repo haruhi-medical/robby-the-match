@@ -1,5 +1,5 @@
 /**
- * ナースロビー — Google Analytics 4 共通スニペット
+ * 神奈川ナース転職 — Google Analytics 4 共通スニペット
  *
  * 設置方法:
  *   <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>

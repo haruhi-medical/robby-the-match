@@ -646,7 +646,7 @@ def render_cta_frame(bg_img, slide_meta, font_path, t, duration, slide_index=0):
 
     # Brand watermark (above TikTok bottom safe zone)
     font_brand = load_font(font_path, 36)
-    brand = "ナースロビー"
+    brand = "神奈川ナース転職"
     brand_bbox = font_brand.getbbox(brand)
     brand_w = brand_bbox[2] - brand_bbox[0]
     brand_y = h - safe_bottom - 80  # just above safe zone boundary

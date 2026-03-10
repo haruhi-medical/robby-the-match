@@ -124,7 +124,7 @@ def validate_jobs(data):
 
 def main():
     print("=" * 60)
-    print("ナースロビー データベース検証")
+    print("神奈川ナース転職 データベース検証")
     print("=" * 60)
 
     all_errors = []

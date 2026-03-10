@@ -952,7 +952,7 @@ def format_area(aid, meta, facilities):
 
 output_lines = []
 output_lines.append("// ========================================")
-output_lines.append("// ナースロビー - エリア・医療機関データベース")
+output_lines.append("// 神奈川ナース転職 - エリア・医療機関データベース")
 output_lines.append("// 神奈川県西部10エリア 実データ（病床機能報告R5 + 医療情報ネット 2025.12）")
 output_lines.append("// 自動生成: 2026-02-25 merge_and_update_areas.py")
 output_lines.append("// ========================================")

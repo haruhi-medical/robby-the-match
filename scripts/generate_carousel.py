@@ -735,7 +735,7 @@ def draw_bar_chart(
 
     Args:
         data: List of {label: str, value: int/float, display: str}.
-        highlight_idx: Index of bar to highlight (e.g., ナースロビー).
+        highlight_idx: Index of bar to highlight (e.g., 神奈川ナース転職).
     """
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
@@ -1078,7 +1078,7 @@ def _draw_progress_dots(
 def _ig_draw_brand_logo(draw: ImageDraw.ImageDraw, canvas_w: int):
     """Draw the small brand logo text at top-left for Instagram slides."""
     font = load_font(bold=True, size=28)
-    text = "ナースロビー"
+    text = "神奈川ナース転職"
     draw.text((40, 36), text, fill=INSTAGRAM_COLORS["primary"], font=font)
 
 
@@ -1155,9 +1155,9 @@ def generate_ig_hook_slide(
     draw.text((center_x - stw // 2, bar_y + 12), swipe_text,
               fill=COLOR_WHITE, font=swipe_font)
 
-    # "ナースロビー | 神奈川の転職" sub-line
+    # "神奈川ナース転職 | 神奈川の転職" sub-line
     sub_font = load_font(bold=False, size=24)
-    sub_text = "ナースロビー | 神奈川の転職"
+    sub_text = "神奈川ナース転職 | 神奈川の転職"
     subtw, _ = measure_text(sub_text, sub_font)
     draw.text((center_x - subtw // 2, bar_y + 46), sub_text,
               fill=(*COLOR_WHITE[:3], 210), font=sub_font)
@@ -2020,7 +2020,7 @@ def generate_slide_cta(
     # -- Brand logo --
     logo_font_size = 64
     logo_font = load_font(bold=True, size=logo_font_size)
-    logo_text = "ナースロビー"
+    logo_text = "神奈川ナース転職"
     tw, _ = measure_text(logo_text, logo_font)
     logo_x = center_x - tw // 2
 
@@ -2971,7 +2971,7 @@ def _v4_generate_cta(
 
     # Brand logo (rounded font)
     logo_font = load_font(bold=True, size=60, rounded=True)
-    logo_text = "ナースロビー"
+    logo_text = "神奈川ナース転職"
     tw, _ = measure_text(logo_text, logo_font)
     logo_y = _cta_start
     draw_text_shadow(draw, center_x - tw // 2, logo_y, logo_text, logo_font,
@@ -3531,7 +3531,7 @@ def generate_demo(output_dir: str = "content/generated/carousel_demo_v3") -> lis
                 "title": "手数料10%で解決",
                 "body": "病院の負担が軽い\n→ 採用されやすい\n→ 条件交渉もしやすい\n→ 入職後の関係も良好\n\nつまり、あなたが得をする。",
                 "highlight_number": "10%",
-                "highlight_label": "ナースロビーの紹介手数料",
+                "highlight_label": "神奈川ナース転職の紹介手数料",
             },
         ],
         output_dir=output_dir,
@@ -3591,7 +3591,7 @@ def generate_demo_instagram(output_dir: str = "content/generated/carousel_demo_i
                 "title": "手数料10%で解決",
                 "body": "病院の負担が軽い\n→ 採用されやすい\n→ 条件交渉もしやすい\n→ 入職後の関係も良好\n\nつまり、あなたが得をする。",
                 "highlight_number": "10%",
-                "highlight_label": "ナースロビーの紹介手数料",
+                "highlight_label": "神奈川ナース転職の紹介手数料",
             },
         ],
         output_dir=output_dir,
@@ -3663,9 +3663,9 @@ def generate_demo_all(base_dir: str = "content/generated/carousel_demo_v4") -> d
             },
             {
                 "title": "手数料の真実",
-                "body": "大手は年収の20-30%を病院に請求。\n年収400万なら80-120万円。\n\nナースロビーは10%。\n40万円で済む。差額は病院の負担軽減。",
+                "body": "大手は年収の20-30%を病院に請求。\n年収400万なら80-120万円。\n\n神奈川ナース転職は10%。\n40万円で済む。差額は病院の負担軽減。",
                 "highlight_number": "10%",
-                "highlight_label": "ナースロビーの紹介手数料",
+                "highlight_label": "神奈川ナース転職の紹介手数料",
             },
         ],
         output_dir=str(base / "salary"),
@@ -3748,7 +3748,7 @@ def generate_demo_all(base_dir: str = "content/generated/carousel_demo_v4") -> d
                 "title": "手数料10%で解決",
                 "body": "病院の負担が軽い\n→ 採用されやすい\n→ 条件交渉もしやすい\n→ 入職後の関係も良好\n\nつまり、あなたが得をする。",
                 "highlight_number": "10%",
-                "highlight_label": "ナースロビーの紹介手数料",
+                "highlight_label": "神奈川ナース転職の紹介手数料",
             },
         ],
         output_dir=str(base / "service"),

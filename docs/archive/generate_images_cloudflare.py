@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Cloudflare Workers AI (FLUX.1-schnell) を使った画像生成スクリプト
-ナースロビー - SNS投稿用スライドショー画像生成
+神奈川ナース転職 - SNS投稿用スライドショー画像生成
 
 【改善版】
 - レート制限対応

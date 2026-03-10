@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Slack報告スクリプト — ナースロビー
+Slack報告スクリプト — 神奈川ナース転職
 6チームのエージェント作業結果をSlackに報告
 PROGRESS.mdの内容をフォーマットして送信
 SEO子ページの作成状況を報告
@@ -41,7 +41,7 @@ SEO_DIR = project_root / "lp"
 # ユーティリティ
 # ===================================================================
 
-def post_to_slack(blocks: list, text: str = "ナースロビー レポート") -> bool:
+def post_to_slack(blocks: list, text: str = "神奈川ナース転職 レポート") -> bool:
     """Block Kit形式でSlackにメッセージを送信"""
     headers = {
         "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
@@ -192,7 +192,7 @@ def send_daily_report():
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "ナースロビー 日次レポート",
+                "text": "神奈川ナース転職 日次レポート",
             },
         },
         {
@@ -299,7 +299,7 @@ def send_daily_report():
             }
         )
 
-    return post_to_slack(blocks, text="ナースロビー日次レポート")
+    return post_to_slack(blocks, text="神奈川ナース転職日次レポート")
 
 
 def send_kpi_dashboard():
@@ -546,7 +546,7 @@ def send_team_report():
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "ナースロビー チーム別作業レポート",
+                "text": "神奈川ナース転職 チーム別作業レポート",
             },
         },
         {
@@ -633,7 +633,7 @@ def _team_analytics_status() -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ナースロビー Slack報告スクリプト"
+        description="神奈川ナース転職 Slack報告スクリプト"
     )
     parser.add_argument(
         "--report",

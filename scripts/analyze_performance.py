@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ナースロビー パフォーマンス分析スクリプト
+神奈川ナース転職 パフォーマンス分析スクリプト
 投稿データから高パフォーマンスパターンを抽出し、次のコンテンツ戦略に反映する
 
 使い方:
@@ -283,7 +283,7 @@ def update_agent_memory(analysis):
 
 def run_analysis():
     """全分析実行"""
-    print("=== ナースロビー パフォーマンス分析 ===\n")
+    print("=== 神奈川ナース転職 パフォーマンス分析 ===\n")
 
     queue = load_queue()
     kpi_rows = load_kpi_log()

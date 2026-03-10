@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# ナースロビー AI日次PDCA
+# 神奈川ナース転職 AI日次PDCA
 # Autonomous AI Marketing PDCA Loop v1.0
 # cron: 0 6 * * * (daily at 06:00, before manual review window)
 #

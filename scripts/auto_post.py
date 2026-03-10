@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-auto_post.py — ナースロビー SNS自動投稿エンジン v2.1
+auto_post.py — 神奈川ナース転職 SNS自動投稿エンジン v2.1
 
 Instagram/TikTokへの自動投稿。AI検出回避 + 行動パターン擬態。
 cron駆動で完全自動化。
@@ -842,7 +842,7 @@ def show_status():
 # ============================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="ナースロビー SNS自動投稿")
+    parser = argparse.ArgumentParser(description="神奈川ナース転職 SNS自動投稿")
     parser.add_argument("--instagram", action="store_true", help="Post to Instagram")
     parser.add_argument("--tiktok", action="store_true", help="Post to TikTok")
     parser.add_argument("--all", action="store_true", help="Post to all platforms")

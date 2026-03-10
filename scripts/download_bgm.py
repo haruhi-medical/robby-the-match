@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-download_bgm.py — BGM管理スクリプト for ナースロビー TikTok動画
+download_bgm.py — BGM管理スクリプト for 神奈川ナース転職 TikTok動画
 
 使い方:
   python3 scripts/download_bgm.py --generate-placeholders   # ffmpegでプレースホルダー生成

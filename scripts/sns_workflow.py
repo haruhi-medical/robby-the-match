@@ -41,7 +41,7 @@ ENV_FILE = PROJECT_DIR / ".env"
 
 # ハッシュタグセット
 HASHTAGS = {
-    "core": ["#看護師転職", "#ナースロビー", "#神奈川看護師"],
+    "core": ["#看護師転職", "#神奈川ナース転職", "#神奈川看護師"],
     "reach": ["#看護師あるある", "#ナース", "#看護師の日常"],
     "niche": ["#小田原看護師", "#神奈川県西部", "#手数料10パーセント"],
 }
@@ -55,7 +55,7 @@ CAPTION_TEMPLATES = {
         "cta_style": "soft",
         "caption_suffix": "\n\n共感したら保存してね",
         "hashtag_pool": [
-            "#看護師あるある", "#ナースロビー", "#看護師の日常",
+            "#看護師あるある", "#神奈川ナース転職", "#看護師の日常",
             "#ナース", "#神奈川看護師",
         ],
         "hashtag_count": 4,
@@ -66,7 +66,7 @@ CAPTION_TEMPLATES = {
         "cta_style": "soft",
         "caption_suffix": "\n\n転職の相談はプロフィールのLINEからどうぞ",
         "hashtag_pool": [
-            "#看護師転職", "#ナースロビー", "#キャリア",
+            "#看護師転職", "#神奈川ナース転職", "#キャリア",
             "#神奈川看護師", "#転職",
         ],
         "hashtag_count": 4,
@@ -77,18 +77,18 @@ CAPTION_TEMPLATES = {
         "cta_style": "soft",
         "caption_suffix": "\n\nこの表は保存推奨です",
         "hashtag_pool": [
-            "#看護師転職", "#ナースロビー", "#給与",
+            "#看護師転職", "#神奈川ナース転職", "#給与",
             "#年収", "#神奈川看護師",
         ],
         "hashtag_count": 4,
     },
     "service": {
         "ratio": 0.05,
-        "description": "ナースロビー紹介",
+        "description": "神奈川ナース転職紹介",
         "cta_style": "hard",
         "caption_suffix": "\n\n手数料10%で転職サポート。プロフィールのLINEから無料相談できます",
         "hashtag_pool": [
-            "#看護師転職", "#ナースロビー", "#手数料10パーセント",
+            "#看護師転職", "#神奈川ナース転職", "#手数料10パーセント",
         ],
         "hashtag_count": 3,
     },
@@ -98,7 +98,7 @@ CAPTION_TEMPLATES = {
         "cta_style": "soft",
         "caption_suffix": "\n\nしんどい環境にいる人、話聞くよ",
         "hashtag_pool": [
-            "#看護師あるある", "#ナースロビー", "#看護師の日常",
+            "#看護師あるある", "#神奈川ナース転職", "#看護師の日常",
             "#ナース", "#神奈川看護師",
         ],
         "hashtag_count": 5,

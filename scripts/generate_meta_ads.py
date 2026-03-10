@@ -155,7 +155,7 @@ def draw_brand_footer(draw: ImageDraw.Draw, w: int, h: int):
     draw.line([(w // 2 - lw, line_y), (w // 2 + lw, line_y)],
               fill=TEAL_LIGHT, width=1)
     f = font(FONT_MARU, 20)
-    center_text(draw, "ナースロビー  |  手数料10%の看護師転職", h - 42, f, MID_GRAY, w)
+    center_text(draw, "神奈川ナース転職  |  手数料10%の看護師転職", h - 42, f, MID_GRAY, w)
 
 
 # ===========================================================================
@@ -293,11 +293,11 @@ def generate_ad2_comparison(size_name: str = "feed") -> Image.Image:
     center_text(draw, "→ 120万円", y + box_h - 55, cost_f, SOFT_RED,
                 left_x * 2 + box_w)
 
-    # Right: ナースロビー 10% (light green tint)
+    # Right: 神奈川ナース転職 10% (light green tint)
     draw.rounded_rectangle([(right_x, y), (right_x + box_w, y + box_h)],
                            radius=20, fill=(235, 250, 240), outline=(190, 230, 200))
 
-    center_text(draw, "ナースロビー", y + 20, lf, EMERALD, right_x * 2 + box_w)
+    center_text(draw, "神奈川ナース転職", y + 20, lf, EMERALD, right_x * 2 + box_w)
     center_text(draw, "10%", y + 65, big, EMERALD, right_x * 2 + box_w)
     center_text(draw, "年収400万の場合", y + box_h - 85, detail_f, SUB_TEXT,
                 right_x * 2 + box_w)

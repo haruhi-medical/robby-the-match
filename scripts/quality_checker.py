@@ -1841,7 +1841,7 @@ def main():
     report = checker.check(
         slides=sample_slides,
         hook_text="師長にAIで見せたら黙った",
-        caption="看護師あるある！師長にAI見せたらまさかの反応…\n#看護師あるある #AI #ナースロビー",
+        caption="看護師あるある！師長にAI見せたらまさかの反応…\n#看護師あるある #AI #神奈川ナース転職",
         category="あるある",
         content_id="A01_demo",
         colors={

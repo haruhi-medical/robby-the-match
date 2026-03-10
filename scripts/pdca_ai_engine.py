@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-pdca_ai_engine.py — ナースロビー PDCA AIエンジン
+pdca_ai_engine.py — 神奈川ナース転職 PDCA AIエンジン
 
 Cloudflare Workers AI (Llama 3.3 70B, FREE) を使ったPDCAサイクル実行。
 Claude CLI (run_claude) の代替。LLMにはテキスト分析・要約・提案のみ任せ、
@@ -406,7 +406,7 @@ area: {pages.get('lp/job-seeker/area', 0)}, guide: {pages.get('lp/job-seeker/gui
         log(f"[review][DRY-RUN] Errors: {len(errors)}, Pages: {pages}")
         return 0
 
-    result = call_cf_ai(prompt, system_prompt="ナースロビーの運用マネージャー。簡潔に日本語で。")
+    result = call_cf_ai(prompt, system_prompt="神奈川ナース転職の運用マネージャー。簡潔に日本語で。")
     if not result:
         log("[review] ERROR: CF AI応答なし")
         return 1
@@ -569,7 +569,7 @@ area: {pages.get('lp/job-seeker/area', 0)}, guide: {pages.get('lp/job-seeker/gui
         log(f"[weekly][DRY-RUN] Pages: {pages}, Week: {week_num}")
         return 0
 
-    result = call_cf_ai(prompt, system_prompt="ナースロビーの経営参謀AI。簡潔に日本語で。", max_tokens=2048)
+    result = call_cf_ai(prompt, system_prompt="神奈川ナース転職の経営参謀AI。簡潔に日本語で。", max_tokens=2048)
     if not result:
         log("[weekly] ERROR: CF AI応答なし")
         return 1
@@ -609,7 +609,7 @@ JOBS = {
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ナースロビー PDCA AIエンジン")
+    parser = argparse.ArgumentParser(description="神奈川ナース転職 PDCA AIエンジン")
     parser.add_argument("--job", required=True, choices=JOBS.keys(), help="実行するジョブ")
     parser.add_argument("--dry-run", action="store_true", help="AIを呼ばずにデータ収集のみ")
     args = parser.parse_args()

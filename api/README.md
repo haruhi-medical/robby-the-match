@@ -1,4 +1,4 @@
-# ナースロビー(NURSE ROBBY) - API (Cloudflare Workers)
+# 神奈川ナース転職(NURSE ROBBY) - API (Cloudflare Workers)
 
 フォーム送信を受け取り、Slack通知とGoogle Sheets書き込みを行うサーバーサイドAPI。
 
