@@ -1,19 +1,19 @@
 {
   "lastRun": {
-    "seo_optimizer": "2026-03-10T04:00:01",
-    "health_monitor": "2026-03-09T07:00:47",
-    "competitor_analyst": "2026-03-09T10:00:11",
+    "seo_optimizer": "2026-03-10T04:00:21",
+    "health_monitor": "2026-03-10T09:01:03",
+    "competitor_analyst": "2026-03-10T10:00:00",
     "content_creator": "2026-03-09T15:00:36",
     "daily_reviewer": "2026-03-09T23:00:29",
     "weekly_strategist": "2026-03-08T06:01:00",
     "sns_poster": "2026-03-09T17:07:25",
-    "ai_marketing_orchestrator": "2026-03-09T08:00:03",
+    "ai_marketing_orchestrator": "2026-03-10T08:00:49",
     "weekly_content_planner": "2026-03-08T05:00:03"
   },
   "status": {
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
@@ -29,6 +29,13 @@
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
         "created": "2026-03-09T07:00:46.937017",
         "status": "processing"
+      },
+      {
+        "from": "health_monitor",
+        "type": "emergency_generate",
+        "details": "キュー残り0件。緊急コンテンツ生成必要。",
+        "created": "2026-03-10T07:00:48.249606",
+        "status": "pending"
       }
     ]
   },
@@ -51,8 +58,8 @@
       "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
     ],
     "queueRemaining": 0,
-    "lastMarketingPDCA": "2026-03-09 08:00:01",
-    "queuePending": 59,
+    "lastMarketingPDCA": "2026-03-10 08:00:48",
+    "queuePending": 58,
     "dailyGeneratedCount": 0,
     "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
     "lastWeeklyContentRun": "2026-03-01"

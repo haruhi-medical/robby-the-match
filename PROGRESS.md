@@ -1281,3 +1281,47 @@ SNS自動投稿: IG済12件 / 未投稿28件 (IG=0, TK=0)
    - ブログ記事から関連する看護師求人ページへのリンクを追加します。
    - サイトマップの作成と更新を徹底し、サイト内の全ページが適切にリンクされていることを確認します。
 
+### 🔍 SEO朝サイクル（04:00:01）
+seo: 2026-03-10 SEO改善
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=58 ready=58 posted=12 failed=0
+  Generated today: 0
+  Quality issues: 58
+  Status: Healthy
+
+### pdca_ai_marketing（07:00:00）
+AI Marketing PDCA:
+  Queue: pending=58 ready=58 posted=12 failed=0
+  Generated today: 0
+  Quality issues: 58
+  Status: Healthy
+
+### pdca_ai_marketing（07:30:44）
+AI Marketing PDCA:
+  Queue: pending=58 ready=58 posted=12 failed=0
+  Generated today: 0
+  Quality issues: 58
+  Status: Healthy
+
+### pdca_ai_marketing（08:00:48）
+AI Marketing PDCA:
+  Queue: pending=58 ready=58 posted=12 failed=0
+  Generated today: 0
+  Quality issues: 58
+  Status: Healthy
+
+### 🔎 競合・SEOギャップ分析（10:00:00）
+1. カバレッジの穴：現在のページ数は56ページですが、対象エリアである神奈川県西部のすべての地域をカバーしているわけではありません。特に、小田原、秦野、平塚などの地域でページが不足しています。また、ガイドテーマとして、看護師の転職支援、求人情報、医療機関の紹介などのページが不足しています。
+
+2. 改善優先度の高いアクション3つ：
+   - 地域別ページの充実：対象エリアのすべての地域をカバーするページを作成する。
+   - ガイドテーマの充実：看護師の転職支援、求人情報、医療機関の紹介などのガイドテーマのページを作成する。
+   - 内部リンク構造の改善：現在のページ間のリンク構造を改善し、ユーザーが関連する情報を容易に探せるようにする。
+
+3. 次に作るべきページ2-3本の提案：
+   - 「小田原市の看護師求人情報」：小田原市の看護師求人情報をまとめたページを作成する。
+   - 「看護師転職支援ガイド」：看護師の転職支援に関するガイドページを作成する。
+   - 「神奈川県の医療機関紹介」：神奈川県の医療機関を紹介するページを作成する。
+
