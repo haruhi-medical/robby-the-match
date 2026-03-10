@@ -3,10 +3,10 @@
     "seo_optimizer": "2026-03-10T04:00:21",
     "health_monitor": "2026-03-10T09:01:03",
     "competitor_analyst": "2026-03-10T10:00:18",
-    "content_creator": "2026-03-09T15:00:36",
+    "content_creator": "2026-03-10T15:00:34",
     "daily_reviewer": "2026-03-09T23:00:29",
     "weekly_strategist": "2026-03-08T06:01:00",
-    "sns_poster": "2026-03-09T17:07:25",
+    "sns_poster": "2026-03-10T12:09:31",
     "ai_marketing_orchestrator": "2026-03-10T08:00:49",
     "weekly_content_planner": "2026-03-08T05:00:03"
   },
@@ -35,7 +35,7 @@
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
         "created": "2026-03-10T07:00:48.249606",
-        "status": "pending"
+        "status": "processing"
       }
     ]
   },

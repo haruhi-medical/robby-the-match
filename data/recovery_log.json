@@ -12,14 +12,14 @@
       "retries": 3,
       "status": "recovered",
       "last_error": "",
-      "last_alert_ts": "2026-03-10T09:30:01.163342"
+      "last_alert_ts": "2026-03-10T14:00:00.871526"
     },
     "ai_marketing": {
       "date": "2026-03-10",
       "retries": 3,
       "status": "retry_exhausted",
       "last_error": "",
-      "last_alert_ts": "2026-03-10T08:30:47.262569"
+      "last_alert_ts": "2026-03-10T13:00:00.637197"
     },
     "competitor": {
       "date": "2026-03-04",

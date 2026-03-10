@@ -1332,3 +1332,13 @@ AI Marketing PDCA:
 [pdca_ai_engine] job=competitor 完了 (exit=0)
 [INFO] commit済み（pushは日次レビューで一括）
 
+### sns_post（12:00:01）
+SNS自動投稿: IG済12件 / 未投稿28件 (IG=0, TK=0)
+
+### content（15:00:00）
+コンテンツ生成:   給与      :   0本  (実績  0.0% / 目標  20%) [!]
+  紹介      :   0本  (実績  0.0% / 目標   5%) [OK]
+  トレンド    :   0本  (実績  0.0% / 目標  10%) [!]
+
+[NOTE] available (57) >= threshold (7) -- --auto では生成スキップ
+
