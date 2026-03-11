@@ -1,5 +1,5 @@
 # 神奈川ナース転職 状態ファイル
-# 最終更新: 2026-03-11 10:00 by 競合分析
+# 最終更新: 2026-03-11 10:00 by 競合監視
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -9,7 +9,7 @@
 ## 現在のフェーズ
 - マイルストーン: **Week 3**（2026-03-03〜03-09）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: **コンテンツ戦略v2.0移行完了 + SNS自動投稿パイプライン稼働中 + Meta広告準備中**
+- 状態: **コンテンツ戦略v2.0 + SNS自動投稿パイプライン稼働中 + Meta API要再設定**
 
 ## KPI
 | 指標 | 目標 | 現在 | 状態 |
@@ -33,6 +33,7 @@
 - Slack双方向連携（slack_bridge.py）
 - 画像生成パイプライン（Cloudflare Workers AI + Pillow テキスト焼き込み）
 - 医療機関DB: **212施設**（config.js / 厚労省病床機能報告R6ベース + エージェント調査追加）/ 求人DB: 看護師36件+PT9件
+- **ハローワークAPI連携**: 神奈川県看護師求人1,364件自動取得（毎朝06:30 cron）→ worker.js EXTERNAL_JOBS自動更新（16エリア123件）
 - AIチャットUX v2.0（Cloudflare Worker + 212施設Haversine距離計算 + 駅選択UI）
 - AI自律コンテンツ生成（ai_content_engine.py + content_pipeline.py）
 - **TikTok自動投稿パイプライン**: tiktok_post.py + pdca_sns_post.sh（7本投稿済み + 57本キュー待ち）
@@ -55,7 +56,8 @@
 - **campaign_guide.md**: v2.0改訂済み（神奈川県全域版、Ads Manager方式）
 - **広告画像v3**: ✅ 6枚生成済み（content/meta_ads/v3/）— 神奈川県全域版
 - **広告コピー**: ✅ ad_copy.md 全域版更新済み
-- **次のステップ**: Ads Managerでキャンペーン作成（AD1 vs AD3のA/Bテスト、¥500/日×5日）
+- **⚠️ Meta API**: アクセストークン+App IDが無効化。Developerダッシュボード確認必要
+- **広告自体**: Ads Managerで手動確認可能（APIとは別）
 
 ## cron状態（実稼働中）
 ```
@@ -104,13 +106,14 @@
 2. **新戦略でコンテンツ再生成**: キュー内の旧コンテンツを新ルールで差し替え
 3. **Meta広告**: Facebookページ承認待ち → 承認後にPixel設定 → 広告開始
 4. **Instagramオーガニック投稿増やす**: 週3本ペースへ
-5. **Instagram投稿頻度を上げる**: auto_post.pyをcronに追加して自動化（現在手動実行）
+5. ~~**Instagram投稿頻度を上げる**~~: ✅ cron追加済み（毎日17:30、ランダム遅延付き）
 
 ### 🟢 自動化済み（人間の操作不要）
 - TikTok自動投稿: pdca_sns_post.sh（12:00/17:00/18:00/20:00/21:00）
 - AIコンテンツ生成: pdca_ai_marketing.sh（06:00）
 - 週次バッチ: pdca_weekly_content.sh（日曜05:00）
 - Instagram エンゲージメント: instagram_engage.py（12:00）
+- Instagram 自動投稿: auto_post.py（17:30、ランダム遅延付き）
 - システム監視: watchdog.py（30分間隔）
 - SEO/障害/競合/コンテンツ/レビュー: 各cronジョブ稼働中
 

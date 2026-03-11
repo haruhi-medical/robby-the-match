@@ -2,8 +2,12 @@
 """
 ハローワーク求人JSON → worker.js EXTERNAL_JOBS 変換スクリプト
 
-hellowork_fetch.py の後に実行。
-data/hellowork_nurse_jobs.json → api/worker.js の EXTERNAL_JOBS を更新する。
+hellowork_fetch.py → hellowork_rank.py の後に実行。
+data/hellowork_ranked.json → api/worker.js の EXTERNAL_JOBS を更新する。
+
+EXTERNAL_JOBSはオブジェクト配列形式:
+  { n: "事業所名", t: "職種", r: "S", s: 85, d: {sal:30, hol:20, bon:15, emp:15, wel:5, loc:0},
+    sal: "月給35万円", sta: "横須賀中央", hol: "126日", bon: "3ヶ月", emp: "正社員", wel: "託児所" }
 
 使い方:
   python3 scripts/hellowork_to_jobs.py           # worker.js を更新
@@ -19,168 +23,88 @@ from datetime import datetime
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+RANKED_FILE = PROJECT_ROOT / "data" / "hellowork_ranked.json"
 INPUT_FILE = PROJECT_ROOT / "data" / "hellowork_nurse_jobs.json"
 WORKER_JS = PROJECT_ROOT / "api" / "worker.js"
 
-# エリア分類（config.jsの9エリアに対応 + 主要都市）
-AREA_MAP = {
-    "横浜": ["横浜市"],
-    "川崎": ["川崎市"],
-    "相模原": ["相模原市"],
-    "横須賀": ["横須賀市", "逗子市", "三浦市", "葉山町"],
-    "鎌倉": ["鎌倉市"],
-    "藤沢": ["藤沢市"],
-    "茅ヶ崎": ["茅ヶ崎市", "寒川町"],
-    "平塚": ["平塚市"],
-    "大磯": ["大磯町", "二宮町"],
-    "秦野": ["秦野市"],
-    "伊勢原": ["伊勢原市"],
-    "厚木": ["厚木市", "愛川町", "清川村"],
-    "大和": ["大和市", "綾瀬市"],
-    "海老名": ["海老名市", "座間市"],
-    "小田原": ["小田原市"],
-    "南足柄・開成": ["南足柄市", "開成町", "松田町", "山北町", "大井町", "中井町", "箱根町", "真鶴町", "湯河原町"],
-}
+AREA_ORDER = ["横浜", "川崎", "相模原", "横須賀", "鎌倉", "藤沢",
+              "茅ヶ崎", "平塚", "大磯", "秦野", "伊勢原", "厚木",
+              "大和", "海老名", "小田原", "南足柄・開成"]
 
 
-def classify_area(job):
-    """求人の勤務地からエリアを判定"""
-    loc = job.get("work_location", "") + job.get("work_address", "")
-    for area_name, cities in AREA_MAP.items():
-        for city in cities:
-            # 「横浜市」で始まる or 含むかチェック
-            city_base = city.rstrip("市区町村")
-            if city in loc or city_base in loc:
-                return area_name
-    return None
+def build_job_object(rj):
+    """ランク済み求人データ → worker.js用オブジェクトを生成"""
+    details = rj.get("details", {})
 
+    # 給与テキスト整形
+    sal = details.get("salary", "不明")
 
-def format_salary(job):
-    """給与を読みやすい形式にフォーマット"""
-    low = job.get("salary_low", "")
-    high = job.get("salary_high", "")
-    form = job.get("salary_form", "")
+    # 駅名（短縮）
+    sta = rj.get("work_station_text", "")
+    if len(sta) > 25:
+        sta = sta[:22] + "..."
 
-    if not low and not high:
-        return ""
+    # 休日
+    hol = details.get("holidays", "不明")
 
-    try:
-        low_num = int(low.replace(",", "")) if low else 0
-        high_num = int(high.replace(",", "")) if high else 0
-    except ValueError:
-        return ""
-
-    # 時給判定: salary_form or 値が小さい（<10000）
-    is_hourly = "時給" in form or "時間給" in form or (
-        "その他" in form and low_num > 0 and low_num < 10000
-    )
-
-    if is_hourly:
-        if low_num and high_num and low_num != high_num:
-            return f"時給{low_num:,}〜{high_num:,}円"
-        elif high_num:
-            return f"時給{high_num:,}円"
-        elif low_num:
-            return f"時給{low_num:,}円〜"
-        return ""
-
-    # 月給（万円単位に変換）
-    if low_num and high_num:
-        low_man = low_num / 10000
-        high_man = high_num / 10000
-        if abs(low_man - high_man) < 0.5:
-            return f"月給{low_man:.1f}万円"
-        return f"月給{low_man:.0f}〜{high_man:.0f}万円"
-    elif high_num:
-        return f"月給{high_num/10000:.0f}万円"
-    elif low_num:
-        return f"月給{low_num/10000:.0f}万円〜"
-    return ""
-
-
-def salary_sort_key(job):
-    """ソート用: 正社員優先、給与高い順"""
-    emp = job.get("employment_type", "")
-    type_score = 0 if "正社員" == emp else 1 if "正社員以外" in emp else 2
-    low = job.get("salary_low", "0")
-    try:
-        val = int(low.replace(",", "")) if low else 0
-    except ValueError:
-        val = 0
-    return (type_score, -val)
-
-
-def format_job_string(job):
-    """1件の求人を EXTERNAL_JOBS のテキスト形式に変換"""
-    parts = []
-
-    # 事業所名: 給与/条件/勤務地/特徴
-    employer = job.get("employer", "").strip()
-    if not employer:
-        return None
-
-    # 給与
-    salary = format_salary(job)
+    # 賞与
+    bon = details.get("bonus", "なし")
 
     # 雇用形態
-    emp_type = job.get("employment_type", "")
-    full_part = job.get("full_part", "")
+    emp = details.get("emp_type", "")
 
-    # 勤務時間
-    shifts = []
-    for key in ["shift1", "shift2", "shift3"]:
-        s = job.get(key, "")
-        if s:
-            shifts.append(s)
-    shift_text = ""
-    if len(shifts) == 1 and "08:" in shifts[0] and "17:" in shifts[0]:
-        shift_text = "日勤"
-    elif len(shifts) >= 2:
-        shift_text = "シフト制"
+    # 福利厚生
+    wel = details.get("welfare", "")
+    if wel == "特記なし":
+        wel = ""
 
-    # 最寄り駅
-    station = job.get("work_station_text", "") or job.get("work_station", "")
-    # 長すぎる場合は切り詰め
-    if len(station) > 20:
-        station = station[:20]
+    # スコア内訳 (details内のスコアは再計算が必要 → ranked.jsonのscoreを使う)
+    # hellowork_rank.pyのscore_job()の配点に基づいてdetailsから再構成
+    # → ranked.jsonにはスコア合計のみ保存されているので、ここで内訳も出す
+    # → 簡略化: detailsの値から逆算する
+    # スコア内訳 (breakdown: sal/hol/bon/emp/wel/loc)
+    bd = rj.get("breakdown", {})
 
-    # 休日（"107日" → "年休107日"、重複"日"防止）
-    holidays = job.get("annual_holidays", "").replace("日", "")
-    holiday_text = f"年休{holidays}日" if holidays else ""
+    obj = {
+        "n": rj.get("employer", "").strip(),
+        "t": rj.get("job_title", "").strip(),
+        "r": rj.get("rank", ""),
+        "s": rj.get("score", 0),
+        "d": {
+            "sal": bd.get("sal", 0),
+            "hol": bd.get("hol", 0),
+            "bon": bd.get("bon", 0),
+            "emp": bd.get("emp", 0),
+            "wel": bd.get("wel", 0),
+            "loc": bd.get("loc", 0),
+        },
+        "sal": sal,
+        "sta": sta,
+        "hol": hol,
+        "bon": bon,
+        "emp": emp,
+        "wel": wel,
+    }
+    return obj
 
-    # 託児所
-    childcare = job.get("childcare", "")
-    childcare_text = "託児所あり" if childcare and "あり" in childcare else ""
 
-    # 正社員登用
-    permanent = job.get("permanent_hire", "")
-    perm_text = "正社員登用あり" if permanent and "あり" in permanent else ""
+def format_js_object(obj):
+    """Pythonの辞書をJSオブジェクトリテラル文字列に変換"""
+    def js_val(v):
+        if isinstance(v, str):
+            escaped = v.replace('\\', '\\\\').replace('"', '\\"')
+            return f'"{escaped}"'
+        elif isinstance(v, (int, float)):
+            return str(v)
+        elif isinstance(v, dict):
+            inner = ",".join(f"{k}:{js_val(v2)}" for k, v2 in v.items())
+            return f"{{{inner}}}"
+        return '""'
 
-    # 組み立て
-    info_parts = []
-    if salary:
-        info_parts.append(salary)
-    if emp_type and "正社員" not in emp_type:
-        info_parts.append(emp_type)
-    if shift_text:
-        info_parts.append(shift_text)
-    if station:
-        info_parts.append(station)
-    if holiday_text:
-        info_parts.append(holiday_text)
-    if childcare_text:
-        info_parts.append(childcare_text)
-    if perm_text and "パート" in emp_type:
-        info_parts.append(perm_text)
-
-    if not info_parts:
-        return None
-
-    result = f"{employer}: {'/'.join(info_parts)}"
-    # 長すぎる場合は100文字で切り詰め
-    if len(result) > 120:
-        result = result[:117] + "..."
-    return result
+    parts = []
+    for k, v in obj.items():
+        parts.append(f'{k}:{js_val(v)}')
+    return "{" + ", ".join(parts) + "}"
 
 
 def main():
@@ -190,63 +114,76 @@ def main():
     parser.add_argument("--max-per-area", type=int, default=8, help="エリアあたり最大件数")
     args = parser.parse_args()
 
-    if not INPUT_FILE.exists():
-        print("❌ hellowork_nurse_jobs.json が見つかりません。先に hellowork_fetch.py を実行してください。")
+    # ランクデータ読み込み
+    if not RANKED_FILE.exists():
+        print("❌ hellowork_ranked.json が見つかりません。先に hellowork_rank.py を実行してください。")
         sys.exit(1)
 
-    with open(INPUT_FILE, encoding="utf-8") as f:
-        data = json.load(f)
+    with open(RANKED_FILE, encoding="utf-8") as f:
+        ranked_data = json.load(f)
 
-    jobs = data.get("jobs", [])
-    print(f"📦 入力: {len(jobs)}件の看護師求人")
+    ranked_jobs = ranked_data.get("jobs", [])
+    print(f"📦 入力: {len(ranked_jobs)}件のランク済み看護師求人")
 
-    # エリア別に分類（生データで保持）
-    area_jobs_raw = {}
-    area_jobs = {}
+    # エリア別に分類
+    area_jobs = {}  # area → [job_objects]
     unclassified = 0
-    for job in jobs:
-        area = classify_area(job)
+    for rj in ranked_jobs:
+        area = rj.get("area")
         if not area:
             unclassified += 1
             continue
-        if area not in area_jobs_raw:
-            area_jobs_raw[area] = []
-        area_jobs_raw[area].append(job)
+        if area not in area_jobs:
+            area_jobs[area] = []
+        area_jobs[area].append(rj)
 
-    # ソート（正社員優先・給与高い順）→ フォーマット → 重複除去
-    for area in area_jobs_raw:
-        sorted_jobs = sorted(area_jobs_raw[area], key=salary_sort_key)
-        seen_employers = set()
-        unique_jobs = []
-        for j in sorted_jobs:
-            formatted = format_job_string(j)
-            if not formatted:
+    # エリアごとにスコア順ソート → 事業所重複除去 → 上位N件
+    area_output = {}  # area → [job_object_dicts]
+    for area in area_jobs:
+        sorted_jobs = sorted(area_jobs[area], key=lambda j: -j.get("score", 0))
+        seen = set()
+        selected = []
+        for rj in sorted_jobs:
+            employer = rj.get("employer", "").strip()
+            if employer in seen:
                 continue
-            employer = formatted.split(":")[0].strip()
-            if employer not in seen_employers:
-                seen_employers.add(employer)
-                unique_jobs.append(formatted)
-        area_jobs[area] = unique_jobs[:args.max_per_area]
+            seen.add(employer)
+            obj = build_job_object(rj)
+            selected.append(obj)
+            if len(selected) >= args.max_per_area:
+                break
+        area_output[area] = selected
 
+    # サマリー表示
     print(f"📊 エリア別:")
-    total_classified = 0
-    for area in sorted(area_jobs.keys(), key=lambda a: -len(area_jobs[a])):
-        count = len(area_jobs[area])
-        total_classified += count
-        print(f"   {area}: {count}件")
+    total = 0
+    for area in sorted(area_output.keys(), key=lambda a: -len(area_output[a])):
+        count = len(area_output[area])
+        total += count
+        ranks = {}
+        for j in area_output[area]:
+            r = j["r"]
+            ranks[r] = ranks.get(r, 0) + 1
+        rank_str = " ".join(f"{r}:{c}" for r, c in sorted(ranks.items()))
+        print(f"   {area}: {count}件 ({rank_str})")
     print(f"   分類不能: {unclassified}件")
-    print(f"   合計: {total_classified}件")
+    print(f"   合計: {total}件")
 
     if args.json:
-        print(json.dumps(area_jobs, ensure_ascii=False, indent=2))
+        print(json.dumps(area_output, ensure_ascii=False, indent=2))
         return
 
     if args.dry_run:
         print("\n--- プレビュー（先頭3件/エリア）---")
-        for area, ajobs in sorted(area_jobs.items(), key=lambda x: -len(x[1])):
+        for area in AREA_ORDER:
+            if area not in area_output:
+                continue
             print(f"\n  【{area}】")
-            for j in ajobs[:3]:
-                print(f"    {j}")
+            for j in area_output[area][:3]:
+                print(f"    [{j['r']}ランク {j['s']}点] {j['n']}")
+                print(f"      {j['t']} | {j['sal']} | 賞与{j['bon']} | 休日{j['hol']} | {j['emp']}")
+                if j['wel']:
+                    print(f"      福利: {j['wel']}")
         return
 
     # worker.js の EXTERNAL_JOBS を更新
@@ -257,38 +194,33 @@ def main():
     worker_content = WORKER_JS.read_text(encoding="utf-8")
 
     # EXTERNAL_JOBS ブロックを検索して置換
-    # パターン: "// ---------- 外部公開求人データ" から "};" + 空行まで
     pattern = r'// ---------- 外部公開求人データ.*?\n.*?const EXTERNAL_JOBS = \{.*?\n\};\n'
     match = re.search(pattern, worker_content, re.DOTALL)
     if not match:
         print("❌ EXTERNAL_JOBS ブロックが見つかりません")
         sys.exit(1)
 
-    # 新しい EXTERNAL_JOBS を生成
+    # 新しい EXTERNAL_JOBS を生成（オブジェクト配列形式）
     today = datetime.now().strftime("%Y-%m-%d")
     lines = [f'// ---------- 外部公開求人データ（ハローワークAPI {today}更新） ----------']
+    lines.append('// 各求人: n=事業所名, t=職種, r=ランク(S/A/B/C/D), s=スコア(100点満点),')
+    lines.append('//   sal=給与, sta=最寄り駅, hol=年間休日, bon=賞与, emp=雇用形態, wel=福利厚生')
+    lines.append('// スコア配点: 年収30点 + 休日20点 + 賞与15点 + 雇用安定15点 + 福利10点 + 立地10点')
     lines.append('const EXTERNAL_JOBS = {')
     lines.append('  nurse: {')
 
-    # エリア順序を既存の順序に合わせる
-    area_order = ["横浜", "川崎", "相模原", "横須賀", "鎌倉", "藤沢",
-                  "茅ヶ崎", "平塚", "大磯", "秦野", "伊勢原", "厚木",
-                  "大和", "海老名", "小田原", "南足柄・開成"]
-
-    for area in area_order:
-        if area not in area_jobs or not area_jobs[area]:
+    for area in AREA_ORDER:
+        if area not in area_output or not area_output[area]:
             continue
         lines.append(f'    "{area}": [')
-        for j in area_jobs[area]:
-            # エスケープ
-            escaped = j.replace('\\', '\\\\').replace('"', '\\"')
-            lines.append(f'      "{escaped}",')
+        for obj in area_output[area]:
+            js_str = format_js_object(obj)
+            lines.append(f'      {js_str},')
         lines.append('    ],')
 
     lines.append('  },')
 
-    # PT求人はハローワークデータにないので既存のまま維持
-    # → 既存のptブロックを抽出
+    # PT求人は既存のまま維持
     pt_pattern = r'  pt: \{.*?\n  \},'
     pt_match = re.search(pt_pattern, worker_content, re.DOTALL)
     if pt_match:
@@ -303,7 +235,7 @@ def main():
 
     WORKER_JS.write_text(new_content, encoding="utf-8")
     print(f"\n✅ {WORKER_JS} 更新完了（{today}）")
-    print(f"   nurse: {sum(len(v) for v in area_jobs.values())}件 ({len(area_jobs)}エリア)")
+    print(f"   nurse: {total}件 ({len(area_output)}エリア)")
 
 
 if __name__ == "__main__":

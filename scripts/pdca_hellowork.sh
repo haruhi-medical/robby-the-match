@@ -38,8 +38,18 @@ else
     exit 1
 fi
 
-# Step 2: worker.js EXTERNAL_JOBS更新
-log "Step 2: worker.js更新中..."
+# Step 2: 求人ランク分け
+log "Step 2: 求人ランク分け中..."
+if $PYTHON scripts/hellowork_rank.py --summary >> "$LOG_FILE" 2>&1; then
+    S_COUNT=$(python3 -c "import json; d=json.load(open('data/hellowork_ranked.json')); print(d['rank_counts'].get('S',0))" 2>/dev/null || echo "?")
+    A_COUNT=$(python3 -c "import json; d=json.load(open('data/hellowork_ranked.json')); print(d['rank_counts'].get('A',0))" 2>/dev/null || echo "?")
+    log "✅ ランク分け完了: S=${S_COUNT}件 A=${A_COUNT}件"
+else
+    log "⚠️ ランク分け失敗（続行）"
+fi
+
+# Step 3: worker.js EXTERNAL_JOBS更新
+log "Step 3: worker.js更新中..."
 if $PYTHON scripts/hellowork_to_jobs.py >> "$LOG_FILE" 2>&1; then
     log "✅ worker.js更新完了"
 else
@@ -48,13 +58,13 @@ else
     exit 1
 fi
 
-# Step 3: git commit + push
-log "Step 3: git commit & push..."
+# Step 4: git commit + push
+log "Step 4: git commit & push..."
 cd "$PROJECT_DIR"
-if git diff --quiet api/worker.js data/hellowork_nurse_jobs.json 2>/dev/null; then
+if git diff --quiet api/worker.js data/hellowork_nurse_jobs.json data/hellowork_ranked.json 2>/dev/null; then
     log "⏭️ 変更なし、スキップ"
 else
-    git add api/worker.js data/hellowork_nurse_jobs.json
+    git add api/worker.js data/hellowork_nurse_jobs.json data/hellowork_ranked.json
     git commit -m "chore: ハローワーク求人データ自動更新 $(date '+%Y-%m-%d') (${NURSE_COUNT}件)" \
         --author="Hellowork Bot <bot@quads-nurse.com>" \
         >> "$LOG_FILE" 2>&1
@@ -63,8 +73,8 @@ else
     log "✅ git push完了"
 fi
 
-# Step 4: Cloudflare Worker デプロイ
-log "Step 4: Cloudflare Worker デプロイ中..."
+# Step 5: Cloudflare Worker デプロイ
+log "Step 5: Cloudflare Worker デプロイ中..."
 cd "$PROJECT_DIR"
 
 # _redirectsが邪魔するので一時退避
@@ -86,6 +96,6 @@ if [ -n "$REDIRECTS_BACKUP" ] && [ -f "_redirects.bak" ]; then
     mv _redirects.bak _redirects
 fi
 
-# Step 5: Slack通知
+# Step 6: Slack通知
 log "=== パイプライン完了 ==="
-notify_slack "✅ ハローワーク求人自動更新完了: 看護師${NURSE_COUNT}件 → Worker デプロイ済み"
+notify_slack "✅ ハローワーク求人自動更新完了: 看護師${NURSE_COUNT}件（S:${S_COUNT} A:${A_COUNT}）→ Worker デプロイ済み"
