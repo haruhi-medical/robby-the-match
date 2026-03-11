@@ -1,5 +1,5 @@
 # 神奈川ナース転職 状態ファイル
-# 最終更新: 2026-03-11 10:00 by 競合監視
+# 最終更新: 2026-03-11 15:00 by コンテンツ生成
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -9,7 +9,7 @@
 ## 現在のフェーズ
 - マイルストーン: **Week 3**（2026-03-03〜03-09）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: **コンテンツ戦略v2.0 + SNS自動投稿パイプライン稼働中 + Meta API要再設定**
+- 状態: **シン・AI転職 Phase1 LP リビルド完了**
 
 ## KPI
 | 指標 | 目標 | 現在 | 状態 |
@@ -39,6 +39,9 @@
 - **TikTok自動投稿パイプライン**: tiktok_post.py + pdca_sns_post.sh（7本投稿済み + 57本キュー待ち）
 - **Instagram投稿開始**: auto_post.py v2.1 + generate_carousel.py Instagram対応済み（1本投稿済み: https://www.instagram.com/p/DVbDfg0k6vb/）
 - **構築済みツール**: image_humanizer.py、instagram_engage.py、video_text_animator.py、tiktok_analytics v3.0
+- **シン・AI転職 LP**: 全面リビルド（ミニ診断UI + jobs-summary.json + shindan.js）
+- **SEO修正**: sitemap noindex削除、JobPosting削除、parentOrganization一括削除(63ファイル)
+- **診断CTA一括挿入**: area/guide/blog 全68ページ
 - **コンテンツ戦略v2.0**: robby_character.py v2.0 + ai_content_engine.py MIX改定（あるある35%/給与20%/業界裏側15%/地域15%/転職10%/トレンド5%）
 
 ## SNS状態
@@ -102,11 +105,11 @@
 ## 次にやるべきこと（優先順）
 
 ### 🔴 即座に実行
-1. ~~**コンテンツ戦略v2.0移行**~~: ✅ 完了（robby_character.py v2.0 + ai_content_engine.py改定）
-2. **新戦略でコンテンツ再生成**: キュー内の旧コンテンツを新ルールで差し替え
-3. **Meta広告**: Facebookページ承認待ち → 承認後にPixel設定 → 広告開始
-4. **Instagramオーガニック投稿増やす**: 週3本ペースへ
-5. ~~**Instagram投稿頻度を上げる**~~: ✅ cron追加済み（毎日17:30、ランダム遅延付き）
+1. **Search Console**: 優先10URLのインデックス登録リクエスト（手動）
+2. **TikTokプロフィール更新**: 名前「神奈川ナース転職｜シン・AI転職」、リンクをLP URLに変更（手動）
+3. **Instagramプロフィール更新**: 同上（手動）
+4. **TikTok投稿キュー差し替え**: 上位20件のCTAを「30秒AI診断」に変更
+5. **LINE Bot初回メッセージ改修**: UTMパラメータ対応（worker.js）
 
 ### 🟢 自動化済み（人間の操作不要）
 - TikTok自動投稿: pdca_sns_post.sh（12:00/17:00/18:00/20:00/21:00）
