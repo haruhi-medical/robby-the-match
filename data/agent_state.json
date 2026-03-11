@@ -4,9 +4,9 @@
     "health_monitor": "2026-03-11T09:00:50",
     "competitor_analyst": "2026-03-11T10:00:16",
     "content_creator": "2026-03-11T15:00:45",
-    "daily_reviewer": "2026-03-10T23:00:31",
+    "daily_reviewer": "2026-03-11T23:00:01",
     "weekly_strategist": "2026-03-08T06:01:00",
-    "sns_poster": "2026-03-10T12:09:31",
+    "sns_poster": "2026-03-11T21:11:10",
     "ai_marketing_orchestrator": "2026-03-11T08:01:22",
     "weekly_content_planner": "2026-03-08T05:00:03"
   },
@@ -15,7 +15,7 @@
     "health_monitor": "completed",
     "competitor_analyst": "completed",
     "content_creator": "completed",
-    "daily_reviewer": "completed",
+    "daily_reviewer": "running",
     "weekly_strategist": "completed",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
@@ -48,10 +48,10 @@
       "サービス紹介": 0,
       "トレンド": 0
     },
-    "totalPostsThisWeek": 13,
+    "totalPostsThisWeek": 14,
     "lastDeployTimestamp": null,
     "knownIssues": [],
-    "lastAnalysis": "2026-03-10T23:00:17",
+    "lastAnalysis": "2026-03-11T23:00:18",
     "recommendations": [
       "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。",
@@ -69,7 +69,7 @@
       "highPerformingPatterns": [],
       "failedPatterns": [],
       "contentIdCounter": 0,
-      "lastAnalysisDate": "2026-03-10",
+      "lastAnalysisDate": "2026-03-11",
       "bestHookPatterns": [],
       "avgMetrics": {
         "views": 0,
@@ -97,13 +97,13 @@
       "trendingTopics": []
     },
     "sns_poster": {
-      "totalPosted": 13,
+      "totalPosted": 14,
       "lastPostedContentId": null,
       "postingMethod": "tiktok-uploader",
       "authStatus": "cookie_required",
       "queueFile": "data/posting_queue.json",
       "averageViews": 0,
-      "lastAnalysisDate": "2026-03-10"
+      "lastAnalysisDate": "2026-03-11"
     },
     "weekly_content_planner": {
       "lastWeeklyRun": "2026-03-01",

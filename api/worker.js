@@ -742,11 +742,11 @@ function buildSystemPrompt(userMsgCount, profession, area, experience) {
         for (const job of jobs) {
           // オブジェクト形式（nurse）とテキスト形式（pt）両対応
           if (typeof job === "object") {
-            const rankTag = (job.r === "S" || job.r === "A") ? `[${job.r}ランク${job.s}点] ` : `[${job.r}ランク${job.s}点] `;
-            externalJobsInfo += `- ${rankTag}${job.n}: ${job.sal}/${job.emp || "正社員"}/賞与${job.bon}/年休${job.hol}`;
+            // Bランク以上のみ表示（C/Dは求職者に見せない）
+            if (job.r === "C" || job.r === "D") continue;
+            externalJobsInfo += `- ${job.n}: ${job.sal}/${job.emp || "正社員"}/賞与${job.bon}/年休${job.hol}`;
             if (job.sta) externalJobsInfo += `/${job.sta}`;
             if (job.wel) externalJobsInfo += `（${job.wel}）`;
-            if (job.d) externalJobsInfo += ` [内訳:年収${job.d.sal}/30 休日${job.d.hol}/20 賞与${job.d.bon}/15 雇用${job.d.emp}/15 福利${job.d.wel}/10 立地${job.d.loc}/10]`;
             externalJobsInfo += "\n";
           } else {
             externalJobsInfo += `- ${job}\n`;
@@ -2976,10 +2976,11 @@ function buildMatchingMessages(entry) {
   let externalInfo = "";
   for (const ak of areaKeys) {
     if (EXTERNAL_JOBS.nurse[ak]) {
-      externalInfo += EXTERNAL_JOBS.nurse[ak].slice(0, 3).map(j => {
+      // Bランク以上のみマッチング（C/Dは除外）
+      const goodJobs = EXTERNAL_JOBS.nurse[ak].filter(j => typeof j !== "object" || (j.r !== "C" && j.r !== "D"));
+      externalInfo += goodJobs.slice(0, 3).map(j => {
         if (typeof j === "object") {
-          const tag = `[${j.r}${j.s}点] `;
-          return `・${tag}${j.n}: ${j.sal}/賞与${j.bon}/年休${j.hol}`;
+          return `・${j.n}: ${j.sal}/賞与${j.bon}/年休${j.hol}`;
         }
         return `・${j}`;
       }).join("\n") + "\n";
