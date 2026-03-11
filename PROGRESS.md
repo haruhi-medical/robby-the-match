@@ -1400,3 +1400,47 @@ SNS自動投稿: IG済12件 / 未投稿28件 (IG=0, TK=0)
 - 例えば、看護師求人ページから転職ガイドページへのリンクを追加し、ユーザーが求人情報とともに転職に関する詳細な情報にアクセスできるようにする。
 - また、ブログ記事やガイドページから関連する地域別ページへのリンクを追加し、ユーザーが地域別の詳細情報にアクセスできるようにする。
 
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-03-11 SEO改善
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=13 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（07:00:01）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=13 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（07:30:47）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=13 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### pdca_ai_marketing（08:01:20）
+AI Marketing PDCA:
+  Queue: pending=57 ready=57 posted=13 failed=0
+  Generated today: 0
+  Quality issues: 57
+  Status: Healthy
+
+### 🔎 競合・SEOギャップ分析（10:00:01）
+1. カバレッジの穴：現在のページ数は地域別ページが22ページ、転職ガイドが44ページ、ブログが19記事ですが、対象エリアである神奈川県西部のすべての地域をカバーしているかどうか、また、看護師転職に関するすべてのガイドテーマを網羅しているかどうかは不明です。特に、小田原・秦野・平塚・南足柄・伊勢原などの地域や、看護師転職の具体的な手順や、病院での仕事の内容などのガイドテーマが不足している可能性があります。
+
+2. 改善優先度の高いアクション3つ：
+   - 現在のページの内容を再検討し、看護師転職に関連するすべての地域とテーマを網羅するための追加ページを作成する。
+   - 内部リンク構造を強化し、ユーザーが関連する情報を容易に探せるようにする。
+   - コンテンツの質を高め、ユーザーにとってより有用な情報を提供するために、専門家のインタビューや、看護師転職の実践的なアドバイスを含む記事を作成する。
+
+3. 次に作るべきページ2-3本の提案：
+   - タイトル案1：「小田原市の看護師転職ガイド：求人情報と転職手順」
+   - タイトル案2：「看護師転職のための病院選び：神奈川県西部の病院紹介」
+   - タイトル案3：「看護師転職のためのスキルアップ方法：研修や資格取得のガイド」
+
