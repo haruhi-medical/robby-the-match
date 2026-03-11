@@ -37,6 +37,13 @@ from typing import Optional
 
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
+# Load CTA template (シン・AI転職)
+_cta_template_path = Path(__file__).parent.parent / "content" / "templates" / "cta_shin_ai.json"
+CTA_TEMPLATE = {}
+if _cta_template_path.exists():
+    with open(_cta_template_path) as _f:
+        CTA_TEMPLATE = json.load(_f)
+
 try:
     import numpy as np
     HAS_NUMPY = True
@@ -1499,9 +1506,9 @@ def generate_ig_cta_slide(
     cta_font = load_font(bold=True, size=40)
     cta_line_h = int(40 * LINE_HEIGHT_RATIO)
     if cta_type == "hard":
-        cta_text = "プロフィールのリンクから\nLINE登録してね！"
+        cta_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる") + "\n" + CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")
     else:
-        cta_text = "気になったら\nプロフィールをチェック！"
+        cta_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる") + "\n" + CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")
 
     for line in cta_text.split("\n"):
         ltw, _ = measure_text(line, cta_font)
@@ -1513,7 +1520,7 @@ def generate_ig_cta_slide(
 
     # -- Brand footer --
     brand_font = load_font(bold=True, size=32)
-    brand_text = "手数料10%で、あなたの転職をもっと自由に。"
+    brand_text = CTA_TEMPLATE.get("brand", "シン・AI転職") + " — " + CTA_TEMPLATE.get("tagline", "早い × 簡単 × 24時間")
     btw, _ = measure_text(brand_text, brand_font)
     if btw > cw - 80:
         brand_lines = wrap_text_jp(brand_text, brand_font, cw - 80)
@@ -2041,7 +2048,7 @@ def generate_slide_cta(
 
     # -- English tagline --
     tag_font = load_font(bold=False, size=28)
-    tag_text = "NURSE ROBBY"
+    tag_text = CTA_TEMPLATE.get("brand", "シン・AI転職") + " — " + CTA_TEMPLATE.get("tagline", "早い × 簡単 × 24時間")
     tw, _ = measure_text(tag_text, tag_font)
     tag_x = center_x - tw // 2
     tag_y = logo_y + logo_font_size + 18
@@ -2081,10 +2088,10 @@ def generate_slide_cta(
             shadow_offset=1, outline_width=1,
         )
 
-        # CTA Button: "LINEで無料相談"
+        # CTA Button
         btn_y = badge_y + badge_h + 80
         btn_font = load_font(bold=True, size=42)
-        btn_text = "LINEで無料相談"
+        btn_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる")
         btw2, bth2 = measure_text(btn_text, btn_font)
         btn_pad_x = 70
         btn_pad_y = 32
@@ -2125,7 +2132,7 @@ def generate_slide_cta(
         # Sub text
         sub_y = btn_y + btn_h + 45
         sub_font = load_font(bold=False, size=28)
-        sub_text = "プロフィールのリンクから"
+        sub_text = CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")
         tw, _ = measure_text(sub_text, sub_font)
         draw.text((center_x - tw // 2, sub_y), sub_text, fill=(*COLOR_WHITE[:3], 170), font=sub_font)
 
@@ -2977,9 +2984,9 @@ def _v4_generate_cta(
     draw_text_shadow(draw, center_x - tw // 2, logo_y, logo_text, logo_font,
                      fill=COLOR_WHITE, shadow_offset=3)
 
-    # English tagline
+    # Brand tagline
     tag_font = load_font(bold=False, size=26)
-    tag_text = "NURSE ROBBY"
+    tag_text = CTA_TEMPLATE.get("brand", "シン・AI転職") + " — " + CTA_TEMPLATE.get("tagline", "早い × 簡単 × 24時間")
     tw, _ = measure_text(tag_text, tag_font)
     tag_y = logo_y + 70
     draw.text((center_x - tw // 2, tag_y), tag_text, fill=(*COLOR_WHITE[:3], 150), font=tag_font)
@@ -3012,11 +3019,11 @@ def _v4_generate_cta(
         draw.text((badge_x + badge_pad_x, badge_y + badge_pad_y),
                   badge_text, fill=COLOR_WHITE, font=badge_font)
 
-        # LINE green button
+        # CTA green button
         LINE_GREEN = (6, 199, 85)
         btn_y = badge_y + badge_h + 60
         btn_font = load_font(bold=True, size=42, rounded=True)
-        btn_text = "LINEで無料相談"
+        btn_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる")
         btw2, bth2 = measure_text(btn_text, btn_font)
         btn_pad_x, btn_pad_y = 65, 30
         btn_w = btw2 + btn_pad_x * 2
@@ -3051,7 +3058,7 @@ def _v4_generate_cta(
         # Sub text
         sub_y = btn_y + btn_h + 40
         sub_font = load_font(bold=False, size=26, rounded=True)
-        sub_text = "プロフィールのリンクから"
+        sub_text = CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")
         tw, _ = measure_text(sub_text, sub_font)
         draw.text((center_x - tw // 2, sub_y), sub_text,
                   fill=(*COLOR_WHITE[:3], 170), font=sub_font)
@@ -3880,8 +3887,8 @@ def generate_carousel_backgrounds(
     bg_paths.append(str(p_cta))
 
     cta_texts = {
-        "soft": ["保存してね", "フォローで続き見れるよ"],
-        "hard": ["LINEで相談してみて", "プロフのリンクから"],
+        "soft": ["保存してね", CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")],
+        "hard": [CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる"), CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")],
     }
     cta = cta_texts.get(cta_type, cta_texts["soft"])
 
