@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-11T21:09:52.531164",
+  "updated": "2026-03-12T17:13:37.116750",
   "posts": [
     {
       "id": 1,
@@ -3600,9 +3600,9 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "video_created",
+      "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0305_03_20260311.mp4",
-      "posted_at": null,
+      "posted_at": "2026-03-11T21:11:09.120740",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -3612,7 +3612,9 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8,
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 97,
@@ -3620,7 +3622,7 @@
       "batch": "ai_batch_20260305_1144",
       "slide_dir": "content/generated/ai_batch_20260305_1144/ai_ある_0305_01",
       "json_path": "content/generated/ai_batch_20260305_1144/ai_ある_0305_01.json",
-      "caption": "夜勤明け、神奈川の電車で座る暇ない？\n\n看護師5年目は手取り24万。夜勤月8回だと時給は?\n\n気になったらプロフのリンクから無料で市場価値を調べてみて",
+      "caption": "夜勤明け、神奈川の電車で座る暇ない？\n\n看護師5年目は手取り24万。夜勤月8回だと時給は?\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川県",
         "#看護師",
@@ -3629,8 +3631,8 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0305_01_20260312.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -3649,7 +3651,7 @@
       "batch": "ai_batch_20260305_1144",
       "slide_dir": "content/generated/ai_batch_20260305_1144/ai_ある_0305_02",
       "json_path": "content/generated/ai_batch_20260305_1144/ai_ある_0305_02.json",
-      "caption": "神奈川県の人気看護師転職情報\n\n看護師5年目は手取り24万？\n\nこの情報、知らなかった人いる？保存しておくと、転職する時に役立つよ。",
+      "caption": "神奈川県の人気看護師転職情報\n\n看護師5年目は手取り24万？\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#看護師転職",
         "#神奈川県",
@@ -3678,7 +3680,7 @@
       "batch": "ai_batch_20260305_1144",
       "slide_dir": "content/generated/ai_batch_20260305_1144/ai_給与_0305_03",
       "json_path": "content/generated/ai_batch_20260305_1144/ai_給与_0305_03.json",
-      "caption": "神奈川県の看護師5年目、手取り24万って普通？\n\n看護師の価値はどれくらいなのかな？\n\nこの情報、知らなかった人いる？",
+      "caption": "神奈川県の看護師5年目、手取り24万って普通？\n\n看護師の価値はどれくらいなのかな？\n\nこの情報、知らなかった人いる？\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川県",
         "#看護師",
@@ -3707,7 +3709,7 @@
       "batch": "ai_batch_20260305_1144",
       "slide_dir": "content/generated/ai_batch_20260305_1144/ai_業界_0305_04",
       "json_path": "content/generated/ai_batch_20260305_1144/ai_業界_0305_04.json",
-      "caption": "神奈川県の看護師は77,188人\n\n看護師5年目、時給1,500円って普通?\n\nこの情報、知らなかった人いる？保存しておくと、転職する時に役立つよ",
+      "caption": "神奈川県の看護師は77,188人\n\n看護師5年目、時給1,500円って普通?\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川県",
         "#看護師転職",
@@ -3736,7 +3738,7 @@
       "batch": "ai_batch_20260305_1144",
       "slide_dir": "content/generated/ai_batch_20260305_1144/ai_地域_0305_05",
       "json_path": "content/generated/ai_batch_20260305_1144/ai_地域_0305_05.json",
-      "caption": "神奈川県の看護師\n\n時給1,500円で夜勤を続ける理由\n\n同じ状況の看護師さんにシェアして",
+      "caption": "神奈川県の看護師\n\n時給1,500円で夜勤を続ける理由\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川看護師",
         "#ナースジョブ",
@@ -3765,7 +3767,7 @@
       "batch": "ai_batch_20260305_1144",
       "slide_dir": "content/generated/ai_batch_20260305_1144/ai_転職_0305_06",
       "json_path": "content/generated/ai_batch_20260305_1144/ai_転職_0305_06.json",
-      "caption": "看護師5年目、時給1,500円なら?\n\n夜勤明け、電車で座る暇ある？\n\nこの情報、100人中80人が知らなかった。わかったらいいねして教えてね",
+      "caption": "看護師5年目、時給1,500円なら?\n\n夜勤明け、電車で座る暇ある？\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川",
         "#看護師",
@@ -3794,7 +3796,7 @@
       "batch": "ai_batch_20260305_1144",
       "slide_dir": "content/generated/ai_batch_20260305_1144/ai_転職_0305_07",
       "json_path": "content/generated/ai_batch_20260305_1144/ai_転職_0305_07.json",
-      "caption": "神奈川県の看護師さん\n\n看護師5年目で時給1,500円、コンビニと同じって本当?\n\nこの表、保存しといて損ないよ",
+      "caption": "神奈川県の看護師さん\n\n看護師5年目で時給1,500円、コンビニと同じって本当?\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川県",
         "#看護師",
@@ -3823,7 +3825,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_01",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_01.json",
-      "caption": "神奈川の看護師さん\n\n転職市場の実態\n\nプロフのリンクから相談できるよ",
+      "caption": "神奈川の看護師さん\n\n転職市場の実態\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川看護師",
         "#ナース転職",
@@ -3852,7 +3854,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_02",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_02.json",
-      "caption": "看護師さん、退職届け出して何があった？\n\n神奈川県の看護師の現状\n\n手数料10%の転職サポート、詳しくはプロフのリンクから",
+      "caption": "看護師さん、退職届け出して何があった？\n\n神奈川県の看護師の現状\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川看護師",
         "#ナース転職",
@@ -3881,7 +3883,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_03",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_03.json",
-      "caption": "神奈川の看護師5年目で手取り24万って普通なの？\n\n夜勤明けの電車は 混雑してて座る暇ないよ。\n\nこの表、保存しといて損ないよ",
+      "caption": "神奈川の看護師5年目で手取り24万って普通なの？\n\n夜勤明けの電車は 混雑してて座る暇ないよ。\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川",
         "#看護師",
@@ -3910,7 +3912,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_ある_0305_04",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_ある_0305_04.json",
-      "caption": "看護師5年目で時給1,500円って...\n\n夜勤明け、電車の中で見る景色は神奈川の海か山か\n\n同じ状況の看護師さんも多いんだよね\n保存しておくと、転職する時に役立つよ",
+      "caption": "看護師5年目で時給1,500円って...\n\n夜勤明け、電車の中で見る景色は神奈川の海か山か\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川看護師",
         "#ナースライフ",
@@ -3939,7 +3941,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_給与_0305_05",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_給与_0305_05.json",
-      "caption": "夜勤手当、全部使ってない？\n\n横浜市在住の看護師さん、夜勤明けは電車で帰る途中に、夜勤手当が全部使えてないって考えるよね。\n\n同じ状況の看護師さんに送ってあげて",
+      "caption": "夜勤手当、全部使ってない？\n\n横浜市在住の看護師さん、夜勤明けは電車で帰る途中に、夜勤手当が全部使えてないって考えるよね。\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#看護師",
         "#夜勤手当",
@@ -3968,7 +3970,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_給与_0305_06",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_給与_0305_06.json",
-      "caption": "看護師5年目で手取り24万って普通なの？\n\n夜勤ありの看護師5年目は、実際の手取りは22-26万。\n\n保存しておくと、転職する時に役立つよ。",
+      "caption": "看護師5年目で手取り24万って普通なの？\n\n夜勤ありの看護師5年目は、実際の手取りは22-26万。\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川県",
         "#看護師転職",
@@ -3997,7 +3999,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_業界_0305_07",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_業界_0305_07.json",
-      "caption": "神奈川の看護師さん\n\n看護師5年目で時給1,500円って...\n\nわかる！って人はいいね押して",
+      "caption": "神奈川の看護師さん\n\n看護師5年目で時給1,500円って...\n\nわかる！って人はいいね押して\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川",
         "#看護師",
@@ -4026,7 +4028,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_業界_0305_08",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_業界_0305_08.json",
-      "caption": "看護師1人の紹介で135万払っちゃうの？\n\n看護師の紹介料って...\n\n同じ状況の看護師さんにシェアしてあげて",
+      "caption": "看護師1人の紹介で135万払っちゃうの？\n\n看護師の紹介料って...\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川",
         "#看護師",
@@ -4055,7 +4057,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_地域_0305_09",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_地域_0305_09.json",
-      "caption": "神奈川の看護師の夜勤\n\nコンビニバイトと時給同じ？\n\n同じ状況の看護師さんに送ってあげて",
+      "caption": "神奈川の看護師の夜勤\n\nコンビニバイトと時給同じ？\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#秦野",
         "#看護師",
@@ -4084,7 +4086,7 @@
       "batch": "ai_batch_20260305_1332",
       "slide_dir": "content/generated/ai_batch_20260305_1332/ai_地域_0305_10",
       "json_path": "content/generated/ai_batch_20260305_1332/ai_地域_0305_10.json",
-      "caption": "神奈川と小田原の看護師手取り、24万差って本当?\n\n看護師5年目で手取り24万って普通なの?\n\nこの情報、保存しておくと、転職する時に役立つよ",
+      "caption": "神奈川と小田原の看護師手取り、24万差って本当?\n\n看護師5年目で手取り24万って普通なの?\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#看護師",
         "#地域ネタ",
@@ -4113,7 +4115,7 @@
       "batch": "ai_batch_20260305_1337",
       "slide_dir": "content/generated/ai_batch_20260305_1337/ai_ある_0305_01",
       "json_path": "content/generated/ai_batch_20260305_1337/ai_ある_0305_01.json",
-      "caption": "看護師5年目で手取り24万、普通?\n夜勤明けの神奈川の電車、座る暇ある?\nロビーは手数料10%で転職サポートしてるよ\n気になる人はプロフのリンクから",
+      "caption": "30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川",
         "#看護師",
@@ -4142,7 +4144,7 @@
       "batch": "ai_batch_20260305_1337",
       "slide_dir": "content/generated/ai_batch_20260305_1337/ai_ある_0305_02",
       "json_path": "content/generated/ai_batch_20260305_1337/ai_ある_0305_02.json",
-      "caption": "神奈川の看護師さん、時給1,500円って知ってた?\n\n看護師の市場価値を高めて、病院の負担も減る\n\n気になる人はプロフのリンクから相談できるよ",
+      "caption": "神奈川の看護師さん、時給1,500円って知ってた?\n\n看護師の市場価値を高めて、病院の負担も減る\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#神奈川",
         "#看護師",
@@ -4171,7 +4173,7 @@
       "batch": "ai_batch_20260305_1337",
       "slide_dir": "content/generated/ai_batch_20260305_1337/ai_ある_0305_03",
       "json_path": "content/generated/ai_batch_20260305_1337/ai_ある_0305_03.json",
-      "caption": "夜勤明け、電車で座る暇ある？\n\n看護師5年目は月8万減る？\n\nこの情報、知らなかった人いる？",
+      "caption": "夜勤明け、電車で座る暇ある？\n\n看護師5年目は月8万減る？\n\nこの情報、知らなかった人いる？\n\n30秒AI診断であなたの求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
         "#看護師",
         "#神奈川ナース転職",

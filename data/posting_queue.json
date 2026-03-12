@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-12T15:00:46.887402",
+  "updated": "2026-03-12T17:14:45.443960",
   "posts": [
     {
       "id": 1,
@@ -3631,9 +3631,9 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
-      "posted_at": null,
+      "status": "posted",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0305_01_20260312.mp4",
+      "posted_at": "2026-03-12T17:14:45.443948",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -3643,7 +3643,9 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8,
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 98,

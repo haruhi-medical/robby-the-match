@@ -208,5 +208,19 @@
     "timestamp": "2026-03-11T21:06:46.416033",
     "status": "error",
     "error": "No slides found"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0301_02",
+    "timestamp": "2026-03-12T17:10:40.228725",
+    "status": "error",
+    "error": "No slides found"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0301_02",
+    "timestamp": "2026-03-12T17:48:44.865209",
+    "status": "error",
+    "error": "No slides found"
   }
 ]
