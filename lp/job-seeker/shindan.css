@@ -1,0 +1,622 @@
+/**
+ * 神奈川ナース転職 — 転職診断UI スタイル
+ * LP requires: <link rel="stylesheet" href="shindan.css"> before </head>
+ */
+
+/* ============================
+   CSS Custom Properties
+   ============================ */
+:root {
+  --sd-teal: #1a7f64;
+  --sd-teal-light: #e8f5f0;
+  --sd-teal-hover: #15664f;
+  --sd-teal-glow: rgba(26, 127, 100, 0.15);
+  --sd-teal-border: rgba(26, 127, 100, 0.25);
+  --sd-bg: linear-gradient(170deg, #f0faf7 0%, #ffffff 50%, #f8fffe 100%);
+  --sd-text: #1a1a2e;
+  --sd-text-sub: #666;
+  --sd-card-bg: #fff;
+  --sd-radius: 16px;
+  --sd-radius-sm: 10px;
+  --sd-shadow: 0 4px 24px rgba(26, 127, 100, 0.08);
+  --sd-shadow-hover: 0 8px 32px rgba(26, 127, 100, 0.14);
+  --sd-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sd-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+}
+
+/* ============================
+   Container
+   ============================ */
+#shindan-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 320px;
+}
+
+/* ============================
+   Step Wrapper & Slide Transitions
+   ============================ */
+.shindan-step {
+  position: relative;
+  padding: 8px 0;
+  will-change: transform, opacity;
+  animation: sd-slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes sd-slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sd-slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+}
+
+.shindan-step.slide-out {
+  animation: sd-slideOut 0.3s cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+}
+
+/* ============================
+   Progress Bar
+   ============================ */
+.shindan-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.shindan-progress {
+  flex: 1;
+  height: 6px;
+  background: #e8ece9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.shindan-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sd-teal), #2ba882);
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0%;
+}
+
+.shindan-progress-label {
+  font-size: 0.75rem;
+  color: var(--sd-text-sub);
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Step Dots */
+.shindan-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.shindan-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d4ddd8;
+  transition: all var(--sd-transition);
+}
+
+.shindan-dot.active {
+  background: var(--sd-teal);
+  transform: scale(1.25);
+  box-shadow: 0 0 0 3px var(--sd-teal-glow);
+}
+
+.shindan-dot.done {
+  background: var(--sd-teal);
+}
+
+/* ============================
+   Question Title
+   ============================ */
+.shindan-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--sd-text);
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.shindan-title-icon {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 1.3rem;
+  vertical-align: middle;
+}
+
+/* ============================
+   Option Buttons (Pill Style)
+   ============================ */
+.shindan-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.shindan-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 24px;
+  font-family: var(--sd-font);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sd-text);
+  background: var(--sd-card-bg);
+  border: 2px solid #dce5e1;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  outline: none;
+}
+
+.shindan-btn:hover {
+  border-color: var(--sd-teal);
+  transform: scale(1.02);
+  box-shadow: var(--sd-shadow);
+}
+
+.shindan-btn:focus-visible {
+  border-color: var(--sd-teal);
+  box-shadow: 0 0 0 3px var(--sd-teal-glow);
+}
+
+.shindan-btn:active {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.shindan-btn.selected {
+  background: var(--sd-teal);
+  border-color: var(--sd-teal);
+  color: #fff;
+  transform: scale(1.02);
+  box-shadow: var(--sd-shadow-hover);
+  animation: sd-bounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes sd-bounce {
+  0%   { transform: scale(0.97); }
+  50%  { transform: scale(1.04); }
+  100% { transform: scale(1.02); }
+}
+
+/* Checkmark icon for selected */
+.shindan-btn.selected::before {
+  content: '✓';
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+/* Ripple effect */
+.shindan-btn .sd-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(26, 127, 100, 0.18);
+  transform: scale(0);
+  animation: sd-ripple 0.5s ease-out;
+  pointer-events: none;
+}
+
+@keyframes sd-ripple {
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* ============================
+   Loading Skeleton
+   ============================ */
+.shindan-skeleton {
+  padding: 20px 0;
+}
+
+.shindan-skeleton-line {
+  height: 14px;
+  background: linear-gradient(90deg, #e8ece9 25%, #f0f4f2 50%, #e8ece9 75%);
+  background-size: 200% 100%;
+  border-radius: 7px;
+  margin-bottom: 16px;
+  animation: sd-shimmer 1.5s infinite;
+}
+
+.shindan-skeleton-line:nth-child(1) { width: 60%; }
+.shindan-skeleton-line:nth-child(2) { width: 100%; height: 48px; border-radius: 30px; }
+.shindan-skeleton-line:nth-child(3) { width: 100%; height: 48px; border-radius: 30px; }
+.shindan-skeleton-line:nth-child(4) { width: 100%; height: 48px; border-radius: 30px; }
+
+@keyframes sd-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ============================
+   Result Screen
+   ============================ */
+.shindan-result {
+  padding: 8px 0;
+  animation: sd-slideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.shindan-result-heading {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--sd-text);
+  text-align: center;
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.shindan-result-heading strong {
+  color: var(--sd-teal);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.shindan-salary-range {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--sd-text-sub);
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: sd-fadeUp 0.4s 0.6s both;
+}
+
+.shindan-salary-range strong {
+  color: var(--sd-teal);
+  font-weight: 700;
+}
+
+@keyframes sd-fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================
+   Urgent Badge
+   ============================ */
+.shindan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin: 0 auto 20px;
+  text-align: center;
+  width: fit-content;
+  animation: sd-badgePulse 2s ease-in-out infinite;
+  box-shadow: 0 2px 12px rgba(238, 90, 36, 0.25);
+}
+
+.shindan-badge::before {
+  content: '✦';
+  animation: sd-sparkle 1.2s ease-in-out infinite;
+}
+
+@keyframes sd-badgePulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+@keyframes sd-sparkle {
+  0%, 100% { opacity: 0.6; transform: rotate(0deg); }
+  50%      { opacity: 1; transform: rotate(20deg); }
+}
+
+/* Center badge in flex parent */
+.shindan-result > .shindan-badge {
+  display: flex;
+  justify-content: center;
+}
+
+/* ============================
+   Job Card (Sample)
+   ============================ */
+.shindan-job-card {
+  background: linear-gradient(135deg, #ffffff, #f8fffe);
+  border: 1px solid #dce5e1;
+  border-radius: var(--sd-radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  box-shadow: var(--sd-shadow);
+  opacity: 0;
+  transform: translateY(16px);
+  animation: sd-fadeUp 0.5s 0.8s both;
+  transition: box-shadow var(--sd-transition);
+}
+
+.shindan-job-card:nth-child(2) { animation-delay: 1s; }
+.shindan-job-card:nth-child(3) { animation-delay: 1.2s; }
+
+.shindan-job-card:hover {
+  box-shadow: var(--sd-shadow-hover);
+}
+
+.shindan-job-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sd-text);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.shindan-job-salary {
+  font-size: 0.9rem;
+  color: var(--sd-teal);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.shindan-job-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.shindan-job-tags span {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sd-teal);
+  background: var(--sd-teal-light);
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+/* ============================
+   Blurred Teaser Cards
+   ============================ */
+.shindan-job-card.blurred {
+  position: relative;
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+  animation-name: sd-blurFloat;
+  animation-duration: 3s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  opacity: 0.7;
+}
+
+.shindan-job-card.blurred:nth-child(odd) {
+  animation-delay: 0s;
+}
+.shindan-job-card.blurred:nth-child(even) {
+  animation-delay: 1.5s;
+}
+
+@keyframes sd-blurFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+/* Blur overlay prompt */
+.shindan-blur-overlay {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.shindan-blur-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sd-teal);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ============================
+   CTA Button
+   ============================ */
+.shindan-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+  min-height: 56px;
+  margin: 24px auto 0;
+  padding: 16px 32px;
+  font-family: var(--sd-font);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--sd-teal);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 16px rgba(26, 127, 100, 0.3);
+  animation: sd-ctaPulse 2.5s ease-in-out infinite;
+  z-index: 1;
+}
+
+/* Animated gradient border */
+.shindan-cta::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(90deg, #1a7f64, #2ba882, #1a7f64, #2ba882);
+  background-size: 300% 100%;
+  border-radius: 32px;
+  z-index: -2;
+  animation: sd-gradientBorder 3s linear infinite;
+}
+
+.shindan-cta::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: var(--sd-teal);
+  border-radius: 28px;
+  z-index: -1;
+  transition: background var(--sd-transition);
+}
+
+@keyframes sd-gradientBorder {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+@keyframes sd-ctaPulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(26, 127, 100, 0.3); }
+  50%      { box-shadow: 0 6px 28px rgba(26, 127, 100, 0.45); }
+}
+
+.shindan-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(26, 127, 100, 0.4);
+}
+
+.shindan-cta:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* LINE icon in CTA */
+.shindan-cta-icon {
+  width: 22px;
+  height: 22px;
+  fill: #fff;
+  flex-shrink: 0;
+}
+
+/* ============================
+   Count Up Number
+   ============================ */
+.shindan-count-num {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================
+   Reduced Motion
+   ============================ */
+@media (prefers-reduced-motion: reduce) {
+  .shindan-step,
+  .shindan-result,
+  .shindan-job-card,
+  .shindan-salary-range,
+  .shindan-badge,
+  .shindan-cta {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .shindan-step.slide-out {
+    animation: none !important;
+  }
+
+  .shindan-job-card.blurred {
+    animation: none !important;
+    opacity: 0.7 !important;
+  }
+
+  .shindan-btn {
+    transition: none !important;
+  }
+
+  .shindan-progress-bar {
+    transition: none !important;
+  }
+
+  .shindan-cta::before {
+    animation: none !important;
+  }
+}
+
+/* ============================
+   Mobile Optimizations
+   ============================ */
+@media (max-width: 600px) {
+  .shindan-title {
+    font-size: 1.15rem;
+  }
+
+  .shindan-btn {
+    min-height: 50px;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+  }
+
+  .shindan-job-card {
+    padding: 16px;
+  }
+
+  .shindan-cta {
+    font-size: 1rem;
+    padding: 14px 24px;
+  }
+
+  .shindan-result-heading strong {
+    font-size: 1.4rem;
+  }
+}

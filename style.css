@@ -1,6 +1,7 @@
 /* ========================================
-   神奈川ナース転職 (NURSE ROBBY) - Warm Nostalgic Theme
-   Cream+Teal / Mobile-first / Botanical
+   神奈川ナース転職 (NURSE ROBBY) - Premium Teal Theme
+   Aligned with LP design language (2026-03-12)
+   Primary: #1a7f64 / CTA: #06C755 / Dark: #1a1a2e
    ======================================== */
 
 /* ---------- Reset & Base ---------- */
@@ -11,28 +12,28 @@
 }
 
 :root {
-  --bg-primary: #FAFAF2;
-  --bg-secondary: #F2EFE6;
+  --bg-primary: #f8fffe;
+  --bg-secondary: #f0faf7;
   --bg-card: #FFFFFF;
-  --accent: #5B787D;
-  --accent-hover: #4A6368;
-  --accent-glow: rgba(91, 120, 125, 0.08);
+  --accent: #1a7f64;
+  --accent-hover: #14664f;
+  --accent-glow: rgba(26, 127, 100, 0.08);
   --accent-secondary: #8FB5A1;
   --accent-warm: #C4956A;
-  --gradient-accent: linear-gradient(135deg, #5B787D 0%, #8FB5A1 100%);
-  --text-primary: #4A4A4A;
-  --text-secondary: #7A7A7A;
-  --text-heading: #2D2D2D;
-  --border: #D4CFC2;
+  --gradient-accent: linear-gradient(170deg, #1a7f64 0%, #14664f 100%);
+  --text-primary: #1a1a2e;
+  --text-secondary: #666;
+  --text-heading: #1a1a2e;
+  --border: rgba(26, 127, 100, 0.12);
   --error: #D45B5B;
-  --success: #5B9E6F;
-  --font-heading: "Noto Serif JP", "Yu Mincho", serif;
-  --font-main: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  --success: #06C755;
+  --font-heading: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  --font-main: "Noto Sans JP", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   --radius: 8px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 4px 20px rgba(91, 120, 125, 0.08);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 4px 20px rgba(26, 127, 100, 0.08);
   --transition: 0.3s ease;
   --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -214,7 +215,7 @@ img {
 
   .custom-cursor.cursor-hover {
     transform: translate(-50%, -50%) scale(1.8);
-    background: rgba(91, 120, 125, 0.10);
+    background: rgba(26, 127, 100, 0.10);
   }
 }
 
@@ -260,7 +261,7 @@ img {
   color: #FFFFFF;
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(91, 120, 125, 0.25);
+  box-shadow: 0 6px 24px rgba(26, 127, 100, 0.25);
 }
 
 .btn-outline {
@@ -352,11 +353,11 @@ img {
 }
 
 .nav .nav-cta {
-  background: #E8734A;
+  background: #06C755;
   color: #FFFFFF;
   padding: 8px 20px;
-  border-radius: var(--radius);
-  font-weight: 600;
+  border-radius: 50px;
+  font-weight: 700;
 }
 
 .nav .nav-cta::after {
@@ -365,9 +366,9 @@ img {
 
 .nav .nav-cta:hover {
   color: #FFFFFF;
-  background: #D4612E;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(232, 115, 74, 0.3);
+  background: #05b34c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(6, 199, 85, 0.4);
 }
 
 /* Hamburger */
@@ -560,18 +561,18 @@ img {
   display: inline-block;
   font-size: var(--text-base);
   padding: 14px 40px;
-  background: #E8734A;
+  background: #06C755;
   color: #FFFFFF;
-  border-radius: 60px;
+  border-radius: 50px;
   font-weight: 700;
-  box-shadow: 0 4px 16px rgba(232, 115, 74, 0.4);
+  box-shadow: 0 4px 16px rgba(6, 199, 85, 0.3);
 }
 
 .hero .hero-cta.btn-primary:hover {
-  background: #D4612E;
+  background: #05b34c;
   color: #FFFFFF;
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(232, 115, 74, 0.5);
+  box-shadow: 0 6px 24px rgba(6, 199, 85, 0.4);
 }
 
 .hero-note {
@@ -677,7 +678,7 @@ img {
   justify-content: center;
   cursor: pointer;
   transition: all var(--transition);
-  box-shadow: 0 4px 20px rgba(91, 120, 125, 0.2);
+  box-shadow: 0 4px 20px rgba(26, 127, 100, 0.2);
 }
 
 .video-play-btn:hover {
@@ -780,7 +781,7 @@ img {
 
 .testimonial-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 24px rgba(91, 120, 125, 0.10);
+  box-shadow: 0 4px 24px rgba(26, 127, 100, 0.10);
 }
 
 .testimonial-quote {
@@ -926,7 +927,7 @@ img {
 
 .feature-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 8px 32px rgba(91, 120, 125, 0.12);
+  box-shadow: 0 8px 32px rgba(26, 127, 100, 0.12);
 }
 
 .feature-card:hover::before {
@@ -945,14 +946,14 @@ img {
 
 .feature-icon {
   display: inline-block;
-  background: rgba(91, 120, 125, 0.08);
+  background: rgba(26, 127, 100, 0.08);
   color: var(--accent);
   padding: 8px 20px;
   border-radius: var(--radius);
   font-size: var(--text-base);
   font-weight: 700;
   margin-bottom: 12px;
-  border: 1px solid rgba(91, 120, 125, 0.15);
+  border: 1px solid rgba(26, 127, 100, 0.15);
   position: relative;
   z-index: 1;
 }
@@ -1068,7 +1069,7 @@ img {
 
 .flow-step:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 24px rgba(91, 120, 125, 0.10);
+  box-shadow: 0 4px 24px rgba(26, 127, 100, 0.10);
 }
 
 .step-number {
@@ -1133,8 +1134,8 @@ img {
 }
 
 .cycle-good {
-  background: rgba(91, 120, 125, 0.06);
-  border: 1px solid rgba(91, 120, 125, 0.2);
+  background: rgba(26, 127, 100, 0.06);
+  border: 1px solid rgba(26, 127, 100, 0.2);
 }
 
 .cycle-label {
@@ -1215,7 +1216,7 @@ img {
 
 .trust-item:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 20px rgba(91, 120, 125, 0.10);
+  box-shadow: 0 4px 20px rgba(26, 127, 100, 0.10);
 }
 
 .trust-item h3 {
@@ -1374,7 +1375,7 @@ img {
 .form-group textarea:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(91, 120, 125, 0.10), 0 0 12px rgba(91, 120, 125, 0.06);
+  box-shadow: 0 0 0 3px rgba(26, 127, 100, 0.10), 0 0 12px rgba(26, 127, 100, 0.06);
 }
 
 .form-group input:focus + label,
@@ -1421,12 +1422,12 @@ img {
   font-size: var(--text-lg);
   padding: 16px;
   margin-top: 8px;
-  background: #E8734A;
-  border-radius: 60px;
+  background: #06C755;
+  border-radius: 50px;
 }
 
 .btn-submit:hover {
-  background: #D4612E;
+  background: #05b34c;
 }
 
 .btn-submit:disabled {
@@ -1466,7 +1467,7 @@ img {
   border-radius: 50%;
   font-size: 2.5rem;
   margin-bottom: 24px;
-  box-shadow: 0 4px 20px rgba(91, 120, 125, 0.2);
+  box-shadow: 0 4px 20px rgba(26, 127, 100, 0.2);
 }
 
 .thanks-content h2 {
@@ -1644,7 +1645,7 @@ img {
 }
 
 .match-card-comment {
-  background: rgba(91, 120, 125, 0.05);
+  background: rgba(26, 127, 100, 0.05);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px 16px;
@@ -1677,7 +1678,7 @@ img {
 /* ---------- Footer ---------- */
 .footer {
   padding: 60px 0 32px;
-  background: #264653;
+  background: #1a1a2e;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -1842,7 +1843,7 @@ img {
 
 .hospital-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 24px rgba(91, 120, 125, 0.10);
+  box-shadow: 0 4px 24px rgba(26, 127, 100, 0.10);
 }
 
 .hospital-card h3 {
@@ -1901,7 +1902,7 @@ img {
 }
 
 .hospital-row--referral {
-  background: rgba(232, 115, 90, 0.06);
+  background: rgba(6, 199, 85, 0.06);
 }
 
 .hospital-card--referral {
@@ -1947,12 +1948,13 @@ img {
   text-align: center;
   padding: 14px;
   font-size: var(--text-base);
-  background: #E8734A;
-  border-radius: 60px;
+  background: #06C755;
+  border-radius: 50px;
+  box-shadow: 0 4px 16px rgba(6, 199, 85, 0.3);
 }
 
 .sticky-cta-btn:hover {
-  background: #D4612E;
+  background: #05b34c;
 }
 
 /* ---------- Form Error Banner ---------- */
@@ -1987,7 +1989,7 @@ img {
 
 .form-error-banner button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(91, 120, 125, 0.2);
+  box-shadow: 0 4px 12px rgba(26, 127, 100, 0.2);
 }
 
 /* ========== Responsive ========== */
@@ -2241,9 +2243,9 @@ body::after {
   display: none;
 }
 
-/* Warm theme hover */
+/* Premium teal hover */
 .btn-primary:hover {
-  box-shadow: 0 6px 24px rgba(91, 120, 125, 0.25);
+  box-shadow: 0 6px 24px rgba(26, 127, 100, 0.25);
 }
 
 /* ---------- 6. Magnetic Button Transition ---------- */
@@ -2286,7 +2288,7 @@ body::after {
 }
 .btn-animated-border:hover {
   color: var(--text-heading);
-  background: rgba(91, 120, 125, 0.06);
+  background: rgba(26, 127, 100, 0.06);
 }
 @keyframes clipBorder {
   0%, 100% { clip-path: inset(0 0 calc(100% - 2px) 0); }

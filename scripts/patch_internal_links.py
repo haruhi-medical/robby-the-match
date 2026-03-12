@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Insert a diagnostic CTA block into area, guide, and blog HTML pages."""
+"""Insert or update a diagnostic CTA block into area, guide, and blog HTML pages.
+
+The CTA block uses inline styles matching the LP's premium design language:
+  - Primary: #1a7f64 (teal)
+  - CTA button: #06C755 (LINE green)
+  - Dark text: #1a1a2e
+  - Light bg: #f8fffe
+  - Font: system stack + Noto Sans JP
+  - Rounded corners (16px card, 50px button)
+  - Subtle shadows and transitions
+"""
 
 import os
 import re
@@ -33,10 +43,12 @@ AREA_MAP = {
 
 def make_cta(href="/lp/job-seeker/#shindan"):
     return f"""<!-- shindan-cta -->
-<div style="background:linear-gradient(135deg,#f0faf7,#e8f5e9);padding:32px 16px;text-align:center;margin:40px 0 0;border-radius:12px;">
-  <p style="font-size:1.1rem;color:#1a1a2e;margin:0 0 8px;font-weight:bold;">あなたにマッチする求人、何件あるか知りたくないですか？</p>
-  <p style="font-size:0.9rem;color:#666;margin:0 0 16px;">たった30秒・3問で診断できます（LINE登録不要）</p>
-  <a href="{href}" style="display:inline-block;background:#06C755;color:white;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:bold;font-size:1rem;box-shadow:0 2px 8px rgba(6,199,85,0.3);">30秒で求人診断 →</a>
+<div style="background:linear-gradient(170deg,#f0faf7 0%,#ffffff 60%,#f8fffe 100%);padding:40px 24px;text-align:center;margin:48px 0 0;border-radius:16px;border:1px solid rgba(26,127,100,0.1);box-shadow:0 4px 20px rgba(26,127,100,0.06);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans JP','Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
+  <p style="font-size:0.8rem;color:#1a7f64;margin:0 0 8px;font-weight:700;letter-spacing:0.1em;">AI CAREER MATCH</p>
+  <p style="font-size:1.2rem;color:#1a1a2e;margin:0 0 8px;font-weight:800;line-height:1.5;">あなたにマッチする求人、<br>何件あるか知りたくないですか？</p>
+  <p style="font-size:0.85rem;color:#666;margin:0 0 20px;line-height:1.6;">たった30秒・3問で診断できます（LINE登録不要）</p>
+  <a href="{href}" style="display:inline-block;background:#06C755;color:#fff;padding:16px 40px;border-radius:50px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 16px rgba(6,199,85,0.3);transition:transform 0.2s,box-shadow 0.2s;min-height:48px;line-height:1.4;">30秒で求人診断 &#9654;</a>
+  <p style="font-size:0.75rem;color:#999;margin:12px 0 0;">&#x2705; 完全無料 &#x2705; 登録不要 &#x2705; 神奈川県特化</p>
 </div>
 <!-- /shindan-cta -->"""
 
@@ -65,9 +77,6 @@ def patch_file(path, category, filename):
     with open(path, "r", encoding="utf-8") as fh:
         html = fh.read()
 
-    if "<!-- shindan-cta -->" in html:
-        return False  # already patched
-
     # Determine href
     if category == "area" and filename in AREA_MAP:
         href = f"/lp/job-seeker/#shindan?area={AREA_MAP[filename]}"
@@ -75,6 +84,18 @@ def patch_file(path, category, filename):
         href = "/lp/job-seeker/#shindan"
 
     cta = make_cta(href)
+
+    # Replace existing CTA block if present
+    if "<!-- shindan-cta -->" in html:
+        html = re.sub(
+            r"<!-- shindan-cta -->.*?<!-- /shindan-cta -->",
+            cta,
+            html,
+            flags=re.DOTALL,
+        )
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(html)
+        return "UPDATED"
 
     # Insert before last </footer>, or before </body>
     footer_matches = list(re.finditer(r"</footer>", html, re.IGNORECASE))
@@ -92,21 +113,22 @@ def patch_file(path, category, filename):
 
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(html)
-    return True
+    return "PATCHED"
 
 
 def main():
     files = collect_files()
     patched = 0
-    skipped = 0
+    updated = 0
     for path, category, filename in files:
-        if patch_file(path, category, filename):
+        result = patch_file(path, category, filename)
+        if result == "PATCHED":
             patched += 1
             print(f"  PATCHED: {path}")
-        else:
-            skipped += 1
-            print(f"  SKIPPED: {path}")
-    print(f"\nDone. Patched: {patched}, Skipped (already had CTA): {skipped}, Total: {len(files)}")
+        elif result == "UPDATED":
+            updated += 1
+            print(f"  UPDATED: {path}")
+    print(f"\nDone. New: {patched}, Updated: {updated}, Total: {len(files)}")
 
 
 if __name__ == "__main__":
