@@ -1501,3 +1501,47 @@ SNS自動投稿: IG済12件 / 未投稿28件 (IG=0, TK=0)
    - 例えば、看護師求人情報のページから「看護師のキャリアチェンジ完全ガイド」や「クリニックと病院の違い」などのガイドページへのリンクを追加する。
    - 地域別ページから他の地域のページへのリンクを追加し、ユーザーが神奈川県内の他の地域の情報も簡単に探せるようにする。
 
+### 🔍 SEO朝サイクル（04:00:01）
+seo: 2026-03-12 SEO改善
+
+### pdca_ai_marketing（06:00:01）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=14 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
+### pdca_ai_marketing（07:00:00）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=14 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
+### pdca_ai_marketing（07:30:48）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=14 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
+### pdca_ai_marketing（08:00:46）
+AI Marketing PDCA:
+  Queue: pending=56 ready=56 posted=14 failed=0
+  Generated today: 0
+  Quality issues: 56
+  Status: Healthy
+
+### 🔎 競合・SEOギャップ分析（10:00:00）
+1. カバレッジの穴：現在のページ数は地域別22ページ、転職ガイド44ページ、ブログ19記事ですが、対象エリアである神奈川県西部の全地域をカバーしているわけではありません。特に、小田原・秦野・平塚などの地域でページが不足している可能性があります。また、ガイドテーマも不足している可能性があります。
+
+2. 改善優先度の高いアクション3つ：
+   - 地域別ページの充実：対象エリアの全地域をカバーするために、不足している地域のページを作成する。
+   - ガイドテーマの充実：看護師転職に関連するガイドテーマを追加し、ユーザーのニーズに応えるコンテンツを作成する。
+   - 内部リンク構造の最適化：現在のページ同士の関連性を高めるために、内部リンク構造を最適化する。
+
+3. 次に作るべきページ2-3本の提案：
+   - タイトル案：「小田原市の看護師転職ガイド」
+   - タイトル案：「秦野市の看護師求人情報」
+   - タイトル案：「看護師転職のためのスキルアップ方法」
+
