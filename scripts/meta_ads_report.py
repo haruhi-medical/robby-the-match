@@ -229,11 +229,96 @@ def exchange_token():
         sys.exit(1)
 
 
+def _cron_daily_report():
+    """毎朝08:00 cron用: 前日データ取得→前々日比較→Block Kit送信"""
+    sys.path.insert(0, str(BASE_DIR / "scripts"))
+    from slack_utils import (
+        send_message, SLACK_CHANNEL_REPORT,
+        format_number, format_currency, format_percent, trend_emoji,
+    )
+
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    day_before = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+    account = f"act_{META_AD_ACCOUNT_ID}"
+
+    def _fetch_day(date_str):
+        params = {
+            "fields": "impressions,clicks,ctr,spend,actions,cost_per_action_type",
+            "time_range": json.dumps({"since": date_str, "until": date_str}),
+            "level": "account",
+        }
+        data = api_get(f"{account}/insights", params)
+        rows = data.get("data", [])
+        return rows[0] if rows else {}
+
+    def _extract_cv(row):
+        for a in row.get("actions", []):
+            if a.get("action_type") in ("lead", "offsite_conversion.fb_pixel_lead"):
+                return int(a.get("value", 0))
+        return 0
+
+    def _parse(row):
+        if not row:
+            return {}
+        imp = int(row.get("impressions", 0))
+        clk = int(row.get("clicks", 0))
+        sp = float(row.get("spend", 0))
+        ctr = float(row.get("ctr", 0))
+        cv = _extract_cv(row)
+        cpa = sp / cv if cv > 0 else None
+        return {"impressions": imp, "clicks": clk, "spend": sp, "ctr": ctr, "conversions": cv, "cpa": cpa}
+
+    print(f"[INFO] Meta cron report: {yesterday}")
+    t = _parse(_fetch_day(yesterday))
+    y = _parse(_fetch_day(day_before))
+
+    if not t:
+        send_message(SLACK_CHANNEL_REPORT, f"📊 Meta広告レポート {yesterday}: データなし")
+        return
+
+    fields = [
+        {"type": "mrkdwn", "text": f"*費用*\n{format_currency(t['spend'])}{trend_emoji(t['spend'], y.get('spend'))}"},
+        {"type": "mrkdwn", "text": f"*インプレッション*\n{format_number(t['impressions'])}{trend_emoji(t['impressions'], y.get('impressions'))}"},
+        {"type": "mrkdwn", "text": f"*クリック*\n{format_number(t['clicks'])}{trend_emoji(t['clicks'], y.get('clicks'))}"},
+        {"type": "mrkdwn", "text": f"*CTR*\n{format_percent(t['ctr'])}{trend_emoji(t['ctr'], y.get('ctr'))}"},
+        {"type": "mrkdwn", "text": f"*CV (LINE登録)*\n{format_number(t['conversions'])}{trend_emoji(t['conversions'], y.get('conversions'))}"},
+        {"type": "mrkdwn", "text": f"*CPA*\n{format_currency(t['cpa']) if t['cpa'] else '-'}{trend_emoji(t.get('cpa'), y.get('cpa'))}"},
+    ]
+    blocks = [
+        {"type": "header", "text": {"type": "plain_text", "text": f"📊 Meta広告レポート {yesterday}"}},
+        {"type": "section", "fields": fields},
+    ]
+
+    # キャンペーン別
+    camp_params = {
+        "fields": "campaign_name,impressions,clicks,spend,actions",
+        "time_range": json.dumps({"since": yesterday, "until": yesterday}),
+        "level": "campaign", "limit": 20,
+    }
+    camp_data = api_get(f"{account}/insights", camp_params).get("data", [])
+    if camp_data:
+        lines = []
+        for c in camp_data:
+            cn = c.get("campaign_name", "?")
+            cs = float(c.get("spend", 0))
+            ci = int(c.get("impressions", 0))
+            cc = int(c.get("clicks", 0))
+            ccv = _extract_cv(c)
+            lines.append(f"• *{cn}*: ¥{cs:,.0f} | {ci:,}imp | {cc}click | {ccv}CV")
+        blocks.append({"type": "divider"})
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*キャンペーン別内訳*\n" + "\n".join(lines)}})
+
+    fb = f"📊 Meta広告 {yesterday}: ¥{t['spend']:,.0f} / {t['impressions']:,}imp / CTR {t['ctr']:.2f}%"
+    result = send_message(SLACK_CHANNEL_REPORT, fb, blocks=blocks)
+    print(f"[{'OK' if result['ok'] else 'ERROR'}] Slack送信")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Meta広告パフォーマンスレポート")
     parser.add_argument("--days", type=int, default=7, help="取得日数（デフォルト7日）")
     parser.add_argument("--daily", action="store_true", help="日別ブレイクダウン")
     parser.add_argument("--slack", action="store_true", help="Slackに送信")
+    parser.add_argument("--cron", action="store_true", help="cron用: 前日レポートをBlock Kit送信")
     parser.add_argument("--accounts", action="store_true", help="広告アカウント一覧")
     parser.add_argument("--campaigns", action="store_true", help="キャンペーン一覧")
     parser.add_argument("--setup", action="store_true", help="Long-livedトークンに交換")
@@ -245,6 +330,10 @@ def main():
         print("  1. https://developers.facebook.com/tools/explorer/ でトークン生成")
         print("  2. .env に META_ACCESS_TOKEN=xxx を追加")
         sys.exit(1)
+
+    if args.cron:
+        _cron_daily_report()
+        return
 
     if args.setup:
         exchange_token()

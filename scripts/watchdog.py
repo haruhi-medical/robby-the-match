@@ -44,11 +44,16 @@ TIKTOK_DISCREPANCY_FILE = PROJECT_DIR / "data" / "tiktok_discrepancy.json"
 #                  Falseなら特定時刻にしか意味がないためリカバリ制限あり
 FIXED_SCHEDULE_JOBS = {
     "seo_batch":     (4,  0,  30, "scripts/pdca_seo_batch.sh",     True),
-    "healthcheck":   (7,  0,  15, "scripts/pdca_healthcheck.sh",   True),
-    "ai_marketing":  (6,  0,  45, "scripts/pdca_ai_marketing.sh",  True),
+    "healthcheck":   (7,  0,  90, "scripts/pdca_healthcheck.sh",   True),
     "competitor":    (10, 0,  30, "scripts/pdca_competitor.sh",     True),
     "content":       (15, 0,  45, "scripts/pdca_content.sh",       True),
     "review":        (23, 0,  45, "scripts/pdca_review.sh",        True),
+}
+
+# ハートビート未実装ジョブ: ログファイルの存在で代替チェック（リトライしない）
+LOG_BASED_JOBS = {
+    "ai_marketing": "pdca_ai_marketing",
+    "hellowork":    "pdca_hellowork",
 }
 
 # sns_postは動的スケジュール（posting_schedule.json依存）なので別扱い
@@ -247,10 +252,14 @@ def get_today_sns_schedule():
     try:
         with open(POSTING_SCHEDULE_FILE) as f:
             data = json.load(f)
-        # 曜日名（Mon, Tue, Wed, Thu, Fri, Sat）
-        day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        today_name = day_names[datetime.now().weekday()]
-        scheduled = data.get("schedule", {}).get(today_name, "")
+        # 曜日名: posting_schedule.jsonのキーに合わせて小文字フルネーム
+        day_names_full = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        day_names_abbr = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        today_full = day_names_full[datetime.now().weekday()]
+        today_abbr = day_names_abbr[datetime.now().weekday()]
+        # どちらのキー形式にも対応
+        schedule = data.get("schedule", {})
+        scheduled = schedule.get(today_full, schedule.get(today_abbr, ""))
         if not scheduled:
             return None
         parts = scheduled.split(":")
@@ -749,6 +758,19 @@ def run_watchdog():
                 else:
                     suppressed.append(msg)
 
+    # ─── 1b. ログベース代替監視（ハートビート未実装ジョブ） ───
+    today_str = now.strftime("%Y-%m-%d")
+    for job_name, log_prefix in LOG_BASED_JOBS.items():
+        log_pattern = LOG_DIR / f"{log_prefix}_{today_str}.log"
+        if log_pattern.exists():
+            info.append(f"{job_name}: ログ確認OK（{log_prefix}_{today_str}.log）")
+        else:
+            # 実行時刻前ならスキップ（ai_marketing=06:00, hellowork=06:30）
+            expected_hours = {"ai_marketing": 8, "hellowork": 7}  # 完了見込み時刻
+            if now.hour < expected_hours.get(job_name, 8):
+                continue
+            info.append(f"{job_name}: 本日のログなし（{log_prefix}_{today_str}.log）")
+
     # ─── 2. sns_post（動的スケジュール）の監視 ───
     sns_status, sns_detail = check_sns_post_heartbeat()
 
@@ -912,21 +934,15 @@ def run_watchdog():
     with open(log_file, 'a') as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
-    # ─── Slack通知（問題がある場合のみ — 重複排除済み） ───
+    # ─── Slack通知（初回失敗・リトライ上限到達のみ。正常時・自動復旧はログのみ） ───
     if issues:
         slack_notify(
             f"*[Watchdog v3.0] アラート*\n\n"
             + "\n".join(f"- {i}" for i in issues)
-            + ("\n\n" + "\n".join(f"+ {r}" for r in recovered)
-               if recovered else "")
             + (f"\n\n_（他 {len(suppressed)}件は4時間以内に通知済みのため抑制）_"
                if suppressed else "")
         )
-    elif recovered:
-        slack_notify(
-            f"*[Watchdog v3.0] 自動復旧*\n\n"
-            + "\n".join(f"+ {r}" for r in recovered)
-        )
+    # recovered のみの場合はSlack送信しない（ログに記録済み）
 
 
 if __name__ == "__main__":

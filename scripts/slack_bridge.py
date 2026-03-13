@@ -207,8 +207,20 @@ def cmd_instructions():
     return pending
 
 
+# ノイズ抑制フィルター
+_SUPPRESSED_PATTERNS = [
+    "タスク完了（未コミット変更あり）",
+    "タスク完了(未コミット変更あり)",
+    "diagnostic test",
+]
+
+
 def cmd_send(message: str) -> bool:
     """メッセージ送信"""
+    for pattern in _SUPPRESSED_PATTERNS:
+        if pattern in message:
+            print(f"[SUPPRESSED] {message[:60]}")
+            return True  # 呼び出し元には成功として返す
     success = _post_message(message)
     if success:
         print(f"Slack送信OK: {message[:50]}...")

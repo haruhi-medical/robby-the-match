@@ -26,6 +26,14 @@ if not SLACK_BOT_TOKEN:
     sys.exit(1)
 
 
+# ノイズ抑制フィルター: これらのパターンを含むメッセージはSlack送信しない
+SUPPRESSED_PATTERNS = [
+    "タスク完了（未コミット変更あり）",
+    "タスク完了(未コミット変更あり)",
+    "diagnostic test",
+]
+
+
 def send_slack_notification(json_path: Path = None, message: str = None):
     """
     Slackに通知を送信
@@ -34,6 +42,13 @@ def send_slack_notification(json_path: Path = None, message: str = None):
         json_path: 台本JSONファイルパス（台本通知の場合）
         message: カスタムメッセージ（シンプル通知の場合）
     """
+    # ノイズ抑制
+    if message:
+        for pattern in SUPPRESSED_PATTERNS:
+            if pattern in message:
+                print(f"[SUPPRESSED] {message[:60]}")
+                return
+
     if json_path:
         # 台本JSONを読み込んで詳細通知
         with open(json_path, 'r', encoding='utf-8') as f:

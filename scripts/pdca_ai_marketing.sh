@@ -440,11 +440,18 @@ if [ -n "$WARNINGS" ]; then
 $(echo -e "$WARNINGS")"
 fi
 
-echo "[ACT] Sending Slack report..." >> "$LOG"
-python3 "$PROJECT_DIR/scripts/slack_bridge.py" --send "$SLACK_MESSAGE" >> "$LOG" 2>&1 || {
-    echo "[WARN] ACT: Slack report send failed, trying notify_slack fallback" >> "$LOG"
-    slack_notify "$SLACK_MESSAGE"
-}
+# 重複防止: 今日既に送信済みならスキップ
+REPORT_FLAG="/tmp/ai_marketing_reported_$(date +%Y%m%d)"
+if [ -f "$REPORT_FLAG" ]; then
+    echo "[INFO] ACT: Slack report already sent today, skipping" >> "$LOG"
+else
+    echo "[ACT] Sending Slack report..." >> "$LOG"
+    python3 "$PROJECT_DIR/scripts/slack_bridge.py" --send "$SLACK_MESSAGE" >> "$LOG" 2>&1 || {
+        echo "[WARN] ACT: Slack report send failed, trying notify_slack fallback" >> "$LOG"
+        slack_notify "$SLACK_MESSAGE"
+    }
+    touch "$REPORT_FLAG"
+fi
 
 # Act 3: Update agent state and shared context
 write_shared_context "lastMarketingPDCA" "$TODAY $NOW"

@@ -1,8 +1,21 @@
 #!/bin/bash
 # ===========================================
-# 神奈川ナース転職 ヘルスチェック + ハートビート v2.0
+# 神奈川ナース転職 ヘルスチェック + ハートビート v2.1
 # cron: 0 7 * * *（毎日07:00）
 # ===========================================
+
+# ロック機構（1時間以内の二重実行を防止）
+LOCKFILE="/tmp/pdca_healthcheck.lock"
+if [ -f "$LOCKFILE" ]; then
+    LOCK_AGE=$(($(date +%s) - $(stat -f %m "$LOCKFILE" 2>/dev/null || stat -c %Y "$LOCKFILE" 2>/dev/null || echo 0)))
+    if [ "$LOCK_AGE" -lt 3600 ]; then
+        echo "$(date): Already running (lock age: ${LOCK_AGE}s), skipping"; exit 0
+    fi
+    rm -f "$LOCKFILE"
+fi
+trap "rm -f $LOCKFILE" EXIT
+touch "$LOCKFILE"
+
 source ~/robby-the-match/scripts/utils.sh
 init_log "healthcheck"
 update_agent_state "health_monitor" "running"
@@ -258,6 +271,21 @@ if [ -n "$ISSUES" ]; then
   slack_notify "🏥 ヘルスチェック問題あり:\n$(echo -e "$ISSUES")" "alert"
 else
   echo "[OK] 全システム正常" >> "$LOG"
+  # 正常時も1行サマリーをSlackに送信（沈黙を避ける）
+  QUEUE_COUNT=$(python3 -c "import json; d=json.load(open('$PROJECT_DIR/data/posting_queue.json')); print(sum(1 for p in d['posts'] if p['status'] in ('ready','pending')))" 2>/dev/null || echo "?")
+  COOKIE_DAYS=$(python3 -c "
+import os, time
+cookie_file = '$PROJECT_DIR/data/.tiktok_cookies.txt'
+if os.path.exists(cookie_file):
+    age = time.time() - os.path.getmtime(cookie_file)
+    remaining = max(0, 180 - int(age / 86400))
+    print(remaining)
+else:
+    print('?')
+" 2>/dev/null || echo "?")
+  NOW_MMDD=$(date +%m/%d)
+  NOW_HHMM=$(date +%H:%M)
+  slack_notify "✅ ${NOW_MMDD} ${NOW_HHMM} ヘルスチェック正常 | キュー: ${QUEUE_COUNT}件 | Cookie残り: ${COOKIE_DAYS}日"
 fi
 
 update_agent_state "health_monitor" "completed"
