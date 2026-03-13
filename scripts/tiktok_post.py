@@ -396,7 +396,7 @@ def create_video_slideshow(slide_dir, output_path, duration_per_slide=None):
     # 各スライドに異なるモーションを割り当てて変化を出す
     # scale_ratio: 少し大きくスケーリングしてcropで動きの余地を作る
     # crop式のx,yで時間ベースの微動を実現
-    sr = 1.04  # 4%大きくスケーリング（モーション余裕）
+    sr = 1.02  # 2%スケーリング（テキストはみ出し防止のため1.04→1.02に縮小）
     motion_patterns = [
         # (crop_x_expr, crop_y_expr) — 微妙なパン/ズーム
         (f"(in_w-1080)/2+((in_w-1080)/2)*sin(t*0.8)", f"(in_h-1920)/2"),            # 左右揺れ

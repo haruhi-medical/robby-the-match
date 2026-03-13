@@ -68,18 +68,18 @@ PLATFORM_SIZES = {
     "instagram_story": (1080, 1920),  # 9:16 (stories/reels)
 }
 
-# TikTok UI safe zones
-SAFE_TOP = 150
-SAFE_BOTTOM = 250
-SAFE_RIGHT = 100
-SAFE_LEFT = 60
+# TikTok UI safe zones (includes +20px buffer for video motion crop at 1.04x scale)
+SAFE_TOP = 170
+SAFE_BOTTOM = 270
+SAFE_RIGHT = 115
+SAFE_LEFT = 75
 
 # Instagram safe zones (less restrictive, no UI overlay)
 IG_SAFE = {"top": 70, "bottom": 70, "left": 70, "right": 70}
 
 # Platform safe zones lookup
 SAFE_ZONES = {
-    "tiktok": {"top": 150, "bottom": 250, "left": 60, "right": 100},
+    "tiktok": {"top": 170, "bottom": 270, "left": 75, "right": 115},
     "instagram": IG_SAFE,
     "instagram_story": {"top": 150, "bottom": 250, "left": 60, "right": 100},
 }
@@ -669,7 +669,7 @@ def draw_speech_bubble(
     pad_x = max(30, w // 15)  # Horizontal padding scales with bubble width
     text_max_w = w - pad_x * 2
     lines = wrap_text_jp(text, font, text_max_w)
-    line_h = int(font_size * 1.7)
+    line_h = int(font_size * 1.55)
     block_h = line_h * len(lines)
     text_y = y + (h - block_h) // 2
     for line in lines:
@@ -1487,6 +1487,8 @@ def generate_ig_cta_slide(
 
         lines = wrap_text_jp(point, bullet_font, cw - 160)
         for line in lines:
+            if current_y > ch - 200:  # Stop if running out of space
+                break
             draw.text((90, current_y), line,
                       fill=colors["text_primary"], font=bullet_font)
             current_y += bullet_line_h
@@ -1495,51 +1497,53 @@ def generate_ig_cta_slide(
     current_y += 10
 
     # -- Divider line --
+    ig_max_y = ch - 100  # Safe bottom for Instagram content
     divider_margin = 80
-    draw.line(
-        [(divider_margin, current_y), (cw - divider_margin, current_y)],
-        fill=(*colors["primary"][:3], 100), width=2,
-    )
-    current_y += 40
+    if current_y < ig_max_y - 160:
+        draw.line(
+            [(divider_margin, current_y), (cw - divider_margin, current_y)],
+            fill=(*colors["primary"][:3], 100), width=2,
+        )
+        current_y += 40
 
-    # -- CTA text --
+    # -- CTA text (with wrapping) --
     cta_font = load_font(bold=True, size=40)
     cta_line_h = int(40 * LINE_HEIGHT_RATIO)
-    if cta_type == "hard":
-        cta_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる") + "\n" + CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")
-    else:
-        cta_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる") + "\n" + CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")
+    cta_main = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる")
+    cta_sub = CTA_TEMPLATE.get("cta_sub", "プロフィールのリンクから →")
 
-    for line in cta_text.split("\n"):
-        ltw, _ = measure_text(line, cta_font)
-        draw.text((center_x - ltw // 2, current_y), line,
-                  fill=colors["text_primary"], font=cta_font)
-        current_y += cta_line_h
+    for cta_part in [cta_main, cta_sub]:
+        cta_lines = wrap_text_jp(cta_part, cta_font, cw - 80)
+        for line in cta_lines:
+            if current_y > ig_max_y - 80:
+                break
+            ltw, _ = measure_text(line, cta_font)
+            draw.text((center_x - ltw // 2, current_y), line,
+                      fill=colors["text_primary"], font=cta_font)
+            current_y += cta_line_h
 
     current_y += 20
 
-    # -- Brand footer --
+    # -- Brand footer (clamped) --
     brand_font = load_font(bold=True, size=32)
     brand_text = CTA_TEMPLATE.get("brand", "シン・AI転職") + " — " + CTA_TEMPLATE.get("tagline", "早い × 簡単 × 24時間")
-    btw, _ = measure_text(brand_text, brand_font)
-    if btw > cw - 80:
-        brand_lines = wrap_text_jp(brand_text, brand_font, cw - 80)
-        for bl in brand_lines:
-            blw, _ = measure_text(bl, brand_font)
-            draw.text((center_x - blw // 2, current_y), bl,
-                      fill=colors["primary"], font=brand_font)
-            current_y += int(32 * LINE_HEIGHT_RATIO)
-    else:
-        draw.text((center_x - btw // 2, current_y), brand_text,
+    brand_lines = wrap_text_jp(brand_text, brand_font, cw - 80)
+    for bl in brand_lines:
+        if current_y > ig_max_y - 40:
+            break
+        blw, _ = measure_text(bl, brand_font)
+        draw.text((center_x - blw // 2, current_y), bl,
                   fill=colors["primary"], font=brand_font)
-        current_y += 56
+        current_y += int(32 * LINE_HEIGHT_RATIO)
 
-    # -- Save/share request --
+    # -- Save/share request (only if space remains) --
+    current_y = min(current_y + 10, ig_max_y - 30)
     share_font = load_font(bold=False, size=28)
     share_text = "保存・シェアお願いします！"
     stw, _ = measure_text(share_text, share_font)
-    draw.text((center_x - stw // 2, current_y), share_text,
-              fill=colors["text_secondary"], font=share_font)
+    if current_y < ig_max_y:
+        draw.text((center_x - stw // 2, current_y), share_text,
+                  fill=colors["text_secondary"], font=share_font)
 
     # -- Progress dots --
     _draw_progress_dots(draw, total_slides, total_slides, cw, ch)
@@ -1600,30 +1604,45 @@ def generate_slide_hook(
         hook_zone_top = s_top + 100
         hook_zone_height = int(c_h * 0.55)
     else:
-        hook_zone_top = s_top + 200
-        hook_zone_height = int(c_h * 0.50)
-    max_text_width = c_w - 60
+        hook_zone_top = s_top + 250
+        hook_zone_height = int(c_h * 0.45)
+    max_text_width = c_w - 40
+
+    # Enforce hook character limit (MAX_HOOK_CHARS is advisory from AI, enforce here)
+    if len(hook_text) > 25:
+        hook_text = hook_text[:25]
 
     best_font_size = 60
     best_lines = [hook_text]
-    for size in range(140, 56, -2):
+    # Account for shadow offset in zone height
+    effective_zone_height = hook_zone_height - 10  # shadow_offset + padding
+    # Limit max font for long hooks to prevent too many lines
+    max_font = 140 if len(hook_text) <= 10 else (110 if len(hook_text) <= 15 else 90)
+    for size in range(max_font, 56, -2):
         font = load_font(bold=True, size=size)
-        lines = wrap_text_jp(hook_text, font, max_text_width, MAX_HOOK_CHARS)
+        lines = wrap_text_jp(hook_text, font, max_text_width)
         block_h = text_block_height(lines, size)
-        if block_h <= hook_zone_height and len(lines) <= 4:
+        if block_h <= effective_zone_height and len(lines) <= 4:
             best_font_size = size
             best_lines = lines
             break
     else:
         font = load_font(bold=True, size=60)
         best_font_size = 60
-        best_lines = wrap_text_jp(hook_text, font, max_text_width, MAX_HOOK_CHARS)
+        best_lines = wrap_text_jp(hook_text, font, max_text_width)
+        # Force truncate to 2 lines if still too tall
+        if text_block_height(best_lines, 60) > effective_zone_height:
+            best_lines = best_lines[:2]
 
     font = load_font(bold=True, size=best_font_size)
     block_h = text_block_height(best_lines, best_font_size)
 
-    # Center vertically in the hook zone
-    text_y = hook_zone_top + (hook_zone_height - block_h) // 2
+    # Center vertically in the hook zone, clamped to safe area
+    text_y = hook_zone_top + (effective_zone_height - block_h) // 2
+    # Ensure text doesn't extend below safe zone
+    max_bottom = ch - s_bottom - 100  # 100px clearance for swipe hint
+    if text_y + block_h > max_bottom:
+        text_y = max_bottom - block_h
 
     # -- Accent glow behind text --
     glow_layer = Image.new("RGBA", bg.size, (0, 0, 0, 0))
@@ -1809,6 +1828,9 @@ def generate_slide_content(
     non_card_h = title_block_h + hl_block_h + 60
     min_card_h = c_h - non_card_h - 120
     actual_card_h = max(actual_card_h, min_card_h)
+    # Hard cap: card must not push total content beyond safe zone
+    max_total = c_h - 60  # leave 60px margin within safe zone
+    actual_card_h = min(actual_card_h, max_total - title_block_h - hl_block_h)
 
     # Total content height
     total_content_h = title_block_h + hl_block_h + actual_card_h
@@ -2184,19 +2206,25 @@ def generate_slide_cta(
             save_text, fill=COLOR_BRAND_BLUE, font=save_font,
         )
 
-        # Follow text
-        follow_y = save_y + save_h + 60
+        # Follow text (clamped to safe zone)
+        follow_y = min(save_y + save_h + 60, ch - s_bottom - 120)
         follow_font = load_font(bold=True, size=36)
         follow_text = "フォローで最新情報をチェック"
-        tw, _ = measure_text(follow_text, follow_font)
-        draw.text((center_x - tw // 2, follow_y), follow_text, fill=COLOR_WHITE, font=follow_font)
+        follow_lines = wrap_text_jp(follow_text, follow_font, cw - 120)
+        for fl in follow_lines:
+            if follow_y > ch - s_bottom - 40:
+                break
+            tw, _ = measure_text(fl, follow_font)
+            draw.text((center_x - tw // 2, follow_y), fl, fill=COLOR_WHITE, font=follow_font)
+            follow_y += int(36 * LINE_HEIGHT_RATIO)
 
-        # Subtitle
-        prof_y = follow_y + 65
+        # Subtitle (clamped to safe zone)
+        prof_y = min(follow_y + 20, ch - s_bottom - 50)
         prof_font = load_font(bold=False, size=28)
-        prof_text = "神奈川県西部の看護師転職"
+        prof_text = "神奈川県の看護師転職"
         ptw, _ = measure_text(prof_text, prof_font)
-        draw.text((center_x - ptw // 2, prof_y), prof_text, fill=(*COLOR_WHITE[:3], 150), font=prof_font)
+        if prof_y < ch - s_bottom - 30:
+            draw.text((center_x - ptw // 2, prof_y), prof_text, fill=(*COLOR_WHITE[:3], 150), font=prof_font)
 
         # Trust indicators
         trust_y = prof_y + 70
@@ -2281,7 +2309,7 @@ def _v4_chat_bubble_content(
     # Title block (only if short and distinct from body)
     show_title = bool(title and body and len(title) <= 20)
     title_font_size = 56
-    title_font = load_font(bold=True, size=title_font_size, rounded=True)
+    title_font = load_font(bold=True, size=title_font_size, rounded=False)
     title_lines = wrap_text_jp(title, title_font, c_w - 60) if show_title else []
     title_line_h = int(title_font_size * 1.5)
     title_block_h = len(title_lines) * title_line_h + (40 if title_lines else 0)
@@ -3070,18 +3098,24 @@ def _v4_generate_cta(
     else:
         # === Soft CTA: Save bookmark ===
 
-        # Bookmark icon (simple)
+        # Bookmark icon (alpha-composited overlay)
         bm_y = sep_y + 50
         bm_size = 48
         bm_x = center_x - bm_size // 2
-        # Bookmark shape
-        draw.rectangle((bm_x, bm_y, bm_x + bm_size, bm_y + int(bm_size * 1.3)),
-                       fill=(*COLOR_WHITE[:3], 60))
-        draw.polygon([
-            (bm_x, bm_y + int(bm_size * 1.3)),
-            (bm_x + bm_size // 2, bm_y + bm_size),
-            (bm_x + bm_size, bm_y + int(bm_size * 1.3)),
-        ], fill=(*COLOR_WHITE[:3], 60))
+        bm_overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+        bm_draw = ImageDraw.Draw(bm_overlay)
+        bm_bottom = bm_y + int(bm_size * 1.3)
+        # Bookmark body
+        bm_draw.rectangle((bm_x, bm_y, bm_x + bm_size, bm_bottom),
+                          fill=(255, 255, 255, 60))
+        # V-notch cutout: draw background-color triangle to create notch
+        bm_draw.polygon([
+            (bm_x, bm_bottom),
+            (bm_x + bm_size // 2, bm_bottom - bm_size // 3),
+            (bm_x + bm_size, bm_bottom),
+        ], fill=(0, 0, 0, 0))
+        bg = Image.alpha_composite(bg, bm_overlay)
+        draw = ImageDraw.Draw(bg)
 
         # Save text
         save_y = bm_y + int(bm_size * 1.3) + 30
@@ -3121,23 +3155,29 @@ def _v4_generate_cta(
         draw_icon_heart(draw, center_x + save_w // 2 + 30, save_y + save_h // 2,
                         size=18, color=(255, 120, 140))
 
-        # Follow text
-        follow_y = save_y + save_h + 50
+        # Follow text (clamped to safe zone)
+        follow_y = min(save_y + save_h + 50, ch - s_bottom - 120)
         follow_font = load_font(bold=True, size=34, rounded=True)
         follow_text = "フォローで最新情報をチェック"
-        tw, _ = measure_text(follow_text, follow_font)
-        draw.text((center_x - tw // 2, follow_y), follow_text, fill=COLOR_WHITE, font=follow_font)
+        follow_lines = wrap_text_jp(follow_text, follow_font, cw - 120)
+        for fl in follow_lines:
+            if follow_y > ch - s_bottom - 40:
+                break
+            tw, _ = measure_text(fl, follow_font)
+            draw.text((center_x - tw // 2, follow_y), fl, fill=COLOR_WHITE, font=follow_font)
+            follow_y += int(34 * LINE_HEIGHT_RATIO)
 
-        # Subtitle
-        prof_y = follow_y + 55
+        # Subtitle (clamped to safe zone)
+        prof_y = min(follow_y + 20, ch - s_bottom - 50)
         prof_font = load_font(bold=False, size=26, rounded=True)
-        prof_text = "神奈川県西部の看護師転職"
+        prof_text = "神奈川県の看護師転職"
         ptw, _ = measure_text(prof_text, prof_font)
-        draw.text((center_x - ptw // 2, prof_y), prof_text,
-                  fill=(*COLOR_WHITE[:3], 150), font=prof_font)
+        if prof_y < ch - s_bottom - 30:
+            draw.text((center_x - ptw // 2, prof_y), prof_text,
+                      fill=(*COLOR_WHITE[:3], 150), font=prof_font)
 
-        # Trust badges
-        trust_y = prof_y + 60
+        # Trust badges (clamped)
+        trust_y = min(prof_y + 60, ch - s_bottom - 30)
         _draw_trust_badges(draw, center_x, trust_y)
 
     _draw_slide_indicator(draw, total_slides, total_slides, light_bg=False, canvas_w=cw, safe_top=s_top)

@@ -1,19 +1,19 @@
 {
   "lastRun": {
-    "seo_optimizer": "2026-03-13T04:00:00",
-    "health_monitor": "2026-03-12T09:01:08",
-    "competitor_analyst": "2026-03-12T10:00:11",
+    "seo_optimizer": "2026-03-13T04:00:34",
+    "health_monitor": "2026-03-13T09:00:50",
+    "competitor_analyst": "2026-03-13T10:00:00",
     "content_creator": "2026-03-12T15:00:47",
     "daily_reviewer": "2026-03-12T23:00:35",
     "weekly_strategist": "2026-03-08T06:01:00",
     "sns_poster": "2026-03-12T17:14:46",
-    "ai_marketing_orchestrator": "2026-03-12T08:00:48",
+    "ai_marketing_orchestrator": "2026-03-13T08:00:49",
     "weekly_content_planner": "2026-03-08T05:00:03"
   },
   "status": {
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
@@ -27,15 +27,15 @@
         "from": "health_monitor",
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-03-11T07:00:48.726225",
+        "created": "2026-03-12T07:00:47.594038",
         "status": "processing"
       },
       {
         "from": "health_monitor",
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-03-12T07:00:47.594038",
-        "status": "processing"
+        "created": "2026-03-13T07:00:48.078523",
+        "status": "pending"
       }
     ]
   },
@@ -58,8 +58,8 @@
       "フォロワー0。投稿頻度を上げ、コメント返信でエンゲージメント向上を。"
     ],
     "queueRemaining": 0,
-    "lastMarketingPDCA": "2026-03-12 08:00:46",
-    "queuePending": 56,
+    "lastMarketingPDCA": "2026-03-13 08:00:47",
+    "queuePending": 55,
     "dailyGeneratedCount": 0,
     "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
     "lastWeeklyContentRun": "2026-03-01"
