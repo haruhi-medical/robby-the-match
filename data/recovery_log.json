@@ -10,9 +10,9 @@
     "healthcheck": {
       "date": "2026-03-14",
       "retries": 3,
-      "status": "recovered",
+      "status": "retry_exhausted",
       "last_error": "",
-      "last_alert_ts": "2026-03-14T10:00:01.057805"
+      "last_alert_ts": "2026-03-14T14:30:00.739711"
     },
     "ai_marketing": {
       "date": "2026-03-13",
