@@ -1,8 +1,8 @@
 {
-  "analyzed_at": "2026-03-13T23:00:16",
+  "analyzed_at": "2026-03-14T23:00:16",
   "content_performance": {
-    "total_posted": 18,
-    "verified": 18,
+    "total_posted": 19,
+    "verified": 19,
     "by_category": {},
     "by_cta_type": {},
     "best_performing": [],
@@ -13,14 +13,14 @@
     "message": "パフォーマンスデータ未収集（tiktok_analytics.py --updateで収集）"
   },
   "kpi_trend": {
-    "latest_date": "2026-03-13",
+    "latest_date": "2026-03-14",
     "followers_change": 0,
     "videos_change": 0,
     "views_change": 0,
     "likes_change": 0,
     "current_followers": 0,
     "current_videos": 0,
-    "days_tracked": 21
+    "days_tracked": 22
   },
   "content_mix": {
     "total_stock": 2,

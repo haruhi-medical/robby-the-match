@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-13T18:03:40.624994",
+  "updated": "2026-03-14T20:07:39.478319",
   "posts": [
     {
       "id": 153,
@@ -3724,9 +3724,9 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "video_created",
+      "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0305_03_20260313.mp4",
-      "posted_at": null,
+      "posted_at": "2026-03-13T18:04:49.818131",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -3736,7 +3736,9 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8,
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 100,
@@ -3753,8 +3755,8 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0305_04_20260314.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
