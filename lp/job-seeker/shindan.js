@@ -256,8 +256,8 @@
     var ar = D && D.areas ? D.areas : D;
     var d = ar && ar[A.a] && ar[A.a].count > 0 ? ar[A.a] : (ar && ar.all ? ar.all : null);
     var ct = d ? d.count : 0;
-    var sn = d ? d.salary_min : 350;
-    var sx = d ? d.salary_max : 550;
+    var sn = d ? d.salary_min : 200;
+    var sx = d ? d.salary_max : 450;
 
     ga('shindan_complete', { match_count: ct, area: A.a, shikaku: A.s });
 
@@ -281,9 +281,11 @@
       'あなたにマッチする求人 <strong><span class="shindan-count-num" aria-live="polite">0</span>件</strong>');
     r.appendChild(heading);
 
-    /* Salary range */
+    /* Salary range — salary_min/max は千円単位の月給 */
+    var snMan = Math.round(sn / 10);
+    var sxMan = Math.round(sx / 10);
     r.appendChild(el('div', 'shindan-salary-range',
-      '年収 <strong>' + sn + '〜' + sx + '万円</strong>'));
+      '月給 <strong>' + snMan + '〜' + sxMan + '万円</strong>'));
 
     /* Urgent badge */
     if (A.t === 'urgent') {

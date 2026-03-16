@@ -7,3 +7,5 @@ Sitemap: https://quads-nurse.com/sitemap.xml
 Disallow: /api/
 Disallow: /dashboard.html
 Disallow: /proposal.html
+Disallow: /lp/job-seeker/index-preview.html
+Disallow: /about.html

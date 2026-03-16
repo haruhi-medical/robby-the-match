@@ -1,32 +1,32 @@
-.env
-slack-bot.env
-logs/
-content/generated/
-__pycache__/
-*.pyc
-node_modules/
-.DS_Store
-*.tmp
-.slack-prompt.tmp
-data/.tiktok_cookies.*
-content/temp_videos/
-api/.wrangler/
-Thumbs.db
-*.log
-TK_cookies_*.json
-.venv/
-data/public_data/*.xlsx
-data/public_data/*.zip
-data/public_data/*.csv
-data/public_data/hospital_facility/
-data/public_data/hospital_specialty/
-content/temp_instagram/
 
-# wrangler files
-.wrangler
-.dev.vars*
+__pycache__/
 !.dev.vars.example
 !.env.example
-
-# Local Netlify folder
+.dev.vars*
+.DS_Store
+.env
 .netlify
+.slack-prompt.tmp
+.venv/
+.wrangler
+*.log
+*.pyc
+*.tmp
+# Local Netlify folder
+# wrangler files
+api/.wrangler/
+content/generated/
+content/temp_instagram/
+content/temp_videos/
+data/.instagram_session.json
+data/.tiktok_cookies.*
+data/public_data/*.csv
+data/public_data/*.xlsx
+data/public_data/*.zip
+data/public_data/hospital_facility/
+data/public_data/hospital_specialty/
+logs/
+node_modules/
+slack-bot.env
+Thumbs.db
+TK_cookies_*.json
