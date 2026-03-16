@@ -1,5 +1,6 @@
 /**
- * 神奈川ナース転職 — 転職診断UI v2.0 (vanilla JS)
+ * 神奈川ナース転職 — 転職診断UI v3.0 (vanilla JS)
+ * 5問構成: エリア→職種→働き方→重視点→時期
  *
  * REQUIRED: Add to LP <head> before closing tag:
  *   <link rel="stylesheet" href="shindan.css">
@@ -10,7 +11,7 @@
   /* ── Constants ── */
   var LINE_URL = 'https://lin.ee/oUgDB3x';
   var D = null;
-  var A = { s: '', a: '', t: '' };
+  var A = { a: '', s: '', w: '', c: '', t: '' };
   var C; // container element
   var currentStep = -1;
   var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -21,22 +22,80 @@
   fetch(dataURL).then(function (r) { return r.json(); }).then(function (d) { D = d; }).catch(function () {});
 
   /* ── Questions ── */
-  var ICONS = ['🩺', '📍', '📅'];
+  var ICONS = ['📍', '🩺', '🏥', '💡', '📅'];
   var Q = [
-    { k: 's', t: 'あなたの職種は？', e: 'shindan_q1', ek: 'shikaku', o: [
-      { l: '正看護師', v: 'kango' }, { l: '准看護師', v: 'junkango' },
-      { l: '助産師', v: 'josanshi' }, { l: '保健師', v: 'hokenshi' }
-    ]},
-    { k: 'a', t: '希望エリアは？', e: 'shindan_q2', ek: 'area', o: [
-      { l: '横浜・川崎', v: 'yokohama_kawasaki' }, { l: '湘南・鎌倉', v: 'shonan_kamakura' },
-      { l: '小田原・西湘', v: 'odawara_seisho' }, { l: '相模原・県央', v: 'sagamihara_kenoh' },
+    { k: 'a', t: '希望のエリアは？', e: 'shindan_q1', ek: 'area', o: [
+      { l: '横浜・川崎', v: 'yokohama_kawasaki' },
+      { l: '湘南・鎌倉', v: 'shonan_kamakura' },
+      { l: '小田原・県西', v: 'odawara_seisho' },
+      { l: '相模原・県央', v: 'sagamihara_kenoh' },
       { l: '横須賀・三浦', v: 'yokosuka_miura' }
     ]},
-    { k: 't', t: '転職したい時期は？', e: 'shindan_q3', ek: 'timing', o: [
-      { l: 'すぐにでも', v: 'urgent' }, { l: '3ヶ月以内', v: '3months' },
-      { l: '半年以内', v: '6months' }, { l: '情報収集中', v: 'info' }
+    { k: 's', t: 'あなたの職種は？', e: 'shindan_q2', ek: 'shikaku', o: [
+      { l: '正看護師', v: 'kango' },
+      { l: '准看護師', v: 'junkango' },
+      { l: '助産師', v: 'josanshi' },
+      { l: '保健師', v: 'hokenshi' }
+    ]},
+    { k: 'w', t: '希望の働き方は？', e: 'shindan_q3', ek: 'workstyle', o: [
+      { l: '常勤（日勤のみ）', v: 'day_only' },
+      { l: '常勤（夜勤あり）', v: 'with_night' },
+      { l: 'パート・非常勤', v: 'parttime' },
+      { l: '夜勤専従', v: 'night_only' }
+    ]},
+    { k: 'c', t: '一番大事にしたいことは？', e: 'shindan_q4', ek: 'concern', o: [
+      { l: '給与アップ', v: 'salary' },
+      { l: '休日・プライベート', v: 'holidays' },
+      { l: '人間関係・職場の雰囲気', v: 'atmosphere' },
+      { l: '通勤のしやすさ', v: 'commute' },
+      { l: 'スキルアップ', v: 'skillup' }
+    ]},
+    { k: 't', t: '転職の温度感は？', e: 'shindan_q5', ek: 'timing', o: [
+      { l: 'すぐにでも', v: 'urgent' },
+      { l: '3ヶ月以内', v: '3months' },
+      { l: '半年以内', v: '6months' },
+      { l: '情報収集中', v: 'info' }
     ]}
   ];
+
+  /* ── Micro-feedback messages ── */
+  var FEEDBACK = {
+    'a': function (v) {
+      var names = { yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉', odawara_seisho: '小田原・県西', sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦' };
+      return (names[v] || '') + 'エリア、了解！';
+    },
+    's': function () { return 'OK！'; },
+    'w': function (v) {
+      if (v === 'day_only') return '日勤のみ、人気の条件です';
+      if (v === 'parttime') return 'パート求人も豊富です';
+      return 'OK！';
+    },
+    'c': function (v) {
+      if (v === 'salary') return '給与、しっかり比較します';
+      if (v === 'atmosphere') return '職場の雰囲気、大事ですよね';
+      if (v === 'holidays') return 'プライベート重視、わかります';
+      return 'チェックしますね';
+    }
+  };
+
+  /* ── Concern-based result headlines ── */
+  var CONCERN_HEADLINES = {
+    salary: '給与アップが狙える求人',
+    holidays: '年間休日120日以上の求人',
+    atmosphere: '働きやすさ◎の求人',
+    commute: 'エリア駅チカの求人',
+    skillup: '教育体制充実の求人'
+  };
+
+  /* ── Label lookup for summary card ── */
+  function findLabel(qIdx, val) {
+    var opts = Q[qIdx] && Q[qIdx].o;
+    if (!opts) return val;
+    for (var i = 0; i < opts.length; i++) {
+      if (opts[i].v === val) return opts[i].l;
+    }
+    return val;
+  }
 
   /* ── Helpers ── */
   function ga(e, p) { if (typeof gtag === 'function') gtag('event', e, p || {}); }
@@ -68,25 +127,26 @@
 
   /* ── Progress bar ── */
   function buildProgress(stepIdx) {
+    var total = Q.length;
     var wrap = el('div', 'shindan-progress-wrap');
     wrap.setAttribute('role', 'progressbar');
     wrap.setAttribute('aria-valuenow', String(stepIdx + 1));
     wrap.setAttribute('aria-valuemin', '1');
-    wrap.setAttribute('aria-valuemax', '3');
-    wrap.setAttribute('aria-label', '質問 ' + (stepIdx + 1) + ' / 3');
+    wrap.setAttribute('aria-valuemax', String(total));
+    wrap.setAttribute('aria-label', '質問 ' + (stepIdx + 1) + ' / ' + total);
 
     var track = el('div', 'shindan-progress');
     var bar = el('div', 'shindan-progress-bar');
     track.appendChild(bar);
     wrap.appendChild(track);
 
-    var label = el('div', 'shindan-progress-label', (stepIdx + 1) + ' / 3');
+    var label = el('div', 'shindan-progress-label', (stepIdx + 1) + ' / ' + total);
     wrap.appendChild(label);
 
     // Animate bar after paint
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        bar.style.width = Math.round((stepIdx + 1) / 3 * 100) + '%';
+        bar.style.width = Math.round((stepIdx + 1) / total * 100) + '%';
       });
     });
 
@@ -97,7 +157,7 @@
   function buildDots(stepIdx) {
     var wrap = el('div', 'shindan-dots');
     wrap.setAttribute('aria-hidden', 'true');
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < Q.length; i++) {
       var dot = el('span', 'shindan-dot' + (i < stepIdx ? ' done' : '') + (i === stepIdx ? ' active' : ''));
       wrap.appendChild(dot);
     }
@@ -159,14 +219,34 @@
           p[q.ek] = o.v;
           ga(q.e, p);
 
-          var delay = reducedMotion ? 100 : 350;
-          setTimeout(function () {
-            if (i < 2) {
-              step(i + 1);
-            } else {
-              result();
-            }
-          }, delay);
+          // Show micro-feedback if available
+          var fbFn = FEEDBACK[q.k];
+          var feedbackMsg = fbFn ? fbFn(o.v) : null;
+
+          if (feedbackMsg && !reducedMotion) {
+            // Insert feedback toast above options
+            var existing = s.querySelector('.shindan-feedback');
+            if (existing) existing.parentNode.removeChild(existing);
+            var fb = el('div', 'shindan-feedback', feedbackMsg);
+            s.insertBefore(fb, g);
+
+            setTimeout(function () {
+              if (i < Q.length - 1) {
+                step(i + 1);
+              } else {
+                result();
+              }
+            }, 600);
+          } else {
+            var delay = reducedMotion ? 100 : 350;
+            setTimeout(function () {
+              if (i < Q.length - 1) {
+                step(i + 1);
+              } else {
+                result();
+              }
+            }, delay);
+          }
         });
 
         g.appendChild(b);
@@ -255,16 +335,19 @@
 
     var ar = D && D.areas ? D.areas : D;
     var d = ar && ar[A.a] && ar[A.a].count > 0 ? ar[A.a] : (ar && ar.all ? ar.all : null);
-    var ct = d ? d.count : 0;
-    var sn = d ? d.salary_min : 200;
-    var sx = d ? d.salary_max : 450;
 
-    ga('shindan_complete', { match_count: ct, area: A.a, shikaku: A.s });
+    // Get workstyle-filtered data
+    var ws = d && d.by_workstyle && d.by_workstyle[A.w] ? d.by_workstyle[A.w] : null;
+    var ct = ws ? ws.count : (d ? d.count : 0);
+    var sn = ws ? ws.salary_min : (d ? d.salary_min : 200);
+    var sx = ws ? ws.salary_max : (d ? d.salary_max : 450);
+
+    ga('shindan_complete', { match_count: ct, area: A.a, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
 
     var r = el('div', 'shindan-result');
 
     /* Progress (complete) */
-    var pWrap = buildProgress(2);
+    var pWrap = buildProgress(Q.length - 1);
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         var bar = pWrap.querySelector('.shindan-progress-bar');
@@ -273,19 +356,25 @@
     });
     r.appendChild(pWrap);
 
-    var dots = buildDots(3); // all done
+    var dots = buildDots(Q.length); // all done
     r.appendChild(dots);
 
-    /* Heading with count-up */
+    /* Heading with count-up — personalized by concern */
+    var headlineText = CONCERN_HEADLINES[A.c] || 'あなたにマッチする求人';
     var heading = el('h3', 'shindan-result-heading',
-      'あなたにマッチする求人 <strong><span class="shindan-count-num" aria-live="polite">0</span>件</strong>');
+      headlineText + ' <strong><span class="shindan-count-num" aria-live="polite">0</span>件</strong>');
     r.appendChild(heading);
 
-    /* Salary range — salary_min/max は千円単位の月給 */
-    var snMan = Math.round(sn / 10);
-    var sxMan = Math.round(sx / 10);
-    r.appendChild(el('div', 'shindan-salary-range',
-      '月給 <strong>' + snMan + '〜' + sxMan + '万円</strong>'));
+    /* Salary range — salary_min/max は千円単位の月給 (parttime is hourly) */
+    var salaryHTML;
+    if (A.w === 'parttime') {
+      salaryHTML = '時給 <strong>' + sn + '〜' + sx + '円</strong>';
+    } else {
+      var snMan = Math.round(sn / 10);
+      var sxMan = Math.round(sx / 10);
+      salaryHTML = '月給 <strong>' + snMan + '〜' + sxMan + '万円</strong>';
+    }
+    r.appendChild(el('div', 'shindan-salary-range', salaryHTML));
 
     /* Urgent badge */
     if (A.t === 'urgent') {
@@ -309,9 +398,21 @@
       r.appendChild(blurWrap);
     }
 
+    /* Diagnostic summary card */
+    var summaryHTML =
+      '<div class="shindan-summary-title">あなたの診断結果</div>' +
+      '<div class="shindan-summary-items">' +
+        '<div>📍 ' + findLabel(0, A.a) + '</div>' +
+        '<div>🩺 ' + findLabel(1, A.s) + '</div>' +
+        '<div>🏥 ' + findLabel(2, A.w) + '</div>' +
+        '<div>💡 ' + findLabel(3, A.c) + '</div>' +
+        '<div>📅 ' + findLabel(4, A.t) + '</div>' +
+      '</div>';
+    r.appendChild(el('div', 'shindan-summary', summaryHTML));
+
     /* CTA */
     var ctaText = A.t === 'info' ? 'まずは情報だけ受け取る' : 'LINEで求人を受け取る';
-    var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.t);
+    var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.w + '_' + A.c + '_' + A.t);
     var ctaURL = LINE_URL + '?utm_source=lp&utm_medium=shindan&utm_content=' + utmContent;
 
     var cta = el('a', 'shindan-cta', '', {
@@ -327,7 +428,7 @@
       '<span>' + ctaText + '</span>';
 
     cta.addEventListener('click', function () {
-      ga('shindan_line_click', { area: A.a, shikaku: A.s, timing: A.t });
+      ga('shindan_line_click', { area: A.a, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
       if (typeof fbq === 'function') fbq('track', 'Lead');
     });
 

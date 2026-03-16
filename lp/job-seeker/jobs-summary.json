@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-11",
+  "updated": "2026-03-16",
   "total_qualified": 385,
   "areas": {
     "yokohama_kawasaki": {
@@ -30,7 +30,29 @@
           "bonus": true,
           "type": "正社員"
         }
-      ]
+      ],
+      "by_workstyle": {
+        "day_only": {
+          "count": 35,
+          "salary_min": 163,
+          "salary_max": 684
+        },
+        "with_night": {
+          "count": 85,
+          "salary_min": 148,
+          "salary_max": 720
+        },
+        "parttime": {
+          "count": 91,
+          "salary_min": 1200,
+          "salary_max": 2500
+        },
+        "night_only": {
+          "count": 7,
+          "salary_min": 178,
+          "salary_max": 792
+        }
+      }
     },
     "shonan_kamakura": {
       "name": "湘南・鎌倉",
@@ -60,7 +82,29 @@
           "bonus": true,
           "type": "正社員"
         }
-      ]
+      ],
+      "by_workstyle": {
+        "day_only": {
+          "count": 10,
+          "salary_min": 204,
+          "salary_max": 760
+        },
+        "with_night": {
+          "count": 24,
+          "salary_min": 185,
+          "salary_max": 800
+        },
+        "parttime": {
+          "count": 26,
+          "salary_min": 1200,
+          "salary_max": 2500
+        },
+        "night_only": {
+          "count": 2,
+          "salary_min": 222,
+          "salary_max": 880
+        }
+      }
     },
     "odawara_seisho": {
       "name": "小田原・県西",
@@ -90,7 +134,29 @@
           "bonus": true,
           "type": "正社員"
         }
-      ]
+      ],
+      "by_workstyle": {
+        "day_only": {
+          "count": 2,
+          "salary_min": 240,
+          "salary_max": 532
+        },
+        "with_night": {
+          "count": 5,
+          "salary_min": 218,
+          "salary_max": 560
+        },
+        "parttime": {
+          "count": 5,
+          "salary_min": 1200,
+          "salary_max": 2300
+        },
+        "night_only": {
+          "count": 1,
+          "salary_min": 262,
+          "salary_max": 616
+        }
+      }
     },
     "sagamihara_kenoh": {
       "name": "相模原・県央",
@@ -120,7 +186,29 @@
           "bonus": true,
           "type": "正社員"
         }
-      ]
+      ],
+      "by_workstyle": {
+        "day_only": {
+          "count": 10,
+          "salary_min": 211,
+          "salary_max": 562
+        },
+        "with_night": {
+          "count": 24,
+          "salary_min": 192,
+          "salary_max": 592
+        },
+        "parttime": {
+          "count": 25,
+          "salary_min": 1200,
+          "salary_max": 2400
+        },
+        "night_only": {
+          "count": 2,
+          "salary_min": 230,
+          "salary_max": 651
+        }
+      }
     },
     "yokosuka_miura": {
       "name": "横須賀・三浦",
@@ -150,7 +238,29 @@
           "bonus": true,
           "type": "正社員"
         }
-      ]
+      ],
+      "by_workstyle": {
+        "day_only": {
+          "count": 5,
+          "salary_min": 241,
+          "salary_max": 608
+        },
+        "with_night": {
+          "count": 12,
+          "salary_min": 219,
+          "salary_max": 640
+        },
+        "parttime": {
+          "count": 13,
+          "salary_min": 1200,
+          "salary_max": 2400
+        },
+        "night_only": {
+          "count": 1,
+          "salary_min": 263,
+          "salary_max": 704
+        }
+      }
     },
     "all": {
       "name": "神奈川県全域",
@@ -180,7 +290,29 @@
           "bonus": true,
           "type": "正社員"
         }
-      ]
+      ],
+      "by_workstyle": {
+        "day_only": {
+          "count": 62,
+          "salary_min": 163,
+          "salary_max": 760
+        },
+        "with_night": {
+          "count": 150,
+          "salary_min": 148,
+          "salary_max": 800
+        },
+        "parttime": {
+          "count": 160,
+          "salary_min": 1200,
+          "salary_max": 2500
+        },
+        "night_only": {
+          "count": 13,
+          "salary_min": 178,
+          "salary_max": 880
+        }
+      }
     }
   }
 }

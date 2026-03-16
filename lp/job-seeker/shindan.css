@@ -1,5 +1,5 @@
 /**
- * 神奈川ナース転職 — 転職診断UI スタイル
+ * 神奈川ナース転職 — 転職診断UI スタイル v3.0
  * LP requires: <link rel="stylesheet" href="shindan.css"> before </head>
  */
 
@@ -218,7 +218,7 @@
 
 /* Checkmark icon for selected */
 .shindan-btn.selected::before {
-  content: '✓';
+  content: '\2713';
   font-size: 0.85rem;
   font-weight: 700;
   margin-right: 4px;
@@ -238,6 +238,28 @@
   to {
     transform: scale(3);
     opacity: 0;
+  }
+}
+
+/* ============================
+   Micro-feedback Toast
+   ============================ */
+.shindan-feedback {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sd-teal);
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: sd-feedbackIn 0.3s ease-out both;
+}
+
+@keyframes sd-feedbackIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -333,7 +355,7 @@
 }
 
 .shindan-badge::before {
-  content: '✦';
+  content: '\2726';
   animation: sd-sparkle 1.2s ease-in-out infinite;
 }
 
@@ -462,6 +484,44 @@
 }
 
 /* ============================
+   Diagnostic Summary Card
+   ============================ */
+.shindan-summary {
+  background: var(--sd-teal-light);
+  border: 1px solid var(--sd-teal-border);
+  border-radius: var(--sd-radius);
+  padding: 20px;
+  margin: 20px 0;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: sd-fadeUp 0.5s 1.2s both;
+}
+
+.shindan-summary-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sd-teal);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.shindan-summary-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.shindan-summary-items div {
+  font-size: 0.8rem;
+  color: var(--sd-text);
+  background: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ============================
    CTA Button
    ============================ */
 .shindan-cta {
@@ -564,7 +624,9 @@
   .shindan-job-card,
   .shindan-salary-range,
   .shindan-badge,
-  .shindan-cta {
+  .shindan-cta,
+  .shindan-summary,
+  .shindan-feedback {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
@@ -618,5 +680,14 @@
 
   .shindan-result-heading strong {
     font-size: 1.4rem;
+  }
+
+  .shindan-summary {
+    padding: 16px;
+  }
+
+  .shindan-summary-items div {
+    font-size: 0.75rem;
+    padding: 5px 12px;
   }
 }
