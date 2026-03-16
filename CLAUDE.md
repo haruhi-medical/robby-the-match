@@ -69,6 +69,7 @@ Step 6: STATE.md更新 + PROGRESS.md追記
 - デプロイ指示 → 確認なしで即push（機密ファイル自動除外）
 - 作業完了後 → STATE.md自動更新
 - **データ取得 → Chrome DevTools MCP**（GA4/SC/Meta/TikTok/Instagram。APIが使えない場合のフォールバック兼主力）
+- コンテンツ品質チェック → **docs/content-rules.md の陳腐表現ブラックリスト参照**
 
 ## データドリブン運用方針（2026-03-16〜）
 
@@ -107,6 +108,8 @@ Step 6: STATE.md更新 + PROGRESS.md追記
 - ペルソナ不在のコンテンツを作るな
 - 毎回全ファイルを読むな（STATE.md → 必要なファイルだけ）
 - 「平島禎之」「はるひメディカルサービス」をHTML公開ページに書くな
+- 🚫 PillowでテキストではなくPlaywright移行を試みる（現段階では不要）
+- 🚫 カテゴリMIX比率を勝手に変更（現在: あるある35%/給与20%/業界裏側15%/地域15%/転職10%/トレンド5%）
 
 ## IMPORTANT: 個人名・社名ルール
 
@@ -142,6 +145,9 @@ LINEブロック率: 15%以下 / 開封率: 50%以上
 | cron・PDCA構築記録 | PDCA_SETUP.md |
 | パススコープルール | .claude/rules/ |
 | カスタムエージェント | .claude/agents/ |
+| ブランドシステム設計 | docs/brand-system.md |
+| CSSデザイントークン | docs/design-tokens.css |
+| コンテンツ生成ルール詳細 | docs/content-rules.md |
 
 ## 失敗ログ（運用中に追記）
 

@@ -15,8 +15,27 @@ ai_content_engine.py から import して使う:
     from robby_character import ROBBY, get_robby_system_prompt, pick_hook, pick_cta
 """
 
+import json
 import random
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+# ============================================================
+# 陳腐表現ブラックリスト（docs/content-rules.md 準拠）
+# ============================================================
+CLICHE_BLACKLIST = {
+    "ai_smell": ["さまざまな", "多角的に", "包括的な", "最適化", "パラダイム", "革新的", "画期的"],
+    "ad_smell": ["今だけ", "限定", "特別", "驚きの", "まさかの", "必見", "見逃すな"],
+    "weak_empathy": ["わかる〜", "それな", "つらいよね"],  # 単体使用時のみNG
+    "excessive_positive": ["あなたは悪くない", "頑張らなくていい", "自分を責めないで"],
+    "irresponsible": ["絶対", "必ず", "100%", "間違いなく", "確実に"],
+    "aggressive": ["ブラック", "クソ", "ヤバい", "終わってる", "最悪"],
+    "clickbait": ["衝撃", "驚愕", "閲覧注意", "マジでやばい"],
+}
+
+# 本文に混入してはいけないAI関連ワード
+AI_FORBIDDEN_WORDS = ["AI", "人工知能", "自動生成", "機械学習", "ChatGPT", "GPT"]
 
 # ============================================================
 # 1. ロビー キャラクター基本設定
@@ -712,7 +731,126 @@ def validate_robby_voice(text: str) -> List[str]:
         if word in text:
             issues.append(f"禁止表現検出: 「{word}」-> 法的リスクあり。削除必須。")
 
+    # ----------------------------------------------------------
+    # 陳腐表現ブラックリストチェック（CLICHE_BLACKLIST 全カテゴリ）
+    # ----------------------------------------------------------
+    for category, words in CLICHE_BLACKLIST.items():
+        for word in words:
+            if word in text:
+                issues.append(
+                    f"陳腐表現検出[{category}]: 「{word}」-> より具体的な表現に書き直せ。"
+                )
+
+    # ----------------------------------------------------------
+    # AI関連ワード禁止チェック（AI_FORBIDDEN_WORDS）
+    # ただし「AI転職」はブランドメッセージの一部なので許可
+    # ----------------------------------------------------------
+    # 「AI転職」を一時的に除外して検索するためプレースホルダー置換
+    _check_text = text.replace("AI転職", "\x00AI転職\x00")
+    for word in AI_FORBIDDEN_WORDS:
+        # 置換済みテキストで検索（「AI転職」の中の「AI」はヒットさせない）
+        # プレースホルダーで囲まれていない「AI」だけを検出する
+        idx = 0
+        while True:
+            pos = _check_text.find(word, idx)
+            if pos == -1:
+                break
+            # 前後がプレースホルダー内かチェック（「AI転職」の一部かどうか）
+            before = _check_text[max(0, pos - 1):pos]
+            after = _check_text[pos + len(word):pos + len(word) + 1]
+            if "\x00" not in before and "\x00" not in after:
+                issues.append(
+                    f"AI関連ワード検出: 「{word}」-> 本文への混入禁止。削除または「AI転職」以外の文脈では使用不可。"
+                )
+                break
+            idx = pos + 1
+
     return issues
+
+
+def check_14day_diversity(hook_text: str, queue_file: str = "data/posting_queue.json") -> dict:
+    """過去14日間の投稿キューからフック重複をチェック。
+
+    Args:
+        hook_text: チェック対象のフックテキスト。
+        queue_file: posting_queue.json のパス（リポジトリルートからの相対パス or 絶対パス）。
+
+    Returns:
+        {"duplicate": bool, "similar_hooks": [...]} 形式のdict。
+        ファイルが存在しない場合や読み込み失敗時は {"duplicate": False, "similar_hooks": [], "error": "..."} を返す。
+    """
+    result: dict = {"duplicate": False, "similar_hooks": []}
+
+    # パス解決: 相対パスはスクリプトのリポジトリルート基準で解決
+    queue_path = Path(queue_file)
+    if not queue_path.is_absolute():
+        # スクリプト自身の場所（scripts/）からリポジトリルートを推定
+        repo_root = Path(__file__).parent.parent
+        queue_path = repo_root / queue_file
+
+    if not queue_path.exists():
+        result["error"] = f"posting_queue.json が見つかりません: {queue_path}"
+        return result
+
+    try:
+        with open(queue_path, encoding="utf-8") as f:
+            queue_data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        result["error"] = f"posting_queue.json の読み込みに失敗しました: {e}"
+        return result
+
+    # items リストまたはルートがリスト形式の両方に対応
+    if isinstance(queue_data, dict):
+        items = queue_data.get("items", [])
+    elif isinstance(queue_data, list):
+        items = queue_data
+    else:
+        result["error"] = "posting_queue.json の形式が不正です（list or dict with 'items' を期待）"
+        return result
+
+    cutoff = datetime.now() - timedelta(days=14)
+    similar: List[str] = []
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+
+        # ステータスが posted または ready のもののみ対象
+        status = item.get("status", "")
+        if status not in ("posted", "ready"):
+            continue
+
+        # 日付チェック（posted_at / created_at / scheduled_at の順に参照）
+        date_str = item.get("posted_at") or item.get("created_at") or item.get("scheduled_at")
+        if date_str:
+            try:
+                # ISO 8601 形式を想定（タイムゾーン付き/なし両対応）
+                date_str_clean = date_str.replace("Z", "+00:00")
+                item_dt = datetime.fromisoformat(date_str_clean).replace(tzinfo=None)
+                if item_dt < cutoff:
+                    continue
+            except (ValueError, TypeError):
+                # 日付パースに失敗した場合はスキップせず対象に含める（安全側に倒す）
+                pass
+
+        # フックテキストの取得（hook / hook_text / slides[0].text / title の順に参照）
+        stored_hook = (
+            item.get("hook")
+            or item.get("hook_text")
+            or (item.get("slides", [{}])[0].get("text") if item.get("slides") else None)
+            or item.get("title")
+            or ""
+        )
+        if not stored_hook:
+            continue
+
+        # 完全一致チェック
+        if stored_hook.strip() == hook_text.strip():
+            result["duplicate"] = True
+            similar.append(stored_hook)
+
+    result["similar_hooks"] = similar
+    return result
 
 
 def validate_hook(hook: str) -> List[str]:

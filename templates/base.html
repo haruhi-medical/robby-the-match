@@ -1,0 +1,447 @@
+<!--
+  神奈川ナース転職 — Base Slide Template
+  ※現在はPillow生成が主力。将来のPlaywright移行時に使用するテンプレート。
+  Usage: Jinja2でレンダリング → Playwrightでスクリーンショット
+
+  変数:
+    - format: "tiktok" | "instagram_feed" | "instagram_square"
+    - category: "aruaru" | "tenshoku" | "kyuyo" | "service" | "trend"
+    - slide_type: "hook" | "body" | "cta"
+    - title_text: メインテキスト
+    - body_text: サブテキスト（bodyスライド用）
+    - accent_text: アクセントカラーで表示するテキスト部分
+    - label_text: カテゴリラベル
+    - cta_text: CTA文言（ctaスライド用）
+    - slide_number: スライド番号（1-8）
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>神奈川ナース転職 — Slide {{ slide_number }}</title>
+  <style>
+    /* =====================================================
+       デザイントークン (docs/design-tokens.css と同値)
+       ===================================================== */
+    :root {
+      /* カテゴリ別カラー */
+      {% if category == "aruaru" %}
+      --color-bg: #FFF0EE;
+      --color-accent: #E8756D;
+      {% elif category == "tenshoku" %}
+      --color-bg: #E8F4F8;
+      --color-accent: #1A6B8A;
+      {% elif category == "kyuyo" %}
+      --color-bg: #FFF8E8;
+      --color-accent: #D4A843;
+      {% elif category == "service" %}
+      --color-bg: #FFFFFF;
+      --color-accent: #2D9F6F;
+      {% else %}
+      /* trend (default) */
+      --color-bg: #F5F5F5;
+      --color-accent: #1A6B8A;
+      {% endif %}
+
+      /* 共通カラー */
+      --color-text: #2C2C2C;
+      --color-text-sub: #6B7280;
+      --color-cta: #2D9F6F;
+
+      /* フォーマット別サイズ */
+      {% if format == "tiktok" %}
+      --canvas-width: 1080px;
+      --canvas-height: 1920px;
+      --font-size-hook: 140px;
+      --font-size-body-title: 96px;
+      --font-size-body: 60px;
+      --font-size-caption: 44px;
+      --font-size-cta: 56px;
+      --font-size-label: 36px;
+      --font-size-number: 168px;
+      --font-weight-hook: 800;
+      --font-weight-body-title: 600;
+      --font-weight-body: 400;
+      --font-weight-caption: 300;
+      --font-weight-cta: 600;
+      --font-weight-number: 800;
+      --line-height-hook: 1.5;
+      --line-height-body-title: 1.6;
+      --line-height-body: 1.7;
+      --line-height-caption: 1.5;
+      --letter-spacing-hook: 0.02em;
+      --letter-spacing-body-title: 0.02em;
+      --letter-spacing-body: 0.04em;
+      --line-clamp-hook: 3;
+      --line-clamp-body: 6;
+      --padding-top: 200px;
+      --padding-bottom: 160px;
+      --padding-side: 60px;
+      {% elif format == "instagram_feed" %}
+      --canvas-width: 1080px;
+      --canvas-height: 1350px;
+      --font-size-hook: 120px;
+      --font-size-body-title: 80px;
+      --font-size-body: 52px;
+      --font-size-caption: 40px;
+      --font-size-cta: 56px;
+      --font-size-label: 36px;
+      --font-size-number: 168px;
+      --font-weight-hook: 800;
+      --font-weight-body-title: 600;
+      --font-weight-body: 400;
+      --font-weight-caption: 300;
+      --font-weight-cta: 600;
+      --font-weight-number: 800;
+      --line-height-hook: 1.5;
+      --line-height-body-title: 1.6;
+      --line-height-body: 1.7;
+      --line-height-caption: 1.5;
+      --letter-spacing-hook: 0.02em;
+      --letter-spacing-body-title: 0.02em;
+      --letter-spacing-body: 0.04em;
+      --line-clamp-hook: 3;
+      --line-clamp-body: 5;
+      --padding-top: 120px;
+      --padding-bottom: 100px;
+      --padding-side: 60px;
+      {% else %}
+      /* instagram_square (default) */
+      --canvas-width: 1080px;
+      --canvas-height: 1080px;
+      --font-size-hook: 100px;
+      --font-size-body-title: 72px;
+      --font-size-body: 44px;
+      --font-size-caption: 36px;
+      --font-size-cta: 56px;
+      --font-size-label: 36px;
+      --font-size-number: 168px;
+      --font-weight-hook: 800;
+      --font-weight-body-title: 600;
+      --font-weight-body: 400;
+      --font-weight-caption: 300;
+      --font-weight-cta: 600;
+      --font-weight-number: 800;
+      --line-height-hook: 1.5;
+      --line-height-body-title: 1.6;
+      --line-height-body: 1.7;
+      --line-height-caption: 1.5;
+      --letter-spacing-hook: 0.02em;
+      --letter-spacing-body-title: 0.02em;
+      --letter-spacing-body: 0.04em;
+      --line-clamp-hook: 2;
+      --line-clamp-body: 4;
+      --padding-top: 80px;
+      --padding-bottom: 60px;
+      --padding-side: 60px;
+      {% endif %}
+
+      /* コンテンツ幅 */
+      --content-max-width: 960px;
+    }
+
+    /* =====================================================
+       ベースリセット
+       ===================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: var(--canvas-width);
+      height: var(--canvas-height);
+      overflow: hidden;        /* オーバーフロー防御 L1 */
+      font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', system-ui, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-break: strict;
+      overflow-wrap: break-word;
+    }
+
+    /* =====================================================
+       スライドコンテナ（4層オーバーフロー防御）
+       L1: html/body overflow:hidden
+       L2: .slide overflow:hidden
+       L3: .slide-content max-height制限
+       L4: テキスト要素 overflow-wrap + line-clamp
+       ===================================================== */
+    .slide {
+      position: relative;
+      width: var(--canvas-width);
+      height: var(--canvas-height);
+      overflow: hidden;        /* オーバーフロー防御 L2 */
+      display: flex;
+      flex-direction: column;
+      background-color: var(--color-bg);
+    }
+
+    /* スライドコンテンツ領域 */
+    .slide-content {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--padding-top) var(--padding-side) var(--padding-bottom);
+      max-height: var(--canvas-height);  /* オーバーフロー防御 L3 */
+      overflow: hidden;        /* オーバーフロー防御 L3 */
+    }
+
+    /* =====================================================
+       テキストベース（オーバーフロー防御 L4）
+       ===================================================== */
+    .text-base {
+      overflow-wrap: break-word;
+      line-break: strict;
+      overflow: hidden;
+    }
+
+    .category-label {
+      display: inline-block;
+      font-size: var(--font-size-label);
+      font-weight: 400;
+      color: var(--color-accent);
+      opacity: 0.75;
+      letter-spacing: 0.05em;
+      margin-bottom: 24px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .slide-number {
+      position: absolute;
+      top: var(--padding-side);
+      right: var(--padding-side);
+      font-size: var(--font-size-label);
+      color: var(--color-text-sub);
+      font-weight: 400;
+      opacity: 0.5;
+      z-index: 2;
+    }
+
+    /* =====================================================
+       Hook スライド
+       ===================================================== */
+    .hook-title {
+      font-size: var(--font-size-hook);
+      font-weight: var(--font-weight-hook);
+      line-height: var(--line-height-hook);
+      letter-spacing: var(--letter-spacing-hook);
+      color: var(--color-text);
+      max-width: calc(var(--content-max-width) * 0.85);
+      display: -webkit-box;
+      -webkit-line-clamp: var(--line-clamp-hook);   /* オーバーフロー防御 L4 */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .hook-title .accent {
+      color: var(--color-accent);
+    }
+
+    .hook-sub {
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-caption);
+      color: var(--color-text-sub);
+      line-height: var(--line-height-caption);
+      margin-top: 24px;
+      max-width: calc(var(--content-max-width) * 0.80);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;   /* オーバーフロー防御 L4 */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* =====================================================
+       Body スライド
+       ===================================================== */
+    .body-title {
+      font-size: var(--font-size-body-title);
+      font-weight: var(--font-weight-body-title);
+      line-height: var(--line-height-body-title);
+      letter-spacing: var(--letter-spacing-body-title);
+      color: var(--color-accent);
+      max-width: var(--content-max-width);
+      margin-bottom: 24px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;   /* オーバーフロー防御 L4 */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .body-text {
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-body);
+      line-height: var(--line-height-body);
+      letter-spacing: var(--letter-spacing-body);
+      color: var(--color-text);
+      max-width: calc(var(--content-max-width) * 0.80);
+      display: -webkit-box;
+      -webkit-line-clamp: var(--line-clamp-body);   /* オーバーフロー防御 L4 */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .body-text .accent {
+      color: var(--color-accent);
+      font-weight: var(--font-weight-body-title);
+    }
+
+    /* =====================================================
+       CTA スライド
+       ===================================================== */
+    .cta-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 32px;
+    }
+
+    .cta-title {
+      font-size: var(--font-size-hook);
+      font-weight: var(--font-weight-hook);
+      line-height: var(--line-height-hook);
+      letter-spacing: var(--letter-spacing-hook);
+      color: var(--color-text);
+      max-width: var(--content-max-width);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;   /* オーバーフロー防御 L4 */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .cta-title .accent {
+      color: var(--color-accent);
+    }
+
+    .cta-text {
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-caption);
+      color: var(--color-text-sub);
+      line-height: var(--line-height-caption);
+      max-width: var(--content-max-width);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;   /* オーバーフロー防御 L4 */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: var(--color-cta);
+      color: #FFFFFF;
+      font-size: var(--font-size-cta);
+      font-weight: var(--font-weight-cta);
+      padding: 24px 64px;
+      border-radius: 60px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* =====================================================
+       ブランドフッター（控えめ表示）
+       ===================================================== */
+    .brand-footer {
+      position: absolute;
+      bottom: 48px;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      text-align: center;
+      font-size: var(--font-size-label);
+      font-weight: 400;
+      color: var(--color-text-sub);
+      opacity: 0.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+
+    <!-- スライド番号 -->
+    <div class="slide-number">{{ slide_number }} / 8</div>
+
+    <!-- =====================================================
+         Hook スライド
+         ===================================================== -->
+    {% if slide_type == "hook" %}
+    <div class="slide-content">
+      {% if label_text %}
+      <div class="category-label">{{ label_text }}</div>
+      {% endif %}
+
+      <h1 class="hook-title text-base">
+        {% if accent_text %}
+        {{ title_text | replace(accent_text, '<span class="accent">' + accent_text + '</span>') | safe }}
+        {% else %}
+        {{ title_text }}
+        {% endif %}
+      </h1>
+
+      {% if body_text %}
+      <p class="hook-sub text-base">{{ body_text }}</p>
+      {% endif %}
+    </div>
+
+    <!-- =====================================================
+         Body スライド
+         ===================================================== -->
+    {% elif slide_type == "body" %}
+    <div class="slide-content">
+      {% if label_text %}
+      <div class="body-title text-base">{{ label_text }}</div>
+      {% endif %}
+
+      <p class="body-text text-base">
+        {% if accent_text %}
+        {{ body_text | replace(accent_text, '<span class="accent">' + accent_text + '</span>') | safe }}
+        {% else %}
+        {{ body_text }}
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- =====================================================
+         CTA スライド
+         ===================================================== -->
+    {% elif slide_type == "cta" %}
+    <div class="slide-content">
+      <div class="cta-wrapper">
+        <h2 class="cta-title text-base">
+          {% if accent_text %}
+          {{ title_text | replace(accent_text, '<span class="accent">' + accent_text + '</span>') | safe }}
+          {% else %}
+          {{ title_text }}
+          {% endif %}
+        </h2>
+
+        {% if body_text %}
+        <p class="cta-text text-base">{{ body_text }}</p>
+        {% endif %}
+
+        <div class="cta-button">
+          {% if cta_text %}{{ cta_text }}{% else %}LINEで無料相談 →{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ブランドフッター -->
+    <footer class="brand-footer">神奈川ナース転職</footer>
+
+  </div>
+</body>
+</html>

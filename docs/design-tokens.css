@@ -1,0 +1,420 @@
+/**
+ * design-tokens.css
+ * 神奈川ナース転職 — デザイントークン定義
+ *
+ * このファイルはSNSコンテンツ（TikTok/Instagram）の
+ * ビジュアル一貫性を保つための単一ソースオブトゥルース。
+ * Playwright/Pillow/Canvaのいずれでも参照可能。
+ *
+ * 命名規則: nr-（NURSE ROBBYの略）プレフィックスを維持
+ * 最終更新: 2026-03-16
+ */
+
+/* ==========================================================================
+   1. COLOR TOKENS — ブランドカラー
+   ========================================================================== */
+
+:root {
+  /* ブランドプライマリカラー */
+  --nr-color-primary:          #1A6B8A;
+  --nr-color-primary-light:    #E8F4F8;
+  --nr-color-primary-dark:     #0F4A62;
+  --nr-color-primary-10:       rgba(26, 107, 138, 0.10);
+  --nr-color-primary-20:       rgba(26, 107, 138, 0.20);
+
+  /* セカンダリカラー — 温かみ・ケア */
+  --nr-color-secondary:        #E8756D;
+  --nr-color-secondary-light:  #FFF0EE;
+  --nr-color-secondary-dark:   #C55A53;
+  --nr-color-secondary-10:     rgba(232, 117, 109, 0.10);
+
+  /* アクセントカラー — 信頼・実績 */
+  --nr-color-accent:           #D4A843;
+  --nr-color-accent-light:     #FFF8E8;
+  --nr-color-accent-dark:      #A87E2A;
+  --nr-color-accent-10:        rgba(212, 168, 67, 0.10);
+
+  /* CTAカラー — 行動喚起・緑 */
+  --nr-color-cta:              #2D9F6F;
+  --nr-color-cta-hover:        #258A5E;
+  --nr-color-cta-light:        #3DBF88;
+  --nr-color-cta-dark:         #1E7A52;
+  --nr-color-cta-10:           rgba(45, 159, 111, 0.10);
+
+  /* テキストカラー */
+  --nr-color-text:             #2C2C2C;
+  --nr-color-text-sub:         #6B7280;
+  --nr-color-text-inverse:     #FFFFFF;
+  --nr-color-text-link:        #1A6B8A;
+
+  /* 背景カラー */
+  --nr-color-bg-white:         #FFFFFF;
+  --nr-color-bg-offwhite:      #FAFAFA;
+  --nr-color-bg-light:         #F5F5F5;
+
+  /* ボーダー */
+  --nr-color-border:           #E5E7EB;
+
+  /* カテゴリ別背景色 */
+  --nr-color-bg-aruaru:        #FFF0EE;
+  --nr-color-bg-tenshoku:      #E8F4F8;
+  --nr-color-bg-kyuyo:         #FFF8E8;
+  --nr-color-bg-service:       #FFFFFF;
+  --nr-color-bg-trend:         #F5F5F5;
+
+  /* カテゴリ別アクセント色（背景とペア） */
+  --nr-color-accent-aruaru:    #E8756D;
+  --nr-color-accent-tenshoku:  #1A6B8A;
+  --nr-color-accent-kyuyo:     #D4A843;
+  --nr-color-accent-service:   #2D9F6F;
+  --nr-color-accent-trend:     #1A6B8A;
+
+  /* グラデーション */
+  --nr-gradient-primary:       linear-gradient(135deg, #1A6B8A 0%, #0F4A62 100%);
+  --nr-gradient-cta:           linear-gradient(135deg, #2D9F6F 0%, #1E7A52 100%);
+  --nr-gradient-warm:          linear-gradient(135deg, #E8756D 0%, #D4A843 100%);
+  --nr-gradient-overlay-dark:  linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,0.65) 100%);
+}
+
+
+/* ==========================================================================
+   2. TYPOGRAPHY TOKENS — タイポグラフィ
+   TikTok基準: 1080px幅キャンバス
+   ========================================================================== */
+
+:root {
+  /* フォントファミリ（日本語最適化） */
+  --nr-font-primary:     "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+  --nr-font-rounded:     "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", "Noto Sans JP", sans-serif;
+  --nr-font-numeric:     "Helvetica Neue", "Arial", "Hiragino Sans", sans-serif;
+
+  /* フォントサイズ — TikTok 1080px幅基準 */
+  --nr-font-size-hook:       140px;
+  --nr-font-size-body-title:  96px;
+  --nr-font-size-body:         60px;
+  --nr-font-size-caption:      44px;
+  --nr-font-size-number:      168px;
+  --nr-font-size-cta:          56px;
+  --nr-font-size-label:        36px;
+
+  /* フォントウェイト */
+  --nr-font-weight-light:      300;
+  --nr-font-weight-regular:    400;
+  --nr-font-weight-bold:       600;
+  --nr-font-weight-heavy:      800;
+
+  /* 行間 */
+  --nr-line-height-hook:     1.5;
+  --nr-line-height-title:    1.6;
+  --nr-line-height-body:     1.7;
+  --nr-line-height-caption:  1.5;
+
+  /* 字間（トラッキング） */
+  --nr-letter-spacing-hook:     0.02em;
+  --nr-letter-spacing-body:     0.04em;
+  --nr-letter-spacing-caption:  0.02em;
+}
+
+
+/* ==========================================================================
+   3. SPACING TOKENS — スペーシング（8pxグリッドシステム）
+   ========================================================================== */
+
+:root {
+  /* ベーススペーシング（8pxグリッド） */
+  --nr-space-xs:    8px;
+  --nr-space-sm:   16px;
+  --nr-space-md:   24px;
+  --nr-space-lg:   32px;
+  --nr-space-xl:   48px;
+  --nr-space-2xl:  64px;
+  --nr-space-3xl:  96px;
+
+  /* TikTokスライドパディング */
+  --nr-slide-padding-x:        60px;
+  --nr-slide-padding-top:     200px;
+  --nr-slide-padding-bottom:  160px;
+
+  /* コンテンツ最大幅 */
+  --nr-content-max-width:      960px;
+
+  /* キャンバスサイズ */
+  --nr-canvas-width-tiktok:    1080px;
+  --nr-canvas-height-tiktok:   1920px;
+  --nr-canvas-width-feed:      1080px;
+  --nr-canvas-height-feed:     1350px;
+  --nr-canvas-width-square:    1080px;
+  --nr-canvas-height-square:   1080px;
+
+  /* ボーダー */
+  --nr-border-radius-sm:     8px;
+  --nr-border-radius-md:     16px;
+  --nr-border-radius-lg:     24px;
+  --nr-border-radius-xl:     40px;
+  --nr-border-radius-full:   9999px;
+
+  /* ストローク幅 */
+  --nr-border-width-sm:      2px;
+  --nr-border-width-md:      4px;
+  --nr-border-width-lg:      6px;
+
+  /* シャドウ */
+  --nr-shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.08);
+  --nr-shadow-md:    0 4px 16px rgba(0, 0, 0, 0.12);
+  --nr-shadow-lg:    0 8px 32px rgba(0, 0, 0, 0.18);
+  --nr-shadow-text:  2px 2px 6px rgba(0, 0, 0, 0.40);
+}
+
+
+/* ==========================================================================
+   4. ANIMATION TOKENS — アニメーション
+   ========================================================================== */
+
+:root {
+  /* イージング */
+  --nr-ease-out:      cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --nr-ease-in-out:   cubic-bezier(0.42, 0, 0.58, 1);
+  --nr-ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* デュレーション */
+  --nr-duration-fast:      200ms;
+  --nr-duration-normal:    300ms;
+  --nr-duration-slow:      400ms;
+  --nr-duration-counter:   800ms;
+
+  /* アニメーションオフセット */
+  --nr-slide-offset:   12px;
+  --nr-cta-offset:     20px;
+
+  /* スライド表示時間（Pillow/ffmpeg用参考値） */
+  --nr-slide-duration-first:  2000ms;
+  --nr-slide-duration-middle: 3000ms;
+  --nr-slide-duration-last:   4000ms;
+  --nr-slide-transition:       500ms;
+}
+
+
+/* ==========================================================================
+   5. BASE TEXT STYLES — テキスト基盤
+   ========================================================================== */
+
+/* .nr-text — 全テキスト要素の基盤 */
+.nr-text {
+  line-break: strict;
+  overflow-wrap: break-word;
+  overflow: hidden;
+}
+
+/* .nr-text--clamp — 行数制限 */
+.nr-text--clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+
+/* ==========================================================================
+   6. COMPONENT STYLES — コンポーネント
+   ========================================================================== */
+
+/* ---- スライドコンテナ ---- */
+.nr-slide {
+  position:       relative;
+  width:          var(--nr-canvas-width-tiktok);
+  height:         var(--nr-canvas-height-tiktok);
+  padding:        var(--nr-slide-padding-top) var(--nr-slide-padding-x) var(--nr-slide-padding-bottom);
+  background:     var(--nr-color-bg-white);
+  display:        flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items:    flex-start;
+  overflow:       hidden;
+  font-family:    var(--nr-font-primary);
+  box-sizing:     border-box;
+}
+
+/* ---- カテゴリラベル ---- */
+.nr-label {
+  display:          inline-flex;
+  align-items:      center;
+  padding:          var(--nr-space-xs) var(--nr-space-sm);
+  border-radius:    var(--nr-border-radius-full);
+  font-size:        var(--nr-font-size-label);
+  font-weight:      var(--nr-font-weight-bold);
+  letter-spacing:   var(--nr-letter-spacing-caption);
+  line-height:      1;
+  background:       var(--nr-color-primary);
+  color:            var(--nr-color-bg-white);
+  white-space:      nowrap;
+}
+
+/* ---- フックテキスト（1枚目の大見出し） ---- */
+.nr-hook {
+  font-family:    var(--nr-font-primary);
+  font-size:      var(--nr-font-size-hook);
+  font-weight:    var(--nr-font-weight-heavy);
+  line-height:    var(--nr-line-height-hook);
+  letter-spacing: var(--nr-letter-spacing-hook);
+  color:          var(--nr-color-text);
+  max-width:      var(--nr-content-max-width);
+}
+
+/* ---- ボディタイトル ---- */
+.nr-body-title {
+  font-family:    var(--nr-font-primary);
+  font-size:      var(--nr-font-size-body-title);
+  font-weight:    var(--nr-font-weight-bold);
+  line-height:    var(--nr-line-height-title);
+  letter-spacing: var(--nr-letter-spacing-body);
+  color:          var(--nr-color-text);
+  max-width:      var(--nr-content-max-width);
+}
+
+/* ---- ボディテキスト ---- */
+.nr-body {
+  font-family:    var(--nr-font-primary);
+  font-size:      var(--nr-font-size-body);
+  font-weight:    var(--nr-font-weight-regular);
+  line-height:    var(--nr-line-height-body);
+  letter-spacing: var(--nr-letter-spacing-body);
+  color:          var(--nr-color-text);
+  max-width:      var(--nr-content-max-width);
+}
+
+/* ---- キャプション・注釈 ---- */
+.nr-caption {
+  font-family:    var(--nr-font-primary);
+  font-size:      var(--nr-font-size-caption);
+  font-weight:    var(--nr-font-weight-regular);
+  line-height:    var(--nr-line-height-caption);
+  letter-spacing: var(--nr-letter-spacing-caption);
+  color:          var(--nr-color-text-sub);
+  max-width:      var(--nr-content-max-width);
+}
+
+/* ---- 数字強調 ---- */
+.nr-number {
+  font-family:    var(--nr-font-numeric);
+  font-size:      var(--nr-font-size-number);
+  font-weight:    var(--nr-font-weight-heavy);
+  line-height:    1;
+  letter-spacing: var(--nr-letter-spacing-hook);
+  color:          var(--nr-color-primary);
+}
+
+/* ---- CTAボタン ---- */
+.nr-cta {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             var(--nr-space-xs);
+  padding:         var(--nr-space-md) var(--nr-space-xl);
+  border-radius:   var(--nr-border-radius-full);
+  font-family:     var(--nr-font-primary);
+  font-size:       var(--nr-font-size-cta);
+  font-weight:     var(--nr-font-weight-bold);
+  letter-spacing:  var(--nr-letter-spacing-body);
+  line-height:     1;
+  background:      var(--nr-color-cta);
+  color:           var(--nr-color-bg-white);
+  text-decoration: none;
+  white-space:     nowrap;
+  box-shadow:      var(--nr-shadow-lg);
+}
+
+.nr-cta:hover {
+  background: var(--nr-color-cta-hover);
+}
+
+/* ---- アクセント装飾 ---- */
+.nr-accent {
+  color: var(--nr-color-accent);
+}
+
+/* デコレーションライン */
+.nr-accent-line {
+  width:          80px;
+  height:         var(--nr-border-width-lg);
+  border-radius:  var(--nr-border-radius-full);
+  background:     var(--nr-color-primary);
+}
+
+/* ---- ブランドフッター ---- */
+.nr-brand-footer {
+  position:       absolute;
+  bottom:         var(--nr-slide-padding-bottom);
+  left:           var(--nr-slide-padding-x);
+  right:          var(--nr-slide-padding-x);
+  display:        flex;
+  align-items:    center;
+  justify-content: space-between;
+  font-family:    var(--nr-font-primary);
+  font-size:      var(--nr-font-size-label);
+  font-weight:    var(--nr-font-weight-regular);
+  letter-spacing: var(--nr-letter-spacing-caption);
+  color:          var(--nr-color-text-sub);
+}
+
+
+/* ==========================================================================
+   7. FORMAT OVERRIDES — フォーマット別上書き
+   ========================================================================== */
+
+/* ---- Instagram Feed（1080×1350px = 4:5縦長） ---- */
+.nr-format-instagram-feed .nr-slide {
+  height:   var(--nr-canvas-height-feed);
+}
+
+/* ---- Instagram Square（1080×1080px = 1:1正方形） ---- */
+.nr-format-instagram-square .nr-slide {
+  height:   var(--nr-canvas-height-square);
+}
+
+
+/* ==========================================================================
+   8. ANIMATION KEYFRAMES — アニメーション定義
+   ========================================================================== */
+
+/* フェードイン */
+@keyframes nr-fade-in {
+  from {
+    opacity:   0;
+  }
+  to {
+    opacity:   1;
+  }
+}
+
+/* 下からスライドアップ（本文・リスト項目用） */
+@keyframes nr-slide-up {
+  from {
+    opacity:   0;
+    transform: translateY(var(--nr-slide-offset, 12px));
+  }
+  to {
+    opacity:   1;
+    transform: translateY(0);
+  }
+}
+
+/* CTAスライドアップ */
+@keyframes nr-slide-up-cta {
+  from {
+    opacity:   0;
+    transform: translateY(var(--nr-cta-offset, 20px));
+  }
+  to {
+    opacity:   1;
+    transform: translateY(0);
+  }
+}
+
+/* アニメーション無効化（アクセシビリティ対応） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:       0.01ms !important;
+  }
+}

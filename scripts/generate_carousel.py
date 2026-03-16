@@ -50,6 +50,47 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
+try:
+    from playwright.sync_api import sync_playwright
+    from jinja2 import Environment, FileSystemLoader
+    HAS_PLAYWRIGHT = True
+except ImportError:
+    HAS_PLAYWRIGHT = False
+
+# ===========================================================================
+# ブランドカラーシステム（docs/brand-system.md 準拠）
+# ===========================================================================
+BRAND_COLORS = {
+    "primary": "#1A6B8A",        # ロビーブルー
+    "primary_light": "#E8F4F8",  # ソフトブルー
+    "secondary": "#E8756D",      # ウォームコーラル
+    "secondary_light": "#FFF0EE",# ソフトコーラル
+    "accent": "#D4A843",         # マスタード
+    "accent_light": "#FFF8E8",   # ソフトイエロー
+    "cta": "#2D9F6F",            # ロビーグリーン
+    "text": "#2C2C2C",           # チャコール
+    "text_sub": "#6B7280",       # グレー
+    "bg_light": "#F5F5F5",       # ライトグレー
+    "white": "#FFFFFF",
+}
+
+CATEGORY_COLORS = {
+    "aruaru":    {"bg": "#FFF0EE", "accent": "#E8756D"},
+    "kyuyo":     {"bg": "#FFF8E8", "accent": "#D4A843"},
+    "gyoukai":   {"bg": "#E8F4F8", "accent": "#1A6B8A"},
+    "chiiki":    {"bg": "#E8F4F8", "accent": "#1A6B8A"},
+    "tenshoku":  {"bg": "#E8F4F8", "accent": "#1A6B8A"},
+    "trend":     {"bg": "#F5F5F5", "accent": "#1A6B8A"},
+    "service":   {"bg": "#FFFFFF", "accent": "#2D9F6F"},
+}
+
+
+def _hex_to_rgb(hex_color: str) -> tuple:
+    """HEX文字列 (#RRGGBB) を RGB タプルに変換するユーティリティ。"""
+    h = hex_color.lstrip("#")
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+
 # ===========================================================================
 # Constants
 # ===========================================================================
@@ -270,8 +311,9 @@ IG_CANVAS_H = 1350
 # Common colors
 COLOR_WHITE = (255, 255, 255)
 COLOR_BLACK = (0, 0, 0)
-COLOR_BRAND_BLUE = (26, 120, 240)
-COLOR_BRAND_TEAL = (0, 200, 170)
+# ブランドカラー（BRAND_COLORS 参照）
+COLOR_BRAND_BLUE = _hex_to_rgb(BRAND_COLORS["primary"])   # #1A6B8A -> (26, 107, 138)
+COLOR_BRAND_TEAL = _hex_to_rgb(BRAND_COLORS["cta"])       # #2D9F6F -> (45, 159, 111)
 
 # Font paths
 FONT_BOLD_PATH = "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc"
@@ -3951,6 +3993,169 @@ def generate_carousel_backgrounds(
     return {"backgrounds": bg_paths, "metadata": str(meta_path)}
 
 
+# ===========================================================================
+# Playwright rendering (HTML template-based)
+# ===========================================================================
+
+# Viewport sizes for Playwright renderer
+PLAYWRIGHT_VIEWPORTS = {
+    "tiktok": {"width": 1080, "height": 1920},
+    "instagram_feed": {"width": 1080, "height": 1350},
+    "instagram_square": {"width": 1080, "height": 1080},
+}
+
+# Map platform names used in CLI to Playwright viewport keys
+_PLATFORM_TO_PW_FORMAT = {
+    "tiktok": "tiktok",
+    "instagram": "instagram_feed",
+    "instagram_story": "tiktok",  # same 9:16 ratio
+}
+
+
+def render_slide_playwright(
+    slide_data: dict,
+    format: str,
+    category: str,
+    output_path: str,
+) -> str:
+    """Render a single slide using Playwright to screenshot an HTML template.
+
+    Args:
+        slide_data: Dict with keys: slide_type, title_text, body_text,
+                    accent_text, label_text, cta_text, slide_number, cta_button_text
+        format: "tiktok", "instagram_feed", or "instagram_square"
+        category: "aruaru", "tenshoku", "kyuyo", "service", "trend"
+        output_path: Where to save the PNG screenshot
+
+    Returns:
+        The output_path on success.
+
+    Raises:
+        RuntimeError: If Playwright/Jinja2 are not installed.
+    """
+    if not HAS_PLAYWRIGHT:
+        raise RuntimeError(
+            "Playwright rendering requires playwright and jinja2. "
+            "Install with: pip install playwright jinja2 && playwright install chromium"
+        )
+
+    # Resolve template directory
+    templates_dir = Path(__file__).parent.parent / "templates"
+    if not templates_dir.exists():
+        raise FileNotFoundError(f"Templates directory not found: {templates_dir}")
+
+    env = Environment(loader=FileSystemLoader(str(templates_dir)))
+    template = env.get_template("base.html")
+
+    # Build template variables
+    template_vars = {
+        "format": format,
+        "category": category,
+        "slide_type": slide_data.get("slide_type", "body"),
+        "title_text": slide_data.get("title_text", ""),
+        "body_text": slide_data.get("body_text", ""),
+        "accent_text": slide_data.get("accent_text", ""),
+        "label_text": slide_data.get("label_text", ""),
+        "cta_text": slide_data.get("cta_text", ""),
+        "slide_number": slide_data.get("slide_number", 1),
+        "cta_button_text": slide_data.get("cta_button_text", ""),
+    }
+
+    html_content = template.render(**template_vars)
+
+    # Get viewport size
+    viewport = PLAYWRIGHT_VIEWPORTS.get(format, PLAYWRIGHT_VIEWPORTS["tiktok"])
+
+    # Ensure output directory exists
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page(viewport_size=viewport)
+            page.set_content(html_content, wait_until="networkidle")
+            page.screenshot(path=output_path, full_page=False)
+        finally:
+            browser.close()
+
+    return output_path
+
+
+def generate_carousel_playwright(
+    slides: list[dict],
+    format: str,
+    category: str,
+    output_dir: str,
+) -> list[str]:
+    """Generate a full carousel set using Playwright HTML rendering.
+
+    Args:
+        slides: List of slide_data dicts (see render_slide_playwright for keys).
+        format: "tiktok", "instagram_feed", or "instagram_square"
+        category: "aruaru", "tenshoku", "kyuyo", "service", "trend"
+        output_dir: Directory to save output PNGs.
+
+    Returns:
+        List of output PNG paths.
+    """
+    if not HAS_PLAYWRIGHT:
+        raise RuntimeError(
+            "Playwright rendering requires playwright and jinja2. "
+            "Install with: pip install playwright jinja2 && playwright install chromium"
+        )
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    output_paths = []
+
+    # Resolve template directory and create Jinja2 environment once
+    templates_dir = Path(__file__).parent.parent / "templates"
+    if not templates_dir.exists():
+        raise FileNotFoundError(f"Templates directory not found: {templates_dir}")
+
+    env = Environment(loader=FileSystemLoader(str(templates_dir)))
+    template = env.get_template("base.html")
+
+    viewport = PLAYWRIGHT_VIEWPORTS.get(format, PLAYWRIGHT_VIEWPORTS["tiktok"])
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page(viewport_size=viewport)
+
+            for i, slide_data in enumerate(slides):
+                slide_num = slide_data.get("slide_number", i + 1)
+                output_path = str(out / f"slide_{slide_num:02d}.png")
+
+                template_vars = {
+                    "format": format,
+                    "category": category,
+                    "slide_type": slide_data.get("slide_type", "body"),
+                    "title_text": slide_data.get("title_text", ""),
+                    "body_text": slide_data.get("body_text", ""),
+                    "accent_text": slide_data.get("accent_text", ""),
+                    "label_text": slide_data.get("label_text", ""),
+                    "cta_text": slide_data.get("cta_text", ""),
+                    "slide_number": slide_num,
+                    "cta_button_text": slide_data.get("cta_button_text", ""),
+                }
+
+                html_content = template.render(**template_vars)
+                page.set_content(html_content, wait_until="networkidle")
+                page.screenshot(path=output_path, full_page=False)
+                output_paths.append(output_path)
+                print(f"  [Playwright] Slide {slide_num} -> {output_path}")
+
+        except Exception as e:
+            print(f"ERROR: Playwright rendering failed: {e}")
+            raise
+        finally:
+            browser.close()
+
+    return output_paths
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="TikTok/Instagram carousel slide generator v4.0 (category templates)",
@@ -3967,8 +4172,16 @@ def main():
                        help="Generate background-only PNGs + text metadata JSON (for animated video)")
     parser.add_argument("--platform", choices=["tiktok", "instagram", "instagram_story"],
                        default="tiktok", help="Target platform for dimensions")
+    parser.add_argument("--renderer", choices=["pillow", "playwright"], default="pillow",
+                       help="Rendering engine: pillow (default) or playwright (HTML template)")
 
     args = parser.parse_args()
+
+    # Validate Playwright availability if requested
+    if args.renderer == "playwright" and not HAS_PLAYWRIGHT:
+        print("ERROR: --renderer playwright requires playwright and jinja2.")
+        print("  Install with: pip install playwright jinja2 && playwright install chromium")
+        sys.exit(1)
 
     project_root = Path(__file__).parent.parent
 
@@ -4027,6 +4240,64 @@ def main():
                 )
                 print(f"\nBackgrounds: {len(result['backgrounds'])} files")
                 print(f"Metadata: {result['metadata']}")
+            elif args.renderer == "playwright":
+                # Convert extracted content to Playwright slide_data format
+                pw_format = _PLATFORM_TO_PW_FORMAT.get(args.platform, "tiktok")
+                pw_category = CATEGORY_ALIASES.get(content["category"], content["category"])
+                # Map Japanese category names to template category keys
+                _cat_to_template = {
+                    "あるある": "aruaru", "あるある×AI": "aruaru",
+                    "転職・キャリア": "tenshoku", "給与・待遇": "kyuyo",
+                    "サービス紹介": "service", "地域ネタ": "trend",
+                }
+                pw_cat_key = _cat_to_template.get(pw_category, content["category"])
+
+                pw_slides = []
+                # Slide 1: Hook
+                pw_slides.append({
+                    "slide_type": "hook",
+                    "title_text": content["hook"],
+                    "body_text": "",
+                    "accent_text": "",
+                    "label_text": pw_category,
+                    "cta_text": "",
+                    "slide_number": 1,
+                    "cta_button_text": "",
+                })
+                # Slides 2-7: Body
+                for j, s in enumerate(content["slides"][:6]):
+                    pw_slides.append({
+                        "slide_type": "body",
+                        "title_text": s.get("title", ""),
+                        "body_text": s.get("body", ""),
+                        "accent_text": s.get("highlight_number", ""),
+                        "label_text": s.get("title", ""),
+                        "cta_text": "",
+                        "slide_number": j + 2,
+                        "cta_button_text": "",
+                    })
+                # Slide 8: CTA
+                cta_text = "LINEで無料相談 →"
+                if content.get("cta_type") == "hard":
+                    cta_text = "今すぐLINE登録 →"
+                pw_slides.append({
+                    "slide_type": "cta",
+                    "title_text": "あなたの転職、AIがサポート",
+                    "body_text": "手数料10% × 24時間対応",
+                    "accent_text": "AI",
+                    "label_text": "",
+                    "cta_text": cta_text,
+                    "slide_number": len(pw_slides) + 1,
+                    "cta_button_text": cta_text,
+                })
+
+                paths = generate_carousel_playwright(
+                    slides=pw_slides,
+                    format=pw_format,
+                    category=pw_cat_key,
+                    output_dir=str(out_dir),
+                )
+                print(f"\nPlaywright rendering complete. {len(paths)} slides saved to {out_dir}")
             else:
                 generate_carousel(
                     content_id=content["content_id"],

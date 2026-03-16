@@ -202,25 +202,25 @@
     <style>
         /* ===== CSS Custom Properties ===== */
         :root {
-            --primary: #1a7f64;
-            --primary-dark: #14664f;
-            --primary-deeper: #0d4d3b;
-            --primary-light: #e8f5f0;
-            --primary-glass: rgba(26, 127, 100, 0.08);
-            --accent: #e8935a;
-            --accent-light: #fdf0e8;
-            --accent-glow: rgba(232, 147, 90, 0.3);
+            --primary: #5a8fa8;
+            --primary-dark: #4a7a94;
+            --primary-deeper: #3a6580;
+            --primary-light: #e8f0f5;
+            --primary-glass: rgba(90, 143, 168, 0.08);
+            --accent: #d4a0c0;
+            --accent-light: #f5e8f0;
+            --accent-glow: rgba(212, 160, 192, 0.3);
             --line-green: #06C755;
             --line-glow: rgba(6, 199, 85, 0.3);
             --line-glow-strong: rgba(6, 199, 85, 0.45);
-            --text-primary: #1a1a2e;
+            --text-primary: #2a2a3e;
             --text-secondary: #4a4a5e;
             --text-muted: #7a7a8e;
             --text-light: #9a9aae;
-            --bg-base: #f7fdfb;
+            --bg-base: #ffffff;
             --bg-white: #ffffff;
-            --bg-tint: #f0f9f6;
-            --bg-dark: #131326;
+            --bg-tint: #f7f7f9;
+            --bg-dark: #1a1a2e;
             --shadow-xs: 0 1px 3px rgba(0,0,0,0.04);
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02);
             --shadow-md: 0 4px 12px rgba(0,0,0,0.05), 0 8px 32px rgba(0,0,0,0.04);
@@ -394,82 +394,44 @@
             width: 100%;
         }
 
-        /* ===== Hero ===== */
+        /* ===== Hero (Image-based) ===== */
         .hero {
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 60px 24px 80px;
-            background:
-                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26,127,100,0.06) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(232,147,90,0.04) 0%, transparent 60%),
-                linear-gradient(175deg, #f0faf7 0%, #ffffff 45%, #fefefe 70%, var(--bg-base) 100%);
             position: relative;
             overflow: hidden;
+            background: #ffffff;
         }
 
-        /* Decorative hero elements */
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 8%;
-            right: -8%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(26,127,100,0.05) 0%, transparent 65%);
-            border-radius: 50%;
-            animation: heroFloat 8s ease-in-out infinite;
+        .hero-img {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 85vh;
+            object-fit: cover;
+            object-position: center;
         }
 
-        .hero::after {
-            content: '';
+        /* SEO用: h1等は画像に焼き込み済みなのでvisually hidden */
+        .hero-sr-only {
             position: absolute;
-            bottom: 12%;
-            left: -5%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(232,147,90,0.04) 0%, transparent 65%);
-            border-radius: 50%;
-            animation: heroFloat 10s ease-in-out infinite reverse;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
 
-        .hero-deco-cross {
+        .hero-cta-overlay {
             position: absolute;
-            top: 14%;
-            right: 10%;
-            font-size: 100px;
-            color: rgba(26, 127, 100, 0.04);
-            font-weight: 200;
-            animation: heroFloat 6s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        .hero-deco-dot {
-            position: absolute;
-            bottom: 20%;
-            left: 8%;
-            width: 8px;
-            height: 8px;
-            background: rgba(232,147,90,0.2);
-            border-radius: 50%;
-            animation: heroFloat 7s ease-in-out infinite 1s;
-            pointer-events: none;
-        }
-
-        .hero-deco-ring {
-            position: absolute;
-            top: 30%;
-            left: 5%;
-            width: 60px;
-            height: 60px;
-            border: 2px solid rgba(26,127,100,0.06);
-            border-radius: 50%;
-            animation: heroFloat 9s ease-in-out infinite 0.5s;
-            pointer-events: none;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 24px 28px;
+            background: linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 100%);
+            text-align: center;
+            z-index: 2;
         }
 
         @keyframes heroFloat {
@@ -477,69 +439,10 @@
             50% { transform: translateY(-16px) rotate(2deg); }
         }
 
-        .hero-catch {
-            font-size: clamp(1.8rem, 6vw, 3.4rem);
-            font-weight: 900;
-            line-height: 1.45;
-            color: var(--text-primary);
-            margin-bottom: 28px;
-            letter-spacing: -0.03em;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-catch br + * {
-            display: inline;
-        }
-
-        .hero-sub {
-            margin-bottom: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-sub-title {
-            font-size: clamp(1rem, 2.5vw, 1.35rem);
-            font-weight: 800;
-            color: var(--primary);
-            letter-spacing: 0.2em;
-            margin-bottom: 10px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .hero-sub-title::before,
-        .hero-sub-title::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 32px;
-            height: 1px;
-            background: linear-gradient(90deg, var(--primary), transparent);
-        }
-
-        .hero-sub-title::before {
-            right: calc(100% + 12px);
-            background: linear-gradient(270deg, var(--primary), transparent);
-        }
-
-        .hero-sub-title::after {
-            left: calc(100% + 12px);
-        }
-
-        .hero-sub-features {
-            font-size: clamp(0.9rem, 2vw, 1.05rem);
-            color: var(--text-muted);
-            letter-spacing: 0.15em;
-            font-weight: 500;
-        }
-
         .hero-note {
             font-size: 0.78rem;
-            color: var(--text-light);
-            margin-top: 18px;
-            position: relative;
-            z-index: 1;
+            color: rgba(255,255,255,0.9);
+            margin-top: 10px;
         }
 
         /* ===== CTA Buttons ===== */
@@ -1410,18 +1313,14 @@
     </div>
 
     <!-- Hero -->
-    <section class="hero wave-divider" id="hero">
-        <div class="hero-deco-cross" aria-hidden="true">+</div>
-        <div class="hero-deco-dot" aria-hidden="true"></div>
-        <div class="hero-deco-ring" aria-hidden="true"></div>
-        <p class="hero-badge" style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;padding:6px 16px;border-radius:20px;font-size:0.85rem;margin-bottom:12px;letter-spacing:0.05em;">神奈川県の看護師専門 &middot; 完全無料 &middot; 電話なし</p>
-        <h1 class="hero-catch">夜勤の休憩中に、<br>転職が決まる。</h1>
-        <div class="hero-sub">
-            <p class="hero-sub-title">シン・AI転職</p>
-            <p class="hero-sub-features">早い &times; 簡単 &times; 24時間</p>
+    <section class="hero" id="hero">
+        <img src="../../assets/hero-nurse-new.png" alt="夜勤の休憩中にスマホで転職相談する看護師 — シン・AI転職" class="hero-img" width="2752" height="1536" fetchpriority="high">
+        <!-- SEO用（画像に焼き込み済みのテキスト） -->
+        <div class="hero-sr-only">
+            <h1>夜勤の休憩中に、転職が決まる。</h1>
+            <p>シン・AI転職 — 早い × 簡単 × 24時間</p>
+            <p>神奈川県の看護師専門・完全無料・電話なし</p>
         </div>
-        <a href="#shindan" class="cta-primary" onclick="typeof fbq==='function'&&fbq('track','Lead');">30秒で診断スタート &#9654;</a>
-        <p class="hero-note">※完全無料・LINE登録不要で診断できます</p>
     </section>
 
     <!-- 3 Features -->
