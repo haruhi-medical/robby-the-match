@@ -572,7 +572,7 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(90deg, #1a7f64, #2ba882, #1a7f64, #2ba882);
+  background: linear-gradient(90deg, var(--sd-teal), #2ba882, var(--sd-teal), #2ba882);
   background-size: 300% 100%;
   border-radius: 32px;
   z-index: -2;

@@ -85,6 +85,7 @@
     },
     'exp': function (v) {
       if (v === '1to3') return '成長できる環境を探しますね';
+      if (v === '3to5') return '経験を武器に条件アップが狙えます';
       if (v === '5to10') return '経験が武器になる時期です';
       if (v === '10plus') return 'ベテランの経験は大きな強みです';
       if (v === 'blank') return 'ブランクOKの求人もあります';
@@ -101,6 +102,12 @@
       if (v === 'atmosphere') return '職場の雰囲気、大事ですよね';
       if (v === 'holidays') return 'プライベート重視、わかります';
       return 'チェックしますね';
+    },
+    't': function (v) {
+      if (v === 'urgent') return 'すぐに動きましょう！';
+      if (v === '3months') return '余裕を持って探せますね';
+      if (v === 'info') return 'まずは情報収集から！';
+      return 'OK！';
     }
   };
 
