@@ -197,7 +197,13 @@
       "content_id": "ai_業界_0305_04",
       "success": true,
       "method": "tiktokautouploader"
+    },
+    {
+      "timestamp": "2026-03-16T17:07:13.985294",
+      "content_id": "ai_地域_0305_05",
+      "success": true,
+      "method": "tiktokautouploader"
     }
   ],
-  "last_updated": "2026-03-14T20:08:43.126611"
+  "last_updated": "2026-03-16T17:07:13.985309"
 }
