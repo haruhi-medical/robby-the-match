@@ -33,10 +33,6 @@ SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C09A7U4TV4G")
 LAST_TS_FILE = PROJECT_ROOT / "data" / ".slack_last_ts"
 INSTRUCTIONS_FILE = PROJECT_ROOT / "data" / "slack_instructions.json"
 
-if not SLACK_BOT_TOKEN:
-    print("ERROR: SLACK_BOT_TOKEN が .env に未設定")
-    sys.exit(1)
-
 
 def _headers():
     return {
@@ -335,6 +331,10 @@ def cmd_complete_instruction(instruction_id: int):
 # ===================================================================
 
 def main():
+    if not SLACK_BOT_TOKEN:
+        print("ERROR: SLACK_BOT_TOKEN が .env に未設定")
+        sys.exit(1)
+
     parser = argparse.ArgumentParser(
         description="神奈川ナース転職 Slack Bridge — エージェントチーム双方向連携"
     )

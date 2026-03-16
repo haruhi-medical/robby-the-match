@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================
 # 神奈川ナース転職 品質ゲート v1.0
 # Claude Opus 4.6 による画像品質自動点検
@@ -10,8 +11,7 @@ init_log "pdca_quality_gate"
 echo "=== 品質ゲート開始 ===" >> "$LOG"
 
 # Claude CLI認証チェック
-ensure_env
-if [ $? -ne 0 ]; then
+if ! ensure_env; then
     echo "[ERROR] Claude CLI認証失敗" >> "$LOG"
     notify_slack ":x: 品質ゲート: Claude CLI認証エラー"
     exit $EXIT_CONFIG_ERROR

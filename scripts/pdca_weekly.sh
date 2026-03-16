@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_weekly"
 update_agent_state "weekly_strategist" "running"

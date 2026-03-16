@@ -1,5 +1,5 @@
 # 神奈川ナース転職 状態ファイル
-# 最終更新: 2026-03-17 04:00 by SEO朝サイクル
+# 最終更新: 2026-03-17
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -7,9 +7,9 @@
 - PROGRESS.mdには履歴として追記（こちらは状態のスナップショット）
 
 ## 現在のフェーズ
-- マイルストーン: **Week 3**（2026-03-03〜03-09）
+- マイルストーン: **Week 5**（2026-03-17〜）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: **シン・AI転職 Phase1 LP リビルド完了**
+- 状態: **シン・AI転職 Phase1 LP リビルド完了 + ブランドシステム統合 + 転職診断UI v4.0**
 
 ## KPI
 | 指標 | 目標 | 現在 | 状態 |
@@ -43,6 +43,9 @@
 - **SEO修正**: sitemap noindex削除、JobPosting削除、parentOrganization一括削除(63ファイル)
 - **診断CTA一括挿入**: area/guide/blog 全68ページ
 - **コンテンツ戦略v2.0**: robby_character.py v2.0 + ai_content_engine.py MIX改定（あるある35%/給与20%/業界裏側15%/地域15%/転職10%/トレンド5%）
+- **ブランドシステム統合設定**: brand-system.md / design-tokens.css / content-rules.md / templates/base.html
+- **転職診断UI v4.0**: 7問構成（エリア→年代→看護師歴→職種→働き方→重視点→時期）
+- **Playwright画像生成オプション追加**: generate_carousel.py --renderer playwright
 
 ## SNS状態
 - **TikTok**: @robby15051 — 7本投稿済み、57本キュー待ち、自動投稿パイプライン稼働中
@@ -62,20 +65,33 @@
 - **⚠️ Meta API**: アクセストークン+App IDが無効化。Developerダッシュボード確認必要
 - **広告自体**: Ads Managerで手動確認可能（APIとは別）
 
-## cron状態（実稼働中）
+## cron状態（実稼働中 — 2026-03-17 crontab -l と同期済み）
 ```
-0  4 * * 1-6  pdca_seo_batch.sh          # SEO改善
-0  5 * * 0    pdca_weekly_content.sh      # 週次バッチ生成
+# 日次（月〜土）
+0  4 * * 1-6  pdca_seo_batch.sh           # SEO改善
 0  6 * * 1-6  pdca_ai_marketing.sh        # AI日次PDCA
-0  6 * * 0    pdca_weekly.sh              # 週次総括
 0  7 * * 1-6  pdca_healthcheck.sh         # 障害監視
 0 10 * * 1-6  pdca_competitor.sh          # 競合分析
 0 12 * * 1-6  instagram_engage.py --daily # IG エンゲージメント（ランダム遅延付き）
 0 12,17,18,20,21 * * 1-6 pdca_sns_post.sh # SNS投稿（5回/日）
 0 15 * * 1-6  pdca_content.sh             # コンテンツ生成
+0 16 * * 1-6  post_preview.py             # 投稿プレビュー送信（SNS投稿1.5h前）
+30 16 * * 1-6 slack_reply_check.py        # Slackリプライチェック①
+0  17 * * 1-6 slack_reply_check.py        # Slackリプライチェック②
+15 17 * * 1-6 slack_reply_check.py        # Slackリプライチェック③
+30 17 * * 1-6 auto_post.py --instagram    # Instagram自動投稿（ランダム遅延付き）
 0 23 * * 1-6  pdca_review.sh              # 日次レビュー
+# 週次（日曜）
+0  5 * * 0    pdca_weekly_content.sh      # 週次バッチ生成
+0  6 * * 0    pdca_weekly.sh              # 週次総括
+# 毎日
+30 6 * * *    pdca_hellowork.sh           # ハローワーク求人全自動パイプライン
+0  8 * * *    meta_ads_report.py --cron   # Meta広告日次レポート
+5  8 * * *    ga4_report.py               # GA4/SC日次レポート
+# 常時
 */30 * * * *  watchdog.py                 # システム監視（4hデdup + daily reset）
 ```
+※ pdca_quality_gate.sh は DISABLED（Claude Code対話セッションで実行）
 ※ slack_commander.py は現在crontabに未登録（Slack監視はslack_bridge.py手動実行で代替）
 
 ## 解決済みの問題
@@ -105,11 +121,17 @@
 ## 次にやるべきこと（優先順）
 
 ### 🔴 即座に実行
-1. **Search Console**: 優先10URLのインデックス登録リクエスト（手動）
-2. **TikTokプロフィール更新**: 名前「神奈川ナース転職｜シン・AI転職」、リンクをLP URLに変更（手動）
-3. **Instagramプロフィール更新**: 同上（手動）
-4. **TikTok投稿キュー差し替え**: 上位20件のCTAを「30秒AI診断」に変更
-5. **LINE Bot初回メッセージ改修**: UTMパラメータ対応（worker.js）
+1. **worker_facilities.js再生成**: 現在88施設 → config.jsの212施設に同期必要
+2. **posting_queue.json復旧**: キューの整合性確認・復旧
+3. **Search Console**: 優先10URLのインデックス登録リクエスト（手動）
+4. **TikTokプロフィール更新**: 名前「神奈川ナース転職｜シン・AI転職」、リンクをLP URLに変更（手動）
+5. **Instagramプロフィール更新**: 同上（手動）
+
+### 🟡 早めに対応
+1. **sitemap.xml lastmod更新**: 現在2026-02-28のまま → 最新日付に更新
+2. **ログローテーション整備**: logs/ディレクトリの肥大化防止
+3. **TikTok投稿キュー差し替え**: 上位20件のCTAを「30秒AI診断」に変更
+4. **LINE Bot初回メッセージ改修**: UTMパラメータ対応（worker.js）
 
 ### 🟢 自動化済み（人間の操作不要）
 - TikTok自動投稿: pdca_sns_post.sh（12:00/17:00/18:00/20:00/21:00）
@@ -118,6 +140,10 @@
 - Instagram エンゲージメント: instagram_engage.py（12:00）
 - Instagram 自動投稿: auto_post.py（17:30、ランダム遅延付き）
 - システム監視: watchdog.py（30分間隔）
+- ハローワーク求人取得: pdca_hellowork.sh（06:30）
+- Meta広告レポート: meta_ads_report.py（08:00）
+- GA4/SCレポート: ga4_report.py（08:05）
+- 投稿プレビュー+承認: post_preview.py（16:00）+ slack_reply_check.py（16:30/17:00/17:15）
 - SEO/障害/競合/コンテンツ/レビュー: 各cronジョブ稼働中
 
 ### ⏳ 後回し

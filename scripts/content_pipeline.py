@@ -33,28 +33,31 @@ GENERATED_DIR = PROJECT_DIR / "content" / "generated"
 
 # Target MIX ratios
 MIX_RATIOS = {
-    "あるある": 0.40,
-    "転職": 0.25,
+    "あるある": 0.35,
     "給与": 0.20,
-    "紹介": 0.05,
-    "トレンド": 0.10,
+    "業界裏側": 0.15,
+    "地域ネタ": 0.15,
+    "転職": 0.10,
+    "トレンド": 0.05,
 }
 
 # Category prefix mapping (for ID generation: A=あるある, B=転職, etc.)
 CATEGORY_PREFIX = {
     "あるある": "A",
-    "転職": "B",
     "給与": "C",
-    "紹介": "D",
+    "業界裏側": "U",
+    "地域ネタ": "L",
+    "転職": "B",
     "トレンド": "T",
 }
 
 # Category -> base_image mapping
 CATEGORY_BASE_IMAGE = {
     "あるある": "base_nurse_station.png",
-    "転職": "base_ai_chat.png",
     "給与": "base_ai_chat.png",
-    "紹介": "base_nurse_station.png",
+    "業界裏側": "base_nurse_station.png",
+    "地域ネタ": "base_breakroom.png",
+    "転職": "base_ai_chat.png",
     "トレンド": "base_breakroom.png",
 }
 
@@ -105,11 +108,24 @@ def load_queue() -> dict:
 
 
 def save_queue(queue: dict):
-    """Write posting_queue.json."""
+    """Save queue with atomic write + backup."""
     queue["updated"] = datetime.now().isoformat()
-    with open(QUEUE_PATH, "w", encoding="utf-8") as f:
-        json.dump(queue, f, ensure_ascii=False, indent=2)
-    print(f"[OK] posting_queue.json 更新完了 ({len(queue['posts'])}件)")
+    queue_path = PROJECT_DIR / "data" / "posting_queue.json"
+    backup_path = queue_path.with_suffix('.json.bak')
+    try:
+        if queue_path.exists():
+            import shutil
+            shutil.copy2(queue_path, backup_path)
+        tmp_path = queue_path.with_suffix('.json.tmp')
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            json.dump(queue, f, ensure_ascii=False, indent=2)
+        tmp_path.replace(queue_path)
+        print(f"[OK] posting_queue.json 更新完了 ({len(queue['posts'])}件)")
+    except Exception as e:
+        print(f"[ERROR] Failed to save queue: {e}")
+        if backup_path.exists():
+            import shutil
+            shutil.copy2(backup_path, queue_path)
 
 
 def load_stock() -> List[Dict]:

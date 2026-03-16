@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================
 # 神奈川ナース転職 ヘルスチェック + ハートビート v2.1
 # cron: 0 7 * * *（毎日07:00）
@@ -77,20 +78,19 @@ except FileNotFoundError:
 except Exception as e:
     print(f'[WARN] upload_verification check failed: {e}')
     sys.exit(0)
-" >> "$LOG" 2>&1
-UV_EXIT=$?
+" >> "$LOG" 2>&1 && UV_EXIT=0 || UV_EXIT=$?
 if [ "$UV_EXIT" -eq 1 ]; then
   ISSUES="${ISSUES}\n⚠️ TikTokアップロード失敗が連続中（upload_verification.json基準）"
 fi
 
 # Step 2: ハートビート（Cookie有効期限、venv、キュー状態など）
 echo "[INFO] TikTokハートビート実行" >> "$LOG"
-python3 "$PROJECT_DIR/scripts/tiktok_post.py" --heartbeat >> "$LOG" 2>&1
+python3 "$PROJECT_DIR/scripts/tiktok_post.py" --heartbeat >> "$LOG" 2>&1 || true
 HEARTBEAT_EXIT=$?
 
 # Step 3: 投稿検証 v2.1（upload_verification.json基準。プロフィール0件はbot検出として処理）
 echo "[INFO] TikTok投稿検証実行" >> "$LOG"
-python3 "$PROJECT_DIR/scripts/tiktok_post.py" --verify >> "$LOG" 2>&1
+python3 "$PROJECT_DIR/scripts/tiktok_post.py" --verify >> "$LOG" 2>&1 || true
 VERIFY_EXIT=$?
 
 # heartbeat/検証の結果をログ解析してISSUESに追加

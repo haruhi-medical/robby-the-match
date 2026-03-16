@@ -26,6 +26,8 @@ v3.1 改善点:
   python3 scripts/generate_carousel.py --queue data/posting_queue.json --output content/generated/
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import math
