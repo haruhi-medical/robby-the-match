@@ -14,7 +14,7 @@ const CONFIG = {
   COMPANY: {
     name: "神奈川ナース転職",
     licenseNumber: "23-ユ-302928",  // 有料職業紹介事業許可番号（厚生労働大臣許可）
-    address: "神奈川県小田原市",
+    address: "愛知県岩倉市大地新町3丁目",
     email: "info@quads-nurse.com",
   },
 
