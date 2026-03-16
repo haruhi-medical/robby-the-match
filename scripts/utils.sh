@@ -145,10 +145,14 @@ slack_report_structured() {
 
 update_state() {
   local section=$1
+  _SECTION="$section" \
+  _TIMESTAMP="$(date "+%Y-%m-%d %H:%M")" \
   python3 -c "
-import re
+import re, os
+section = os.environ.get('_SECTION', '')
+timestamp = os.environ.get('_TIMESTAMP', '')
 with open('STATE.md', 'r') as f: text = f.read()
-text = re.sub(r'# 最終更新:.*', '# 最終更新: $(date "+%Y-%m-%d %H:%M") by ${section}', text)
+text = re.sub(r'# 最終更新:.*', f'# 最終更新: {timestamp} by {section}', text)
 with open('STATE.md', 'w') as f: f.write(text)
 " 2>> "$LOG" || echo "[WARN] STATE.md更新失敗" >> "$LOG"
 }
@@ -247,11 +251,16 @@ AGENT_STATE_FILE="$PROJECT_DIR/data/agent_state.json"
 update_agent_state() {
   local agent_name="$1"
   local status="$2"
+  _AGENT_STATE_FILE="$AGENT_STATE_FILE" \
+  _AGENT_NAME="$agent_name" \
+  _STATUS="$status" \
   python3 -c "
 import json, os
 from datetime import datetime
 
-state_file = '$AGENT_STATE_FILE'
+state_file = os.environ['_AGENT_STATE_FILE']
+agent_name = os.environ['_AGENT_NAME']
+status = os.environ['_STATUS']
 default_state = {
     'lastRun': {},
     'status': {},
@@ -279,8 +288,8 @@ try:
 
     state.setdefault('lastRun', {})
     state.setdefault('status', {})
-    state['lastRun']['$agent_name'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-    state['status']['$agent_name'] = '$status'
+    state['lastRun'][agent_name] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    state['status'][agent_name] = status
 
     with open(state_file, 'w') as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
@@ -300,13 +309,17 @@ handle_failure() {
 check_instructions() {
   # Slack指示キューに自分宛の指示があるか確認
   local agent_name="$1"
+  _INSTRUCTIONS_FILE="$PROJECT_DIR/data/slack_instructions.json" \
+  _AGENT_NAME="$agent_name" \
   python3 -c "
-import json, sys
+import json, sys, os
 try:
-    with open('$PROJECT_DIR/data/slack_instructions.json', 'r') as f:
+    instructions_file = os.environ['_INSTRUCTIONS_FILE']
+    agent_name = os.environ['_AGENT_NAME']
+    with open(instructions_file, 'r') as f:
         data = json.load(f)
     instructions = data.get('instructions', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
-    pending = [i for i in instructions if isinstance(i, dict) and i.get('to') == '$agent_name' and i.get('status') == 'pending']
+    pending = [i for i in instructions if isinstance(i, dict) and i.get('to') == agent_name and i.get('status') == 'pending']
     if pending:
         print(f'[INFO] {len(pending)}件の指示あり')
         for i in pending:
@@ -331,20 +344,26 @@ write_heartbeat() {
     echo "[ERROR] heartbeat: data/heartbeats ディレクトリ作成失敗" >> "$LOG"
     return 1
   fi
+  _HEARTBEAT_DIR="$PROJECT_DIR/data/heartbeats" \
+  _JOB_NAME="$job_name" \
+  _EXIT_CODE="$exit_code" \
   python3 -c "
-import json, sys
+import json, sys, os
 from datetime import datetime
 try:
+    heartbeat_dir = os.environ['_HEARTBEAT_DIR']
+    job_name = os.environ['_JOB_NAME']
+    exit_code = int(os.environ.get('_EXIT_CODE', '0'))
     hb = {
         'ts': datetime.now().isoformat(),
-        'exit_code': $exit_code,
-        'job': '$job_name',
+        'exit_code': exit_code,
+        'job': job_name,
         'date': datetime.now().strftime('%Y-%m-%d')
     }
-    with open('$PROJECT_DIR/data/heartbeats/${job_name}.json', 'w') as f:
+    with open(os.path.join(heartbeat_dir, job_name + '.json'), 'w') as f:
         json.dump(hb, f, indent=2, ensure_ascii=False)
 except Exception as e:
-    print(f'[ERROR] heartbeat書き込み失敗 ({job_name}): {e}', file=sys.stderr)
+    print(f'[ERROR] heartbeat書き込み失敗 ({os.environ.get(\"_JOB_NAME\", \"unknown\")}): {e}', file=sys.stderr)
     sys.exit(1)
 " 2>> "$LOG" || echo "[WARN] heartbeat書き込み失敗: $job_name (exit_code=$exit_code)" >> "$LOG"
 }
@@ -356,12 +375,18 @@ except Exception as e:
 read_agent_memory() {
   local agent_name="$1"
   local key="$2"
+  _AGENT_STATE_FILE="$AGENT_STATE_FILE" \
+  _AGENT_NAME="$agent_name" \
+  _KEY="$key" \
   python3 -c "
-import json, sys
+import json, sys, os
 try:
-    with open('$AGENT_STATE_FILE') as f:
+    state_file = os.environ['_AGENT_STATE_FILE']
+    agent_name = os.environ['_AGENT_NAME']
+    key = os.environ['_KEY']
+    with open(state_file) as f:
         state = json.load(f)
-    val = state.get('agentMemory', {}).get('$agent_name', {}).get('$key', '')
+    val = state.get('agentMemory', {}).get(agent_name, {}).get(key, '')
     if isinstance(val, (dict, list)):
         print(json.dumps(val, ensure_ascii=False))
     else:
@@ -377,17 +402,25 @@ write_agent_memory() {
   local agent_name="$1"
   local key="$2"
   local value="$3"
+  _AGENT_STATE_FILE="$AGENT_STATE_FILE" \
+  _AGENT_NAME="$agent_name" \
+  _KEY="$key" \
+  _VALUE="$value" \
   python3 -c "
-import json, sys
+import json, sys, os
 try:
-    with open('$AGENT_STATE_FILE') as f:
+    state_file = os.environ['_AGENT_STATE_FILE']
+    agent_name = os.environ['_AGENT_NAME']
+    key = os.environ['_KEY']
+    value = os.environ['_VALUE']
+    with open(state_file) as f:
         state = json.load(f)
-    mem = state.setdefault('agentMemory', {}).setdefault('${agent_name}', {})
+    mem = state.setdefault('agentMemory', {}).setdefault(agent_name, {})
     try:
-        mem['${key}'] = json.loads('''${value}''')
+        mem[key] = json.loads(value)
     except (json.JSONDecodeError, ValueError):
-        mem['${key}'] = '''${value}'''
-    with open('$AGENT_STATE_FILE', 'w') as f:
+        mem[key] = value
+    with open(state_file, 'w') as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
 except Exception as e:
     print(f'[WARN] write_agent_memory failed: {e}', file=sys.stderr)
@@ -397,17 +430,23 @@ except Exception as e:
 write_shared_context() {
   local key="$1"
   local value="$2"
+  _AGENT_STATE_FILE="$AGENT_STATE_FILE" \
+  _KEY="$key" \
+  _VALUE="$value" \
   python3 -c "
-import json, sys
+import json, sys, os
 try:
-    with open('$AGENT_STATE_FILE') as f:
+    state_file = os.environ['_AGENT_STATE_FILE']
+    key = os.environ['_KEY']
+    value = os.environ['_VALUE']
+    with open(state_file) as f:
         state = json.load(f)
     ctx = state.setdefault('sharedContext', {})
     try:
-        ctx['${key}'] = json.loads('''${value}''')
+        ctx[key] = json.loads(value)
     except (json.JSONDecodeError, ValueError):
-        ctx['${key}'] = '''${value}'''
-    with open('$AGENT_STATE_FILE', 'w') as f:
+        ctx[key] = value
+    with open(state_file, 'w') as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
 except Exception as e:
     print(f'[WARN] write_shared_context failed: {e}', file=sys.stderr)
@@ -419,23 +458,33 @@ create_agent_task() {
   local to_agent="$2"
   local task_type="$3"
   local details="$4"
+  _AGENT_STATE_FILE="$AGENT_STATE_FILE" \
+  _FROM_AGENT="$from_agent" \
+  _TO_AGENT="$to_agent" \
+  _TASK_TYPE="$task_type" \
+  _DETAILS="$details" \
   python3 -c "
-import json
+import json, os
 from datetime import datetime
 try:
-    with open('$AGENT_STATE_FILE') as f:
+    state_file = os.environ['_AGENT_STATE_FILE']
+    from_agent = os.environ['_FROM_AGENT']
+    to_agent = os.environ['_TO_AGENT']
+    task_type = os.environ['_TASK_TYPE']
+    details = os.environ['_DETAILS']
+    with open(state_file) as f:
         state = json.load(f)
-    tasks = state.setdefault('pendingTasks', {}).setdefault('${to_agent}', [])
+    tasks = state.setdefault('pendingTasks', {}).setdefault(to_agent, [])
     tasks.append({
-        'from': '${from_agent}',
-        'type': '${task_type}',
-        'details': '''${details}''',
+        'from': from_agent,
+        'type': task_type,
+        'details': details,
         'created': datetime.now().isoformat(),
         'status': 'pending'
     })
-    with open('$AGENT_STATE_FILE', 'w') as f:
+    with open(state_file, 'w') as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
-    print(f'[TASK] ${from_agent} -> ${to_agent}: ${task_type}')
+    print(f'[TASK] {from_agent} -> {to_agent}: {task_type}')
 except Exception as e:
     print(f'[WARN] create_agent_task failed: {e}')
 " 2>> "$LOG"
@@ -443,18 +492,22 @@ except Exception as e:
 
 consume_agent_tasks() {
   local agent_name="$1"
+  _AGENT_STATE_FILE="$AGENT_STATE_FILE" \
+  _AGENT_NAME="$agent_name" \
   python3 -c "
-import json
+import json, os
 try:
-    with open('$AGENT_STATE_FILE') as f:
+    state_file = os.environ['_AGENT_STATE_FILE']
+    agent_name = os.environ['_AGENT_NAME']
+    with open(state_file) as f:
         state = json.load(f)
-    tasks = state.get('pendingTasks', {}).get('${agent_name}', [])
+    tasks = state.get('pendingTasks', {}).get(agent_name, [])
     pending = [t for t in tasks if t.get('status') == 'pending']
     if pending:
         for t in pending:
             print(f'[TASK] from={t[\"from\"]} type={t[\"type\"]} details={t[\"details\"]}')
             t['status'] = 'processing'
-        with open('$AGENT_STATE_FILE', 'w') as f:
+        with open(state_file, 'w') as f:
             json.dump(state, f, indent=2, ensure_ascii=False)
     else:
         print('[INFO] タスクなし')
