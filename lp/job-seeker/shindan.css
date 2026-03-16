@@ -297,6 +297,18 @@
   animation: sd-slideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
+/* Age × Experience message */
+.shindan-age-message {
+  font-size: 0.9rem;
+  color: var(--sd-teal);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 8px;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: sd-fadeUp 0.4s 0.3s both;
+}
+
 .shindan-result-heading {
   font-size: 1.15rem;
   font-weight: 700;
@@ -626,7 +638,8 @@
   .shindan-badge,
   .shindan-cta,
   .shindan-summary,
-  .shindan-feedback {
+  .shindan-feedback,
+  .shindan-age-message {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;

@@ -1,6 +1,6 @@
 /**
- * 神奈川ナース転職 — 転職診断UI v3.0 (vanilla JS)
- * 5問構成: エリア→職種→働き方→重視点→時期
+ * 神奈川ナース転職 — 転職診断UI v4.0 (vanilla JS)
+ * 7問構成: エリア→年代→看護師歴→職種→働き方→重視点→時期
  *
  * REQUIRED: Add to LP <head> before closing tag:
  *   <link rel="stylesheet" href="shindan.css">
@@ -11,7 +11,7 @@
   /* ── Constants ── */
   var LINE_URL = 'https://lin.ee/oUgDB3x';
   var D = null;
-  var A = { a: '', s: '', w: '', c: '', t: '' };
+  var A = { a: '', age: '', exp: '', s: '', w: '', c: '', t: '' };
   var C; // container element
   var currentStep = -1;
   var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -22,7 +22,7 @@
   fetch(dataURL).then(function (r) { return r.json(); }).then(function (d) { D = d; }).catch(function () {});
 
   /* ── Questions ── */
-  var ICONS = ['📍', '🩺', '🏥', '💡', '📅'];
+  var ICONS = ['📍', '🗓️', '📋', '🩺', '🏥', '💡', '📅'];
   var Q = [
     { k: 'a', t: '希望のエリアは？', e: 'shindan_q1', ek: 'area', o: [
       { l: '横浜・川崎', v: 'yokohama_kawasaki' },
@@ -31,26 +31,39 @@
       { l: '相模原・県央', v: 'sagamihara_kenoh' },
       { l: '横須賀・三浦', v: 'yokosuka_miura' }
     ]},
-    { k: 's', t: 'あなたの職種は？', e: 'shindan_q2', ek: 'shikaku', o: [
+    { k: 'age', t: 'あなたの年代は？', e: 'shindan_q2', ek: 'age', o: [
+      { l: '20代', v: '20s' },
+      { l: '30代', v: '30s' },
+      { l: '40代', v: '40s' },
+      { l: '50代以上', v: '50s' }
+    ]},
+    { k: 'exp', t: '看護師歴はどのくらい？', e: 'shindan_q3', ek: 'exp', o: [
+      { l: '1〜3年', v: '1to3' },
+      { l: '3〜5年', v: '3to5' },
+      { l: '5〜10年', v: '5to10' },
+      { l: '10年以上', v: '10plus' },
+      { l: 'ブランクあり', v: 'blank' }
+    ]},
+    { k: 's', t: 'あなたの職種は？', e: 'shindan_q4', ek: 'shikaku', o: [
       { l: '正看護師', v: 'kango' },
       { l: '准看護師', v: 'junkango' },
       { l: '助産師', v: 'josanshi' },
       { l: '保健師', v: 'hokenshi' }
     ]},
-    { k: 'w', t: '希望の働き方は？', e: 'shindan_q3', ek: 'workstyle', o: [
+    { k: 'w', t: '希望の働き方は？', e: 'shindan_q5', ek: 'workstyle', o: [
       { l: '常勤（日勤のみ）', v: 'day_only' },
       { l: '常勤（夜勤あり）', v: 'with_night' },
       { l: 'パート・非常勤', v: 'parttime' },
       { l: '夜勤専従', v: 'night_only' }
     ]},
-    { k: 'c', t: '一番大事にしたいことは？', e: 'shindan_q4', ek: 'concern', o: [
+    { k: 'c', t: '一番大事にしたいことは？', e: 'shindan_q6', ek: 'concern', o: [
       { l: '給与アップ', v: 'salary' },
       { l: '休日・プライベート', v: 'holidays' },
       { l: '人間関係・職場の雰囲気', v: 'atmosphere' },
       { l: '通勤のしやすさ', v: 'commute' },
       { l: 'スキルアップ', v: 'skillup' }
     ]},
-    { k: 't', t: '転職の温度感は？', e: 'shindan_q5', ek: 'timing', o: [
+    { k: 't', t: '転職の温度感は？', e: 'shindan_q7', ek: 'timing', o: [
       { l: 'すぐにでも', v: 'urgent' },
       { l: '3ヶ月以内', v: '3months' },
       { l: '半年以内', v: '6months' },
@@ -63,6 +76,19 @@
     'a': function (v) {
       var names = { yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉', odawara_seisho: '小田原・県西', sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦' };
       return (names[v] || '') + 'エリア、了解！';
+    },
+    'age': function (v) {
+      if (v === '20s') return '転職のゴールデンタイムです';
+      if (v === '30s') return '市場価値が高い年代です';
+      if (v === '40s') return '経験を活かせる求人を探します';
+      return 'キャリアを活かせる求人を探します';
+    },
+    'exp': function (v) {
+      if (v === '1to3') return '成長できる環境を探しますね';
+      if (v === '5to10') return '経験が武器になる時期です';
+      if (v === '10plus') return 'ベテランの経験は大きな強みです';
+      if (v === 'blank') return 'ブランクOKの求人もあります';
+      return 'OK！';
     },
     's': function () { return 'OK！'; },
     'w': function (v) {
@@ -85,6 +111,30 @@
     atmosphere: '働きやすさ◎の求人',
     commute: 'エリア駅チカの求人',
     skillup: '教育体制充実の求人'
+  };
+
+  /* ── Age × Experience personalization messages ── */
+  var AGE_EXP_MSG = {
+    '20s_1to3': 'キャリアの土台を作るチャンスです',
+    '20s_3to5': '経験を積みながら条件アップが狙える年代です',
+    '20s_5to10': '20代で豊富な経験は大きな強みです',
+    '20s_10plus': '貴重なキャリアです。選べる立場にあります',
+    '20s_blank': '20代なら復帰のハードルは低いです',
+    '30s_1to3': '30代からでも十分キャリアアップできます',
+    '30s_3to5': '転職市場で最も需要が高い年代・経験です',
+    '30s_5to10': '即戦力として引く手あまたの条件です',
+    '30s_10plus': '転職市場で最も需要が高い年代です',
+    '30s_blank': '経験がある分、復帰後も即戦力です',
+    '40s_1to3': '人生経験を活かせる職場を探します',
+    '40s_3to5': '経験を活かした職場選びができる年代です',
+    '40s_5to10': '管理職・指導職のチャンスが豊富です',
+    '40s_10plus': '管理職・専門職求人が多数あります',
+    '40s_blank': '経験豊富な方の復帰を歓迎する職場があります',
+    '50s_1to3': '意欲を評価する求人があります',
+    '50s_3to5': '即戦力として歓迎される求人が豊富です',
+    '50s_5to10': '即戦力として歓迎される求人が豊富です',
+    '50s_10plus': 'ベテランとして重宝される年代です',
+    '50s_blank': '経験を活かして復帰できる職場を探します'
   };
 
   /* ── Label lookup for summary card ── */
@@ -342,7 +392,7 @@
     var sn = ws ? ws.salary_min : (d ? d.salary_min : 200);
     var sx = ws ? ws.salary_max : (d ? d.salary_max : 450);
 
-    ga('shindan_complete', { match_count: ct, area: A.a, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
+    ga('shindan_complete', { match_count: ct, area: A.a, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
 
     var r = el('div', 'shindan-result');
 
@@ -358,6 +408,13 @@
 
     var dots = buildDots(Q.length); // all done
     r.appendChild(dots);
+
+    /* Age × Experience personalization message */
+    var aeKey = A.age + '_' + A.exp;
+    var aeMsg = AGE_EXP_MSG[aeKey];
+    if (aeMsg) {
+      r.appendChild(el('p', 'shindan-age-message', aeMsg));
+    }
 
     /* Heading with count-up — personalized by concern */
     var headlineText = CONCERN_HEADLINES[A.c] || 'あなたにマッチする求人';
@@ -403,16 +460,18 @@
       '<div class="shindan-summary-title">あなたの診断結果</div>' +
       '<div class="shindan-summary-items">' +
         '<div>📍 ' + findLabel(0, A.a) + '</div>' +
-        '<div>🩺 ' + findLabel(1, A.s) + '</div>' +
-        '<div>🏥 ' + findLabel(2, A.w) + '</div>' +
-        '<div>💡 ' + findLabel(3, A.c) + '</div>' +
-        '<div>📅 ' + findLabel(4, A.t) + '</div>' +
+        '<div>🗓️ ' + findLabel(1, A.age) + '</div>' +
+        '<div>📋 ' + findLabel(2, A.exp) + '</div>' +
+        '<div>🩺 ' + findLabel(3, A.s) + '</div>' +
+        '<div>🏥 ' + findLabel(4, A.w) + '</div>' +
+        '<div>💡 ' + findLabel(5, A.c) + '</div>' +
+        '<div>📅 ' + findLabel(6, A.t) + '</div>' +
       '</div>';
     r.appendChild(el('div', 'shindan-summary', summaryHTML));
 
     /* CTA */
     var ctaText = A.t === 'info' ? 'まずは情報だけ受け取る' : 'LINEで求人を受け取る';
-    var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.w + '_' + A.c + '_' + A.t);
+    var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.age + '_' + A.exp + '_' + A.w + '_' + A.c + '_' + A.t);
     var ctaURL = LINE_URL + '?utm_source=lp&utm_medium=shindan&utm_content=' + utmContent;
 
     var cta = el('a', 'shindan-cta', '', {
@@ -428,7 +487,7 @@
       '<span>' + ctaText + '</span>';
 
     cta.addEventListener('click', function () {
-      ga('shindan_line_click', { area: A.a, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
+      ga('shindan_line_click', { area: A.a, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
       if (typeof fbq === 'function') fbq('track', 'Lead');
     });
 
