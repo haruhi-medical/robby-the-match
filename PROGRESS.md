@@ -1831,3 +1831,10 @@ AI Marketing PDCA:
 [pdca_ai_engine] job=competitor 完了 (exit=0)
 [INFO] commit済み（pushは日次レビューで一括）
 
+### content（15:00:00）
+コンテンツ生成:   給与      :   0本  (実績  0.0% / 目標  20%) [!]
+  紹介      :   0本  (実績  0.0% / 目標   5%) [OK]
+  トレンド    :   0本  (実績  0.0% / 目標  10%) [!]
+
+[NOTE] available (52) >= threshold (7) -- --auto では生成スキップ
+
