@@ -185,17 +185,32 @@ def get_ready_dirs() -> List[Path]:
 
 
 def get_next_unposted(platform: str) -> Optional[Path]:
-    """Get next unposted content directory for given platform."""
-    log = load_post_log()
-    posted_dirs = {
-        entry["dir"]
-        for entry in log
-        if entry.get("platform") == platform and entry.get("status") == "success"
-    }
+    """Get next unposted content directory for given platform.
 
+    Skips directories that have failed 3+ times to avoid infinite retry loops.
+    """
+    log = load_post_log()
+    posted_dirs = set()
+    failure_counts: Dict[str, int] = {}
+
+    for entry in log:
+        if entry.get("platform") != platform:
+            continue
+        dir_name = entry.get("dir", "")
+        if entry.get("status") == "success":
+            posted_dirs.add(dir_name)
+        elif entry.get("status") == "error":
+            failure_counts[dir_name] = failure_counts.get(dir_name, 0) + 1
+
+    MAX_FAILURES = 3
     for d in get_ready_dirs():
-        if d.name not in posted_dirs:
-            return d
+        if d.name in posted_dirs:
+            continue
+        fail_count = failure_counts.get(d.name, 0)
+        if fail_count >= MAX_FAILURES:
+            print(f"[WARN] Skipping {d.name} on {platform}: failed {fail_count} times (max {MAX_FAILURES})")
+            continue
+        return d
     return None
 
 
@@ -289,8 +304,8 @@ def prepare_instagram_slides(content_dir: Path) -> Optional[List[Path]]:
     Attempts to call generate_carousel.py with --platform instagram.
     Falls back to None if generation fails (caller should use existing slides).
     """
-    # Look for content JSON files
-    json_files = list(content_dir.glob("*.json"))
+    # Look for content JSON files (exclude non-content files like schedule.json)
+    json_files = [f for f in content_dir.glob("*.json") if f.name != "schedule.json"]
     if not json_files:
         print("[IG-PREP] No JSON content file found, skipping IG slide generation")
         return None
@@ -504,8 +519,12 @@ def post_to_instagram(content_dir: Path, dry_run: bool = False,
         # Fall back to existing slides in content_dir (may be TikTok format)
         slides = sorted(content_dir.glob("slide_*.png"))
         if not slides:
-            # Also check for jpg slides
+            # AI-generated filenames like ai_ある_0301_02_bg_01_hook.png
+            slides = sorted(content_dir.glob("*_bg_*.png"))
+        if not slides:
             slides = sorted(content_dir.glob("slide_*.jpg"))
+        if not slides:
+            slides = sorted(content_dir.glob("*_bg_*.jpg"))
         if slides:
             print(f"[IG] Using existing slides from {content_dir.name} ({len(slides)} slides)")
         else:

@@ -238,7 +238,7 @@ if [ "${OLD_DATED:-0}" -gt 0 ]; then
 fi
 
 # 3b. 追記型ログ（slack_commander.log, watchdog.log等）は500KB超で切り詰め
-for APPEND_LOG in "$PROJECT_DIR/logs/slack_commander.log" "$PROJECT_DIR/logs/watchdog.log"; do
+for APPEND_LOG in "$PROJECT_DIR/logs/slack_commander.log" "$PROJECT_DIR/logs/watchdog.log" "$PROJECT_DIR/logs/instagram_engage.log" "$PROJECT_DIR/logs/instagram_post.log" "$PROJECT_DIR/logs/hellowork_fetch.log" "$PROJECT_DIR/logs/slack_commander_error.log" "$PROJECT_DIR/logs/slack_commander_realtime.log"; do
     if [ -f "$APPEND_LOG" ]; then
         FSIZE=$(wc -c < "$APPEND_LOG" 2>/dev/null | tr -d ' ')
         if [ "${FSIZE:-0}" -gt 512000 ]; then
