@@ -900,7 +900,7 @@ export default {
 
     // Web→LINE セッション橋渡し
     if (url.pathname === "/api/web-session" && request.method === "POST") {
-      return handleWebSession(request);
+      return handleWebSession(request, env);
     }
 
     // LINE Webhook（ctxを渡してwaitUntilでバックグラウンド処理可能に）
@@ -2100,28 +2100,18 @@ function cleanExpiredWebSessions() {
   }
 }
 
-async function handleWebSession(request) {
+async function handleWebSession(request, env) {
   try {
     const data = await request.json();
-    cleanExpiredWebSessions();
-
-    // 重複回避: 同じsessionIdがあれば既存コードを返す
-    if (data.sessionId) {
-      for (const [code, session] of webSessionMap) {
-        if (session.sessionId === data.sessionId) {
-          return jsonResponse({ code, expiresIn: "24時間" });
-        }
-      }
-    }
 
     let code;
     let attempts = 0;
     do {
       code = generateHandoffCode();
       attempts++;
-    } while (webSessionMap.has(code) && attempts < 10);
+    } while (attempts < 10);
 
-    webSessionMap.set(code, {
+    const sessionData = {
       sessionId: data.sessionId || null,
       area: data.area || null,
       concern: data.concern || null,
@@ -2134,7 +2124,18 @@ async function handleWebSession(request) {
       temperatureScore: data.temperatureScore || null,
       facilitiesShown: data.facilitiesShown || [],
       createdAt: Date.now(),
-    });
+    };
+
+    // KVに保存（24時間TTL）
+    if (env?.LINE_SESSIONS) {
+      try {
+        await env.LINE_SESSIONS.put(`web:${code}`, JSON.stringify(sessionData), { expirationTtl: 86400 });
+      } catch (e) {
+        console.error("[WebSession] KV put error:", e.message);
+      }
+    }
+    // インメモリにもフォールバック保存
+    webSessionMap.set(code, sessionData);
 
     return jsonResponse({ code, expiresIn: "24時間" });
   } catch (err) {
@@ -3903,9 +3904,17 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
 
-        // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはconsent/q1）
+        // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはwelcome/consent/q1）
         if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
-          const webSession = webSessionMap.get(userText);
+          // KVから取得（優先）→ インメモリフォールバック
+          let webSession = null;
+          if (env?.LINE_SESSIONS) {
+            try {
+              const raw = await env.LINE_SESSIONS.get(`web:${userText}`);
+              if (raw) webSession = JSON.parse(raw);
+            } catch (e) { console.error("[WebSession] KV get error:", e.message); }
+          }
+          if (!webSession) webSession = webSessionMap.get(userText);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;
             const webAreaMap = {
