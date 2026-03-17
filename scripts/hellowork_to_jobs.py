@@ -53,10 +53,29 @@ def build_job_object(rj):
     # 雇用形態
     emp = details.get("emp_type", "")
 
-    # 福利厚生
-    wel = details.get("welfare", "")
-    if wel == "特記なし":
-        wel = ""
+    # 福利厚生（拡充）
+    welfare_parts = []
+    wel_text = details.get("welfare", "")
+    if wel_text and wel_text != "特記なし":
+        welfare_parts.append(wel_text)
+    if rj.get("childcare"):
+        welfare_parts.append("託児所あり")
+    if rj.get("retirement"):
+        welfare_parts.append("退職金あり")
+    wel = "、".join(welfare_parts) if welfare_parts else ""
+
+    # 仕事内容（80文字に短縮）
+    desc = rj.get("job_description", "")
+    if len(desc) > 80:
+        desc = desc[:77] + "..."
+
+    # 勤務地
+    loc = rj.get("work_location", "")
+
+    # 勤務時間
+    shift = rj.get("shift1", "")
+    if rj.get("shift2"):
+        shift += " / " + rj.get("shift2", "")
 
     # スコア内訳 (details内のスコアは再計算が必要 → ranked.jsonのscoreを使う)
     # hellowork_rank.pyのscore_job()の配点に基づいてdetailsから再構成
@@ -84,6 +103,9 @@ def build_job_object(rj):
         "bon": bon,
         "emp": emp,
         "wel": wel,
+        "desc": desc,
+        "loc": loc,
+        "shift": shift,
     }
     return obj
 
@@ -204,7 +226,8 @@ def main():
     today = datetime.now().strftime("%Y-%m-%d")
     lines = [f'// ---------- 外部公開求人データ（ハローワークAPI {today}更新） ----------']
     lines.append('// 各求人: n=事業所名, t=職種, r=ランク(S/A/B/C/D), s=スコア(100点満点),')
-    lines.append('//   sal=給与, sta=最寄り駅, hol=年間休日, bon=賞与, emp=雇用形態, wel=福利厚生')
+    lines.append('//   sal=給与, sta=最寄り駅, hol=年間休日, bon=賞与, emp=雇用形態, wel=福利厚生,')
+    lines.append('//   desc=仕事内容(80字), loc=勤務地, shift=勤務時間')
     lines.append('// スコア配点: 年収30点 + 休日20点 + 賞与15点 + 雇用安定15点 + 福利10点 + 立地10点')
     lines.append('const EXTERNAL_JOBS = {')
     lines.append('  nurse: {')
