@@ -397,13 +397,22 @@
         .hero {
             position: relative;
             overflow: hidden;
-            background: #1a1a2e;
+            background: #0d1117;
+            padding: 0;
+            margin: 0;
+        }
+
+        .hero picture {
+            display: block;
+            line-height: 0;
         }
 
         .hero-img {
             display: block;
             width: 100%;
             height: auto;
+            margin: 0;
+            padding: 0;
         }
 
         /* SEO用: h1等は画像に焼き込み済みなのでvisually hidden */
@@ -569,6 +578,10 @@
         section {
             padding: 80px 24px;
             position: relative;
+        }
+
+        section.hero {
+            padding: 0;
         }
 
         .section-inner {
@@ -1176,7 +1189,7 @@
             }
 
             .hero {
-                padding: 100px 48px 120px;
+                padding: 0;
             }
 
             .section-title {
