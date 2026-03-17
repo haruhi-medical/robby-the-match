@@ -150,7 +150,7 @@ PLATFORM_WATERMARKS = {
 DEFAULT_SLIDE_COUNT = 8
 
 # Text constraints
-MAX_HOOK_CHARS = 10           # 1枚目は10文字以内
+MAX_HOOK_CHARS = 25           # 1枚目は25文字以内
 MAX_BODY_CHARS_PER_LINE = 15  # 1行15文字
 MAX_BODY_LINES = 3            # 最大3行
 
@@ -414,7 +414,8 @@ def wrap_text_jp(text: str, font: ImageFont.FreeTypeFont, max_width: int, max_ch
                     char_w = char_bbox[2] - char_bbox[0]
                     # Allow slight overflow for kinsoku (up to 1 char width extra)
                     single_char_bbox = font.getbbox(char)
-                    tolerance = single_char_bbox[2] - single_char_bbox[0]
+                    # Cap tolerance to prevent right overflow at large font sizes
+                    tolerance = min(single_char_bbox[2] - single_char_bbox[0], 20)
                     if char_w <= max_width + tolerance:
                         current_line += char
                         all_lines.append(current_line)
@@ -1161,7 +1162,7 @@ def generate_ig_hook_slide(
     _ig_draw_brand_logo(draw, cw)
 
     # -- Large centered title --
-    max_text_w = cw - 120  # 60px margin each side
+    max_text_w = cw - 2 * IG_SAFE["left"] - 40  # 70 + 70 safe zone + 40px inner margin = 180px total
 
     # Try fitting at 80px, fall back to 72px if text wraps beyond 2 lines
     best_size = IG_FONTS["cover_title"]
@@ -1634,13 +1635,14 @@ def generate_slide_hook(
     cw, ch = layout["canvas_w"], layout["canvas_h"]
     s_top = layout["safe_top"]
     s_bottom = layout["safe_bottom"]
+    s_left = layout["safe_left"]
     c_w = layout["content_w"]
     c_h = layout["content_h"]
 
     bg = _build_dark_bg(theme, canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
     accent = theme["accent"]
-    center_x = cw // 2
+    center_x = s_left + c_w // 2  # Center within safe zone, not canvas
 
     # -- Compute font size for hook --
     # For Instagram, center text vertically (no TikTok bottom bar offset)
@@ -1650,7 +1652,7 @@ def generate_slide_hook(
     else:
         hook_zone_top = s_top + 250
         hook_zone_height = int(c_h * 0.45)
-    max_text_width = c_w - 40
+    max_text_width = c_w - 80  # 40px margin each side within safe zone
 
     # Enforce hook character limit (MAX_HOOK_CHARS is advisory from AI, enforce here)
     if len(hook_text) > 25:
@@ -2085,6 +2087,8 @@ def generate_slide_cta(
     cw, ch = layout["canvas_w"], layout["canvas_h"]
     s_top = layout["safe_top"]
     s_bottom = layout["safe_bottom"]
+    s_left = layout["safe_left"]
+    s_right = layout["safe_right"]
 
     bg = _build_brand_gradient_bg(canvas_w=cw, canvas_h=ch)
     draw = ImageDraw.Draw(bg)
@@ -2115,7 +2119,11 @@ def generate_slide_cta(
     # -- English tagline --
     tag_font = load_font(bold=False, size=28)
     tag_text = CTA_TEMPLATE.get("brand", "シン・AI転職") + " — " + CTA_TEMPLATE.get("tagline", "早い × 簡単 × 24時間")
-    tw, _ = measure_text(tag_text, tag_font)
+    tw, th = measure_text(tag_text, tag_font)
+    tag_max_w = cw - s_left - s_right - 20
+    if tw > tag_max_w:
+        tag_font = load_font(bold=False, size=tag_font.size - 4)
+        tw, th = measure_text(tag_text, tag_font)
     tag_x = center_x - tw // 2
     tag_y = logo_y + logo_font_size + 18
     draw.text((tag_x, tag_y), tag_text, fill=(*COLOR_WHITE[:3], 150), font=tag_font)
@@ -2158,10 +2166,18 @@ def generate_slide_cta(
         btn_y = badge_y + badge_h + 80
         btn_font = load_font(bold=True, size=42)
         btn_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる")
-        btw2, bth2 = measure_text(btn_text, btn_font)
         btn_pad_x = 70
         btn_pad_y = 32
+        max_btn_w = cw - s_left - s_right - 40  # Don't exceed safe zone
+        # If btn_text is too wide, reduce font size
+        btw2 = measure_text(btn_text, btn_font)[0]
+        while btw2 > max_btn_w - btn_pad_x * 2 and btn_font.size > 28:
+            btn_font = load_font(bold=True, size=btn_font.size - 2)
+            btw2 = measure_text(btn_text, btn_font)[0]
+        btw2, bth2 = measure_text(btn_text, btn_font)
         btn_w = btw2 + btn_pad_x * 2
+        if btn_w > max_btn_w:
+            btn_w = max_btn_w
         btn_h = bth2 + btn_pad_y * 2
         btn_x = center_x - btn_w // 2
 
@@ -3033,6 +3049,8 @@ def _v4_generate_cta(
     cw, ch = layout["canvas_w"], layout["canvas_h"]
     s_top = layout["safe_top"]
     s_bottom = layout["safe_bottom"]
+    s_left = layout["safe_left"]
+    s_right = layout["safe_right"]
     center_x = cw // 2
 
     bg = _build_brand_gradient_bg(canvas_w=cw, canvas_h=ch)
@@ -3059,7 +3077,11 @@ def _v4_generate_cta(
     # Brand tagline
     tag_font = load_font(bold=False, size=26)
     tag_text = CTA_TEMPLATE.get("brand", "シン・AI転職") + " — " + CTA_TEMPLATE.get("tagline", "早い × 簡単 × 24時間")
-    tw, _ = measure_text(tag_text, tag_font)
+    tw, th = measure_text(tag_text, tag_font)
+    tag_max_w = cw - s_left - s_right - 20
+    if tw > tag_max_w:
+        tag_font = load_font(bold=False, size=tag_font.size - 4)
+        tw, th = measure_text(tag_text, tag_font)
     tag_y = logo_y + 70
     draw.text((center_x - tw // 2, tag_y), tag_text, fill=(*COLOR_WHITE[:3], 150), font=tag_font)
 
@@ -3096,9 +3118,17 @@ def _v4_generate_cta(
         btn_y = badge_y + badge_h + 60
         btn_font = load_font(bold=True, size=42, rounded=True)
         btn_text = CTA_TEMPLATE.get("cta_text", "30秒AI診断であなたの求人がわかる")
-        btw2, bth2 = measure_text(btn_text, btn_font)
         btn_pad_x, btn_pad_y = 65, 30
+        max_btn_w = cw - s_left - s_right - 40  # Don't exceed safe zone
+        # If btn_text is too wide, reduce font size
+        btw2 = measure_text(btn_text, btn_font)[0]
+        while btw2 > max_btn_w - btn_pad_x * 2 and btn_font.size > 28:
+            btn_font = load_font(bold=True, size=btn_font.size - 2, rounded=True)
+            btw2 = measure_text(btn_text, btn_font)[0]
+        btw2, bth2 = measure_text(btn_text, btn_font)
         btn_w = btw2 + btn_pad_x * 2
+        if btn_w > max_btn_w:
+            btn_w = max_btn_w
         btn_h = bth2 + btn_pad_y * 2
         btn_x = center_x - btn_w // 2
 
