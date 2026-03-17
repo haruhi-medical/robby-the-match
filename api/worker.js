@@ -2153,8 +2153,7 @@ const LINE_SESSION_TTL = 604800000; // 7日間（handoff後の人間対応期間
 // ---------- 定数: フェーズフロー ----------
 // フロー分岐: urgencyに応じてルートが変わる
 const PHASE_FLOW_FULL = {
-  follow:           "consent",
-  consent:          "q1_urgency",
+  follow:           "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
   q3_area:          "q4_experience",
@@ -2177,8 +2176,7 @@ const PHASE_FLOW_FULL = {
 };
 
 const PHASE_FLOW_MEDIUM = {
-  follow:           "consent",
-  consent:          "q1_urgency",
+  follow:           "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
   q3_area:          "q4_experience",
@@ -2195,8 +2193,7 @@ const PHASE_FLOW_MEDIUM = {
 };
 
 const PHASE_FLOW_SHORT = {
-  follow:           "consent",
-  consent:          "q1_urgency",
+  follow:           "q1_urgency",
   q1_urgency:       "q3_area",
   q3_area:          "q4_experience",
   q4_experience:    "matching",
@@ -3504,7 +3501,7 @@ function handleLinePostback(dataStr, entry) {
     entry.unexpectedTextCount = 0;
     if (val === "agree") {
       entry.consentAt = new Date().toISOString();
-      nextPhase = getFlowForEntry(entry).consent; // → q1_urgency
+      nextPhase = "q1_urgency";
     } else if (val === "check") {
       // phaseは変えない（consentのまま）、確認促しメッセージを返す
       nextPhase = "consent_check";
@@ -3744,11 +3741,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       // --- followイベント（友だち追加） ---
       if (event.type === "follow") {
         const entry = createLineEntry();
-        entry.phase = "consent";
+        entry.phase = "q1_urgency";
         entry.updatedAt = Date.now();
         await saveLineEntry(userId, entry, env);
 
-        const msgs = buildPhaseMessage("consent", entry);
+        const msgs = buildPhaseMessage("q1_urgency", entry);
         if (msgs) {
           await lineReply(event.replyToken, msgs, channelAccessToken);
         }
