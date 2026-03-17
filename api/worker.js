@@ -2126,6 +2126,10 @@ async function handleWebSession(request) {
       area: data.area || null,
       concern: data.concern || null,
       experience: data.experience || null,
+      age: data.age || null,
+      specialty: data.specialty || null,
+      workstyle: data.workstyle || null,
+      timing: data.timing || null,
       salaryEstimate: data.salaryEstimate || null,
       temperatureScore: data.temperatureScore || null,
       facilitiesShown: data.facilitiesShown || [],
@@ -2149,7 +2153,8 @@ const LINE_SESSION_TTL = 604800000; // 7日間（handoff後の人間対応期間
 // ---------- 定数: フェーズフロー ----------
 // フロー分岐: urgencyに応じてルートが変わる
 const PHASE_FLOW_FULL = {
-  follow:           "q1_urgency",
+  follow:           "consent",
+  consent:          "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
   q3_area:          "q4_experience",
@@ -2161,27 +2166,32 @@ const PHASE_FLOW_FULL = {
   q9_work_history:  "q10_qualification",
   q10_qualification:"resume_confirm",
   resume_confirm:   "matching",
-  matching:         "handoff",
+  matching:         "ai_consultation",
+  ai_consultation:  "handoff",
   handoff:          null,
 };
 
 const PHASE_FLOW_MEDIUM = {
-  follow:           "q1_urgency",
+  follow:           "consent",
+  consent:          "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
   q3_area:          "q4_experience",
   q4_experience:    "q5_workstyle",
   q5_workstyle:     "matching",
-  matching:         "handoff",
+  matching:         "ai_consultation",
+  ai_consultation:  "handoff",
   handoff:          null,
 };
 
 const PHASE_FLOW_SHORT = {
-  follow:           "q1_urgency",
+  follow:           "consent",
+  consent:          "q1_urgency",
   q1_urgency:       "q3_area",
   q3_area:          "q4_experience",
   q4_experience:    "matching",
-  matching:         "handoff",
+  matching:         "ai_consultation",
+  ai_consultation:  "handoff",
   handoff:          null,
 };
 
@@ -2439,6 +2449,9 @@ function createLineEntry() {
     resumeDraft: null,
     matchingResults: null,
     interestedFacility: null,
+    // 同意・相談
+    consentAt: null,
+    consultMessages: [],
     // メタ
     webSessionData: null,
     messageCount: 0,
@@ -2706,6 +2719,30 @@ function buildPhaseMessage(phase, entry) {
     case "matching":
       // マッチング結果はFlex Messageで別途生成
       return null;
+
+    case "consent":
+      return [{
+        type: "text",
+        text: "友だち追加ありがとうございます！\n神奈川ナース転職です。\n\n転職サポートのため、個人情報の取り扱いについてご確認をお願いします。\n\n📋 個人情報保護方針:\nhttps://quads-nurse.com/privacy.html\n📋 利用規約:\nhttps://quads-nurse.com/terms.html\n\n上記を確認の上、同意いただける場合は「同意する」をタップしてください。",
+        quickReply: {
+          items: [
+            qrItem("✅ 同意する", "consent=agree"),
+            qrItem("内容を確認する", "consent=check"),
+          ],
+        },
+      }];
+
+    case "ai_consultation":
+      return [{
+        type: "text",
+        text: "求人情報はいかがでしたか？\n\nここからは何でも自由に聞いてください 💬\n\n例えば...\n・夜勤なしだと給料どのくらい変わる？\n・訪問看護ってぶっちゃけどう？\n・転職って実際どのくらいかかるの？\n\nAIロビーが24時間お答えします。\n答えられないことは担当者につなぎます。",
+        quickReply: {
+          items: [
+            qrItem("相談したいことがある", "consult=start"),
+            qrItem("大丈夫、担当者と話したい", "consult=handoff"),
+          ],
+        },
+      }];
 
     case "handoff":
       return [{
@@ -3213,7 +3250,7 @@ function handleLinePostback(dataStr, entry) {
       if (facilityName) {
         entry.interestedFacility = decodeURIComponent(facilityName);
       }
-      nextPhase = "handoff";
+      nextPhase = getFlowForEntry(entry).matching; // → ai_consultation
     } else if (val === "other") {
       nextPhase = "matching_more";
     }
@@ -3222,6 +3259,30 @@ function handleLinePostback(dataStr, entry) {
   else if (params.has("handoff")) {
     entry.unexpectedTextCount = 0;
     nextPhase = "handoff";
+  }
+  // 同意取得
+  else if (params.has("consent")) {
+    const val = params.get("consent");
+    entry.unexpectedTextCount = 0;
+    if (val === "agree") {
+      entry.consentAt = new Date().toISOString();
+      nextPhase = getFlowForEntry(entry).consent; // → q1_urgency
+    } else if (val === "check") {
+      // phaseは変えない（consentのまま）、確認促しメッセージを返す
+      nextPhase = "consent_check";
+    }
+  }
+  // AI自由相談
+  else if (params.has("consult")) {
+    const val = params.get("consult");
+    entry.unexpectedTextCount = 0;
+    if (val === "handoff") {
+      nextPhase = "handoff";
+    } else if (val === "start") {
+      nextPhase = "ai_consultation_waiting"; // テキスト入力待ち
+    } else if (val === "continue") {
+      nextPhase = "ai_consultation_waiting"; // 追加質問待ち
+    }
   }
 
   return nextPhase;
@@ -3242,6 +3303,17 @@ function handleFreeTextInput(text, entry) {
   if (phase === "resume_edit") {
     entry.unexpectedTextCount = 0;
     return "resume_apply_edit"; // 修正適用フラグ
+  }
+
+  // consent中の自由テキスト → Quick Reply再表示
+  if (phase === "consent") {
+    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+    return null;
+  }
+
+  // ai_consultation中の自由テキスト → AI回答
+  if (phase === "ai_consultation") {
+    return "ai_consultation_reply";
   }
 
   // resume_confirm中の自由テキスト → Quick Replyを再表示（TEXT_TO_POSTBACKに流さない）
@@ -3265,6 +3337,7 @@ function handleFreeTextInput(text, entry) {
   // ※ Q9/resume_edit/resume_confirm/handoff/matchingは上で処理済み
   // 現在のフェーズに対応するキーワードのみマッチさせる（誤ジャンプ防止）
   const phaseToExpectedPrefix = {
+    consent: "consent=",
     q1_urgency: "q1=",
     q2_change: "q2=",
     q3_area: "q3=",
@@ -3343,11 +3416,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       // --- followイベント（友だち追加） ---
       if (event.type === "follow") {
         const entry = createLineEntry();
-        entry.phase = "q1_urgency";
+        entry.phase = "consent";
         entry.updatedAt = Date.now();
         await saveLineEntry(userId, entry, env);
 
-        const msgs = buildPhaseMessage("q1_urgency", entry);
+        const msgs = buildPhaseMessage("consent", entry);
         if (msgs) {
           await lineReply(event.replyToken, msgs, channelAccessToken);
         }
@@ -3362,7 +3435,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }).catch(() => {});
         }
 
-        console.log(`[LINE] Follow event, user ${userId.slice(0, 8)}, sent Q1`);
+        console.log(`[LINE] Follow event, user ${userId.slice(0, 8)}, sent consent`);
         continue;
       }
 
@@ -3407,11 +3480,34 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             ...buildMatchingMessages(entry),
           ].slice(0, 5);
         } else if (nextPhase === "matching_more") {
-          entry.phase = "handoff";
+          entry.phase = "ai_consultation";
           replyMessages = [{
             type: "text",
-            text: "他の施設情報もお伝えできます！\n担当者がこのLINEでご連絡しますね。",
-            quickReply: { items: [qrItem("お願いします！", "handoff=ok")] },
+            text: "他の施設情報もお伝えできます！\nその前に、何か気になることはありますか？",
+            quickReply: {
+              items: [
+                qrItem("相談したいことがある", "consult=start"),
+                qrItem("大丈夫、担当者と話したい", "consult=handoff"),
+              ],
+            },
+          }];
+        } else if (nextPhase === "consent_check") {
+          entry.phase = "consent"; // phaseはconsentのまま
+          replyMessages = [{
+            type: "text",
+            text: "リンクをご確認ください。確認後、「同意する」をタップしてください。",
+            quickReply: {
+              items: [
+                qrItem("✅ 同意する", "consent=agree"),
+                qrItem("内容を確認する", "consent=check"),
+              ],
+            },
+          }];
+        } else if (nextPhase === "ai_consultation_waiting") {
+          entry.phase = "ai_consultation";
+          replyMessages = [{
+            type: "text",
+            text: "どうぞ、何でも聞いてください！",
           }];
         } else if (nextPhase === "handoff") {
           replyMessages = buildPhaseMessage("handoff", entry);
@@ -3450,8 +3546,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
 
-        // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはq1）
-        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "q1_urgency")) {
+        // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはconsent/q1）
+        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
           const webSession = webSessionMap.get(userText);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;
@@ -3552,6 +3648,16 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
           await saveLineEntry(userId, entry, env);
           continue; // LINE応答は送らない
+        }
+
+        if (nextPhase === "ai_consultation_reply") {
+          replyMessages = await handleLineAIConsultation(userText, entry, env);
+          await saveLineEntry(userId, entry, env);
+          if (replyMessages && replyMessages.length > 0) {
+            await lineReply(event.replyToken, replyMessages.slice(0, 5), channelAccessToken);
+          }
+          console.log(`[LINE] AI consultation: "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
+          continue;
         }
 
         if (nextPhase === "resume_apply_edit") {
@@ -3660,6 +3766,100 @@ ${userText}`;
   } catch (err) {
     console.error("[LINE] processLineEvents error:", err);
   }
+}
+
+// ---------- LINE AI自由相談モード ----------
+async function handleLineAIConsultation(userText, entry, env) {
+  if (!entry.consultMessages) entry.consultMessages = [];
+  entry.consultMessages.push({ role: "user", content: userText });
+
+  const systemPrompt = `あなたは「ロビー」、神奈川ナース転職のAI転職相談アシスタントです。
+看護師の転職相談に親身に答えます。
+
+【回答ルール】
+- 短く具体的に（3-4文）
+- 神奈川県の給与・求人データを使う
+- 答えられないことは正直に「担当者に確認します」
+- 施設の個別評判・口コミは答えない（法的リスク）
+- 患者体験談は使わない
+
+【給与データ】
+${JSON.stringify(SALARY_DATA["看護師"])}
+
+${SHIFT_DATA}
+${MARKET_DATA}
+
+【このユーザーの情報】
+エリア: ${entry.areaLabel || "未定"}
+経験: ${entry.experience || "不明"}
+希望: ${entry.change || "不明"}
+働き方: ${entry.workStyle || "不明"}`;
+
+  let aiResponse = null;
+
+  // OpenAI優先
+  if (env.OPENAI_API_KEY) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...entry.consultMessages.slice(-6),
+          ],
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        aiResponse = data.choices?.[0]?.message?.content;
+      }
+    } catch (e) { console.error("[AI] OpenAI error:", e); }
+  }
+
+  // Cloudflare Workers AIフォールバック
+  if (!aiResponse && env.AI) {
+    try {
+      const result = await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...entry.consultMessages.slice(-6),
+        ],
+        max_tokens: 300,
+      });
+      aiResponse = result?.response;
+    } catch (e) { console.error("[AI] Workers AI error:", e); }
+  }
+
+  if (!aiResponse) {
+    aiResponse = "すみません、一時的に回答を生成できませんでした。担当者におつなぎしましょうか？";
+  }
+
+  entry.consultMessages.push({ role: "assistant", content: aiResponse });
+  const consultCount = entry.consultMessages.filter(m => m.role === "user").length;
+
+  // 3往復後に担当者提案
+  const qrItems = consultCount >= 3
+    ? [
+        qrItem("もっと聞きたい", "consult=continue"),
+        qrItem("担当者と話したい", "consult=handoff"),
+      ]
+    : [
+        qrItem("担当者と話したい", "consult=handoff"),
+      ];
+
+  return [{
+    type: "text",
+    text: aiResponse,
+    quickReply: { items: qrItems },
+  }];
 }
 
 // ---------- LINE AI呼び出し共通関数（経歴書生成/修正専用） ----------

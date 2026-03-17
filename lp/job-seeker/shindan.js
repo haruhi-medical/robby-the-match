@@ -504,6 +504,34 @@
     });
 
     r.appendChild(cta);
+
+    /* 引き継ぎコード生成 */
+    var codeEl = el('div', 'shindan-handoff-code');
+    codeEl.innerHTML = '引き継ぎコード生成中...';
+    codeEl.style.cssText = 'text-align:center;padding:12px;margin-top:12px;background:#f0f8ff;border-radius:8px;font-size:0.95em;color:#333;';
+    r.appendChild(codeEl);
+
+    fetch('/api/web-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        area: A.a,
+        age: A.age,
+        experience: A.exp,
+        specialty: A.s,
+        workstyle: A.w,
+        concern: A.c,
+        timing: A.t,
+      })
+    }).then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.code && codeEl) {
+        codeEl.innerHTML = '引き継ぎコード: <strong style="font-size:1.3em;letter-spacing:2px;">' + data.code + '</strong><br><span style="font-size:0.8em;color:#666;">LINEに登録後、このコードを送ると診断結果が引き継がれます</span>';
+      }
+    }).catch(function() {
+      if (codeEl) codeEl.innerHTML = '';
+    });
+
     C.appendChild(r);
 
     /* Trigger count-up after render */
