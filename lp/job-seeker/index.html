@@ -441,6 +441,29 @@
             margin-top: 10px;
         }
 
+        .cta-line-hero {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #06C755 0%, #05b34c 100%);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 16px 32px;
+            border-radius: var(--radius-full);
+            text-decoration: none;
+            min-height: 48px;
+            letter-spacing: 0.03em;
+            box-shadow: 0 4px 16px var(--line-glow), 0 1px 3px rgba(0,0,0,0.08);
+            animation: ctaPulse 3s ease-in-out infinite;
+            transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out);
+        }
+
+        .cta-line-hero:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 28px var(--line-glow-strong), 0 2px 8px rgba(0,0,0,0.1);
+        }
+
         /* ===== CTA Buttons ===== */
         .cta-primary {
             display: inline-block;
@@ -1271,6 +1294,17 @@
                 display: block;
             }
 
+            .hero-cta-overlay {
+                text-align: right;
+                padding: 0 16px 24px;
+                background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%);
+            }
+
+            .cta-line-hero {
+                font-size: 0.9rem;
+                padding: 14px 24px;
+            }
+
             .hero-sub-title::before,
             .hero-sub-title::after {
                 display: none;
@@ -1321,16 +1355,22 @@
 
     <!-- Hero -->
     <section class="hero" id="hero">
-        <img src="../../assets/hero-nurse-new.jpg" alt="夜勤の休憩中にスマホで転職相談する看護師 — シン・AI転職" class="hero-img" width="1500" height="837" fetchpriority="high">
+        <picture>
+            <source media="(max-width: 767px)" srcset="../../assets/hero-nurse-mobile.jpg" width="837" height="1500">
+            <img src="../../assets/hero-nurse-new.jpg" alt="夜勤の休憩中にスマホで転職相談する看護師 — シン・AI転職" class="hero-img" width="1500" height="837" fetchpriority="high">
+        </picture>
         <!-- SEO用（画像に焼き込み済みのテキスト） -->
         <div class="hero-sr-only">
             <h1>夜勤の休憩中に、転職が決まる。</h1>
             <p>シン・AI転職 — 早い × 簡単 × 24時間</p>
             <p>神奈川県の看護師専門・完全無料・電話なし</p>
         </div>
-        <!-- CTAオーバーレイ（画像の下部に配置） -->
+        <!-- CTAオーバーレイ（右下にLINE誘導ボタン） -->
         <div class="hero-cta-overlay">
-            <a href="#shindan" class="cta-primary" onclick="typeof fbq==='function'&&fbq('track','Lead');">30秒で診断スタート &#9654;</a>
+            <a href="https://lin.ee/oUgDB3x" class="cta-line-hero" target="_blank" rel="noopener" onclick="typeof fbq==='function'&&fbq('track','Lead');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
+                LINEで無料相談
+            </a>
             <p class="hero-note">※完全無料でご利用できます</p>
         </div>
     </section>
