@@ -2114,6 +2114,7 @@ async function handleWebSession(request, env) {
     const sessionData = {
       sessionId: data.sessionId || null,
       area: data.area || null,
+      station: data.station || null,
       concern: data.concern || null,
       experience: data.experience || null,
       age: data.age || null,
@@ -2157,7 +2158,8 @@ const PHASE_FLOW_FULL = {
   follow:           "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
-  q3_area:          "q4_experience",
+  q3_area:          "q3b_station",
+  q3b_station:      "q4_experience",
   q4_experience:    "q5_workstyle",
   q5_workstyle:     "q6_workplace",
   q6_workplace:     "q7_strengths",
@@ -2180,7 +2182,8 @@ const PHASE_FLOW_MEDIUM = {
   follow:           "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
-  q3_area:          "q4_experience",
+  q3_area:          "q3b_station",
+  q3b_station:      "q4_experience",
   q4_experience:    "q5_workstyle",
   q5_workstyle:     "matching",
   matching:         "ai_consultation",
@@ -2196,7 +2199,8 @@ const PHASE_FLOW_MEDIUM = {
 const PHASE_FLOW_SHORT = {
   follow:           "q1_urgency",
   q1_urgency:       "q3_area",
-  q3_area:          "q4_experience",
+  q3_area:          "q3b_station",
+  q3b_station:      "q4_experience",
   q4_experience:    "matching",
   matching:         "ai_consultation",
   ai_consultation:  "apply_info",
@@ -2470,6 +2474,7 @@ function createLineEntry() {
     change: null,           // q2: salary/rest/human/night/commute/career
     area: null,             // q3: yokohama/kawasaki/sagamihara/yokosuka_miura/shonan_east/shonan_west/kenoh/kensei/undecided
     areaLabel: null,        // 表示用エリア名
+    nearStation: null,      // q3b: 最寄駅名（テキスト入力）
     experience: null,       // q4: under1/1to3/3to5/5to10/over10
     workStyle: null,        // q5: day/twoshift/part/night
     workplace: null,        // q6: acute/recovery/chronic/clinic/visit/care/ope/other
@@ -2715,6 +2720,12 @@ function buildPhaseMessage(phase, entry) {
             qrItem("まだ決めていない", "q3=undecided"),
           ],
         },
+      }];
+
+    case "q3b_station":
+      return [{
+        type: "text",
+        text: "お住まいの最寄駅を教えてください！\n通勤しやすい求人を優先してお探しします。\n\n（例: 横浜、武蔵小杉、小田原）",
       }];
 
     case "q4_experience":
@@ -3122,9 +3133,28 @@ function generateLineMatching(entry) {
   // ランクでフィルタ（C/D除外）
   allJobs = allJobs.filter(j => j.r !== "C" && j.r !== "D");
 
+  // ユーザー最寄駅の座標取得
+  const userStationCoords = entry.nearStation ? getStationCoords(entry.nearStation) : null;
+
   // ユーザーの希望に基づくボーナススコア
   allJobs = allJobs.map(j => {
     let bonus = 0;
+
+    // 距離計算（最重要）
+    let distanceKm = null;
+    if (userStationCoords && j.sta) {
+      const jobCoords = getStationCoords(j.sta);
+      if (jobCoords) {
+        distanceKm = haversineDistance(userStationCoords.lat, userStationCoords.lng, jobCoords.lat, jobCoords.lng);
+        // 距離スコア（近いほど高スコア）
+        if (distanceKm <= 5) bonus += 30;
+        else if (distanceKm <= 10) bonus += 20;
+        else if (distanceKm <= 15) bonus += 10;
+        else if (distanceKm <= 20) bonus += 5;
+        else if (distanceKm > 30) bonus -= 20; // 遠すぎるペナルティ
+      }
+    }
+
     // 給与重視 → 高給与にボーナス
     if (entry.change === "salary" && j.d && j.d.sal >= 25) bonus += 10;
     // 休日重視 → 高休日にボーナス
@@ -3133,8 +3163,17 @@ function generateLineMatching(entry) {
     if (entry.workStyle === "day" && j.t && j.t.includes("日勤")) bonus += 15;
     // 訪問看護経験 → 訪問看護求人にボーナス
     if (entry.workplace === "visit" && j.t && j.t.includes("訪問")) bonus += 10;
-    return { ...j, adjustedScore: (j.s || 0) + bonus };
+    return { ...j, adjustedScore: (j.s || 0) + bonus, distanceKm };
   });
+
+  // 30km超を除外（遠すぎる求人は提案しない）
+  if (userStationCoords) {
+    const nearJobs = allJobs.filter(j => j.distanceKm === null || j.distanceKm <= 30);
+    if (nearJobs.length >= 3) {
+      allJobs = nearJobs;
+    }
+    // 3件未満なら距離制限を緩和（全件から選ぶ）
+  }
 
   // スコア順にソート
   allJobs.sort((a, b) => b.adjustedScore - a.adjustedScore);
@@ -3179,6 +3218,7 @@ function buildFacilityFlexBubble(job, index) {
         { type: "text", text: title, size: "sm", color: "#333333", wrap: true },
         { type: "text", text: salary, size: "lg", weight: "bold", margin: "md", color: "#1DB446" },
         { type: "text", text: `📍 ${station}`, size: "xs", color: "#999999", margin: "sm", wrap: true },
+        ...(job.distanceKm !== null && job.distanceKm !== undefined ? [{ type: "text", text: `📍 自宅から約${Math.round(job.distanceKm)}km`, size: "xs", color: job.distanceKm <= 10 ? "#1DB446" : job.distanceKm <= 20 ? "#f0ad4e" : "#e74c3c", margin: "sm", weight: "bold" }] : []),
         { type: "text", text: `年休${holidays}日 / 賞与${bonus} / ${emp}`, size: "xs", color: "#999999", margin: "sm", wrap: true },
         ...(rank ? [{ type: "text", text: `おすすめ度: ${rank}ランク`, size: "sm", color: rank === "S" ? "#e74c3c" : "#1DB446", margin: "md", weight: "bold" }] : []),
       ],
@@ -3534,6 +3574,13 @@ function handleLinePostback(dataStr, entry) {
 // ---------- 自由テキスト処理 ----------
 function handleFreeTextInput(text, entry) {
   const phase = entry.phase;
+
+  // Q3b: 最寄駅入力
+  if (phase === "q3b_station") {
+    entry.nearStation = text.replace(/駅$/, ''); // 「横浜駅」→「横浜」
+    entry.unexpectedTextCount = 0;
+    return getFlowForEntry(entry).q3b_station; // → q4_experience
+  }
 
   // Q9: 職歴入力待ち
   if (phase === "q9_work_history") {
@@ -3933,6 +3980,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             if (webSession.area && webAreaMap[webSession.area]) {
               entry.area = webAreaMap[webSession.area];
               entry.areaLabel = POSTBACK_LABELS[`q3_${entry.area}`] || webSession.area;
+            }
+            // 最寄駅
+            if (webSession.station) {
+              entry.nearStation = webSession.station.replace(/駅$/, '');
             }
             // 経験年数
             const webExpMap = { "1to3": "1to3", "3to5": "3to5", "5to10": "5to10", "10plus": "over10", "blank": "under1" };

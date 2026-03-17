@@ -1,6 +1,6 @@
 /**
  * 神奈川ナース転職 — 転職診断UI v4.0 (vanilla JS)
- * 7問構成: エリア→年代→看護師歴→職種→働き方→重視点→時期
+ * 8問構成: エリア→最寄駅→年代→看護師歴→職種→働き方→重視点→時期
  *
  * REQUIRED: Add to LP <head> before closing tag:
  *   <link rel="stylesheet" href="shindan.css">
@@ -11,7 +11,7 @@
   /* ── Constants ── */
   var LINE_URL = 'https://lin.ee/oUgDB3x';
   var D = null;
-  var A = { a: '', age: '', exp: '', s: '', w: '', c: '', t: '' };
+  var A = { a: '', station: '', age: '', exp: '', s: '', w: '', c: '', t: '' };
   var C; // container element
   var currentStep = -1;
   var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -22,7 +22,7 @@
   fetch(dataURL).then(function (r) { return r.json(); }).then(function (d) { D = d; }).catch(function () {});
 
   /* ── Questions ── */
-  var ICONS = ['📍', '🗓️', '📋', '🩺', '🏥', '💡', '📅'];
+  var ICONS = ['📍', '🚉', '🗓️', '📋', '🩺', '🏥', '💡', '📅'];
   var Q = [
     { k: 'a', t: '希望のエリアは？', e: 'shindan_q1', ek: 'area', o: [
       { l: '横浜・川崎', v: 'yokohama_kawasaki' },
@@ -31,6 +31,7 @@
       { l: '相模原・県央', v: 'sagamihara_kenoh' },
       { l: '横須賀・三浦', v: 'yokosuka_miura' }
     ]},
+    { k: 'station', t: 'お住まいの最寄駅は？', e: 'shindan_station', ek: 'station', input: true, placeholder: '例: 横浜、武蔵小杉、小田原' },
     { k: 'age', t: 'あなたの年代は？', e: 'shindan_q2', ek: 'age', o: [
       { l: '20代', v: '20s' },
       { l: '30代', v: '30s' },
@@ -77,6 +78,7 @@
       var names = { yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉', odawara_seisho: '小田原・県西', sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦' };
       return (names[v] || '') + 'エリア、了解！';
     },
+    'station': function (v) { return v + '駅周辺ですね！'; },
     'age': function (v) {
       if (v === '20s') return '転職のゴールデンタイムです';
       if (v === '30s') return '市場価値が高い年代です';
@@ -249,103 +251,161 @@
         '<span class="shindan-title-icon">' + ICONS[i] + '</span>' + q.t);
       s.appendChild(title);
 
-      var g = el('div', 'shindan-options');
-      g.setAttribute('role', 'radiogroup');
-      g.setAttribute('aria-label', q.t);
-
-      q.o.forEach(function (o, idx) {
-        var b = el('button', 'shindan-btn', o.l, {
-          type: 'button',
-          role: 'radio',
-          'aria-checked': 'false',
-          'aria-label': o.l,
-          tabindex: idx === 0 ? '0' : '-1'
+      if (q.input) {
+        // テキスト入力フィールド
+        var inputWrap = el('div', 'shindan-input-wrap');
+        inputWrap.style.cssText = 'max-width:400px;margin:0 auto;';
+        var input = el('input', 'shindan-input', null, {
+          type: 'text',
+          placeholder: q.placeholder || '',
+          'aria-label': q.t,
         });
-
-        b.addEventListener('click', function (evt) {
-          A[q.k] = o.v;
-          g.querySelectorAll('.shindan-btn').forEach(function (x) {
-            x.classList.remove('selected');
-            x.setAttribute('aria-checked', 'false');
-          });
-          b.classList.add('selected');
-          b.setAttribute('aria-checked', 'true');
-          addRipple(b, evt);
-
+        input.style.cssText = 'width:100%;max-width:400px;padding:14px 20px;border:2px solid var(--sd-teal-border, #1a7f64);border-radius:var(--sd-radius-sm, 8px);font-size:1rem;box-sizing:border-box;';
+        var submitBtn = el('button', 'shindan-btn shindan-submit-btn', '次へ', { type: 'button' });
+        submitBtn.style.cssText = 'margin-top:12px;width:100%;';
+        submitBtn.addEventListener('click', function() {
+          var val = input.value.trim();
+          if (!val) return;
+          A[q.k] = val;
           var p = {};
-          p[q.ek] = o.v;
+          p[q.ek] = val;
           ga(q.e, p);
 
           // Show micro-feedback if available
           var fbFn = FEEDBACK[q.k];
-          var feedbackMsg = fbFn ? fbFn(o.v) : null;
+          var feedbackMsg = fbFn ? fbFn(val) : null;
 
           if (feedbackMsg && !reducedMotion) {
-            // Insert feedback toast above options
             var existing = s.querySelector('.shindan-feedback');
             if (existing) existing.parentNode.removeChild(existing);
             var fb = el('div', 'shindan-feedback', feedbackMsg);
-            s.insertBefore(fb, g);
-
+            s.insertBefore(fb, inputWrap);
             setTimeout(function () {
-              if (i < Q.length - 1) {
-                step(i + 1);
-              } else {
-                result();
-              }
+              if (i < Q.length - 1) { step(i + 1); } else { result(); }
             }, 600);
           } else {
             var delay = reducedMotion ? 100 : 350;
             setTimeout(function () {
-              if (i < Q.length - 1) {
-                step(i + 1);
-              } else {
-                result();
-              }
+              if (i < Q.length - 1) { step(i + 1); } else { result(); }
             }, delay);
           }
         });
+        // Enterキーでも送信
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') { e.preventDefault(); submitBtn.click(); }
+        });
+        inputWrap.appendChild(input);
+        inputWrap.appendChild(submitBtn);
+        s.appendChild(inputWrap);
+        C.appendChild(s);
 
-        g.appendChild(b);
-      });
-
-      s.appendChild(g);
-      C.appendChild(s);
-
-      // Auto-focus first option (only when user has scrolled to shindan)
-      var firstBtn = g.querySelector('.shindan-btn');
-      if (firstBtn) {
+        // Auto-focus input
         setTimeout(function () {
           var rect = C.getBoundingClientRect();
           if (rect.top < window.innerHeight && rect.bottom > 0) {
-            firstBtn.focus({ preventScroll: true });
+            input.focus({ preventScroll: true });
           }
         }, reducedMotion ? 0 : 400);
+      } else {
+        // 既存のボタン選択肢UI
+        var g = el('div', 'shindan-options');
+        g.setAttribute('role', 'radiogroup');
+        g.setAttribute('aria-label', q.t);
+
+        q.o.forEach(function (o, idx) {
+          var b = el('button', 'shindan-btn', o.l, {
+            type: 'button',
+            role: 'radio',
+            'aria-checked': 'false',
+            'aria-label': o.l,
+            tabindex: idx === 0 ? '0' : '-1'
+          });
+
+          b.addEventListener('click', function (evt) {
+            A[q.k] = o.v;
+            g.querySelectorAll('.shindan-btn').forEach(function (x) {
+              x.classList.remove('selected');
+              x.setAttribute('aria-checked', 'false');
+            });
+            b.classList.add('selected');
+            b.setAttribute('aria-checked', 'true');
+            addRipple(b, evt);
+
+            var p = {};
+            p[q.ek] = o.v;
+            ga(q.e, p);
+
+            // Show micro-feedback if available
+            var fbFn = FEEDBACK[q.k];
+            var feedbackMsg = fbFn ? fbFn(o.v) : null;
+
+            if (feedbackMsg && !reducedMotion) {
+              // Insert feedback toast above options
+              var existing = s.querySelector('.shindan-feedback');
+              if (existing) existing.parentNode.removeChild(existing);
+              var fb = el('div', 'shindan-feedback', feedbackMsg);
+              s.insertBefore(fb, g);
+
+              setTimeout(function () {
+                if (i < Q.length - 1) {
+                  step(i + 1);
+                } else {
+                  result();
+                }
+              }, 600);
+            } else {
+              var delay = reducedMotion ? 100 : 350;
+              setTimeout(function () {
+                if (i < Q.length - 1) {
+                  step(i + 1);
+                } else {
+                  result();
+                }
+              }, delay);
+            }
+          });
+
+          g.appendChild(b);
+        });
+
+        s.appendChild(g);
+        C.appendChild(s);
+
+        // Auto-focus first option (only when user has scrolled to shindan)
+        var firstBtn = g.querySelector('.shindan-btn');
+        if (firstBtn) {
+          setTimeout(function () {
+            var rect = C.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+              firstBtn.focus({ preventScroll: true });
+            }
+          }, reducedMotion ? 0 : 400);
+        }
+
+        // Keyboard navigation
+        g.addEventListener('keydown', function (e) {
+          var btns = Array.prototype.slice.call(g.querySelectorAll('.shindan-btn'));
+          var idx = btns.indexOf(document.activeElement);
+          if (idx < 0) return;
+
+          var next = -1;
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            next = (idx + 1) % btns.length;
+          } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            next = (idx - 1 + btns.length) % btns.length;
+          } else if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            btns[idx].click();
+            return;
+          }
+
+          if (next >= 0) {
+            e.preventDefault();
+            btns.forEach(function (b, i) { b.tabIndex = i === next ? 0 : -1; });
+            btns[next].focus({ preventScroll: true });
+          }
+        });
       }
-
-      // Keyboard navigation
-      g.addEventListener('keydown', function (e) {
-        var btns = Array.prototype.slice.call(g.querySelectorAll('.shindan-btn'));
-        var idx = btns.indexOf(document.activeElement);
-        if (idx < 0) return;
-
-        var next = -1;
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-          next = (idx + 1) % btns.length;
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-          next = (idx - 1 + btns.length) % btns.length;
-        } else if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          btns[idx].click();
-          return;
-        }
-
-        if (next >= 0) {
-          e.preventDefault();
-          btns.forEach(function (b, i) { b.tabIndex = i === next ? 0 : -1; });
-          btns[next].focus({ preventScroll: true });
-        }
-      });
     }
 
     // Slide out previous step, then render new
@@ -404,7 +464,7 @@
     var sn = ws ? ws.salary_min : (d ? d.salary_min : 200);
     var sx = ws ? ws.salary_max : (d ? d.salary_max : 450);
 
-    ga('shindan_complete', { match_count: ct, area: A.a, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
+    ga('shindan_complete', { match_count: ct, area: A.a, station: A.station, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
 
     var r = el('div', 'shindan-result');
 
@@ -472,12 +532,13 @@
       '<div class="shindan-summary-title">あなたの診断結果</div>' +
       '<div class="shindan-summary-items">' +
         '<div>📍 ' + findLabel(0, A.a) + '</div>' +
-        '<div>🗓️ ' + findLabel(1, A.age) + '</div>' +
-        '<div>📋 ' + findLabel(2, A.exp) + '</div>' +
-        '<div>🩺 ' + findLabel(3, A.s) + '</div>' +
-        '<div>🏥 ' + findLabel(4, A.w) + '</div>' +
-        '<div>💡 ' + findLabel(5, A.c) + '</div>' +
-        '<div>📅 ' + findLabel(6, A.t) + '</div>' +
+        '<div>🚉 ' + (A.station || '未入力') + '</div>' +
+        '<div>🗓️ ' + findLabel(2, A.age) + '</div>' +
+        '<div>📋 ' + findLabel(3, A.exp) + '</div>' +
+        '<div>🩺 ' + findLabel(4, A.s) + '</div>' +
+        '<div>🏥 ' + findLabel(5, A.w) + '</div>' +
+        '<div>💡 ' + findLabel(6, A.c) + '</div>' +
+        '<div>📅 ' + findLabel(7, A.t) + '</div>' +
       '</div>';
     r.appendChild(el('div', 'shindan-summary', summaryHTML));
 
@@ -516,6 +577,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         area: A.a,
+        station: A.station,
         age: A.age,
         experience: A.exp,
         specialty: A.s,
