@@ -53,48 +53,43 @@
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; line-height: 1.8; color: #333; background: #fdfaf5; }
+        body { font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; line-height: 1.8; color: #333; background: #ffffff; }
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .site-header { background: #fff; border-bottom: 2px solid #1a7f64; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
-        .site-header .logo { font-size: 1.2rem; font-weight: bold; color: #1a7f64; text-decoration: none; }
-        .site-header nav a { margin-left: 20px; color: #555; text-decoration: none; font-size: 0.9rem; }
-        .site-header nav a:hover { color: #1a7f64; }
+        .site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid rgba(90, 143, 168, 0.08); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; transition: box-shadow 0.3s ease; } .site-header.scrolled { box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02); } .header-logo { font-size: 1.1rem; font-weight: 800; color: #5a8fa8; text-decoration: none; letter-spacing: 0.02em; display: flex; align-items: baseline; gap: 8px; } .header-tagline { font-size: 0.68rem; color: #7a7a8e; font-weight: 500; letter-spacing: 0.08em; } .header-nav { display: flex; gap: 24px; } .header-nav a { color: #4a4a5e; text-decoration: none; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em; position: relative; transition: color 0.3s ease; } .header-nav a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #5a8fa8; border-radius: 1px; transition: width 0.3s ease; } .header-nav a:hover { color: #5a8fa8; } .header-nav a:hover::after { width: 100%; } .hamburger { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #333; padding: 4px 8px; } .mobile-nav { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1100; } .mobile-nav.open { display: block; } .mobile-nav-inner { background: #fff; width: 260px; height: 100%; padding: 24px 20px; box-shadow: 2px 0 12px rgba(0,0,0,0.15); } .mobile-nav-inner a { display: block; padding: 14px 0; color: #333; text-decoration: none; font-size: 1rem; border-bottom: 1px solid #eee; } .mobile-nav-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; float: right; color: #666; }
         .breadcrumb { padding: 12px 20px; font-size: 0.85rem; color: #888; max-width: 800px; margin: 0 auto; }
-        .breadcrumb a { color: #1a7f64; text-decoration: none; }
-        header.hero { background: linear-gradient(135deg, #1a7f64 0%, #1a1a2e 100%); color: white; padding: 60px 20px; text-align: center; }
+        .breadcrumb a { color: #5a8fa8; text-decoration: none; }
+        header.hero { background: linear-gradient(135deg, #5a8fa8 0%, #3a6580 100%); color: white; padding: 60px 20px; text-align: center; }
         h1 { font-size: 2rem; margin-bottom: 16px; line-height: 1.4; }
         .subtitle { font-size: 1.1rem; margin-bottom: 24px; opacity: 0.95; }
-        .cta-button { display: inline-block; background: #00C851; color: white; padding: 16px 44px; border-radius: 50px; text-decoration: none; font-size: 1.1rem; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,200,81,0.3); }
-        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,200,81,0.4); }
+        .cta-button { display: inline-block; background: #06C755; color: white; padding: 16px 44px; border-radius: 50px; text-decoration: none; font-size: 1.1rem; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(6,199,85,0.3); }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(6,199,85,0.4); }
         section { padding: 50px 0; }
-        section:nth-child(even) { background: #f4efe6; }
-        h2 { font-size: 1.6rem; margin-bottom: 24px; color: #1a7f64; border-left: 4px solid #1a7f64; padding-left: 12px; }
+        section:nth-child(even) { background: #f7f7f9; }
+        h2 { font-size: 1.6rem; margin-bottom: 24px; color: #5a8fa8; border-left: 4px solid #5a8fa8; padding-left: 12px; }
         h3 { font-size: 1.2rem; margin: 20px 0 10px; color: #1a1a2e; }
         p { margin-bottom: 16px; }
         .data-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; }
-        .data-table th, .data-table td { padding: 14px 16px; text-align: center; border-bottom: 1px solid #e8e0d0; }
-        .data-table th { background: #1a7f64; color: white; font-size: 0.95rem; }
-        .data-table .highlight-row { background: #e6f5f0; font-weight: bold; }
-        .cta-band { background: linear-gradient(135deg, #1a7f64 0%, #1a1a2e 100%); color: white; padding: 50px 20px; text-align: center; }
+        .data-table th, .data-table td { padding: 14px 16px; text-align: center; border-bottom: 1px solid #e0e0e8; }
+        .data-table th { background: #5a8fa8; color: white; font-size: 0.95rem; }
+        .data-table .highlight-row { background: #e8f0f5; font-weight: bold; }
+        .cta-band { background: linear-gradient(135deg, #5a8fa8 0%, #3a6580 100%); color: white; padding: 50px 20px; text-align: center; }
         .cta-band h2 { color: white; border-left: none; text-align: center; }
         .cta-band p { font-size: 1.1rem; margin-bottom: 24px; }
-        .cta-band .cta-button { background: white; color: #1a7f64; }
+        .cta-band .cta-button { background: #06C755; color: white; }
         .related-links { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
-        .related-links a { display: inline-block; padding: 8px 18px; background: #fff; color: #1a7f64; border: 1px solid #1a7f64; border-radius: 20px; text-decoration: none; font-size: 0.9rem; }
-        .related-links a:hover { background: #1a7f64; color: #fff; }
-        footer { background: #1a1a2e; color: white; text-align: center; padding: 30px 20px; }
-        footer a { color: #a8dadc; text-decoration: none; }
-        .footer-info { font-size: 0.85rem; opacity: 0.8; margin-top: 12px; }
-        .info-box { background: #e6f5f0; border: 1px solid #1a7f64; border-radius: 8px; padding: 20px; margin: 20px 0; }
-        .info-box h4 { color: #1a7f64; margin-bottom: 8px; }
+        .related-links a { display: inline-block; padding: 8px 18px; background: #fff; color: #5a8fa8; border: 1px solid #5a8fa8; border-radius: 20px; text-decoration: none; font-size: 0.9rem; }
+        .related-links a:hover { background: #5a8fa8; color: #fff; }
+        .site-footer { background: #1a1a2e; color: #ccc; text-align: center; padding: 56px 24px 40px; } .footer-brand { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: 0.04em; } .footer-permit { font-size: 0.78rem; color: #9a9aae; margin-bottom: 28px; letter-spacing: 0.02em; } .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 28px; margin-bottom: 28px; } .footer-links a { color: #999; text-decoration: none; font-size: 0.84rem; letter-spacing: 0.02em; transition: color 0.3s; } .footer-links a:hover { color: #fff; } .footer-copy { font-size: 0.73rem; color: #555; letter-spacing: 0.03em; }
+        .info-box { background: #e8f0f5; border: 1px solid #5a8fa8; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .info-box h4 { color: #5a8fa8; margin-bottom: 8px; }
         ul.point-list { padding-left: 20px; margin-bottom: 16px; }
         ul.point-list li { margin-bottom: 8px; }
         .faq-section { margin: 30px 0; }
         .faq-item { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .faq-item h4 { color: #1a7f64; margin-bottom: 8px; font-size: 1.05rem; }
+        .faq-item h4 { color: #5a8fa8; margin-bottom: 8px; font-size: 1.05rem; }
         .faq-item h4::before { content: "Q. "; color: #e76f51; font-weight: bold; }
-        .faq-item p::before { content: "A. "; color: #1a7f64; font-weight: bold; }
-        @media (max-width: 600px) { h1 { font-size: 1.5rem; } .site-header { flex-direction: column; gap: 8px; } .data-table { font-size: 0.85rem; } .data-table th, .data-table td { padding: 10px 6px; } }
+        .faq-item p::before { content: "A. "; color: #5a8fa8; font-weight: bold; }
+        @media (max-width: 767px) { h1 { font-size: 1.5rem; } .header-nav { display: none; } .hamburger { display: block; } .data-table { font-size: 0.85rem; } .data-table th, .data-table td { padding: 10px 6px; } }
     </style>
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
@@ -108,15 +103,31 @@
 {"@context":"https://schema.org","@type":"Organization","name":"神奈川ナース転職編集部","url":"https://quads-nurse.com/"}
 </script>
   <link rel="stylesheet" href="../../../chat.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="site-header">
-        <a href="/lp/job-seeker/" class="logo">神奈川ナース転職</a>
-        <nav>
-            <a href="/lp/job-seeker/">トップ</a>
-            <a href="/lp/job-seeker/guide/transfer-fee.html">手数料比較</a>
-            <a href="/lp/job-seeker/area/odawara.html">小田原</a>
+    <header class="site-header" id="site-header">
+        <a href="/lp/job-seeker/" class="header-logo">神奈川ナース転職<span class="header-tagline">シン・AI転職</span></a>
+        <nav class="header-nav">
+            <a href="/lp/job-seeker/area/">地域別求人</a>
+            <a href="/lp/job-seeker/guide/">転職ガイド</a>
+            <a href="/blog/">ブログ</a>
         </nav>
+        <button class="hamburger" aria-label="メニュー" onclick="document.getElementById('mobileNav').classList.add('open')">&#9776;</button>
+    </header>
+    <div id="mobileNav" class="mobile-nav" onclick="this.classList.remove('open')">
+        <div class="mobile-nav-inner" onclick="event.stopPropagation()">
+            <button class="mobile-nav-close" onclick="document.getElementById('mobileNav').classList.remove('open')">&times;</button>
+            <div style="clear:both;padding-top:8px;">
+                <strong style="font-size:1.1rem;">神奈川ナース転職</strong>
+            </div>
+            <a href="/lp/job-seeker/area/">地域別求人</a>
+            <a href="/lp/job-seeker/guide/">転職ガイド</a>
+            <a href="/blog/">ブログ</a>
+            <a href="/lp/job-seeker/">トップ</a>
+        </div>
     </div>
     <div class="breadcrumb">
         <a href="/lp/job-seeker/">トップ</a> &gt;
@@ -286,17 +297,20 @@
         </div>
     </div>
 
-    <footer>
-        <div class="container">
-            <p><strong>神奈川ナース転職</strong></p>
-            <p class="footer-info">有料職業紹介事業許可番号: 23-ユ-302928</p>
-            <p class="footer-info"><a href="/lp/job-seeker/">求職者の方はこちら</a></p>
-            <p class="footer-info"><a href="/privacy.html">プライバシーポリシー</a> | <a href="/terms.html">利用規約</a> | <a href="/about.html">会社概要</a></p>
-            <p class="footer-info">&copy; 2026 神奈川ナース転職 All Rights Reserved.</p>
+    <footer class="site-footer">
+        <div class="footer-brand">神奈川ナース転職</div>
+        <p class="footer-permit">有料職業紹介事業許可番号: 23-ユ-302928</p>
+        <div class="footer-links">
+            <a href="/privacy.html">プライバシーポリシー</a>
+            <a href="/terms.html">利用規約</a>
+            <a href="/blog/">ブログ</a>
+            <a href="/lp/job-seeker/area/">地域別求人</a>
+            <a href="/lp/job-seeker/guide/">転職ガイド</a>
         </div>
+        <p class="footer-copy">&copy; 2026 神奈川ナース転職 All Rights Reserved.</p>
     <!-- shindan-cta -->
 <div style="background:linear-gradient(170deg,#f0faf7 0%,#ffffff 60%,#f8fffe 100%);padding:40px 24px;text-align:center;margin:48px 0 0;border-radius:16px;border:1px solid rgba(26,127,100,0.1);box-shadow:0 4px 20px rgba(26,127,100,0.06);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans JP','Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
-  <p style="font-size:0.8rem;color:#1a7f64;margin:0 0 8px;font-weight:700;letter-spacing:0.1em;">AI CAREER MATCH</p>
+  <p style="font-size:0.8rem;color:#5a8fa8;margin:0 0 8px;font-weight:700;letter-spacing:0.1em;">AI CAREER MATCH</p>
   <p style="font-size:1.2rem;color:#1a1a2e;margin:0 0 8px;font-weight:800;line-height:1.5;">あなたにマッチする求人、<br>何件あるか知りたくないですか？</p>
   <p style="font-size:0.85rem;color:#666;margin:0 0 20px;line-height:1.6;">たった30秒・7問で診断できます（LINE登録不要）</p>
   <a href="/lp/job-seeker/#shindan" style="display:inline-block;background:#06C755;color:#fff;padding:16px 40px;border-radius:50px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 16px rgba(6,199,85,0.3);transition:transform 0.2s,box-shadow 0.2s;min-height:48px;line-height:1.4;">30秒で求人診断 &#9654;</a>
@@ -306,5 +320,19 @@
 </footer>
   <script src="../../../chat.js" defer></script>
     <script src="/track.js" defer></script>
+    <script>
+    (function(){
+        var header = document.getElementById('site-header');
+        if (header) {
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 10) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            }, { passive: true });
+        }
+    })();
+    </script>
 </body>
 </html>
