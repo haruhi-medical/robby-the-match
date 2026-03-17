@@ -34,7 +34,8 @@
     { k: 'zip', t: 'お住まいの郵便番号は？', e: 'shindan_zip', ek: 'zip', input: true, placeholder: '例: 250-0042', inputmode: 'numeric' },
     { k: 'commute', t: '通勤手段は？', e: 'shindan_commute', ek: 'commute', o: [
       { l: '電車・バス', v: 'transit' },
-      { l: '車・バイク', v: 'car' }
+      { l: '車・バイク', v: 'car' },
+      { l: 'どちらでも', v: 'both' }
     ]},
     { k: 'age', t: 'あなたの年代は？', e: 'shindan_q2', ek: 'age', o: [
       { l: '20代', v: '20s' },
@@ -83,7 +84,7 @@
       return (names[v] || '') + 'エリア、了解！';
     },
     'zip': function (v) { return v ? v + 'ですね！' : '了解！'; },
-    'commute': function (v) { return v === 'transit' ? '電車通勤ですね！' : '車通勤ですね！'; },
+    'commute': function (v) { return v === 'transit' ? '電車通勤ですね！' : v === 'car' ? '車通勤ですね！' : 'どちらも探しますね！'; },
     'age': function (v) {
       if (v === '20s') return '転職のゴールデンタイムです';
       if (v === '30s') return '市場価値が高い年代です';

@@ -264,5 +264,12 @@
     "timestamp": "2026-03-16T17:57:21.702446",
     "status": "error",
     "error": "No slides found"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0303_01",
+    "timestamp": "2026-03-17T12:00:47.123303",
+    "status": "error",
+    "error": "No slides found"
   }
 ]
