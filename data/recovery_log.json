@@ -12,7 +12,7 @@
       "retries": 3,
       "status": "retry_exhausted",
       "last_error": "",
-      "last_alert_ts": "2026-03-17T14:00:01.114127"
+      "last_alert_ts": "2026-03-17T22:30:00.650680"
     },
     "ai_marketing": {
       "date": "2026-03-13",
