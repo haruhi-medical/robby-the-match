@@ -3454,6 +3454,14 @@ function handleLinePostback(dataStr, entry) {
     entry.unexpectedTextCount = 0;
     nextPhase = "handoff";
   }
+  // ウェルカム
+  else if (params.has("welcome")) {
+    const val = params.get("welcome");
+    entry.unexpectedTextCount = 0;
+    if (val === "start") {
+      nextPhase = "q1_urgency";
+    }
+  }
   // 同意取得
   else if (params.has("consent")) {
     const val = params.get("consent");
@@ -3707,14 +3715,20 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       // --- followイベント（友だち追加） ---
       if (event.type === "follow") {
         const entry = createLineEntry();
-        entry.phase = "q1_urgency";
+        entry.phase = "welcome";
         entry.updatedAt = Date.now();
         await saveLineEntry(userId, entry, env);
 
-        const msgs = buildPhaseMessage("q1_urgency", entry);
-        if (msgs) {
-          await lineReply(event.replyToken, msgs, channelAccessToken);
-        }
+        const msgs = [{
+          type: "text",
+          text: "友だち追加ありがとうございます！\n神奈川ナース転職です 🎉\n\nHPで診断を受けられた方は、表示された6文字のコードをこのチャットに送ってください。\n\n初めての方は「はじめる」をタップしてください！",
+          quickReply: {
+            items: [
+              qrItem("はじめる", "welcome=start"),
+            ],
+          },
+        }];
+        await lineReply(event.replyToken, msgs, channelAccessToken);
 
         // Slack通知
         if (env.SLACK_BOT_TOKEN) {
@@ -3890,7 +3904,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはconsent/q1）
-        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
+        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
           const webSession = webSessionMap.get(userText);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;
