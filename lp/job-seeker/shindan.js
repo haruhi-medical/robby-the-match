@@ -588,7 +588,7 @@
       '<div class="shindan-summary-items">' +
         '<div>📍 ' + findLabel(0, A.a) + '</div>' +
         '<div>〒 ' + (A.zipAddress || A.zip || '未入力') + '</div>' +
-        '<div>🚃 ' + (A.commute === 'car' ? '車・バイク' : '電車・バス') + '</div>' +
+        '<div>🚃 ' + (A.commute === 'car' ? '車・バイク' : A.commute === 'both' ? 'どちらでも' : '電車・バス') + '</div>' +
         '<div>🗓️ ' + findLabel(3, A.age) + '</div>' +
         '<div>📋 ' + findLabel(4, A.exp) + '</div>' +
         '<div>🩺 ' + findLabel(5, A.s) + '</div>' +

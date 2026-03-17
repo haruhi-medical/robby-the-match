@@ -2266,6 +2266,7 @@ const POSTBACK_LABELS = {
   // 通勤手段
   commute_transit: "電車・バス",
   commute_car: "車・バイク",
+  commute_both: "どちらでも",
   // Q4 経験年数
   q4_under1:  "1年未満",
   q4_1to3:    "1〜3年",
@@ -2367,7 +2368,7 @@ const TEXT_TO_POSTBACK = {
   "まだ決めていない": "q3=undecided", "決めていない": "q3=undecided",
   // 通勤手段
   "電車": "commute=transit", "バス": "commute=transit",
-  "車": "commute=car", "バイク": "commute=car",
+  "車": "commute=car", "バイク": "commute=car", "どちらでも": "commute=both",
   // Q4
   "1年未満": "q4=under1", "新人": "q4=under1",
   "1〜3年": "q4=1to3", "1-3年": "q4=1to3",
@@ -2765,6 +2766,7 @@ function buildPhaseMessage(phase, entry) {
           items: [
             qrItem("電車・バス", "commute=transit"),
             qrItem("車・バイク", "commute=car"),
+            qrItem("どちらでも", "commute=both"),
           ],
         },
       }];
@@ -3178,39 +3180,23 @@ function generateLineMatching(entry) {
   const userLat = entry.userLat || null;
   const userLng = entry.userLng || null;
   const userStationCoords = (userLat && userLng) ? { lat: userLat, lng: userLng } : (entry.nearStation ? getStationCoords(entry.nearStation) : null);
-  const isCar = entry.commuteMethod === "car";
-
-  // ユーザーの希望に基づくボーナススコア
+  // ユーザーの希望に基づくボーナススコア + 直線距離計算
   allJobs = allJobs.map(j => {
     let bonus = 0;
-
-    // 距離計算 + 通勤時間推定
     let distanceKm = null;
-    let commuteTimeMin = null;
+    let distanceLabel = null; // "近い" / "通いやすい" / "やや遠い" / "遠い"
+
     if (userStationCoords && j.sta) {
       const jobCoords = getStationCoords(j.sta);
       if (jobCoords) {
-        distanceKm = haversineDistance(userStationCoords.lat, userStationCoords.lng, jobCoords.lat, jobCoords.lng);
+        distanceKm = Math.round(haversineDistance(userStationCoords.lat, userStationCoords.lng, jobCoords.lat, jobCoords.lng) * 10) / 10;
 
-        if (isCar) {
-          // 車: 直線距離×1.3（道路係数）、平均30km/hで計算
-          const roadDist = distanceKm * 1.3;
-          commuteTimeMin = Math.round(roadDist / 30 * 60);
-          if (commuteTimeMin <= 20) bonus += 30;
-          else if (commuteTimeMin <= 30) bonus += 20;
-          else if (commuteTimeMin <= 45) bonus += 10;
-          else if (commuteTimeMin <= 60) bonus += 0;
-          else bonus -= 20;
-        } else {
-          // 電車: 直線距離×1.5（乗換・徒歩）、平均25km/hで計算
-          const transitDist = distanceKm * 1.5;
-          commuteTimeMin = Math.round(transitDist / 25 * 60);
-          if (commuteTimeMin <= 30) bonus += 30;
-          else if (commuteTimeMin <= 45) bonus += 20;
-          else if (commuteTimeMin <= 60) bonus += 10;
-          else if (commuteTimeMin <= 90) bonus += 0;
-          else bonus -= 20;
-        }
+        // 直線距離ベースのスコアリング（通勤手段問わず事実ベース）
+        if (distanceKm <= 5) { bonus += 30; distanceLabel = "近い"; }
+        else if (distanceKm <= 10) { bonus += 20; distanceLabel = "通いやすい"; }
+        else if (distanceKm <= 20) { bonus += 10; distanceLabel = "通いやすい"; }
+        else if (distanceKm <= 30) { bonus += 0; distanceLabel = "やや遠い"; }
+        else { bonus -= 15; distanceLabel = "遠い"; }
       }
     }
 
@@ -3222,13 +3208,12 @@ function generateLineMatching(entry) {
     if (entry.workStyle === "day" && j.t && j.t.includes("日勤")) bonus += 15;
     // 訪問看護経験 → 訪問看護求人にボーナス
     if (entry.workplace === "visit" && j.t && j.t.includes("訪問")) bonus += 10;
-    return { ...j, adjustedScore: (j.s || 0) + bonus, distanceKm, commuteTimeMin };
+    return { ...j, adjustedScore: (j.s || 0) + bonus, distanceKm, distanceLabel };
   });
 
-  // 通勤時間が長すぎる求人を除外
+  // 30km超の求人を除外（3件以上残る場合）
   if (userStationCoords) {
-    const maxTime = isCar ? 60 : 90; // 車60分、電車90分
-    const nearJobs = allJobs.filter(j => j.commuteTimeMin === null || j.commuteTimeMin <= maxTime);
+    const nearJobs = allJobs.filter(j => j.distanceKm === null || j.distanceKm <= 30);
     if (nearJobs.length >= 3) {
       allJobs = nearJobs;
     }
@@ -3277,7 +3262,7 @@ function buildFacilityFlexBubble(job, index) {
         { type: "text", text: title, size: "sm", color: "#333333", wrap: true },
         { type: "text", text: salary, size: "lg", weight: "bold", margin: "md", color: "#1DB446" },
         { type: "text", text: `📍 ${station}`, size: "xs", color: "#999999", margin: "sm", wrap: true },
-        ...(job.commuteTimeMin != null ? [{ type: "text", text: `${job.commuteIcon || '🚃'} 通勤 約${job.commuteTimeMin}分`, size: "xs", color: job.commuteTimeMin <= 30 ? "#1DB446" : job.commuteTimeMin <= 60 ? "#f0ad4e" : "#e74c3c", margin: "sm", weight: "bold" }] : []),
+        ...(job.distanceKm != null ? [{ type: "text", text: `📍 直線${job.distanceKm}km（${job.distanceLabel || ""})`, size: "xs", color: job.distanceKm <= 10 ? "#1DB446" : job.distanceKm <= 20 ? "#f0ad4e" : "#e74c3c", margin: "sm", weight: "bold" }] : []),
         { type: "text", text: `年休${holidays}日 / 賞与${bonus} / ${emp}`, size: "xs", color: "#999999", margin: "sm", wrap: true },
         ...(rank ? [{ type: "text", text: `おすすめ度: ${rank}ランク`, size: "sm", color: rank === "S" ? "#e74c3c" : "#1DB446", margin: "md", weight: "bold" }] : []),
       ],
@@ -3309,8 +3294,7 @@ function buildMatchingMessages(entry) {
     }];
   }
 
-  const commuteIcon = entry.commuteMethod === 'car' ? '🚗' : '🚃';
-  const topJobs = results.slice(0, 5).map(j => ({ ...j, commuteIcon }));
+  const topJobs = results.slice(0, 5);
 
   const messages = [];
 
