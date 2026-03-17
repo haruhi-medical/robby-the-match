@@ -1,6 +1,6 @@
 /**
- * 神奈川ナース転職 — 転職診断UI v4.0 (vanilla JS)
- * 9問構成: エリア→郵便番号→通勤手段→年代→看護師歴→職種→働き方→重視点→時期
+ * 神奈川ナース転職 — 転職診断UI v4.1 (vanilla JS)
+ * 7問構成: エリア→年代→看護師歴→職種→働き方→重視点→時期
  *
  * REQUIRED: Add to LP <head> before closing tag:
  *   <link rel="stylesheet" href="shindan.css">
@@ -11,7 +11,7 @@
   /* ── Constants ── */
   var LINE_URL = 'https://lin.ee/oUgDB3x';
   var D = null;
-  var A = { a: '', zip: '', zipAddress: '', zipLat: null, zipLng: null, commute: '', age: '', exp: '', s: '', w: '', c: '', t: '' };
+  var A = { a: '', age: '', exp: '', s: '', w: '', c: '', t: '' };
   var C; // container element
   var currentStep = -1;
   var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -22,7 +22,7 @@
   fetch(dataURL).then(function (r) { return r.json(); }).then(function (d) { D = d; }).catch(function () {});
 
   /* ── Questions ── */
-  var ICONS = ['📍', '〒', '🚃', '🗓️', '📋', '🩺', '🏥', '💡', '📅'];
+  var ICONS = ['📍', '🗓️', '📋', '🩺', '🏥', '💡', '📅'];
   var Q = [
     { k: 'a', t: '希望のエリアは？', e: 'shindan_q1', ek: 'area', o: [
       { l: '横浜・川崎', v: 'yokohama_kawasaki' },
@@ -30,12 +30,6 @@
       { l: '小田原・県西', v: 'odawara_seisho' },
       { l: '相模原・県央', v: 'sagamihara_kenoh' },
       { l: '横須賀・三浦', v: 'yokosuka_miura' }
-    ]},
-    { k: 'zip', t: 'お住まいの郵便番号は？', e: 'shindan_zip', ek: 'zip', input: true, placeholder: '例: 250-0042', inputmode: 'numeric' },
-    { k: 'commute', t: '通勤手段は？', e: 'shindan_commute', ek: 'commute', o: [
-      { l: '電車・バス', v: 'transit' },
-      { l: '車・バイク', v: 'car' },
-      { l: 'どちらでも', v: 'both' }
     ]},
     { k: 'age', t: 'あなたの年代は？', e: 'shindan_q2', ek: 'age', o: [
       { l: '20代', v: '20s' },
@@ -83,8 +77,6 @@
       var names = { yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉', odawara_seisho: '小田原・県西', sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦' };
       return (names[v] || '') + 'エリア、了解！';
     },
-    'zip': function (v) { return v ? v + 'ですね！' : '了解！'; },
-    'commute': function (v) { return v === 'transit' ? '電車通勤ですね！' : v === 'car' ? '車通勤ですね！' : 'どちらも探しますね！'; },
     'age': function (v) {
       if (v === '20s') return '転職のゴールデンタイムです';
       if (v === '30s') return '市場価値が高い年代です';
@@ -257,113 +249,8 @@
         '<span class="shindan-title-icon">' + ICONS[i] + '</span>' + q.t);
       s.appendChild(title);
 
-      if (q.input) {
-        // テキスト入力フィールド
-        var inputWrap = el('div', 'shindan-input-wrap');
-        inputWrap.style.cssText = 'max-width:400px;margin:0 auto;';
-        var inputAttrs = {
-          type: 'text',
-          placeholder: q.placeholder || '',
-          'aria-label': q.t,
-        };
-        if (q.inputmode) inputAttrs.inputmode = q.inputmode;
-        var input = el('input', 'shindan-input', null, inputAttrs);
-        input.style.cssText = 'width:100%;max-width:400px;padding:14px 20px;border:2px solid var(--sd-teal-border, #1a7f64);border-radius:var(--sd-radius-sm, 8px);font-size:1rem;box-sizing:border-box;';
-        var submitBtn = el('button', 'shindan-btn shindan-submit-btn', '次へ', { type: 'button' });
-        submitBtn.style.cssText = 'margin-top:12px;width:100%;';
-
-        if (q.k === 'zip') {
-          // 郵便番号入力: zipcloud APIで住所変換
-          submitBtn.addEventListener('click', function() {
-            var val = input.value.trim().replace(/[ー−]/g, '-').replace(/[０-９]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
-            if (!val) return;
-            var zipClean = val.replace(/-/g, '');
-            if (zipClean.length !== 7 || !/^\d{7}$/.test(zipClean)) {
-              var fb = s.querySelector('.shindan-feedback');
-              if (fb) fb.parentNode.removeChild(fb);
-              var errEl = el('div', 'shindan-feedback', '7桁の郵便番号を入力してください');
-              errEl.style.color = '#e74c3c';
-              s.insertBefore(errEl, inputWrap);
-              return;
-            }
-            A.zip = zipClean;
-            submitBtn.textContent = '検索中...';
-            submitBtn.disabled = true;
-
-            fetch('https://zipcloud.ibsnet.co.jp/api/search?zipcode=' + zipClean)
-              .then(function(res) { return res.json(); })
-              .then(function(data) {
-                if (data.results && data.results[0]) {
-                  var r = data.results[0];
-                  A.zipAddress = r.address1 + r.address2 + r.address3;
-                }
-                ga(q.e, { zip: zipClean, address: A.zipAddress });
-
-                var fbFn = FEEDBACK[q.k];
-                var feedbackMsg = fbFn ? fbFn(A.zipAddress || val) : null;
-                if (feedbackMsg && !reducedMotion) {
-                  var existing = s.querySelector('.shindan-feedback');
-                  if (existing) existing.parentNode.removeChild(existing);
-                  var fbEl = el('div', 'shindan-feedback', feedbackMsg);
-                  s.insertBefore(fbEl, inputWrap);
-                  setTimeout(function() { step(i + 1); }, 600);
-                } else {
-                  setTimeout(function() { step(i + 1); }, 350);
-                }
-              })
-              .catch(function() {
-                ga(q.e, { zip: zipClean });
-                step(i + 1);
-              });
-          });
-        } else {
-          // 通常のテキスト入力処理
-          submitBtn.addEventListener('click', function() {
-            var val = input.value.trim();
-            if (!val) return;
-            A[q.k] = val;
-            var p = {};
-            p[q.ek] = val;
-            ga(q.e, p);
-
-            var fbFn = FEEDBACK[q.k];
-            var feedbackMsg = fbFn ? fbFn(val) : null;
-
-            if (feedbackMsg && !reducedMotion) {
-              var existing = s.querySelector('.shindan-feedback');
-              if (existing) existing.parentNode.removeChild(existing);
-              var fb = el('div', 'shindan-feedback', feedbackMsg);
-              s.insertBefore(fb, inputWrap);
-              setTimeout(function () {
-                if (i < Q.length - 1) { step(i + 1); } else { result(); }
-              }, 600);
-            } else {
-              var delay = reducedMotion ? 100 : 350;
-              setTimeout(function () {
-                if (i < Q.length - 1) { step(i + 1); } else { result(); }
-              }, delay);
-            }
-          });
-        }
-        // Enterキーでも送信
-        input.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') { e.preventDefault(); submitBtn.click(); }
-        });
-        inputWrap.appendChild(input);
-        inputWrap.appendChild(submitBtn);
-        s.appendChild(inputWrap);
-        C.appendChild(s);
-
-        // Auto-focus input
-        setTimeout(function () {
-          var rect = C.getBoundingClientRect();
-          if (rect.top < window.innerHeight && rect.bottom > 0) {
-            input.focus({ preventScroll: true });
-          }
-        }, reducedMotion ? 0 : 400);
-      } else {
-        // 既存のボタン選択肢UI
-        var g = el('div', 'shindan-options');
+      // ボタン選択肢UI
+      var g = el('div', 'shindan-options');
         g.setAttribute('role', 'radiogroup');
         g.setAttribute('aria-label', q.t);
 
@@ -460,7 +347,6 @@
             btns[next].focus({ preventScroll: true });
           }
         });
-      }
     }
 
     // Slide out previous step, then render new
@@ -519,7 +405,7 @@
     var sn = ws ? ws.salary_min : (d ? d.salary_min : 200);
     var sx = ws ? ws.salary_max : (d ? d.salary_max : 450);
 
-    ga('shindan_complete', { match_count: ct, area: A.a, zip: A.zip, zipAddress: A.zipAddress, commute: A.commute, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
+    ga('shindan_complete', { match_count: ct, area: A.a, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
 
     var r = el('div', 'shindan-result');
 
@@ -587,20 +473,18 @@
       '<div class="shindan-summary-title">あなたの診断結果</div>' +
       '<div class="shindan-summary-items">' +
         '<div>📍 ' + findLabel(0, A.a) + '</div>' +
-        '<div>〒 ' + (A.zipAddress || A.zip || '未入力') + '</div>' +
-        '<div>🚃 ' + (A.commute === 'car' ? '車・バイク' : A.commute === 'both' ? 'どちらでも' : '電車・バス') + '</div>' +
-        '<div>🗓️ ' + findLabel(3, A.age) + '</div>' +
-        '<div>📋 ' + findLabel(4, A.exp) + '</div>' +
-        '<div>🩺 ' + findLabel(5, A.s) + '</div>' +
-        '<div>🏥 ' + findLabel(6, A.w) + '</div>' +
-        '<div>💡 ' + findLabel(7, A.c) + '</div>' +
-        '<div>📅 ' + findLabel(8, A.t) + '</div>' +
+        '<div>🗓️ ' + findLabel(1, A.age) + '</div>' +
+        '<div>📋 ' + findLabel(2, A.exp) + '</div>' +
+        '<div>🩺 ' + findLabel(3, A.s) + '</div>' +
+        '<div>🏥 ' + findLabel(4, A.w) + '</div>' +
+        '<div>💡 ' + findLabel(5, A.c) + '</div>' +
+        '<div>📅 ' + findLabel(6, A.t) + '</div>' +
       '</div>';
     r.appendChild(el('div', 'shindan-summary', summaryHTML));
 
     /* CTA */
     var ctaText = A.t === 'info' ? 'まずは情報だけ受け取る' : 'LINEで求人を受け取る';
-    var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.age + '_' + A.exp + '_' + A.w + '_' + A.c + '_' + A.t + '_' + A.commute);
+    var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.age + '_' + A.exp + '_' + A.w + '_' + A.c + '_' + A.t);
     var ctaURL = LINE_URL + '?utm_source=lp&utm_medium=shindan&utm_content=' + utmContent;
 
     var cta = el('a', 'shindan-cta', '', {
@@ -616,7 +500,7 @@
       '<span>' + ctaText + '</span>';
 
     cta.addEventListener('click', function () {
-      ga('shindan_line_click', { area: A.a, zip: A.zip, commute: A.commute, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
+      ga('shindan_line_click', { area: A.a, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
       if (typeof fbq === 'function') fbq('track', 'Lead');
     });
 
@@ -633,9 +517,6 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         area: A.a,
-        zip: A.zip,
-        zipAddress: A.zipAddress,
-        commute: A.commute,
         age: A.age,
         experience: A.exp,
         specialty: A.s,

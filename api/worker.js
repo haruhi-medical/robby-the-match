@@ -45,17 +45,6 @@ function getStationCoords(stationName) {
   return null;
 }
 
-// ---------- 郵便番号の市区町村名から最寄駅を推定 ----------
-function findNearestStationByCity(cityName) {
-  if (!cityName) return null;
-  const baseName = cityName.replace(/市$|区$|町$|村$/, '');
-  for (const [name, coords] of Object.entries(STATION_COORDINATES)) {
-    if (name.includes(baseName)) {
-      return { name: name, lat: coords.lat, lng: coords.lng };
-    }
-  }
-  return null;
-}
 
 // ---------- AIチャット用システムプロンプト（サーバー側管理） ----------
 
@@ -2126,10 +2115,6 @@ async function handleWebSession(request, env) {
     const sessionData = {
       sessionId: data.sessionId || null,
       area: data.area || null,
-      station: data.station || null,
-      zip: data.zip || null,
-      zipAddress: data.zipAddress || null,
-      commute: data.commute || null,
       concern: data.concern || null,
       experience: data.experience || null,
       age: data.age || null,
@@ -2173,9 +2158,7 @@ const PHASE_FLOW_FULL = {
   follow:           "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
-  q3_area:          "q3b_zip",
-  q3b_zip:          "q3c_commute",
-  q3c_commute:      "q4_experience",
+  q3_area:          "q4_experience",
   q4_experience:    "q5_workstyle",
   q5_workstyle:     "q6_workplace",
   q6_workplace:     "q7_strengths",
@@ -2198,9 +2181,7 @@ const PHASE_FLOW_MEDIUM = {
   follow:           "q1_urgency",
   q1_urgency:       "q2_change",
   q2_change:        "q3_area",
-  q3_area:          "q3b_zip",
-  q3b_zip:          "q3c_commute",
-  q3c_commute:      "q4_experience",
+  q3_area:          "q4_experience",
   q4_experience:    "q5_workstyle",
   q5_workstyle:     "matching",
   matching:         "ai_consultation",
@@ -2216,9 +2197,7 @@ const PHASE_FLOW_MEDIUM = {
 const PHASE_FLOW_SHORT = {
   follow:           "q1_urgency",
   q1_urgency:       "q3_area",
-  q3_area:          "q3b_zip",
-  q3b_zip:          "q3c_commute",
-  q3c_commute:      "q4_experience",
+  q3_area:          "q4_experience",
   q4_experience:    "matching",
   matching:         "ai_consultation",
   ai_consultation:  "apply_info",
@@ -2263,10 +2242,6 @@ const POSTBACK_LABELS = {
   q3_kenoh:          "厚木・海老名・大和",
   q3_kensei:         "小田原・南足柄・箱根",
   q3_undecided:      "まだ決めていない",
-  // 通勤手段
-  commute_transit: "電車・バス",
-  commute_car: "車・バイク",
-  commute_both: "どちらでも",
   // Q4 経験年数
   q4_under1:  "1年未満",
   q4_1to3:    "1〜3年",
@@ -2366,9 +2341,6 @@ const TEXT_TO_POSTBACK = {
   "厚木": "q3=kenoh", "海老名": "q3=kenoh", "大和": "q3=kenoh", "座間": "q3=kenoh",
   "小田原": "q3=kensei", "南足柄": "q3=kensei", "箱根": "q3=kensei",
   "まだ決めていない": "q3=undecided", "決めていない": "q3=undecided",
-  // 通勤手段
-  "電車": "commute=transit", "バス": "commute=transit",
-  "車": "commute=car", "バイク": "commute=car", "どちらでも": "commute=both",
   // Q4
   "1年未満": "q4=under1", "新人": "q4=under1",
   "1〜3年": "q4=1to3", "1-3年": "q4=1to3",
@@ -2499,12 +2471,6 @@ function createLineEntry() {
     change: null,           // q2: salary/rest/human/night/commute/career
     area: null,             // q3: yokohama/kawasaki/sagamihara/yokosuka_miura/shonan_east/shonan_west/kenoh/kensei/undecided
     areaLabel: null,        // 表示用エリア名
-    nearStation: null,      // 後方互換（zipから推定）
-    zipCode: null,          // q3b_zip: 7桁郵便番号
-    zipAddress: null,       // zipcloudから取得した住所
-    commuteMethod: null,    // q3c_commute: "transit" | "car"
-    userLat: null,          // 郵便番号から推定した緯度
-    userLng: null,          // 郵便番号から推定した経度
     experience: null,       // q4: under1/1to3/3to5/5to10/over10
     workStyle: null,        // q5: day/twoshift/part/night
     workplace: null,        // q6: acute/recovery/chronic/clinic/visit/care/ope/other
@@ -2748,25 +2714,6 @@ function buildPhaseMessage(phase, entry) {
             qrItem("厚木・海老名・大和", "q3=kenoh"),
             qrItem("小田原・南足柄・箱根", "q3=kensei"),
             qrItem("まだ決めていない", "q3=undecided"),
-          ],
-        },
-      }];
-
-    case "q3b_zip":
-      return [{
-        type: "text",
-        text: "お住まいの郵便番号を教えてください 〒\n通勤しやすい求人を優先してお探しします。\n\n（例: 250-0042、2500042）",
-      }];
-
-    case "q3c_commute":
-      return [{
-        type: "text",
-        text: "通勤手段を教えてください 🚃",
-        quickReply: {
-          items: [
-            qrItem("電車・バス", "commute=transit"),
-            qrItem("車・バイク", "commute=car"),
-            qrItem("どちらでも", "commute=both"),
           ],
         },
       }];
@@ -3164,7 +3111,6 @@ function generateLineMatching(entry) {
   const profession = entry.qualification === "pt" ? "pt" : "nurse";
   const areaKeys = getAreaKeysFromZone(`q3_${entry.area}`);
 
-  // ハローワーク求人からエリアに合った求人を取得
   let allJobs = [];
   const jobSource = EXTERNAL_JOBS[profession] || EXTERNAL_JOBS.nurse || {};
   for (const ak of areaKeys) {
@@ -3172,57 +3118,18 @@ function generateLineMatching(entry) {
       allJobs.push(...jobSource[ak].filter(j => typeof j === "object"));
     }
   }
-
-  // ランクでフィルタ（C/D除外）
   allJobs = allJobs.filter(j => j.r !== "C" && j.r !== "D");
 
-  // ユーザー座標取得（zipから推定 or 最寄駅から取得）
-  const userLat = entry.userLat || null;
-  const userLng = entry.userLng || null;
-  const userStationCoords = (userLat && userLng) ? { lat: userLat, lng: userLng } : (entry.nearStation ? getStationCoords(entry.nearStation) : null);
-  // ユーザーの希望に基づくボーナススコア + 直線距離計算
   allJobs = allJobs.map(j => {
     let bonus = 0;
-    let distanceKm = null;
-    let distanceLabel = null; // "近い" / "通いやすい" / "やや遠い" / "遠い"
-
-    if (userStationCoords && j.sta) {
-      const jobCoords = getStationCoords(j.sta);
-      if (jobCoords) {
-        distanceKm = Math.round(haversineDistance(userStationCoords.lat, userStationCoords.lng, jobCoords.lat, jobCoords.lng) * 10) / 10;
-
-        // 直線距離ベースのスコアリング（通勤手段問わず事実ベース）
-        if (distanceKm <= 5) { bonus += 30; distanceLabel = "近い"; }
-        else if (distanceKm <= 10) { bonus += 20; distanceLabel = "通いやすい"; }
-        else if (distanceKm <= 20) { bonus += 10; distanceLabel = "通いやすい"; }
-        else if (distanceKm <= 30) { bonus += 0; distanceLabel = "やや遠い"; }
-        else { bonus -= 15; distanceLabel = "遠い"; }
-      }
-    }
-
-    // 給与重視 → 高給与にボーナス
     if (entry.change === "salary" && j.d && j.d.sal >= 25) bonus += 10;
-    // 休日重視 → 高休日にボーナス
     if (entry.change === "rest" && j.d && j.d.hol >= 17) bonus += 10;
-    // 日勤希望 → 職種名に「日勤」含むものにボーナス
     if (entry.workStyle === "day" && j.t && j.t.includes("日勤")) bonus += 15;
-    // 訪問看護経験 → 訪問看護求人にボーナス
     if (entry.workplace === "visit" && j.t && j.t.includes("訪問")) bonus += 10;
-    return { ...j, adjustedScore: (j.s || 0) + bonus, distanceKm, distanceLabel };
+    return { ...j, adjustedScore: (j.s || 0) + bonus };
   });
 
-  // 30km超の求人を除外（3件以上残る場合）
-  if (userStationCoords) {
-    const nearJobs = allJobs.filter(j => j.distanceKm === null || j.distanceKm <= 30);
-    if (nearJobs.length >= 3) {
-      allJobs = nearJobs;
-    }
-  }
-
-  // スコア順にソート
   allJobs.sort((a, b) => b.adjustedScore - a.adjustedScore);
-
-  // 上位5件
   entry.matchingResults = allJobs.slice(0, 5);
   return entry.matchingResults;
 }
@@ -3262,7 +3169,6 @@ function buildFacilityFlexBubble(job, index) {
         { type: "text", text: title, size: "sm", color: "#333333", wrap: true },
         { type: "text", text: salary, size: "lg", weight: "bold", margin: "md", color: "#1DB446" },
         { type: "text", text: `📍 ${station}`, size: "xs", color: "#999999", margin: "sm", wrap: true },
-        ...(job.distanceKm != null ? [{ type: "text", text: `📍 直線${job.distanceKm}km（${job.distanceLabel || ""})`, size: "xs", color: job.distanceKm <= 10 ? "#1DB446" : job.distanceKm <= 20 ? "#f0ad4e" : "#e74c3c", margin: "sm", weight: "bold" }] : []),
         { type: "text", text: `年休${holidays}日 / 賞与${bonus} / ${emp}`, size: "xs", color: "#999999", margin: "sm", wrap: true },
         ...(rank ? [{ type: "text", text: `おすすめ度: ${rank}ランク`, size: "sm", color: rank === "S" ? "#e74c3c" : "#1DB446", margin: "md", weight: "bold" }] : []),
       ],
@@ -3444,13 +3350,6 @@ function handleLinePostback(dataStr, entry) {
     entry.unexpectedTextCount = 0;
     nextPhase = getFlowForEntry(entry).q3_area;
   }
-  // 通勤手段
-  else if (params.has("commute")) {
-    const val = params.get("commute");
-    entry.commuteMethod = val; // "transit" or "car"
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q3c_commute;
-  }
   // Q4
   else if (params.has("q4")) {
     entry.experience = params.get("q4");
@@ -3626,19 +3525,6 @@ function handleLinePostback(dataStr, entry) {
 function handleFreeTextInput(text, entry) {
   const phase = entry.phase;
 
-  // Q3b: 郵便番号入力
-  if (phase === "q3b_zip") {
-    var zipClean = text.replace(/[ー−\-]/g, '').replace(/[０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).replace(/\D/g, '');
-    if (zipClean.length === 7) {
-      entry.zipCode = zipClean;
-      entry.unexpectedTextCount = 0;
-      return "q3b_zip_lookup"; // 住所検索してからq3c_commuteへ
-    } else {
-      entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-      return "q3b_zip_error";
-    }
-  }
-
   // Q9: 職歴入力待ち
   if (phase === "q9_work_history") {
     entry.workHistoryText = text;
@@ -3745,7 +3631,6 @@ function handleFreeTextInput(text, entry) {
     q1_urgency: "q1=",
     q2_change: "q2=",
     q3_area: "q3=",
-    q3c_commute: "commute=",
     q4_experience: "q4=",
     q5_workstyle: "q5=",
     q6_workplace: "q6=",
@@ -4039,30 +3924,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               entry.area = webAreaMap[webSession.area];
               entry.areaLabel = POSTBACK_LABELS[`q3_${entry.area}`] || webSession.area;
             }
-            // 郵便番号・通勤手段
-            if (webSession.zip) {
-              entry.zipCode = webSession.zip;
-              entry.zipAddress = webSession.zipAddress || null;
-              // zipAddressから最寄駅を推定
-              if (entry.zipAddress) {
-                const cityMatch = entry.zipAddress.match(/[^\s県]+?[市区町村]/);
-                if (cityMatch) {
-                  const approxStation = findNearestStationByCity(cityMatch[0]);
-                  if (approxStation) {
-                    entry.userLat = approxStation.lat;
-                    entry.userLng = approxStation.lng;
-                    entry.nearStation = approxStation.name;
-                  }
-                }
-              }
-            }
-            if (webSession.commute) {
-              entry.commuteMethod = webSession.commute;
-            }
-            // 最寄駅（後方互換）
-            if (!entry.nearStation && webSession.station) {
-              entry.nearStation = webSession.station.replace(/駅$/, '');
-            }
             // 経験年数
             const webExpMap = { "1to3": "1to3", "3to5": "3to5", "5to10": "5to10", "10plus": "over10", "blank": "under1" };
             if (webSession.experience && webExpMap[webSession.experience]) {
@@ -4174,52 +4035,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
           await saveLineEntry(userId, entry, env);
           continue; // LINE応答は送らない
-        }
-
-        // 郵便番号住所検索
-        if (nextPhase === "q3b_zip_lookup") {
-          try {
-            const zipRes = await fetch('https://zipcloud.ibsnet.co.jp/api/search?zipcode=' + entry.zipCode);
-            const zipData = await zipRes.json();
-            if (zipData.results && zipData.results[0]) {
-              const r = zipData.results[0];
-              entry.zipAddress = r.address1 + r.address2 + r.address3;
-              const cityName = r.address2 || r.address3 || '';
-              const approxStation = findNearestStationByCity(cityName);
-              if (approxStation) {
-                entry.userLat = approxStation.lat;
-                entry.userLng = approxStation.lng;
-                entry.nearStation = approxStation.name;
-              }
-            }
-          } catch (e) {
-            console.error("[ZIP] lookup error:", e.message);
-          }
-          entry.phase = "q3c_commute";
-          replyMessages = [
-            ...(entry.zipAddress ? [{ type: "text", text: entry.zipAddress + " ですね！" }] : []),
-            ...buildPhaseMessage("q3c_commute", entry),
-          ];
-          await saveLineEntry(userId, entry, env);
-          if (replyMessages && replyMessages.length > 0) {
-            await lineReply(event.replyToken, replyMessages.slice(0, 5), channelAccessToken);
-          }
-          console.log(`[LINE] Zip lookup: ${entry.zipCode} → ${entry.zipAddress}, User: ${userId.slice(0, 8)}`);
-          continue;
-        }
-
-        // 郵便番号エラー
-        if (nextPhase === "q3b_zip_error") {
-          entry.phase = "q3b_zip"; // phaseは変えない
-          replyMessages = [{
-            type: "text",
-            text: "7桁の郵便番号を入力してください。\n（例: 250-0042、2500042）",
-          }];
-          await saveLineEntry(userId, entry, env);
-          if (replyMessages.length > 0) {
-            await lineReply(event.replyToken, replyMessages.slice(0, 5), channelAccessToken);
-          }
-          continue;
         }
 
         if (nextPhase === "ai_consultation_reply") {
