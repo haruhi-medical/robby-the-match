@@ -6,7 +6,7 @@
       "name": "横浜・川崎",
       "count": 218,
       "salary_min": 240,
-      "salary_max": 720,
+      "salary_max": 500,
       "holidays_avg": 118,
       "sample": {
         "title": "訪問看護ステーション　管理者候補",
@@ -35,22 +35,22 @@
         "day_only": {
           "count": 35,
           "salary_min": 240,
-          "salary_max": 684
+          "salary_max": 500
         },
         "with_night": {
           "count": 85,
           "salary_min": 240,
-          "salary_max": 720
+          "salary_max": 500
         },
         "parttime": {
           "count": 91,
-          "salary_min": 1200,
+          "salary_min": 1500,
           "salary_max": 2500
         },
         "night_only": {
           "count": 7,
           "salary_min": 240,
-          "salary_max": 792
+          "salary_max": 500
         }
       }
     },
@@ -58,7 +58,7 @@
       "name": "湘南・鎌倉",
       "count": 62,
       "salary_min": 240,
-      "salary_max": 800,
+      "salary_max": 500,
       "holidays_avg": 117,
       "sample": {
         "title": "地域包括ケア病棟看護師　年間休日１２１日",
@@ -87,22 +87,22 @@
         "day_only": {
           "count": 10,
           "salary_min": 240,
-          "salary_max": 760
+          "salary_max": 500
         },
         "with_night": {
           "count": 24,
           "salary_min": 240,
-          "salary_max": 800
+          "salary_max": 500
         },
         "parttime": {
           "count": 26,
-          "salary_min": 1200,
+          "salary_min": 1500,
           "salary_max": 2500
         },
         "night_only": {
           "count": 2,
           "salary_min": 240,
-          "salary_max": 880
+          "salary_max": 500
         }
       }
     },
@@ -110,7 +110,7 @@
       "name": "小田原・県西",
       "count": 13,
       "salary_min": 240,
-      "salary_max": 560,
+      "salary_max": 500,
       "holidays_avg": 114,
       "sample": {
         "title": "病棟看護師　　＊駅近２分　＊年間休日１２",
@@ -139,22 +139,22 @@
         "day_only": {
           "count": 2,
           "salary_min": 240,
-          "salary_max": 532
+          "salary_max": 500
         },
         "with_night": {
           "count": 5,
           "salary_min": 240,
-          "salary_max": 560
+          "salary_max": 500
         },
         "parttime": {
           "count": 5,
-          "salary_min": 1200,
+          "salary_min": 1500,
           "salary_max": 2300
         },
         "night_only": {
           "count": 1,
           "salary_min": 262,
-          "salary_max": 616
+          "salary_max": 500
         }
       }
     },
@@ -162,7 +162,7 @@
       "name": "相模原・県央",
       "count": 61,
       "salary_min": 240,
-      "salary_max": 592,
+      "salary_max": 500,
       "holidays_avg": 116,
       "sample": {
         "title": "看護師　【年間休日数１２１日】",
@@ -191,22 +191,22 @@
         "day_only": {
           "count": 10,
           "salary_min": 240,
-          "salary_max": 562
+          "salary_max": 500
         },
         "with_night": {
           "count": 24,
           "salary_min": 240,
-          "salary_max": 592
+          "salary_max": 500
         },
         "parttime": {
           "count": 25,
-          "salary_min": 1200,
+          "salary_min": 1500,
           "salary_max": 2400
         },
         "night_only": {
           "count": 2,
           "salary_min": 240,
-          "salary_max": 651
+          "salary_max": 500
         }
       }
     },
@@ -214,7 +214,7 @@
       "name": "横須賀・三浦",
       "count": 31,
       "salary_min": 240,
-      "salary_max": 640,
+      "salary_max": 500,
       "holidays_avg": 120,
       "sample": {
         "title": "看護師（手術室）",
@@ -243,22 +243,22 @@
         "day_only": {
           "count": 5,
           "salary_min": 241,
-          "salary_max": 608
+          "salary_max": 500
         },
         "with_night": {
           "count": 12,
           "salary_min": 240,
-          "salary_max": 640
+          "salary_max": 500
         },
         "parttime": {
           "count": 13,
-          "salary_min": 1200,
+          "salary_min": 1500,
           "salary_max": 2400
         },
         "night_only": {
           "count": 1,
           "salary_min": 263,
-          "salary_max": 704
+          "salary_max": 500
         }
       }
     },
@@ -266,7 +266,7 @@
       "name": "神奈川県全域",
       "count": 385,
       "salary_min": 240,
-      "salary_max": 800,
+      "salary_max": 500,
       "holidays_avg": 118,
       "sample": {
         "title": "地域包括ケア病棟看護師　年間休日１２１日",
@@ -295,22 +295,22 @@
         "day_only": {
           "count": 62,
           "salary_min": 240,
-          "salary_max": 760
+          "salary_max": 500
         },
         "with_night": {
           "count": 150,
           "salary_min": 240,
-          "salary_max": 800
+          "salary_max": 500
         },
         "parttime": {
           "count": 160,
-          "salary_min": 1200,
+          "salary_min": 1500,
           "salary_max": 2500
         },
         "night_only": {
           "count": 13,
           "salary_min": 240,
-          "salary_max": 880
+          "salary_max": 500
         }
       }
     }
