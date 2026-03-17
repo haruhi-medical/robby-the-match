@@ -1,190 +1,219 @@
 #!/bin/bash
 set -euo pipefail
 # ===========================================
-# 神奈川ナース転職 品質ゲート v1.0
-# Claude Opus 4.6 による画像品質自動点検
-# cron: 0 14 * * 1-6（月-土 14:00、コンテンツ生成15:00の前）
+# 神奈川ナース転職 品質ゲート v2.0
+# quality_checker.py による自動品質点検
+# cron: 0 16 * * 1-6（月-土 16:00、コンテンツ生成15:00の後）
+#
+# v2.0 変更点:
+#   - Claude CLI 依存を撤廃（cronで認証不要）
+#   - quality_checker.py --fact-check / --appeal-check を使用
+#   - シェルインジェクション脆弱性を修正（tempファイル経由でデータ受渡し）
 # ===========================================
 source ~/robby-the-match/scripts/utils.sh
 init_log "pdca_quality_gate"
 
+PYTHON="python3"
+CHECKER="$PROJECT_DIR/scripts/quality_checker.py"
+QUEUE_FILE="$PROJECT_DIR/data/posting_queue.json"
+
 echo "=== 品質ゲート開始 ===" >> "$LOG"
 
-# Claude CLI認証チェック
-if ! ensure_env; then
-    echo "[ERROR] Claude CLI認証失敗" >> "$LOG"
-    notify_slack ":x: 品質ゲート: Claude CLI認証エラー"
-    exit $EXIT_CONFIG_ERROR
-fi
-
-# === 投稿キューから未点検のreadyコンテンツを取得 ===
-QUEUE_FILE="$PROJECT_DIR/data/posting_queue.json"
+# ===========================================
+# 前提チェック
+# ===========================================
 if [ ! -f "$QUEUE_FILE" ]; then
     echo "[SKIP] posting_queue.json が見つかりません" >> "$LOG"
     exit 0
 fi
 
-# Python で未点検コンテンツのディレクトリ一覧を取得
-UNCHECKED=$(python3 -c "
+if [ ! -f "$CHECKER" ]; then
+    echo "[ERROR] quality_checker.py が見つかりません: $CHECKER" >> "$LOG"
+    slack_notify ":x: 品質ゲート: quality_checker.py が見つかりません"
+    exit 1
+fi
+
+# ===========================================
+# 未点検の ready/pending 投稿をリストアップ（最大5件）
+# ===========================================
+UNCHECKED_FILE=$(mktemp /tmp/quality_gate_unchecked.XXXXXX)
+trap 'rm -f "$UNCHECKED_FILE"' EXIT
+
+$PYTHON - "$QUEUE_FILE" > "$UNCHECKED_FILE" 2>> "$LOG" << 'PYEOF'
 import json, sys
 from pathlib import Path
 
-data = json.loads(Path('$QUEUE_FILE').read_text())
+queue_file = sys.argv[1]
+data = json.loads(Path(queue_file).read_text())
 posts = data.get('posts', data if isinstance(data, list) else [])
 unchecked = []
 for idx, item in enumerate(posts):
     if not isinstance(item, dict):
         continue
-    status = item.get('status', '')
-    if status not in ('ready', 'pending'):
+    if item.get('status', '') not in ('ready', 'pending'):
         continue
     if item.get('quality_checked'):
         continue
-    img_dir = item.get('slide_dir', item.get('image_dir', ''))
-    if img_dir and Path(img_dir).exists():
-        hook = item.get('hook', item.get('caption', ''))[:30]
-        unchecked.append(json.dumps({'index': idx, 'dir': img_dir, 'hook': hook}))
+    hook = item.get('hook', item.get('caption', ''))[:30]
+    unchecked.append(json.dumps({'index': idx, 'hook': hook}, ensure_ascii=False))
 for u in unchecked[:5]:
     print(u)
-" 2>> "$LOG")
+PYEOF
 
-if [ -z "$UNCHECKED" ]; then
+if [ ! -s "$UNCHECKED_FILE" ]; then
     echo "[OK] 未点検コンテンツなし" >> "$LOG"
     exit 0
 fi
 
-TOTAL=$(echo "$UNCHECKED" | wc -l | tr -d ' ')
+TOTAL=$(wc -l < "$UNCHECKED_FILE" | tr -d ' ')
 echo "[INFO] 未点検コンテンツ: ${TOTAL}件" >> "$LOG"
 
 PASS_COUNT=0
 FAIL_COUNT=0
-FAIL_DETAILS=""
+# Accumulate failure details in a temp file to avoid shell injection
+FAIL_DETAILS_FILE=$(mktemp /tmp/quality_gate_fails.XXXXXX)
+trap 'rm -f "$UNCHECKED_FILE" "$FAIL_DETAILS_FILE"' EXIT
 
-# === 各コンテンツをClaude Opus 4.6で視覚点検 ===
-while IFS= read -r item; do
-    INDEX=$(echo "$item" | python3 -c "import json,sys; print(json.load(sys.stdin)['index'])")
-    IMG_DIR=$(echo "$item" | python3 -c "import json,sys; print(json.load(sys.stdin)['dir'])")
-    HOOK=$(echo "$item" | python3 -c "import json,sys; print(json.load(sys.stdin)['hook'])")
+# ===========================================
+# 各投稿をチェック
+# ===========================================
+while IFS= read -r item_json; do
+    # Parse index and hook via a temp file to avoid shell injection
+    META_FILE=$(mktemp /tmp/quality_gate_meta.XXXXXX)
+    printf '%s' "$item_json" > "$META_FILE"
 
-    echo "[CHECK] #${INDEX}: ${HOOK}... (${IMG_DIR})" >> "$LOG"
+    INDEX=$($PYTHON -c "import json,sys; d=json.loads(open(sys.argv[1]).read()); print(d['index'])" "$META_FILE" 2>/dev/null)
+    HOOK=$($PYTHON  -c "import json,sys; d=json.loads(open(sys.argv[1]).read()); print(d['hook'])"  "$META_FILE" 2>/dev/null)
+    rm -f "$META_FILE"
 
-    # 画像ファイル一覧を取得（hook + content最大3枚 + cta = 最大5枚）
-    IMAGES=$(find "$IMG_DIR" -name "*.png" -type f | sort | head -5)
-    IMG_COUNT=$(echo "$IMAGES" | wc -l | tr -d ' ')
+    echo "[CHECK] #${INDEX}: ${HOOK}..." >> "$LOG"
 
-    if [ "$IMG_COUNT" -lt 2 ]; then
-        echo "[SKIP] 画像が2枚未満" >> "$LOG"
-        continue
-    fi
+    # ---------- fact-check ----------
+    FACT_RESULT_FILE=$(mktemp /tmp/quality_gate_fact.XXXXXX)
+    $PYTHON "$CHECKER" --fact-check "$QUEUE_FILE" --index "$INDEX" \
+        > "$FACT_RESULT_FILE" 2>> "$LOG" || true
 
-    # Claude Opus 4.6 に画像を送って品質判定
-    # --model claude-opus-4-6 で最新Opusモデルを指定
-    PROMPT="あなたはTikTok/Instagram投稿画像の品質検査官です。
-以下の画像（カルーセル投稿のスライド）を厳密にチェックしてください。
-
-チェック項目:
-1. 文字サイズ: スマホ(375pt幅)で読めるか? 最低40px推奨。小さすぎないか?
-2. セーフゾーン: 上150px/下250px/右100pxのTikTok UIで隠れる箇所にテキストがないか?
-3. コントラスト: 背景色と文字色の可読性。WCAG AA基準(4.5:1)を満たすか?
-4. レイアウト: テキストが画面の一部に偏っていないか? 空白が多すぎないか?
-5. 日本語品質: 文字化け、不自然な改行、文字間延びがないか?
-6. フック(1枚目): 3秒で内容が把握できるか? 文字数は25文字以内か?
-
-判定結果をJSON形式で返してください:
-{
-  \"pass\": true/false,
-  \"score\": 1-10,
-  \"issues\": [\"問題1\", \"問題2\"],
-  \"recommendation\": \"改善提案\"
-}
-
-passの基準: score 7以上でissuesに致命的問題（文字が読めない、セーフゾーン侵犯）がないこと。
-JSONのみ返してください。説明文は不要です。
-
-画像ディレクトリ: ${IMG_DIR}
-各画像を読んで判定してください。"
-
-    # run_claude を使ってClaude CLIで実行（最大5分）
-    RESULT=$(claude -p "$PROMPT" \
-        --model claude-opus-4-6 \
-        --dangerously-skip-permissions \
-        --max-turns 10 \
-        2>> "$LOG")
-
-    # JSON部分を抽出
-    SCORE=$(echo "$RESULT" | python3 -c "
-import json, sys, re
-text = sys.stdin.read()
-# JSON部分を抽出
-match = re.search(r'\{[^{}]*\"pass\"[^{}]*\}', text, re.DOTALL)
-if match:
-    data = json.loads(match.group())
-    print(data.get('score', 0))
-else:
+    FACT_SCORE=$($PYTHON -c "
+import json, sys
+try:
+    d = json.loads(open(sys.argv[1]).read())
+    print(d.get('fact_score', 0))
+except Exception:
     print(0)
-" 2>/dev/null)
+" "$FACT_RESULT_FILE" 2>/dev/null)
 
-    PASSED=$(echo "$RESULT" | python3 -c "
-import json, sys, re
-text = sys.stdin.read()
-match = re.search(r'\{[^{}]*\"pass\"[^{}]*\}', text, re.DOTALL)
-if match:
-    data = json.loads(match.group())
-    print('true' if data.get('pass', False) else 'false')
-else:
+    # ---------- appeal-check ----------
+    APPEAL_RESULT_FILE=$(mktemp /tmp/quality_gate_appeal.XXXXXX)
+    $PYTHON "$CHECKER" --appeal-check "$QUEUE_FILE" --index "$INDEX" \
+        > "$APPEAL_RESULT_FILE" 2>> "$LOG" || true
+
+    APPEAL_SCORE=$($PYTHON -c "
+import json, sys
+try:
+    d = json.loads(open(sys.argv[1]).read())
+    print(d.get('appeal_score', 0))
+except Exception:
+    print(0)
+" "$APPEAL_RESULT_FILE" 2>/dev/null)
+
+    # ---------- 合算スコア ----------
+    COMBINED=$($PYTHON -c "
+import sys
+try:
+    f = float(sys.argv[1])
+    a = float(sys.argv[2])
+    print(round(f * 0.5 + a * 0.5, 2))
+except Exception:
+    print(0)
+" "$FACT_SCORE" "$APPEAL_SCORE" 2>/dev/null)
+
+    # issuesリストをtempファイル経由で安全に取得
+    ISSUES_FILE=$(mktemp /tmp/quality_gate_issues.XXXXXX)
+    $PYTHON - "$FACT_RESULT_FILE" "$APPEAL_RESULT_FILE" > "$ISSUES_FILE" 2>/dev/null << 'PYEOF'
+import json, sys
+issues = []
+for path in sys.argv[1:]:
+    try:
+        d = json.loads(open(path).read())
+        issues.extend(d.get('issues', []))
+    except Exception:
+        pass
+# Deduplicate, cap at 5
+seen = []
+for i in issues:
+    if i not in seen:
+        seen.append(i)
+print(', '.join(seen[:5]) if seen else 'なし')
+PYEOF
+
+    ISSUES=$(cat "$ISSUES_FILE")
+    rm -f "$FACT_RESULT_FILE" "$APPEAL_RESULT_FILE" "$ISSUES_FILE"
+
+    echo "  Fact: ${FACT_SCORE}/10, Appeal: ${APPEAL_SCORE}/10, Combined: ${COMBINED}, Issues: ${ISSUES}" >> "$LOG"
+
+    # ---------- 合否判定（combined >= 6.0 で合格） ----------
+    PASSED=$($PYTHON -c "
+import sys
+try:
+    print('true' if float(sys.argv[1]) >= 6.0 else 'false')
+except Exception:
     print('false')
-" 2>/dev/null)
+" "$COMBINED" 2>/dev/null)
 
-    ISSUES=$(echo "$RESULT" | python3 -c "
-import json, sys, re
-text = sys.stdin.read()
-match = re.search(r'\{[^{}]*\"pass\"[^{}]*\}', text, re.DOTALL)
-if match:
-    data = json.loads(match.group())
-    issues = data.get('issues', [])
-    print(', '.join(issues[:3]) if issues else 'なし')
-else:
-    print('解析失敗')
-" 2>/dev/null)
-
-    echo "  Score: ${SCORE}/10, Pass: ${PASSED}, Issues: ${ISSUES}" >> "$LOG"
-
-    # キューを更新
+    # ---------- キューを安全に更新（env var 経由で注入） ----------
     if [ "$PASSED" = "true" ]; then
         PASS_COUNT=$((PASS_COUNT + 1))
-        python3 -c "
-import json
+        _QUEUE="$QUEUE_FILE" _IDX="$INDEX" _SCORE="$COMBINED" \
+        $PYTHON - << 'PYEOF' 2>> "$LOG"
+import json, os
 from pathlib import Path
-data = json.loads(Path('$QUEUE_FILE').read_text())
+queue_file = os.environ['_QUEUE']
+idx        = int(os.environ['_IDX'])
+score      = float(os.environ['_SCORE'])
+data = json.loads(Path(queue_file).read_text())
 posts = data.get('posts', data if isinstance(data, list) else [])
-posts[$INDEX]['quality_checked'] = True
-posts[$INDEX]['quality_score'] = $SCORE
-Path('$QUEUE_FILE').write_text(json.dumps(data, ensure_ascii=False, indent=2))
-" 2>> "$LOG"
-    else
+posts[idx]['quality_checked'] = True
+posts[idx]['quality_score']   = score
+Path(queue_file).write_text(json.dumps(data, ensure_ascii=False, indent=2))
+print(f"[OK] #{idx} marked quality_checked=true score={score}")
+PYEOF
+    else:
         FAIL_COUNT=$((FAIL_COUNT + 1))
-        FAIL_DETAILS="${FAIL_DETAILS}\n- #${INDEX} ${HOOK}: ${ISSUES}"
-        # 不合格: statusをquality_failedに変更
-        python3 -c "
-import json
+        # Append to failures file (safe: no shell interpolation into Python code)
+        printf -- '- #%s %s: %s\n' "$INDEX" "$HOOK" "$ISSUES" >> "$FAIL_DETAILS_FILE"
+
+        _QUEUE="$QUEUE_FILE" _IDX="$INDEX" _SCORE="$COMBINED" _ISSUES="$ISSUES" \
+        $PYTHON - << 'PYEOF' 2>> "$LOG"
+import json, os
 from pathlib import Path
-data = json.loads(Path('$QUEUE_FILE').read_text())
+queue_file = os.environ['_QUEUE']
+idx        = int(os.environ['_IDX'])
+score      = float(os.environ['_SCORE'])
+issues_str = os.environ['_ISSUES']
+data = json.loads(Path(queue_file).read_text())
 posts = data.get('posts', data if isinstance(data, list) else [])
-posts[$INDEX]['quality_checked'] = True
-posts[$INDEX]['quality_score'] = $SCORE
-posts[$INDEX]['quality_issues'] = '''${ISSUES}'''
-posts[$INDEX]['status'] = 'quality_failed'
-Path('$QUEUE_FILE').write_text(json.dumps(data, ensure_ascii=False, indent=2))
-" 2>> "$LOG"
+posts[idx]['quality_checked'] = True
+posts[idx]['quality_score']   = score
+posts[idx]['quality_issues']  = issues_str
+posts[idx]['status']          = 'quality_failed'
+Path(queue_file).write_text(json.dumps(data, ensure_ascii=False, indent=2))
+print(f"[FAIL] #{idx} marked quality_failed score={score}")
+PYEOF
     fi
 
-done <<< "$UNCHECKED"
+done < "$UNCHECKED_FILE"
 
-# === Slack通知 ===
+# ===========================================
+# Slack通知
+# ===========================================
 if [ $FAIL_COUNT -gt 0 ]; then
-    notify_slack ":warning: 品質ゲート結果: ${PASS_COUNT}件合格 / ${FAIL_COUNT}件不合格\n不合格:${FAIL_DETAILS}"
+    FAIL_BODY=$(cat "$FAIL_DETAILS_FILE")
+    slack_notify ":warning: 品質ゲート結果: ${PASS_COUNT}件合格 / ${FAIL_COUNT}件不合格
+不合格:
+${FAIL_BODY}"
 elif [ $PASS_COUNT -gt 0 ]; then
-    notify_slack ":white_check_mark: 品質ゲート: ${PASS_COUNT}件全て合格 (Opus 4.6点検)"
+    slack_notify ":white_check_mark: 品質ゲート: ${PASS_COUNT}件全て合格 (quality_checker.py点検)"
 fi
 
 echo "=== 品質ゲート完了: Pass=${PASS_COUNT}, Fail=${FAIL_COUNT} ===" >> "$LOG"
+write_heartbeat "pdca_quality_gate" 0

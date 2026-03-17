@@ -1559,6 +1559,609 @@ class ContentQualityChecker:
 
 
 # ============================================================
+# FactChecker — 事実確認エンジン v1.0
+# ============================================================
+# 投稿前に給与数値・統計・百分率を基準データと照合し、
+# 虚偽・誇張・内部矛盾を検出する。外部API不使用・純粋ローカル動作。
+# ============================================================
+
+
+@dataclass
+class FactIssue:
+    """Individual fact-check finding."""
+    severity: str   # "error" | "warning"
+    field: str      # "hook" | "slide_1" ... "slide_8" | "caption"
+    claim: str      # the verbatim problematic text fragment
+    expected: str   # human-readable correct range
+    source: str     # reference source name
+
+
+@dataclass
+class FactCheckResult:
+    """Aggregate result returned by FactChecker.fact_check_post()."""
+    passed: bool
+    score: float            # 0-10  (10 = zero issues)
+    issues: list[FactIssue] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "passed": self.passed,
+            "score": round(self.score, 1),
+            "issues": [
+                {
+                    "severity": i.severity,
+                    "field": i.field,
+                    "claim": i.claim,
+                    "expected": i.expected,
+                    "source": i.source,
+                }
+                for i in self.issues
+            ],
+        }
+
+
+class FactChecker:
+    """
+    SNS投稿の事実確認チェッカー。
+
+    給与数値・統計・百分率をリファレンスデータと照合し、
+    範囲外の数値・出典不明の統計・内部矛盾をフラグする。
+
+    Usage:
+        fc = FactChecker()
+        result = fc.fact_check_post(queue_entry)
+        if not result.passed:
+            for issue in result.issues:
+                print(issue.severity, issue.field, issue.claim)
+    """
+
+    # ----------------------------------------------------------
+    # リファレンスデータ
+    # 出典: 厚労省令和6年賃金構造基本統計調査・日本看護協会等
+    # ----------------------------------------------------------
+
+    # 給与レンジ: key → (min, max, unit, label, source)
+    SALARY_RANGES: Dict[str, Tuple] = {
+        # パート時給
+        "正看護師_パート_時給":    (1_800,       2_500,       "円/時",  "正看護師パート時給",         "厚労省R6賃金構造"),
+        "准看護師_パート_時給":    (1_600,       2_000,       "円/時",  "准看護師パート時給",         "厚労省R6賃金構造"),
+        # 月給
+        "正看護師_月給":           (250_000,     389_000,     "円/月",  "正看護師月給",               "厚労省R6賃金構造"),
+        # 夜勤手当
+        "夜勤手当_二交替":         (10_000,      15_000,      "円/回",  "夜勤手当(二交替)",           "日本看護協会2023"),
+        "夜勤手当_三交替":          (4_000,       8_000,      "円/回",  "夜勤手当(三交替)",           "日本看護協会2023"),
+        # 年収
+        "神奈川_看護師_年収":      (5_000_000,   5_500_000,   "円/年",  "神奈川県看護師平均年収",     "厚労省R6賃金構造"),
+        # 応援ナース月収
+        "応援ナース_月収":         (400_000,     600_000,     "円/月",  "応援ナース月収",             "各種求人情報"),
+        # 美容クリニック月収
+        "美容クリニック_月収":     (300_000,     400_000,     "円/月",  "美容クリニック看護師月収",   "各種求人情報"),
+        # 紹介手数料率（業界平均、percent単位）
+        "紹介手数料_率":           (20,          30,          "%",      "紹介手数料率（業界平均）",   "厚労省職業安定局"),
+    }
+
+    # 既知の有効統計: key → (value, unit, description, source)
+    KNOWN_STATS: Dict[str, Tuple] = {
+        "神奈川_看護師_総数":       (77_188,  "人",        "神奈川県看護師総数",             "厚労省R6看護職員就業届"),
+        "神奈川_人口10万_看護師":   (813.2,   "人/10万人", "神奈川県人口10万人あたり看護師数","厚労省R6"),
+        "神奈川_充足率":            (72.6,    "%",         "神奈川県看護師充足率",           "厚労省R6"),
+        "業界_紹介手数料_下限":     (20,      "%",         "大手紹介会社手数料下限",         "厚労省職業安定局"),
+        "業界_紹介手数料_上限":     (30,      "%",         "大手紹介会社手数料上限",         "厚労省職業安定局"),
+        "当社_手数料":              (10,      "%",         "神奈川ナース転職手数料",         "社内規定"),
+    }
+
+    # 神奈川コンビニ深夜バイト時給帯（比較用・誤用検出）
+    CONVENIENCE_STORE_HOURLY: Tuple[int, int] = (1_300, 1_500)
+
+    # 乖離率のしきい値
+    ERROR_THRESHOLD:   float = 0.20   # ±20% 超 → error
+    WARNING_THRESHOLD: float = 0.10   # ±10% 超 → warning
+
+    # ----------------------------------------------------------
+    # 正規表現パターン
+    # ----------------------------------------------------------
+
+    # 「時給 X,XXX 円」「時給約X,XXX円」
+    _RE_HOURLY = re.compile(
+        r"時給\s*(?:約\s*)?(\d[\d,，]*)\s*円"
+    )
+    # 「月給/月収 XX万円」「月収XX〜YY万円」
+    _RE_MONTHLY_MAN = re.compile(
+        r"月(?:給|収|収入)\s*(?:約\s*)?(\d+(?:\.\d+)?)\s*(?:〜\s*(\d+(?:\.\d+)?)\s*)?万円"
+    )
+    # 「月給/月収 XXX,XXX 円」（万なし直接数値）
+    _RE_MONTHLY_YEN = re.compile(
+        r"月(?:給|収|収入)\s*(?:約\s*)?([\d,，]+)\s*円"
+    )
+    # 「年収 XXX万円」「年収XXX〜YYY万円」
+    _RE_ANNUAL_MAN = re.compile(
+        r"年収\s*(?:約\s*)?(\d+(?:\.\d+)?)\s*(?:〜\s*(\d+(?:\.\d+)?)\s*)?万円"
+    )
+    # 「夜勤手当 X万円」
+    _RE_YOQIN_MAN = re.compile(
+        r"夜勤手当\s*(?:約\s*)?(\d+(?:\.\d+)?)\s*万円"
+    )
+    # 「夜勤手当 X,XXX円」
+    _RE_YOQIN_YEN = re.compile(
+        r"夜勤手当\s*(?:約\s*)?([\d,，]+)\s*円"
+    )
+    # パーセント表現 「XX%」「XX％」
+    _RE_PERCENT = re.compile(r"(\d+(?:\.\d+)?)\s*[%％]")
+    # 人数「X万X,XXX人」
+    _RE_PEOPLE_MAN = re.compile(r"(\d+(?:\.\d+)?)\s*万\s*(\d+)?\s*人")
+    # 人数「X,XXX人」
+    _RE_PEOPLE_RAW = re.compile(r"([\d,，]+)\s*人")
+
+    # ----------------------------------------------------------
+    # 内部ヘルパー
+    # ----------------------------------------------------------
+
+    @staticmethod
+    def _clean_number(s: str) -> float:
+        """「1,234」「1，234」→ float 1234.0"""
+        return float(s.replace(",", "").replace("，", ""))
+
+    @staticmethod
+    def _man_to_yen(man: float) -> float:
+        return man * 10_000
+
+    def _deviation(self, value: float, lo: float, hi: float) -> float:
+        """
+        値が [lo, hi] からどれだけ外れているかの比率を返す。
+        範囲内なら 0.0、範囲外は正値。
+        """
+        if lo <= value <= hi:
+            return 0.0
+        mid = (lo + hi) / 2
+        return abs(value - mid) / mid if mid > 0 else 0.0
+
+    def _severity(self, deviation: float) -> Optional[str]:
+        if deviation > self.ERROR_THRESHOLD:
+            return "error"
+        if deviation > self.WARNING_THRESHOLD:
+            return "warning"
+        return None
+
+    # ----------------------------------------------------------
+    # 公開メソッド 1: check_salary_claims
+    # ----------------------------------------------------------
+
+    def check_salary_claims(self, text: str, field_name: str = "unknown") -> List[FactIssue]:
+        """
+        テキスト中の時給・月給・年収・夜勤手当を抽出し、
+        リファレンスレンジと照合して FactIssue リストを返す。
+
+        Args:
+            text:       チェック対象テキスト
+            field_name: どのフィールドか（"hook" / "slide_2" 等）
+
+        Returns:
+            問題のある FactIssue のリスト（問題なければ空リスト）
+        """
+        issues: List[FactIssue] = []
+
+        # ---- 時給チェック ----------------------------------------
+        for m in self._RE_HOURLY.finditer(text):
+            raw = self._clean_number(m.group(1))
+            lo, hi, unit, label, src = self.SALARY_RANGES["正看護師_パート_時給"]
+            dev = self._deviation(raw, lo, hi)
+            sev = self._severity(dev)
+            if sev:
+                issues.append(FactIssue(
+                    severity=sev,
+                    field=field_name,
+                    claim=m.group(0),
+                    expected=f"{label}: {lo:,}〜{hi:,}{unit}",
+                    source=src,
+                ))
+
+        # 応援ナース・美容クリニック文脈かどうかを先に判定
+        is_oen    = "応援" in text or "トラベル" in text
+        is_beauty = "美容" in text
+
+        # ---- 月給チェック（「XX万円」形式）-----------------------
+        for m in self._RE_MONTHLY_MAN.finditer(text):
+            lo_m, hi_m, unit, label, src = self.SALARY_RANGES["正看護師_月給"]
+            val_lo = self._man_to_yen(float(m.group(1)))
+            val_hi = self._man_to_yen(float(m.group(2))) if m.group(2) else val_lo
+            flagged = False
+            for val in (val_lo, val_hi):
+                if flagged:
+                    break
+                dev = self._deviation(val, lo_m, hi_m)
+                sev = self._severity(dev)
+                if not sev:
+                    continue
+                # 応援ナース・美容クリニックは別レンジで再判定
+                if is_oen:
+                    alt_lo, alt_hi = (self.SALARY_RANGES["応援ナース_月収"][0],
+                                      self.SALARY_RANGES["応援ナース_月収"][1])
+                    if not self._severity(self._deviation(val, alt_lo, alt_hi)):
+                        continue
+                elif is_beauty:
+                    alt_lo, alt_hi = (self.SALARY_RANGES["美容クリニック_月収"][0],
+                                      self.SALARY_RANGES["美容クリニック_月収"][1])
+                    if not self._severity(self._deviation(val, alt_lo, alt_hi)):
+                        continue
+                issues.append(FactIssue(
+                    severity=sev,
+                    field=field_name,
+                    claim=m.group(0),
+                    expected=f"{label}: {lo_m // 10_000}〜{hi_m // 10_000}万{unit}",
+                    source=src,
+                ))
+                flagged = True
+
+        # ---- 月給チェック（直接数値「XXX,XXX円」形式）-----------
+        for m in self._RE_MONTHLY_YEN.finditer(text):
+            raw = self._clean_number(m.group(1))
+            # 月給として妥当な範囲（10万〜100万）に限定
+            if 100_000 <= raw <= 1_000_000:
+                lo_m, hi_m, unit, label, src = self.SALARY_RANGES["正看護師_月給"]
+                dev = self._deviation(raw, lo_m, hi_m)
+                sev = self._severity(dev)
+                # 応援ナース・美容クリニック文脈では別レンジで再判定
+                if sev and is_oen:
+                    alt_lo, alt_hi = (self.SALARY_RANGES["応援ナース_月収"][0],
+                                      self.SALARY_RANGES["応援ナース_月収"][1])
+                    if not self._severity(self._deviation(raw, alt_lo, alt_hi)):
+                        sev = None
+                elif sev and is_beauty:
+                    alt_lo, alt_hi = (self.SALARY_RANGES["美容クリニック_月収"][0],
+                                      self.SALARY_RANGES["美容クリニック_月収"][1])
+                    if not self._severity(self._deviation(raw, alt_lo, alt_hi)):
+                        sev = None
+                if sev:
+                    issues.append(FactIssue(
+                        severity=sev,
+                        field=field_name,
+                        claim=m.group(0),
+                        expected=f"{label}: {lo_m // 10_000}〜{hi_m // 10_000}万{unit}",
+                        source=src,
+                    ))
+
+        # ---- 年収チェック（「XX万円」形式）-----------------------
+        for m in self._RE_ANNUAL_MAN.finditer(text):
+            lo_a, hi_a, unit, label, src = self.SALARY_RANGES["神奈川_看護師_年収"]
+            val_lo = self._man_to_yen(float(m.group(1)))
+            val_hi = self._man_to_yen(float(m.group(2))) if m.group(2) else val_lo
+            flagged = False
+            for val in (val_lo, val_hi):
+                if flagged:
+                    break
+                dev = self._deviation(val, lo_a, hi_a)
+                sev = self._severity(dev)
+                if not sev:
+                    continue
+                # 応援ナース・美容クリニックは年収レンジが異なるため再判定
+                is_oen = "応援" in text or "トラベル" in text
+                is_beauty = "美容" in text
+                if is_oen:
+                    lo2 = self.SALARY_RANGES["応援ナース_月収"][0] * 12
+                    hi2 = self.SALARY_RANGES["応援ナース_月収"][1] * 12
+                    if not self._severity(self._deviation(val, lo2, hi2)):
+                        continue
+                elif is_beauty:
+                    lo2 = self.SALARY_RANGES["美容クリニック_月収"][0] * 12
+                    hi2 = self.SALARY_RANGES["美容クリニック_月収"][1] * 12
+                    if not self._severity(self._deviation(val, lo2, hi2)):
+                        continue
+                issues.append(FactIssue(
+                    severity=sev,
+                    field=field_name,
+                    claim=m.group(0),
+                    expected=f"{label}: {lo_a // 10_000}〜{hi_a // 10_000}万{unit}",
+                    source=src,
+                ))
+                flagged = True
+
+        # ---- 夜勤手当チェック（万円形式）------------------------
+        for m in self._RE_YOQIN_MAN.finditer(text):
+            val = self._man_to_yen(float(m.group(1)))
+            key = "夜勤手当_三交替" if ("三交替" in text or "三交代" in text) else "夜勤手当_二交替"
+            lo_y, hi_y, unit, label, src = self.SALARY_RANGES[key]
+            dev = self._deviation(val, lo_y, hi_y)
+            sev = self._severity(dev)
+            if sev:
+                issues.append(FactIssue(
+                    severity=sev,
+                    field=field_name,
+                    claim=m.group(0),
+                    expected=f"{label}: {lo_y:,}〜{hi_y:,}{unit}",
+                    source=src,
+                ))
+
+        # ---- 夜勤手当チェック（直接円形式）----------------------
+        for m in self._RE_YOQIN_YEN.finditer(text):
+            raw = self._clean_number(m.group(1))
+            key = "夜勤手当_三交替" if ("三交替" in text or "三交代" in text) else "夜勤手当_二交替"
+            lo_y, hi_y, unit, label, src = self.SALARY_RANGES[key]
+            dev = self._deviation(raw, lo_y, hi_y)
+            sev = self._severity(dev)
+            if sev:
+                issues.append(FactIssue(
+                    severity=sev,
+                    field=field_name,
+                    claim=m.group(0),
+                    expected=f"{label}: {lo_y:,}〜{hi_y:,}{unit}",
+                    source=src,
+                ))
+
+        return issues
+
+    # ----------------------------------------------------------
+    # 公開メソッド 2: check_statistics
+    # ----------------------------------------------------------
+
+    def check_statistics(self, text: str, field_name: str = "unknown") -> List[FactIssue]:
+        """
+        テキスト中のパーセント・人数表現を抽出し、
+        既知の有効統計値と照合して FactIssue リストを返す。
+        出典不明の統計的パーセントは warning として記録する。
+
+        Args:
+            text:       チェック対象テキスト
+            field_name: どのフィールドか
+
+        Returns:
+            問題のある FactIssue のリスト
+        """
+        issues: List[FactIssue] = []
+
+        # ---- パーセント表現 -------------------------------------
+        for m in self._RE_PERCENT.finditer(text):
+            val = float(m.group(1))
+            snippet = m.group(0)
+            context = text[max(0, m.start() - 25):m.end() + 25]
+
+            # 手数料パーセントの検証
+            if any(kw in context for kw in ("手数料", "紹介料", "紹介手数料")):
+                if val == 10.0:
+                    continue  # 当社10% — OK
+                lo_fee = self.KNOWN_STATS["業界_紹介手数料_下限"][0]
+                hi_fee = self.KNOWN_STATS["業界_紹介手数料_上限"][0]
+                if not (lo_fee <= val <= hi_fee):
+                    issues.append(FactIssue(
+                        severity="error",
+                        field=field_name,
+                        claim=snippet,
+                        expected=f"業界手数料: {lo_fee}〜{hi_fee}%、当社: 10%",
+                        source="厚労省職業安定局",
+                    ))
+                continue
+
+            # 充足率の検証
+            if "充足" in context:
+                known_val = self.KNOWN_STATS["神奈川_充足率"][0]
+                if abs(val - known_val) > 3.0:   # ±3ポイント許容
+                    issues.append(FactIssue(
+                        severity="warning",
+                        field=field_name,
+                        claim=snippet,
+                        expected=f"神奈川県看護師充足率: {known_val}%",
+                        source="厚労省R6",
+                    ))
+                continue
+
+            # その他: 統計的文脈かつ出典記載なし → warning
+            STAT_KEYWORDS = ("割合", "率", "の看護師", "比較", "増", "減", "差",
+                             "低下", "上昇", "達成", "改善", "悪化")
+            SOURCE_MARKERS = ("厚労省", "日本看護協会", "調査", "データ",
+                              "統計", "出典", "参考", "報告書")
+            if (any(kw in context for kw in STAT_KEYWORDS)
+                    and 0 < val < 100
+                    and not any(sm in text for sm in SOURCE_MARKERS)):
+                issues.append(FactIssue(
+                    severity="warning",
+                    field=field_name,
+                    claim=snippet,
+                    expected="統計的主張には出典が必要（厚労省・日本看護協会等）",
+                    source="内部品質基準",
+                ))
+
+        # ---- 人数表現: 「X万X,XXX人」形式 ----------------------
+        for m in self._RE_PEOPLE_MAN.finditer(text):
+            man_part = float(m.group(1))
+            sub_part = float(m.group(2)) if m.group(2) else 0.0
+            total = man_part * 10_000 + sub_part
+            ctx = text[max(0, m.start() - 30):m.end() + 30]
+            if "看護師" in ctx and "神奈川" in text:
+                known = self.KNOWN_STATS["神奈川_看護師_総数"][0]
+                if abs(total - known) > known * 0.05:   # ±5% 許容
+                    issues.append(FactIssue(
+                        severity="error",
+                        field=field_name,
+                        claim=m.group(0),
+                        expected=f"神奈川県看護師総数: {known:,}人",
+                        source="厚労省R6看護職員就業届",
+                    ))
+
+        # ---- 人数表現: 「X,XXX人」形式（100〜100,000 人の範囲） -
+        for m in self._RE_PEOPLE_RAW.finditer(text):
+            raw = self._clean_number(m.group(1))
+            if 100 <= raw <= 100_000:
+                ctx = text[max(0, m.start() - 30):m.end() + 30]
+                if "看護師" in ctx and "神奈川" in text:
+                    known = self.KNOWN_STATS["神奈川_看護師_総数"][0]
+                    if abs(raw - known) > known * 0.05:
+                        issues.append(FactIssue(
+                            severity="warning",
+                            field=field_name,
+                            claim=m.group(0),
+                            expected=f"神奈川県看護師総数: {known:,}人",
+                            source="厚労省R6看護職員就業届",
+                        ))
+
+        return issues
+
+    # ----------------------------------------------------------
+    # 公開メソッド 3: check_consistency
+    # ----------------------------------------------------------
+
+    def check_consistency(self, text: str, field_name: str = "full_post") -> List[FactIssue]:
+        """
+        同一投稿内での数値矛盾・論理矛盾を検出する。
+
+        検出パターン:
+          1. 時給X円 × 「コンビニと同じ」の矛盾
+          2. 年収と月給の整合性（年収 ÷ 12 ≒ 月給 × 1.1〜1.3）
+          3. 高時給フック（≥2,000円）× 低手取り言及の矛盾
+
+        Args:
+            text:       投稿全文（フック+スライド+キャプション結合済み）
+            field_name: "full_post" 等
+
+        Returns:
+            矛盾として検出された FactIssue リスト
+        """
+        issues: List[FactIssue] = []
+
+        # ---- 矛盾パターン 1: 時給 × 「コンビニと同じ」 ----------
+        hourly_matches = self._RE_HOURLY.findall(text)
+        has_conveni_same = bool(re.search(
+            r"コンビニ(?:と|バイトと|深夜と)?\s*(?:同じ|変わらない|同等|並み)",
+            text,
+        ))
+        if hourly_matches and has_conveni_same:
+            conv_lo, conv_hi = self.CONVENIENCE_STORE_HOURLY
+            for raw_str in hourly_matches:
+                val = self._clean_number(raw_str)
+                if not (conv_lo <= val <= conv_hi):
+                    issues.append(FactIssue(
+                        severity="error",
+                        field=field_name,
+                        claim=f"時給{raw_str}円 + 「コンビニと同じ」",
+                        expected=(
+                            f"「コンビニと同じ」と主張するなら時給は"
+                            f"{conv_lo:,}〜{conv_hi:,}円帯のはず。"
+                            f"「コンビニより少し上」等に修正せよ"
+                        ),
+                        source="内部整合性チェック",
+                    ))
+
+        # ---- 矛盾パターン 2: 年収と月給の整合性 -----------------
+        annual_matches  = self._RE_ANNUAL_MAN.findall(text)
+        monthly_matches = self._RE_MONTHLY_MAN.findall(text)
+        if annual_matches and monthly_matches:
+            ann_val = self._man_to_yen(float(annual_matches[0][0]))
+            mon_val = self._man_to_yen(float(monthly_matches[0][0]))
+            if mon_val > 0:
+                ratio = ann_val / (mon_val * 12)
+                # 妥当な賞与込み比率: 0.95〜1.40
+                if not (0.95 <= ratio <= 1.40):
+                    issues.append(FactIssue(
+                        severity="warning",
+                        field=field_name,
+                        claim=(
+                            f"年収{annual_matches[0][0]}万円"
+                            f" + 月給{monthly_matches[0][0]}万円"
+                        ),
+                        expected=(
+                            f"年収 ÷ 12 ≈ 月給×1.1〜1.3（賞与込み）が妥当。"
+                            f"現在の比率: {ratio:.2f}x"
+                        ),
+                        source="内部整合性チェック",
+                    ))
+
+        # ---- 矛盾パターン 3: 高時給フック × 低手取りボディ ------
+        if hourly_matches:
+            high_hourly = any(self._clean_number(h) >= 2_000 for h in hourly_matches)
+            LOW_INCOME_PHRASES = (
+                "手取り24万", "手取り23万", "手取り22万",
+                "手取り21万", "手取り20万",
+                "手取りが低", "給料が安", "給与が安",
+            )
+            mentions_low = any(p in text for p in LOW_INCOME_PHRASES)
+            if high_hourly and mentions_low:
+                issues.append(FactIssue(
+                    severity="warning",
+                    field=field_name,
+                    claim="高時給（≥2,000円）× 低手取りの記述",
+                    expected=(
+                        "時給2,000円以上なら常勤換算で月収32万円超のはず。"
+                        "「パート時給」と「常勤手取り」の混同に注意"
+                    ),
+                    source="内部整合性チェック",
+                ))
+
+        return issues
+
+    # ----------------------------------------------------------
+    # 公開メソッド 4: fact_check_post（メインエントリポイント）
+    # ----------------------------------------------------------
+
+    def fact_check_post(self, post: dict) -> FactCheckResult:
+        """
+        投稿キューエントリ全体の事実確認を実行する。
+
+        Args:
+            post: posting_queue.json の1エントリ。
+                  期待するキー:
+                    - "hook"        (str)
+                    - "slides"      (list[str | dict]) または
+                      "slide_texts" (list[str | dict])
+                    - "caption"     (str)
+                  いずれか欠けていても graceful に処理する。
+
+        Returns:
+            FactCheckResult (passed / score / issues)
+
+        Scoring:
+            - error  : -2.0 点（ベース10点から減算）
+            - warning: -0.5 点
+            - 最低 0 点
+            - error が 1 件以上 or score < 6.0 → passed = False
+        """
+        all_issues: List[FactIssue] = []
+
+        # フィールドマップを構築 --------------------------------
+        fields: Dict[str, str] = {}
+
+        hook = post.get("hook", "")
+        if hook:
+            fields["hook"] = str(hook)
+
+        slides_raw: list = post.get("slides") or post.get("slide_texts") or []
+        for i, slide in enumerate(slides_raw, start=1):
+            field_key = f"slide_{i}"
+            if isinstance(slide, dict):
+                parts = [str(slide[k]) for k in ("hook", "title", "body", "text") if slide.get(k)]
+                fields[field_key] = " ".join(parts)
+            elif isinstance(slide, str):
+                fields[field_key] = slide
+
+        caption = post.get("caption", "")
+        if caption:
+            fields["caption"] = str(caption)
+
+        # 各フィールドに対して salary + statistics を実行 ------
+        for field_name, text in fields.items():
+            all_issues.extend(self.check_salary_claims(text, field_name))
+            all_issues.extend(self.check_statistics(text, field_name))
+
+        # 整合性チェックは投稿全文に対して1回だけ実行 ----------
+        full_text = " ".join(fields.values())
+        all_issues.extend(self.check_consistency(full_text, "full_post"))
+
+        # 重複排除（同一 field + claim + severity の組み合わせ） -
+        seen: set = set()
+        unique_issues: List[FactIssue] = []
+        for issue in all_issues:
+            key = (issue.field, issue.claim, issue.severity)
+            if key not in seen:
+                seen.add(key)
+                unique_issues.append(issue)
+
+        # スコア算出 --------------------------------------------
+        error_count   = sum(1 for i in unique_issues if i.severity == "error")
+        warning_count = sum(1 for i in unique_issues if i.severity == "warning")
+        score = max(0.0, 10.0 - error_count * 2.0 - warning_count * 0.5)
+        passed = (error_count == 0) and (score >= 6.0)
+
+        return FactCheckResult(passed=passed, score=score, issues=unique_issues)
+
+
+# ============================================================
 # Report Formatter
 # ============================================================
 
@@ -1784,6 +2387,1007 @@ def check_images_dir(image_dir: Path, verbose: bool = True) -> QualityReport:
     return report
 
 
+def _dim_avg(scores: list) -> float:
+    """Return average score for a list of QualityScore objects, scaled 0-10."""
+    if not scores:
+        return 5.0
+    return sum(s.score for s in scores) / len(scores)
+
+
+def _report_to_gate_json(report: QualityReport) -> dict:
+    """
+    Convert a QualityReport into the compact JSON expected by pdca_quality_gate.sh.
+
+    Mapping:
+      fact_score   = mean(text_scores + content_scores)   — accuracy & content quality
+      appeal_score = mean(visual_scores + psychology_scores) — visual & psychological appeal
+      combined     = fact_score * 0.5 + appeal_score * 0.5
+      passed       = combined >= 6.0
+    """
+    fact_score = _dim_avg(report.text_scores + report.content_scores)
+    appeal_score = _dim_avg(report.visual_scores + report.psychology_scores)
+    combined = round(fact_score * 0.5 + appeal_score * 0.5, 2)
+    all_issues: list[str] = []
+    for s in (report.text_scores + report.content_scores +
+              report.visual_scores + report.psychology_scores):
+        all_issues.extend(s.issues)
+    return {
+        "passed": combined >= 6.0,
+        "fact_score": round(fact_score, 2),
+        "appeal_score": round(appeal_score, 2),
+        "combined": combined,
+        "issues": all_issues[:10],  # cap to avoid huge JSON
+    }
+
+
+def gate_check_queue_item(queue_path: Path, index: int) -> dict:
+    """
+    Run ContentQualityChecker + AppealChecker on queue item N and return gate JSON.
+    Called by --fact-check / --appeal-check / --full-check.
+    Returns a combined dict with both content quality and appeal scores.
+    """
+    slides, item = load_queue_item(queue_path, index)
+
+    hook = item.get("hook", item.get("title", ""))
+    if not hook and slides:
+        hook = slides[0].get("hook", slides[0].get("body", slides[0].get("title", "")))
+
+    # --- ContentQualityChecker (text/visual/content/psychology) ---
+    cq_checker = ContentQualityChecker()
+    report = cq_checker.check(
+        slides=slides,
+        hook_text=hook,
+        caption=item.get("caption", ""),
+        category=item.get("category", item.get("content_type", "")),
+        content_id=item.get("content_id", item.get("id", f"queue_{index}")),
+    )
+    gate = _report_to_gate_json(report)
+
+    # --- AppealChecker (訴求力・説得力) ---
+    slide_texts = []
+    for s in slides:
+        if isinstance(s, dict):
+            parts = [str(s[k]) for k in ("title", "body", "text") if s.get(k)]
+            slide_texts.append("\n".join(parts))
+        elif isinstance(s, str):
+            slide_texts.append(s)
+
+    appeal_checker = AppealChecker()
+    appeal_result = appeal_checker.evaluate_post({
+        "hook": hook,
+        "slides": slide_texts,
+        "cta_text": item.get("cta_text", ""),
+        "cta_type": item.get("cta_type", ""),
+        "caption": item.get("caption", ""),
+    })
+
+    gate["appeal_score"] = appeal_result.composite_score
+    gate["appeal_pass"] = appeal_result.pass_fail
+    gate["appeal_blocking"] = appeal_result.blocking_issues[:5]
+    # combined = average of content quality and appeal
+    gate["combined"] = round(
+        (gate.get("fact_score", 5.0) * 0.5 + appeal_result.composite_score * 0.5), 2
+    )
+    gate["passed"] = gate["combined"] >= 6.0 and not appeal_result.blocking_issues
+
+    return gate
+
+
+def gate_audit_queue(queue_path: Path) -> list[dict]:
+    """
+    Run gate_check_queue_item on ALL 'ready'/'pending' posts that lack quality_checked=true.
+    Returns list of dicts: [{index, hook, result}, ...]
+    """
+    with open(queue_path) as f:
+        queue = json.load(f)
+
+    items = queue if isinstance(queue, list) else queue.get("posts", queue.get("queue", []))
+    results = []
+
+    for idx, item in enumerate(items):
+        if not isinstance(item, dict):
+            continue
+        if item.get("status", "") not in ("ready", "pending"):
+            continue
+        if item.get("quality_checked"):
+            continue
+
+        hook = item.get("hook", item.get("caption", ""))[:30]
+        try:
+            result = gate_check_queue_item(queue_path, idx)
+        except Exception as exc:
+            result = {
+                "passed": False,
+                "fact_score": 0.0,
+                "appeal_score": 0.0,
+                "combined": 0.0,
+                "issues": [f"チェック実行エラー: {exc}"],
+            }
+        results.append({"index": idx, "hook": hook, "result": result})
+
+    return results
+
+
+
+# ============================================================
+# AppealChecker — 訴求力・説得力チェッカー v1.0
+# ============================================================
+#
+# 投稿が「世界水準の品質」である前に、「看護師ミサキが止まるか」を判定する。
+# 文法・レイアウト的に正しくても訴求力がゼロなら投稿してはいけない。
+# ContentQualityChecker の後段、公開前の最終ゲートとして使う。
+#
+# 使い方:
+#   from scripts.quality_checker import AppealChecker
+#   ac = AppealChecker()
+#   result = ac.evaluate_post({
+#       "hook": "夜勤月8回の看護師の時給、コンビニと同じって本当？",
+#       "slides": ["スライド2本文", "スライド3本文", ...],
+#       "cta_text": "気になる人はプロフのリンクからどうぞ",
+#       "cta_type": "soft",   # or "hard"
+#   })
+#   print(result.composite_score, result.pass_fail)
+#
+# CLIデモ:
+#   python3 scripts/quality_checker.py --appeal-demo
+# ============================================================
+
+# ----------------------------------------------------------
+# AppealChecker: キーワード定数
+# ----------------------------------------------------------
+
+# 看護師の現場語（フックに1つ以上含まれていることが必須）
+NURSING_TERMS = [
+    # 業務・技術系
+    "アセスメント", "申し送り", "夜勤明け", "インシデント", "カルテ",
+    "ナースコール", "プリセプター", "リーダー", "急変", "看護記録",
+    "バイタル", "ラウンド", "サマリ", "退院支援", "点滴",
+    # 職場環境系
+    "師長", "病棟", "外来", "ICU", "手術室", "訪問看護",
+    "夜勤", "日勤", "残業", "有給", "夜勤専従",
+    # 転職・待遇系
+    "手取り", "夜勤手当", "奨学金返済", "紹介料", "手数料",
+    "転職", "年収", "給料", "給与",
+    # ペルソナ属性
+    "看護師", "ナース", "5年目", "3年目", "7年目", "10年目",
+    "急性期", "プリ", "メンバー",
+]
+
+# 陳腐・AI臭い・過剰断言表現（本文に含まれてはいけない）
+BANNED_WORDS = [
+    # AI臭い
+    "さまざまな", "多角的に", "包括的な", "最適化", "パラダイム",
+    "革新的", "画期的", "ソリューション", "エビデンスベース",
+    # 広告臭い
+    "今だけ", "必見", "見逃すな", "業界最安値", "No.1",
+    "圧倒的な", "充実したサポート", "安心・安全・信頼",
+    # 過剰断言（法的リスクあり）
+    "絶対", "必ず", "100%", "間違いなく", "確実に",
+    # 攻撃的・煽り
+    "ブラック", "クソ", "衝撃", "驚愕", "閲覧注意", "マジでやばい",
+    "知らないと損", "気づいてない人", "まだ転職してないの",
+    # まとめ・解説臭
+    "いかがでしたか", "まとめると", "について解説します",
+    "ぜひ参考にしてください", "重要なお知らせ",
+]
+
+# 薄い共感・陳腐共感表現（単体使用でテンプレート感を与えるもの）
+WEAK_EMPATHY = [
+    "わかる〜", "それな", "つらいよね", "大変でしたね",
+    "頑張っていますね", "あなたは素晴らしい", "応援しています",
+    "素敵な転職を", "自分を責めないで",
+]
+
+# 強引なCTA（使ってはいけない言葉）
+PUSHY_CTA = [
+    "今すぐ", "限定", "特別", "登録しないと損", "残りわずか",
+    "急いで", "締切", "今しか", "無料だから損はない",
+    "3分で完了", "フォローとリポスト忘れずに",
+]
+
+# ロビーらしい文末語尾
+ROBBY_ENDINGS = [
+    "だよ", "だね", "なんだよね", "かも", "よね",
+    "なんだ", "だったんだ", "だよね", "んだよ",
+]
+
+# 5W1H要素検出パターン（最低2要素が必要）
+_FW1H_PATTERNS: Dict[str, List[str]] = {
+    "who": [
+        r"看護師", r"ナース", r"\d+年目", r"師長", r"プリセプター",
+        r"夜勤専従", r"急性期", r"訪問看護", r"新人", r"ベテラン",
+    ],
+    "what": [
+        r"手取り", r"年収", r"給料", r"時給", r"夜勤手当", r"紹介料",
+        r"手数料", r"転職", r"退職", r"有給", r"\d+万", r"\d+円", r"\d+%",
+    ],
+    "when": [
+        r"夜勤明け", r"休憩中", r"帰りの電車", r"5年目", r"3年目",
+        r"月\d+回", r"週\d+", r"今", r"毎月",
+    ],
+    "where": [
+        r"神奈川", r"横浜", r"川崎", r"相模原", r"小田原",
+        r"湘南", r"病棟", r"ICU", r"外来", r"訪問",
+    ],
+    "why": [
+        r"なぜ", r"理由", r"原因", r"なんで", r"どうして",
+        r"わけ", r"から", r"ため",
+    ],
+    "how": [
+        r"方法", r"やり方", r"どうやって", r"どうしたら", r"どう",
+        r"計算", r"比較", r"確認",
+    ],
+}
+
+# 好奇心トリガーパターン（数字+驚き / 問い / 秘密）
+_CURIOSITY_TRIGGERS: Dict[str, List[str]] = {
+    "number_surprise": [
+        r"\d+万", r"\d+%", r"\d+円", r"\d+人", r"\d+回",
+        r"倍", r"差", r"ランキング",
+    ],
+    "question": [
+        r"？$", r"？\s*$", r"\?$", r"本当", r"知ってた", r"知ってる",
+        r"普通", r"って何", r"いくら",
+    ],
+    "secret_reveal": [
+        r"実は", r"…$", r"…", r"理由", r"正体",
+        r"知られていない", r"裏側", r"暴露",
+    ],
+}
+
+# 共感→構造→提案 フロー検出キーワード
+_FLOW_EMPATHY = [
+    "あるある", "わかる", "よね", "気持ち", "つらい", "疲れ",
+    "同じ", "経験", "感じる", "ない？", "いない？", "ある？",
+]
+_FLOW_STRUCTURE = [
+    "理由", "なぜ", "データ", "実は", "調べた", "計算",
+    "比較", "平均", "統計", "事実", "原因", "仕組み",
+]
+_FLOW_PROPOSAL = [
+    "できる", "方法", "解決", "変わる", "選べる", "選択肢",
+    "チャンス", "改善", "参考", "相談", "プロフ",
+]
+
+# ミサキ(28歳看護師)のペインポイント
+_MISAKI_PAIN_POINTS = [
+    "人間関係", "夜勤", "給与", "師長", "残業",
+    "有給", "インシデント", "申し送り", "転職",
+    "手取り", "疲れ", "しんどい", "辞めたい", "給料",
+]
+
+# ミサキの具体的状況描写キーワード
+_MISAKI_SITUATION = [
+    "5年目", "急性期", "夜勤あり", "病棟", "リーダー",
+    "帰りの電車", "休憩中", "夜勤明け", "神奈川",
+]
+
+# 神奈川・地域名キーワード
+_KANAGAWA_KEYWORDS = [
+    "神奈川", "横浜", "川崎", "相模原", "小田原", "湘南",
+    "横須賀", "鎌倉", "藤沢", "茅ヶ崎", "平塚", "秦野",
+    "海老名", "大和", "厚木", "座間", "県西", "県央",
+]
+
+
+# ----------------------------------------------------------
+# AppealChecker: データクラス
+# ----------------------------------------------------------
+
+@dataclass
+class AppealScore:
+    """個別訴求力チェック1軸の結果（0-10スコア）。"""
+
+    dimension: str
+    label: str
+    score: float
+    issues: List[str] = field(default_factory=list)
+    suggestions: List[str] = field(default_factory=list)
+    detail: str = ""
+
+
+@dataclass
+class AppealResult:
+    """evaluate_post() の返却値。5軸の結果 + 加重スコア + PASS/FAIL。"""
+
+    hook_power: AppealScore
+    body_structure: AppealScore
+    cta_effectiveness: AppealScore
+    brand_voice: AppealScore
+    target_resonance: AppealScore
+    composite_score: float
+    pass_fail: bool
+    blocking_issues: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        def _s(s: AppealScore) -> dict:
+            return {
+                "dimension": s.dimension,
+                "label": s.label,
+                "score": round(s.score, 1),
+                "issues": s.issues,
+                "suggestions": s.suggestions,
+                "detail": s.detail,
+            }
+        return {
+            "composite_score": round(self.composite_score, 2),
+            "pass_fail": self.pass_fail,
+            "blocking_issues": self.blocking_issues,
+            "hook_power": _s(self.hook_power),
+            "body_structure": _s(self.body_structure),
+            "cta_effectiveness": _s(self.cta_effectiveness),
+            "brand_voice": _s(self.brand_voice),
+            "target_resonance": _s(self.target_resonance),
+        }
+
+
+# ----------------------------------------------------------
+# AppealChecker: メインクラス
+# ----------------------------------------------------------
+
+class AppealChecker:
+    """
+    SNS投稿の訴求力・説得力チェッカー v1.0。
+
+    「看護師ミサキがスクロールを止めるか / 行動を起こすか」を5軸でスコアリング。
+    ContentQualityChecker の後段、公開前の最終ゲートとして使用する。
+
+    軸と重み:
+        hook_power        0.30  フック訴求力（最重要）
+        target_resonance  0.20  ターゲット共鳴
+        body_structure    0.20  ボディ構造
+        brand_voice       0.15  ブランドボイス
+        cta_effectiveness 0.15  CTA効果
+
+    合格基準: composite_score >= 6.0 かつブロッキング問題（score<=3.0の軸）がゼロ。
+    """
+
+    WEIGHTS: Dict[str, float] = {
+        "hook_power":        0.30,
+        "target_resonance":  0.20,
+        "body_structure":    0.20,
+        "brand_voice":       0.15,
+        "cta_effectiveness": 0.15,
+    }
+
+    PASS_THRESHOLD: float = 6.0
+
+    # ----------------------------------------------------------------
+    # 1. フック訴求力チェック
+    # ----------------------------------------------------------------
+
+    def check_hook_power(self, hook: str) -> AppealScore:
+        """
+        フック（スライド1枚目テキスト）の訴求力を 0-10 でスコアリング。
+
+        採点:
+            +2.0  25文字以内
+            +2.0  オープンループ（？/…/理由/なぜ等）あり
+            +2.0  看護師現場語（NURSING_TERMS）が1語以上
+            +2.0  5W1H要素が2要素以上
+            +2.0  好奇心トリガー（数字+驚き / 問い / 秘密）がある
+        """
+        issues: List[str] = []
+        suggestions: List[str] = []
+        score = 0.0
+
+        char_len = len(hook)
+        if char_len <= 25:
+            score += 2.0
+        else:
+            issues.append(
+                f"フックが{char_len}文字（上限25文字）。通勤電車では読み切れず即スワイプされる。"
+            )
+            suggestions.append("体言止め・助詞省略で25文字以内に圧縮する")
+
+        open_loop_markers = [
+            "？", "?", "…", "...", "理由", "なぜ", "本当", "知ってた", "知ってる",
+            "普通", "正体", "わけ", "でしょ", "ない？", "いない？", "ある？", "って何", "とは",
+        ]
+        has_open_loop = any(m in hook for m in open_loop_markers)
+        if has_open_loop:
+            score += 2.0
+        else:
+            issues.append(
+                "オープンループがない。答えが出ているフックはスワイプされる。"
+                "「次が気になる」感覚を作れていない。"
+            )
+            suggestions.append(
+                "末尾を「？」「…」で終わらせる、または「理由」「正体」「なぜ」を使う"
+            )
+
+        has_nursing_term = any(term in hook for term in NURSING_TERMS)
+        if has_nursing_term:
+            score += 2.0
+        else:
+            issues.append(
+                "看護師の現場語がない。誰にでも刺さる汎用フックは誰にも刺さらない。"
+            )
+            suggestions.append(
+                "「夜勤明け」「申し送り」「師長」「手取り」「インシデント」等を1語入れる"
+            )
+
+        matched_5w1h: List[str] = []
+        for element, patterns in _FW1H_PATTERNS.items():
+            if any(re.search(p, hook) for p in patterns):
+                matched_5w1h.append(element)
+        if len(matched_5w1h) >= 2:
+            score += 2.0
+        else:
+            issues.append(
+                f"5W1H要素が{len(matched_5w1h)}個（最低2個必要）。"
+                "10人が読んで10人とも同じ状況を想像できる具体性が必要。"
+            )
+            suggestions.append(
+                "「看護師5年目」(who) + 「手取り24万」(what) のように2要素以上を入れる"
+            )
+
+        triggered_types: List[str] = []
+        for trigger_type, patterns in _CURIOSITY_TRIGGERS.items():
+            if any(re.search(p, hook) for p in patterns):
+                triggered_types.append(trigger_type)
+        if triggered_types:
+            score += 2.0
+        else:
+            issues.append(
+                "好奇心トリガー（具体的な数字 / 問い / 秘密暴露）がない。"
+                "「知っていること」と「知りたいこと」のギャップを作れていない。"
+            )
+            suggestions.append(
+                "具体的な数字（「手取り24万」「時給1,800円」）か"
+                "「実は」「正体」等の秘密暴露ワードを入れる"
+            )
+
+        matched_str = ", ".join(matched_5w1h) if matched_5w1h else "なし"
+        detail = (
+            f"文字数:{char_len}文字 / "
+            f"オープンループ:{'あり' if has_open_loop else 'なし'} / "
+            f"現場語:{'あり' if has_nursing_term else 'なし'} / "
+            f"5W1H:{matched_str}({len(matched_5w1h)}要素) / "
+            f"好奇心トリガー:{', '.join(triggered_types) if triggered_types else 'なし'}"
+        )
+
+        return AppealScore(
+            dimension="hook_power",
+            label="フック訴求力",
+            score=score,
+            issues=issues,
+            suggestions=suggestions,
+            detail=detail,
+        )
+
+    # ----------------------------------------------------------------
+    # 2. ボディ構造チェック
+    # ----------------------------------------------------------------
+
+    def check_body_structure(self, slides: List[str]) -> AppealScore:
+        """
+        スライド本文（2枚目以降）の構造品質を 0-10 でスコアリング。
+
+        採点:
+            +2.5  詰め込みスライド（3文以上&4行以上）が1枚以内
+            +2.5  共感→構造→提案フローの要素が2/3以上ある
+            +2.5  テキスト過多スライド（>80文字）が1枚以内
+            +2.5  各スライドに前スライドにない新規ワードが2語以上ある
+        """
+        issues: List[str] = []
+        suggestions: List[str] = []
+        score = 0.0
+
+        if not slides:
+            return AppealScore(
+                dimension="body_structure",
+                label="ボディ構造",
+                score=0.0,
+                issues=["スライドデータが空（2枚目以降のボディが必要）"],
+                suggestions=["最低3枚以上のスライドを設計する（共感→情報→CTA）"],
+                detail="スライドなし",
+            )
+
+        multi_message_slides: List[int] = []
+        for i, text in enumerate(slides):
+            sentence_count = len(re.findall(r"[。！？!?]+", text))
+            line_count = len([ln for ln in text.split("\n") if ln.strip()])
+            if sentence_count >= 3 and line_count >= 4:
+                multi_message_slides.append(i + 1)
+                issues.append(
+                    f"スライド{i+1}: {sentence_count}文/{line_count}行は1枚に多すぎる"
+                    f"（1スライド1メッセージ原則違反）"
+                )
+        if len(multi_message_slides) == 0:
+            score += 2.5
+        else:
+            suggestions.append(
+                f"詰め込みスライド（{multi_message_slides}）を分割する。1枚に伝えることは1つだけ。"
+            )
+
+        all_body = " ".join(slides)
+        has_empathy   = any(w in all_body for w in _FLOW_EMPATHY)
+        has_structure = any(w in all_body for w in _FLOW_STRUCTURE)
+        has_proposal  = any(w in all_body for w in _FLOW_PROPOSAL)
+        flow_count = sum([has_empathy, has_structure, has_proposal])
+        if flow_count >= 2:
+            score += 2.5
+        else:
+            missing = []
+            if not has_empathy:
+                missing.append("共感（あるある/よね/ない？）")
+            if not has_structure:
+                missing.append("構造（データ/理由/なぜ/実は）")
+            if not has_proposal:
+                missing.append("提案（できる/方法/選択肢）")
+            issues.append(f"共感→構造→提案フローが不完全。不足: {'/'.join(missing)}")
+            suggestions.append(
+                "2枚目に共感描写→3-5枚目にデータ/理由→最終枚に解決策/CTAの流れを作る"
+            )
+
+        heavy: List[int] = [
+            i + 1 for i, t in enumerate(slides)
+            if len(t.replace("\n", "").replace(" ", "")) > 80
+        ]
+        if len(heavy) <= 1:
+            score += 2.5
+        else:
+            issues.append(
+                f"スライド{heavy}が80文字超え。3秒で読み切れない→途中でスワイプされる。"
+            )
+            suggestions.append(
+                "1スライドのテキストは本文80文字以内。超える場合はスライドを2枚に分割する。"
+            )
+
+        seen_words: set = set()
+        escalation_fails = 0
+        for i, text in enumerate(slides[1:], start=2):
+            words = set(re.findall(
+                r"[\u4e00-\u9fff\u30a0-\u30ff\u3040-\u309f]{2,}", text
+            ))
+            new_words = words - seen_words
+            if len(words) > 0 and len(new_words) < 2:
+                escalation_fails += 1
+            seen_words |= words
+        if escalation_fails <= 1:
+            score += 2.5
+        else:
+            issues.append(
+                f"{escalation_fails}枚のスライドで新しい情報が追加されていない。"
+                "「次も読もう」という動機が失われる。"
+            )
+            suggestions.append(
+                "各スライドに前スライドにない新しい数字・視点・事実を1つ以上追加する"
+            )
+
+        detail = (
+            f"スライド{len(slides)}枚 / "
+            f"詰め込み:{len(multi_message_slides)}枚 / "
+            f"フロー:{flow_count}/3要素 / "
+            f"テキスト過多:{len(heavy)}枚 / "
+            f"エスカレ失敗:{escalation_fails}枚"
+        )
+
+        return AppealScore(
+            dimension="body_structure",
+            label="ボディ構造",
+            score=score,
+            issues=issues,
+            suggestions=suggestions,
+            detail=detail,
+        )
+
+    # ----------------------------------------------------------------
+    # 3. CTA効果チェック
+    # ----------------------------------------------------------------
+
+    def check_cta_effectiveness(self, cta_text: str, cta_type: str) -> AppealScore:
+        """
+        CTAテキストの自然さ・効果を 0-10 でスコアリング。
+
+        採点:
+            +3.0  強引な表現（PUSHY_CTA）を含まない
+            +3.0  cta_typeに合った誘導語を使っている
+            +4.0  価値提示が明確（ハード）or 体験が想像できる（ソフト）
+        """
+        issues: List[str] = []
+        suggestions: List[str] = []
+        score = 0.0
+        cta_type = (cta_type or "soft").lower().strip()
+        if cta_type not in ("soft", "hard"):
+            cta_type = "soft"
+
+        found_pushy = [p for p in PUSHY_CTA if p in cta_text]
+        if not found_pushy:
+            score += 3.0
+        else:
+            issues.append(
+                f"強引なCTA表現を検出: {found_pushy}。"
+                "看護師は「売り込まれた」と感じた瞬間に離脱する。"
+            )
+            suggestions.append(
+                "「今すぐ」「限定」を削除し「気になった人は」「プロフのリンクから」に置き換える"
+            )
+
+        soft_vocab = ["保存", "フォロー", "コメント", "教えて", "送って", "続き"]
+        hard_vocab = ["LINE", "プロフ", "リンク", "相談", "求人", "登録"]
+        has_soft = any(w in cta_text for w in soft_vocab)
+        has_hard = any(w in cta_text for w in hard_vocab)
+
+        if cta_type == "soft":
+            if has_soft:
+                score += 3.0
+            else:
+                issues.append(
+                    "ソフトCTAに「保存/フォロー/コメント」等の低ハードル誘導語がない。"
+                )
+                suggestions.append(
+                    "「保存しておくと転職する時に役立つよ」「コメントで教えて」を使う"
+                )
+        else:
+            if has_hard:
+                score += 3.0
+            else:
+                issues.append(
+                    "ハードCTAに「LINE/プロフ/求人/相談」等の行き先が明示されていない。"
+                )
+                suggestions.append(
+                    "「LINEで非公開求人も見れるよ」「プロフから無料相談できるよ」のように行き先を明示"
+                )
+
+        cta_len = len(cta_text)
+        if cta_type == "soft":
+            soft_value = ["役立つ", "参考", "見返して", "次回", "詳しく", "調べる", "保存", "教えて"]
+            has_value = any(w in cta_text for w in soft_value)
+            if has_value and cta_len <= 40:
+                score += 4.0
+            elif has_value:
+                score += 2.5
+                issues.append(f"ソフトCTAが{cta_len}文字と長い（推奨40文字以内）。")
+                suggestions.append("ソフトCTAは1文・40文字以内で完結させる")
+            else:
+                score += 1.0
+                issues.append(
+                    "ソフトCTAに行動後の体験イメージがない。なぜ保存/フォローするのかが伝わらない。"
+                )
+                suggestions.append("「保存しておくと転職する時に役立つよ」のように体験を一言で伝える")
+        else:
+            hard_value = ["非公開求人", "手数料10%", "無料", "転職サポート", "市場価値", "求人", "相談"]
+            has_value = any(w in cta_text for w in hard_value)
+            if has_value:
+                score += 4.0
+            else:
+                score += 1.5
+                issues.append(
+                    "ハードCTAに具体的な価値（非公開求人/手数料10%/無料相談等）がない。"
+                )
+                suggestions.append(
+                    "「LINEで非公開求人も見れるよ」「手数料10%の転職サポート、詳しくはプロフから」を使う"
+                )
+
+        detail = (
+            f"タイプ:{cta_type} / "
+            f"強引表現:{found_pushy if found_pushy else 'なし'} / "
+            f"文字数:{cta_len}文字"
+        )
+
+        return AppealScore(
+            dimension="cta_effectiveness",
+            label="CTA効果",
+            score=min(score, 10.0),
+            issues=issues,
+            suggestions=suggestions,
+            detail=detail,
+        )
+
+    # ----------------------------------------------------------------
+    # 4. ブランドボイスチェック
+    # ----------------------------------------------------------------
+
+    def check_brand_voice(self, text: str) -> AppealScore:
+        """
+        テキストがロビーのブランドボイスに沿っているかを 0-10 でスコアリング。
+
+        採点:
+            +2.5  ロビーらしい文末語尾（だよ/だね/なんだよね等）が使われている
+            +2.5  禁止表現（BANNED_WORDS）を含まない
+            +2.5  陳腐表現（WEAK_EMPATHY）を含まない
+            +2.5  敬語（です・ます）が文末の40%未満
+        """
+        issues: List[str] = []
+        suggestions: List[str] = []
+        score = 0.0
+
+        if len(text) >= 100:
+            has_robby_ending = any(ending in text for ending in ROBBY_ENDINGS)
+            if has_robby_ending:
+                score += 2.5
+            else:
+                issues.append(
+                    "ロビーらしい文末語尾（〜だよ/〜だね/〜なんだよね）が見当たらない。"
+                    "キャラクター感が消えて「別のサービスのコンテンツ」に見える。"
+                )
+                suggestions.append(
+                    "文末を「〜だよ」「〜なんだよね」「〜かも」に統一する。"
+                    "一人称が「私/僕」なら「ロビー」に修正する。"
+                )
+        else:
+            score += 2.5
+
+        found_banned = [w for w in BANNED_WORDS if w in text]
+        if not found_banned:
+            score += 2.5
+        else:
+            issues.append(
+                f"禁止表現を検出: {found_banned[:5]}。AI臭・広告臭・過剰断言はブランドへの信頼を損なう。"
+            )
+            suggestions.append(
+                "具体的な数字や事実に置き換える。「絶対」→「多くの場合」、「圧倒的な」→数字で表現"
+            )
+
+        found_weak = [w for w in WEAK_EMPATHY if w in text]
+        if not found_weak:
+            score += 2.5
+        else:
+            issues.append(
+                f"薄い共感・陳腐表現を検出: {found_weak}。テンプレート感が出て信頼を失う。"
+            )
+            suggestions.append(
+                "具体的なシーン描写に変える。「つらいよね」→「夜勤明けに書類を書く、それが当たり前になってた話」"
+            )
+
+        desu_masu_count = len(
+            re.findall(r"(?:です|ます|でした|ました|ください|でしょう)[。\n\s]", text)
+        )
+        total_sentences = max(len(re.findall(r"[。！？!?]+", text)), 1)
+        desu_masu_ratio = desu_masu_count / total_sentences
+
+        if desu_masu_ratio < 0.4:
+            score += 2.5
+        elif desu_masu_ratio < 0.7:
+            score += 1.5
+            issues.append(
+                f"敬語の文が約{int(desu_masu_ratio*100)}%。"
+                "ロビーはタメ口ベースのキャラクター。「丁寧すぎる」は距離感を生む。"
+            )
+            suggestions.append("「〜です」→「〜だよ」、「〜ます」→「〜するよ」に書き換える")
+        else:
+            issues.append(
+                f"敬語の文が約{int(desu_masu_ratio*100)}%と多い。ロビーは「です・ます」を使わない。"
+            )
+            suggestions.append("ロビーの口調: 一人称「ロビー」・「〜だよ」「〜なんだ」で統一")
+
+        detail = (
+            f"禁止表現:{len(found_banned)}個 / "
+            f"陳腐表現:{len(found_weak)}個 / "
+            f"敬語比率:{int(desu_masu_ratio*100)}%"
+        )
+
+        return AppealScore(
+            dimension="brand_voice",
+            label="ブランドボイス",
+            score=score,
+            issues=issues,
+            suggestions=suggestions,
+            detail=detail,
+        )
+
+    # ----------------------------------------------------------------
+    # 5. ターゲット共鳴チェック
+    # ----------------------------------------------------------------
+
+    def check_target_resonance(self, text: str) -> AppealScore:
+        """
+        「ミサキ（28歳・急性期・夜勤あり）が自分のことだと感じるか」を 0-10 でスコアリング。
+
+        採点:
+            +3.0  ミサキのペインポイント（人間関係/夜勤/給与等）が1つ以上
+            +3.0  ミサキの具体的状況（5年目/急性期/夜勤明け等）を連想させる語がある
+            +2.0  一般的アドバイス口調（しましょう/すべき）でなく「一緒に考える」スタンス
+            +2.0  神奈川・地域名が含まれる（地域特化 = 大手との差別化）/ 地域名なしは+1
+        """
+        issues: List[str] = []
+        suggestions: List[str] = []
+        score = 0.0
+
+        found_pain = [p for p in _MISAKI_PAIN_POINTS if p in text]
+        if found_pain:
+            score += 3.0
+        else:
+            issues.append(
+                "ミサキのペインポイント（人間関係/夜勤/給与/師長/残業/辞めたい等）が見当たらない。"
+                "「誰向けか」がわからない汎用コンテンツ。"
+            )
+            suggestions.append(
+                "「夜勤」「師長」「手取り」「有給」等、ミサキが日常的に感じる悩みを1語以上入れる"
+            )
+
+        found_situation = [s for s in _MISAKI_SITUATION if s in text]
+        if found_situation:
+            score += 3.0
+        else:
+            issues.append(
+                "ミサキの具体的な状況（5年目/急性期/病棟/夜勤明け等）が伝わらない。"
+                "「これ私のことだ」という即反応が起きない。"
+            )
+            suggestions.append(
+                "「5年目の看護師」「急性期病棟」「帰りの電車」等、ミサキが一致する状況描写を1箇所入れる"
+            )
+
+        generic_patterns = [
+            r"しましょう", r"すべき", r"大切です", r"重要です",
+            r"することをおすすめ", r"意識しましょう", r"心がけ",
+        ]
+        found_generic = [p for p in generic_patterns if re.search(p, text)]
+        if not found_generic:
+            score += 2.0
+        else:
+            issues.append(
+                f"一般的アドバイス口調を検出: {found_generic[:3]}。"
+                "「教える」スタンスはミサキに「上から目線」と感じさせる。"
+            )
+            suggestions.append(
+                "「〜しましょう」→「〜してみて」「〜かも」に変える。「一緒に考える」スタンスで書く。"
+            )
+
+        has_local = any(kw in text for kw in _KANAGAWA_KEYWORDS)
+        if has_local:
+            score += 2.0
+        else:
+            score += 1.0
+            issues.append(
+                "神奈川・地域名が含まれていない。地域特化は大手がやらない最大の差別化ポイント。"
+            )
+            suggestions.append("「神奈川の看護師は〜」「横浜の病院では〜」等、地域名を1箇所入れる")
+
+        detail = (
+            f"ペインポイント:{found_pain[:3] if found_pain else 'なし'} / "
+            f"状況描写:{found_situation[:3] if found_situation else 'なし'} / "
+            f"一般アドバイス:{len(found_generic)}件 / "
+            f"地域名:{'あり' if has_local else 'なし'}"
+        )
+
+        return AppealScore(
+            dimension="target_resonance",
+            label="ターゲット共鳴",
+            score=min(score, 10.0),
+            issues=issues,
+            suggestions=suggestions,
+            detail=detail,
+        )
+
+    # ----------------------------------------------------------------
+    # 6. メインエントリポイント
+    # ----------------------------------------------------------------
+
+    def evaluate_post(self, post: dict) -> AppealResult:
+        """
+        投稿データ全体の訴求力を評価する。
+
+        Args:
+            post (dict):
+                hook      (str)   : 1枚目フックテキスト（必須）
+                slides    (list)  : スライドのリスト（str or dict）
+                cta_text  (str)   : CTAテキスト（省略可）
+                cta_type  (str)   : "soft" or "hard"（省略可、自動判定）
+                body_text (str)   : 本文全体（省略可、slides から自動結合）
+
+        Returns:
+            AppealResult: 5軸スコア + composite_score + pass_fail
+        """
+        hook: str = post.get("hook") or post.get("hook_text") or ""
+
+        raw_slides = post.get("slides", [])
+        slides: List[str] = []
+        for s in raw_slides:
+            if isinstance(s, str):
+                slides.append(s)
+            elif isinstance(s, dict):
+                parts = [str(s[k]) for k in ("title", "body", "text") if s.get(k)]
+                slides.append("\n".join(parts))
+
+        body_text: str = post.get("body_text", "") or "\n".join(slides)
+
+        cta_text: str = post.get("cta_text", "")
+        if not cta_text and slides:
+            cta_text = slides[-1]
+
+        raw_cta_type: str = post.get("cta_type", "")
+        if raw_cta_type:
+            cta_type = raw_cta_type
+        else:
+            cta_type = "hard" if any(w in cta_text for w in HARD_CTA_WORDS) else "soft"
+
+        all_text = hook + "\n" + body_text
+
+        hook_score      = self.check_hook_power(hook)
+        body_score      = self.check_body_structure(slides)
+        cta_score       = self.check_cta_effectiveness(cta_text, cta_type)
+        voice_score     = self.check_brand_voice(all_text)
+        resonance_score = self.check_target_resonance(all_text)
+
+        scores_map: Dict[str, float] = {
+            "hook_power":        hook_score.score,
+            "target_resonance":  resonance_score.score,
+            "body_structure":    body_score.score,
+            "brand_voice":       voice_score.score,
+            "cta_effectiveness": cta_score.score,
+        }
+        composite = sum(
+            scores_map[dim] * weight for dim, weight in self.WEIGHTS.items()
+        )
+
+        blocking: List[str] = []
+        for s_obj in [hook_score, body_score, cta_score, voice_score, resonance_score]:
+            if s_obj.score <= 3.0 and s_obj.issues:
+                blocking.append(f"[{s_obj.label}] {s_obj.issues[0]}")
+
+        return AppealResult(
+            hook_power=hook_score,
+            body_structure=body_score,
+            cta_effectiveness=cta_score,
+            brand_voice=voice_score,
+            target_resonance=resonance_score,
+            composite_score=round(composite, 2),
+            pass_fail=(composite >= self.PASS_THRESHOLD and len(blocking) == 0),
+            blocking_issues=blocking,
+        )
+
+
+# ----------------------------------------------------------
+# AppealChecker: フォーマット出力
+# ----------------------------------------------------------
+
+def format_appeal_result(result: AppealResult, verbose: bool = True) -> str:
+    """AppealResult を人間が読みやすいテキスト形式に変換する。"""
+    lines: List[str] = []
+    sep = "=" * 60
+
+    lines.append(sep)
+    lines.append("  訴求力チェック結果  (AppealChecker v1.0)")
+    lines.append(sep)
+
+    verdict = "PASS \u2713" if result.pass_fail else "FAIL \u2717"
+    lines.append(
+        f"  総合スコア: {result.composite_score:.1f} / 10.0  "
+        f"[{verdict}]  (合格閾値: {AppealChecker.PASS_THRESHOLD:.1f})"
+    )
+    lines.append("")
+
+    lines.append("  --- 5軸スコア ---")
+    all_scores = [
+        result.hook_power,
+        result.target_resonance,
+        result.body_structure,
+        result.brand_voice,
+        result.cta_effectiveness,
+    ]
+    for s in all_scores:
+        weight_pct = int(AppealChecker.WEIGHTS.get(s.dimension, 0) * 100)
+        bar_fill = int(s.score)
+        bar = "\u2588" * bar_fill + "\u2591" * (10 - bar_fill)
+        lines.append(
+            f"  {s.label:<14s}  {bar}  {s.score:.1f}/10  (重み{weight_pct}%)"
+        )
+
+    if result.blocking_issues:
+        lines.append("")
+        lines.append("  --- ブロッキング問題（公開前に修正必須）---")
+        for issue in result.blocking_issues:
+            lines.append(f"  \u2717 {issue}")
+
+    if verbose:
+        lines.append("")
+        lines.append("  --- 詳細 ---")
+        for s in all_scores:
+            lines.append(f"\n  [{s.label}]  {s.score:.1f}/10")
+            lines.append(f"    {s.detail}")
+            for issue in s.issues:
+                lines.append(f"    \u2717 {issue}")
+            for sug in s.suggestions:
+                lines.append(f"    -> {sug}")
+
+    lines.append("")
+    lines.append(sep)
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="SNSカルーセル品質チェッカー — 神は細部に宿る",
@@ -1798,16 +3402,52 @@ def main():
     parser.add_argument("--strict", action="store_true", help="厳格モード (WCAG AAA)")
     parser.add_argument("-q", "--quiet", action="store_true", help="サマリのみ表示")
 
+    # --- cron / gate interface ---
+    # These three flags all run the same full checker and emit compact gate JSON.
+    # Kept as separate flags for shell-script readability / future divergence.
+    parser.add_argument(
+        "--fact-check", type=Path, metavar="QUEUE_FILE",
+        help="FactCheck モード: キューアイテムNのファクト品質をチェック（gate JSON出力）"
+    )
+    parser.add_argument(
+        "--appeal-check", type=Path, metavar="QUEUE_FILE",
+        help="AppealCheck モード: キューアイテムNの訴求品質をチェック（gate JSON出力）"
+    )
+    parser.add_argument(
+        "--full-check", type=Path, metavar="QUEUE_FILE",
+        help="フルチェック: fact + appeal の両方をチェック（gate JSON出力）"
+    )
+    parser.add_argument(
+        "--appeal-demo", action="store_true",
+        help="AppealChecker デモ: サンプル投稿で訴求力チェックを実行して結果を表示"
+    )
+
     args = parser.parse_args()
 
     if args.standards:
         print_standards()
         return
 
+    if args.appeal_demo:
+        _run_appeal_demo()
+        return
+
+    # Gate interface: --fact-check / --appeal-check / --full-check
+    # All three emit the same compact JSON; the shell script combines scores itself.
+    for gate_flag in (args.fact_check, args.appeal_check, args.full_check):
+        if gate_flag is not None:
+            result = gate_check_queue_item(gate_flag, args.index)
+            print(json.dumps(result, ensure_ascii=False))
+            return
+
+    # --audit with gate JSON output
     if args.audit:
-        reports = audit_queue(args.audit)
         if args.json:
-            print(json.dumps([r.to_dict() for r in reports], ensure_ascii=False, indent=2))
+            # Gate-mode audit: emit list of {index, hook, result} for cron script
+            results = gate_audit_queue(args.audit)
+            print(json.dumps(results, ensure_ascii=False, indent=2))
+        else:
+            reports = audit_queue(args.audit)
         return
 
     if args.script:
@@ -1853,6 +3493,47 @@ def main():
     )
 
     print(format_report(report, verbose=True))
+
+
+def _run_appeal_demo() -> None:
+    """
+    AppealChecker のデモを2投稿（PASS例・FAIL例）で実行して結果を表示する。
+    CLI: python3 scripts/quality_checker.py --appeal-demo
+    """
+    print("\n=== AppealChecker デモ (2投稿比較) ===\n")
+
+    # --- PASS例: 良い投稿 ---
+    good_post = {
+        "hook": "夜勤月8回の看護師の時給、コンビニと同じって本当？",
+        "slides": [
+            "夜勤明けの帰り道、ふと計算したことある？\n夜勤1回8時間、手当は1万2千円。\n時給換算すると…1,500円。コンビニと同じよね。",
+            "ロビーが調べたんだけど、神奈川の夜勤手当、\n病院によって月5万〜12万の差があるんだ。\n同じ看護師なのに、なぜこんなに違うの？",
+            "実は交渉できる病院が増えてるんだよね。\n「夜勤手当の交渉なんてできない」って思ってた人が\n転職で月3万上がったケースもある。",
+            "神奈川の非公開求人、気になったらプロフのリンクからどうぞ。\n手数料10%だから、病院も喜んでくれるよ。",
+        ],
+        "cta_text": "神奈川の非公開求人、気になったらプロフのリンクからどうぞ。",
+        "cta_type": "hard",
+    }
+
+    # --- FAIL例: 問題のある投稿 ---
+    bad_post = {
+        "hook": "看護師の皆さんへ大切なお知らせです",
+        "slides": [
+            "転職を考えている方は、ぜひ今すぐ登録してください！\n絶対に後悔しません。充実したサポートで安心・安全・信頼の転職を！\n今だけ限定キャンペーン中。残りわずかです。",
+            "転職しましょう。転職は大切です。\n転職することをおすすめします。意識しましょう。",
+        ],
+        "cta_text": "今すぐ登録！限定特別キャンペーン！登録しないと損！",
+        "cta_type": "hard",
+    }
+
+    ac = AppealChecker()
+
+    for label, post in [("良い投稿（PASS期待）", good_post), ("問題のある投稿（FAIL期待）", bad_post)]:
+        print(f"--- {label} ---")
+        print(f"  フック: 「{post['hook']}」")
+        result = ac.evaluate_post(post)
+        print(format_appeal_result(result, verbose=True))
+        print()
 
 
 if __name__ == "__main__":
