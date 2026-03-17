@@ -2307,6 +2307,7 @@ const POSTBACK_LABELS = {
 
 // Q3エリア → データキーのマッピング
 const AREA_ZONE_MAP = {
+  // LINE Bot用（9エリア）
   q3_yokohama:       ["横浜"],
   q3_kawasaki:       ["川崎"],
   q3_sagamihara:     ["相模原"],
@@ -2316,6 +2317,12 @@ const AREA_ZONE_MAP = {
   q3_kenoh:          ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
   q3_kensei:         ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原"],
   q3_undecided:      [],
+  // 診断用（5エリア→複数エリアに展開）
+  q3_yokohama_kawasaki:  ["横浜", "川崎"],
+  q3_shonan_kamakura:    ["藤沢", "茅ヶ崎", "鎌倉", "寒川", "逗子", "葉山"],
+  q3_odawara_seisho:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
+  q3_sagamihara_kenoh:   ["相模原", "厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
+  q3_yokosuka_miura_web: ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
 };
 
 // PC用テキスト→postbackキーマッピング
@@ -3907,22 +3914,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           if (!webSession) webSession = webSessionMap.get(userText);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;
-            const webAreaMap = {
-              // shindan.js値 → worker.js値
-              yokohama_kawasaki: "yokohama",  // 横浜・川崎 → 横浜をプライマリに
-              shonan_kamakura: "shonan_east",  // 湘南・鎌倉 → 藤沢・茅ヶ崎
-              odawara_seisho: "kensei",        // 小田原・県西 → 小田原・南足柄
-              sagamihara_kenoh: "sagamihara",  // 相模原・県央 → 相模原
-              yokosuka_miura: "yokosuka_miura",// そのまま
-              // worker.js直接値（LINE Bot内での選択）
-              yokohama: "yokohama", kawasaki: "kawasaki", sagamihara: "sagamihara",
-              shonan_east: "shonan_east", shonan_west: "shonan_west",
-              kenoh: "kenoh", kensei: "kensei", undecided: "undecided",
-            };
             // 診断7問のデータを全てentryにマッピング
-            if (webSession.area && webAreaMap[webSession.area]) {
-              entry.area = webAreaMap[webSession.area];
-              entry.areaLabel = POSTBACK_LABELS[`q3_${entry.area}`] || webSession.area;
+            // エリア: shindan.jsの値をそのままentry.areaに（AREA_ZONE_MAPで展開される）
+            const areaLabelMap = { yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉", odawara_seisho: "小田原・県西", sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦" };
+            if (webSession.area) {
+              entry.area = webSession.area;
+              entry.areaLabel = areaLabelMap[webSession.area] || POSTBACK_LABELS[`q3_${webSession.area}`] || webSession.area;
             }
             // 経験年数
             const webExpMap = { "1to3": "1to3", "3to5": "3to5", "5to10": "5to10", "10plus": "over10", "blank": "under1" };
