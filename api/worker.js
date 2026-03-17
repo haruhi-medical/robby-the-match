@@ -3894,7 +3894,18 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           const webSession = webSessionMap.get(userText);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;
-            const webAreaMap = { yokohama: "yokohama", kawasaki: "kawasaki", sagamihara: "sagamihara", yokosuka_miura: "yokosuka_miura", shonan_east: "shonan_east", shonan_west: "shonan_west", kenoh: "kenoh", kensei: "kensei", undecided: "undecided" };
+            const webAreaMap = {
+              // shindan.js値 → worker.js値
+              yokohama_kawasaki: "yokohama",  // 横浜・川崎 → 横浜をプライマリに
+              shonan_kamakura: "shonan_east",  // 湘南・鎌倉 → 藤沢・茅ヶ崎
+              odawara_seisho: "kensei",        // 小田原・県西 → 小田原・南足柄
+              sagamihara_kenoh: "sagamihara",  // 相模原・県央 → 相模原
+              yokosuka_miura: "yokosuka_miura",// そのまま
+              // worker.js直接値（LINE Bot内での選択）
+              yokohama: "yokohama", kawasaki: "kawasaki", sagamihara: "sagamihara",
+              shonan_east: "shonan_east", shonan_west: "shonan_west",
+              kenoh: "kenoh", kensei: "kensei", undecided: "undecided",
+            };
             if (webSession.area && webAreaMap[webSession.area]) {
               entry.area = webAreaMap[webSession.area];
               entry.areaLabel = POSTBACK_LABELS[`q3_${entry.area}`] || webSession.area;

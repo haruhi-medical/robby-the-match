@@ -511,7 +511,7 @@
     codeEl.style.cssText = 'text-align:center;padding:12px;margin-top:12px;background:#f0f8ff;border-radius:8px;font-size:0.95em;color:#333;';
     r.appendChild(codeEl);
 
-    fetch('/api/web-session', {
+    fetch('https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/web-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
