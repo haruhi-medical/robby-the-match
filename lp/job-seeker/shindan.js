@@ -312,10 +312,15 @@
       s.appendChild(g);
       C.appendChild(s);
 
-      // Auto-focus first option
+      // Auto-focus first option (only when user has scrolled to shindan)
       var firstBtn = g.querySelector('.shindan-btn');
       if (firstBtn) {
-        setTimeout(function () { firstBtn.focus(); }, reducedMotion ? 0 : 400);
+        setTimeout(function () {
+          var rect = C.getBoundingClientRect();
+          if (rect.top < window.innerHeight && rect.bottom > 0) {
+            firstBtn.focus({ preventScroll: true });
+          }
+        }, reducedMotion ? 0 : 400);
       }
 
       // Keyboard navigation
@@ -338,7 +343,7 @@
         if (next >= 0) {
           e.preventDefault();
           btns.forEach(function (b, i) { b.tabIndex = i === next ? 0 : -1; });
-          btns[next].focus();
+          btns[next].focus({ preventScroll: true });
         }
       });
     }
@@ -536,9 +541,24 @@
     }
   }
 
+  /* ── Lazy init: 診断セクションがビューポートに入ったら初期化 ── */
+  function lazyInit() {
+    var container = document.getElementById('shindan-container');
+    if (!container) return;
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          observer.disconnect();
+          init();
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px' });
+    observer.observe(container);
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', lazyInit);
   } else {
-    init();
+    lazyInit();
   }
 })();

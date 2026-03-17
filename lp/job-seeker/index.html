@@ -245,7 +245,6 @@
         }
 
         html {
-            scroll-behavior: smooth;
             -webkit-text-size-adjust: 100%;
         }
 
@@ -398,16 +397,13 @@
         .hero {
             position: relative;
             overflow: hidden;
-            background: #ffffff;
+            background: #1a1a2e;
         }
 
         .hero-img {
             display: block;
             width: 100%;
             height: auto;
-            max-height: 85vh;
-            object-fit: cover;
-            object-position: left center;
         }
 
         /* SEO用: h1等は画像に焼き込み済みなのでvisually hidden */
@@ -1203,6 +1199,17 @@
             }
         }
 
+        /* === Tablet (768-1023px) === */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            section {
+                padding: 100px 48px;
+            }
+
+            .flow-steps {
+                max-width: 680px;
+            }
+        }
+
         @media (min-width: 1024px) {
             .section-inner {
                 max-width: 960px;
@@ -1264,11 +1271,6 @@
                 display: block;
             }
 
-            .hero-img {
-                max-height: 56vh;
-                object-position: 30% center;
-            }
-
             .hero-sub-title::before,
             .hero-sub-title::after {
                 display: none;
@@ -1279,7 +1281,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="shindan.css?v=4.0">
+    <link rel="stylesheet" href="shindan.css?v=5.1">
 
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
@@ -1342,17 +1344,17 @@
             </div>
             <div class="features-grid">
                 <div class="feature-card reveal reveal-delay-1">
-                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4L28 16H40L30 24L34 36L24 28L14 36L18 24L8 16H20L24 4Z" fill="var(--primary)"/></svg></div>
                     <div class="feature-label">早い</div>
                     <p class="feature-desc">AIが24時間であなたの条件を分析。<br>待ち時間ゼロで求人をお届け。<br>スピーディーなマッチングを実現。</p>
                 </div>
                 <div class="feature-card reveal reveal-delay-2">
-                    <div class="feature-icon">&#128241;</div>
+                    <div class="feature-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="12" y="4" width="24" height="40" rx="4" stroke="var(--primary)" stroke-width="2.5" fill="none"/><line x1="20" y1="40" x2="28" y2="40" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><rect x="16" y="10" width="16" height="24" rx="1" fill="var(--primary-light)"/></svg></div>
                     <div class="feature-label">簡単</div>
                     <p class="feature-desc">AIの質問に答えるだけ。<br>経歴書もAIが下書き。<br>面倒な書類作成から解放。</p>
                 </div>
                 <div class="feature-card reveal reveal-delay-3">
-                    <div class="feature-icon">&#127769;</div>
+                    <div class="feature-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="18" stroke="var(--primary)" stroke-width="2.5" fill="none"/><line x1="24" y1="14" x2="24" y2="24" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><line x1="24" y1="24" x2="32" y2="28" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="24" r="2" fill="var(--primary)"/></svg></div>
                     <div class="feature-label">24時間</div>
                     <p class="feature-desc">夜勤明けでもOK。<br>深夜2時でも相談OK。<br>AIがあなたの味方に。</p>
                 </div>
@@ -1508,6 +1510,24 @@
                         <p class="faq-answer-inner">現在は神奈川県内の求人に特化しています。横浜・川崎・相模原・小田原・藤沢など県内全域に対応しています。</p>
                     </div>
                 </li>
+                <li class="faq-item">
+                    <button class="faq-question" aria-expanded="false">他のエージェントと掛け持ちしても大丈夫ですか？</button>
+                    <div class="faq-answer">
+                        <p class="faq-answer-inner">はい、問題ありません。他社と比較しながらご利用いただけます。当社は手数料10%なので、同じ求人でも病院側が採用しやすくなります。</p>
+                    </div>
+                </li>
+                <li class="faq-item">
+                    <button class="faq-question" aria-expanded="false">ブランクがあっても求人はありますか？</button>
+                    <div class="faq-answer">
+                        <p class="faq-answer-inner">はい、ブランクOKの求人も多数あります。復職支援制度のある病院や、教育体制の充実した施設もご紹介可能です。</p>
+                    </div>
+                </li>
+                <li class="faq-item">
+                    <button class="faq-question" aria-expanded="false">個人情報は安全ですか？</button>
+                    <div class="faq-answer">
+                        <p class="faq-answer-inner">厳重に管理しています。有料職業紹介事業者として厚生労働省の基準に則り、個人情報保護法を遵守しています。お預かりした情報を無断で病院に提供することはありません。</p>
+                    </div>
+                </li>
             </ul>
         </div>
     </section>
@@ -1547,6 +1567,21 @@
     <script>
     (function() {
         'use strict';
+
+        /* --- ページ読み込み時のハッシュジャンプ防止 --- */
+        if (window.location.hash) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+            window.scrollTo(0, 0);
+        }
+        document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+            a.addEventListener('click', function(e) {
+                var target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
 
         /* --- FAQ Accordion --- */
         document.querySelectorAll('.faq-question').forEach(function(btn) {
@@ -1618,6 +1653,6 @@
     </script>
 
     <!-- Shindan -->
-    <script src="shindan.js?v=4.0"></script>
+    <script src="shindan.js?v=5.1"></script>
 </body>
 </html>
