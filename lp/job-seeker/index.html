@@ -407,7 +407,7 @@
             height: auto;
             max-height: 85vh;
             object-fit: cover;
-            object-position: center;
+            object-position: left center;
         }
 
         /* SEO用: h1等は画像に焼き込み済みなのでvisually hidden */
@@ -429,7 +429,7 @@
             left: 0;
             right: 0;
             padding: 20px 24px 28px;
-            background: linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 100%);
+            background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%);
             text-align: center;
             z-index: 2;
         }
@@ -1264,6 +1264,11 @@
                 display: block;
             }
 
+            .hero-img {
+                max-height: 56vh;
+                object-position: 30% center;
+            }
+
             .hero-sub-title::before,
             .hero-sub-title::after {
                 display: none;
@@ -1314,12 +1319,17 @@
 
     <!-- Hero -->
     <section class="hero" id="hero">
-        <img src="../../assets/hero-nurse-new.png" alt="夜勤の休憩中にスマホで転職相談する看護師 — シン・AI転職" class="hero-img" width="2752" height="1536" fetchpriority="high">
+        <img src="../../assets/hero-nurse-new.jpg" alt="夜勤の休憩中にスマホで転職相談する看護師 — シン・AI転職" class="hero-img" width="1500" height="837" fetchpriority="high">
         <!-- SEO用（画像に焼き込み済みのテキスト） -->
         <div class="hero-sr-only">
             <h1>夜勤の休憩中に、転職が決まる。</h1>
             <p>シン・AI転職 — 早い × 簡単 × 24時間</p>
             <p>神奈川県の看護師専門・完全無料・電話なし</p>
+        </div>
+        <!-- CTAオーバーレイ（画像の下部に配置） -->
+        <div class="hero-cta-overlay">
+            <a href="#shindan" class="cta-primary" onclick="typeof fbq==='function'&&fbq('track','Lead');">30秒で診断スタート &#9654;</a>
+            <p class="hero-note">※完全無料でご利用できます</p>
         </div>
     </section>
 
