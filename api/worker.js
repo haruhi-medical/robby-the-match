@@ -2167,7 +2167,12 @@ const PHASE_FLOW_FULL = {
   q10_qualification:"resume_confirm",
   resume_confirm:   "matching",
   matching:         "ai_consultation",
-  ai_consultation:  "handoff",
+  ai_consultation:  "apply_info",
+  apply_info:       "apply_consent",
+  apply_consent:    "career_sheet",
+  career_sheet:     "apply_confirm",
+  apply_confirm:    "interview_prep",
+  interview_prep:   "handoff",
   handoff:          null,
 };
 
@@ -2180,7 +2185,12 @@ const PHASE_FLOW_MEDIUM = {
   q4_experience:    "q5_workstyle",
   q5_workstyle:     "matching",
   matching:         "ai_consultation",
-  ai_consultation:  "handoff",
+  ai_consultation:  "apply_info",
+  apply_info:       "apply_consent",
+  apply_consent:    "career_sheet",
+  career_sheet:     "apply_confirm",
+  apply_confirm:    "interview_prep",
+  interview_prep:   "handoff",
   handoff:          null,
 };
 
@@ -2191,7 +2201,12 @@ const PHASE_FLOW_SHORT = {
   q3_area:          "q4_experience",
   q4_experience:    "matching",
   matching:         "ai_consultation",
-  ai_consultation:  "handoff",
+  ai_consultation:  "apply_info",
+  apply_info:       "apply_consent",
+  apply_consent:    "career_sheet",
+  career_sheet:     "apply_confirm",
+  apply_confirm:    "interview_prep",
+  interview_prep:   "handoff",
   handoff:          null,
 };
 
@@ -2279,6 +2294,16 @@ const POSTBACK_LABELS = {
   match_other:  "他の施設も見たい",
   // 引き継ぎ
   handoff_ok:   "お願いします！",
+  // Phase 2: 応募フロー
+  apply_agree:   "同意して応募する",
+  apply_reselect:"施設を選び直す",
+  apply_cancel:  "やめておく",
+  sheet_ok:      "これでOK",
+  sheet_edit:    "修正したい",
+  prep_start:    "面接対策を見る",
+  prep_skip:     "わかりました",
+  prep_question: "質問がある",
+  prep_done:     "ありがとう！",
 };
 
 // Q3エリア → データキーのマッピング
@@ -2356,6 +2381,15 @@ const TEXT_TO_POSTBACK = {
   "他の施設": "match=other",
   "お願い": "handoff=ok",
   "スキップ": "q9=skip", "あとで": "q9=skip",
+  // Phase 2: 応募フロー
+  "同意して応募": "apply=agree", "応募する": "apply=agree",
+  "選び直す": "apply=reselect",
+  "やめておく": "apply=cancel", "やめる": "apply=cancel",
+  "これでOK": "sheet=ok", "OKです": "sheet=ok",
+  "面接対策": "prep=start",
+  "わかりました": "prep=skip",
+  "質問がある": "prep=question",
+  "ありがとう": "prep=done",
 };
 
 // ---------- ヘルパー関数 ----------
@@ -2452,6 +2486,15 @@ function createLineEntry() {
     // 同意・相談
     consentAt: null,
     consultMessages: [],
+    // Phase 2: 応募フロー
+    fullName: null,
+    birthDate: null,
+    phone: null,
+    currentWorkplace: null,
+    applyStep: null,
+    careerSheet: null,
+    appliedAt: null,
+    status: null,    // "registered" | "applied" | "interview" | "offered" | "employed"
     // メタ
     webSessionData: null,
     messageCount: 0,
@@ -2523,6 +2566,98 @@ function addLineMessage(userId, role, content) {
   entry.updatedAt = Date.now();
   lineConversationMap.set(userId, entry);
   return entry;
+}
+
+// ---------- キャリアシート生成 ----------
+function generateCareerSheet(entry) {
+  const name = entry.fullName || "（未入力）";
+  const birth = entry.birthDate || "（未入力）";
+  const phone = entry.phone || "（未入力）";
+  const qualification = POSTBACK_LABELS[`q10_${entry.qualification}`] || entry.qualification || "（未入力）";
+  const experience = POSTBACK_LABELS[`q4_${entry.experience}`] || entry.experience || "（未入力）";
+  const area = entry.areaLabel || "（未入力）";
+  const workStyle = POSTBACK_LABELS[`q5_${entry.workStyle}`] || entry.workStyle || "（未入力）";
+  const currentWorkplace = entry.currentWorkplace || "（未入力）";
+  const workHistory = entry.workHistoryText || "（未入力）";
+  const change = POSTBACK_LABELS[`q2_${entry.change}`] || entry.change || "（未入力）";
+  const strengths = (entry.strengths || []).map(s => POSTBACK_LABELS[`q7_${s}`] || s).join("、") || "（未入力）";
+  const concern = POSTBACK_LABELS[`q8_${entry.concern}`] || entry.concern || "なし";
+
+  const reasonMap = {
+    salary: "給与アップを希望しており、これまでの経験を活かしてより好条件の職場を探しています。",
+    rest: "ワークライフバランスを重視し、休日や勤務時間に余裕のある環境を希望しています。",
+    human: "より良い人間関係の職場環境を求めて、新たなチャレンジを検討しています。",
+    night: "夜勤の負担を軽減したいと考え、日勤中心の勤務体制を希望しています。",
+    commute: "通勤の負担を減らし、より近距離の職場を希望しています。",
+    career: "キャリアアップを目指し、専門性を高められる環境を探しています。",
+  };
+  const reason = reasonMap[entry.change] || "より良い環境での看護を目指して転職を検討しています。";
+
+  return `━━━━━━━━━━━━━━━━━━
+📋 キャリアシート
+━━━━━━━━━━━━━━━━━━
+
+■ 基本情報
+氏名: ${name}
+生年月日: ${birth}
+電話番号: ${phone}
+資格: ${qualification}
+経験年数: ${experience}
+
+■ 現在の勤務状況
+勤務先: ${currentWorkplace}
+
+■ 職務経歴
+${workHistory}
+
+■ 得意分野・スキル
+${strengths}
+
+■ 転職理由
+${reason}
+
+■ 希望条件
+エリア: ${area}
+働き方: ${workStyle}
+重視すること: ${change}
+
+■ 懸念事項
+${concern === "なし" ? "特になし" : concern}
+
+━━━━━━━━━━━━━━━━━━
+神奈川ナース転職（23-ユ-302928）
+━━━━━━━━━━━━━━━━━━`;
+}
+
+// ---------- 応募Slack通知 ----------
+async function sendApplyNotification(userId, entry, env) {
+  if (!env.SLACK_BOT_TOKEN) return;
+  const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+  const facilities = (entry.matchingResults || []).slice(0, 3);
+  const facilityNames = facilities.map(f => f.name).join("、");
+
+  const text = `🎯 *応募受付*\n\n` +
+    `👤 ${entry.fullName || "不明"}（${entry.birthDate || ""}）\n` +
+    `📞 ${entry.phone || "不明"}\n` +
+    `🏥 現職: ${entry.currentWorkplace || "不明"}\n` +
+    `📋 資格: ${POSTBACK_LABELS[`q10_${entry.qualification}`] || entry.qualification || "不明"}\n` +
+    `📊 経験: ${POSTBACK_LABELS[`q4_${entry.experience}`] || entry.experience || "不明"}\n` +
+    `🎯 応募先: ${facilityNames || "不明"}\n\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `${entry.careerSheet || "キャリアシート未生成"}\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `⏰ ${nowJST}\n` +
+    `ユーザーID: \`${userId}\`\n\n` +
+    `✅ *次のアクション*\n` +
+    `☐ 病院にキャリアシート送付\n` +
+    `☐ 3営業日以内に書類選考結果をLINEで連絡\n\n` +
+    `💬 返信: \`!reply ${userId} ここにメッセージ\``;
+
+  await fetch("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C09A7U4TV4G", text }),
+  }).catch(() => {});
 }
 
 // ---------- フェーズ別メッセージ+Quick Reply生成 ----------
@@ -2744,11 +2879,114 @@ function buildPhaseMessage(phase, entry) {
         },
       }];
 
-    case "handoff":
+    case "apply_info":
+      return [{
+        type: "text",
+        text: "応募に進みましょう！\n\nまず、お名前（フルネーム）を教えてください。\n（例: 山田 花子）",
+      }];
+
+    case "apply_info_birth":
+      return [{ type: "text", text: "ありがとうございます、" + (entry.fullName || "") + "さん！\n\n生年月日を教えてください。\n（例: 1998年5月15日）" }];
+
+    case "apply_info_phone":
+      return [{ type: "text", text: "電話番号を教えてください。\n（例: 090-1234-5678）\n\n※面接日程の連絡に使用します。LINEで連絡が取れない場合のみ使用します。" }];
+
+    case "apply_info_workplace":
+      return [{ type: "text", text: "現在の勤務先名を教えてください。\n（在職中でない場合は「離職中」とお伝えください）\n\n⚠️ あなたの同意なしに現在の勤務先に連絡することは絶対にありません。" }];
+
+    case "apply_consent": {
+      const facilities = (entry.matchingResults || []).slice(0, 3);
+      const facilityList = facilities.map((f, i) => `${i + 1}. ${f.name}（${f.salary || "給与要確認"}）`).join("\n");
+
+      return [{
+        type: "text",
+        text: `以下の施設にあなたの情報をお送りします。\n\n${facilityList || "（マッチング結果を確認中）"}\n\n📋 お送りする情報:\n・氏名、年齢、資格\n・経験年数、スキル\n・希望条件\n\n⚠️ 現在の勤務先には連絡しません。\n⚠️ 応募を取り消すことも可能です。\n\nこの内容で応募してよろしいですか？`,
+        quickReply: {
+          items: [
+            qrItem("✅ 同意して応募する", "apply=agree"),
+            qrItem("施設を選び直す", "apply=reselect"),
+            qrItem("やめておく", "apply=cancel"),
+          ],
+        },
+      }];
+    }
+
+    case "career_sheet": {
+      const sheet = generateCareerSheet(entry);
+      entry.careerSheet = sheet;
+
+      return [
+        {
+          type: "text",
+          text: "📄 キャリアシートを作成しました！\n内容を確認してください。\n\n" + sheet,
+        },
+        {
+          type: "text",
+          text: "この内容で病院にお送りしてよろしいですか？",
+          quickReply: {
+            items: [
+              qrItem("✅ これでOK", "sheet=ok"),
+              qrItem("修正したい", "sheet=edit"),
+            ],
+          },
+        },
+      ];
+    }
+
+    case "apply_confirm":
+      return [{
+        type: "text",
+        text: "✅ 応募を受け付けました！\n\nキャリアシートを病院にお送りします。\n書類選考の結果は3営業日以内にお知らせします。\n\n📞 進捗はこのLINEでお知らせします。\n質問があればいつでもメッセージください。",
+        quickReply: {
+          items: [
+            qrItem("面接対策を見る", "prep=start"),
+            qrItem("わかりました", "prep=skip"),
+          ],
+        },
+      }];
+
+    case "interview_prep":
+      return [{
+        type: "text",
+        text: "📝 面接・退職準備ガイド\n\n" +
+          "【面接でよく聞かれる質問】\n" +
+          "1. 「転職理由を教えてください」\n" +
+          "  → ポジティブに。「〇〇を目指して」\n\n" +
+          "2. 「当院を選んだ理由は？」\n" +
+          "  → 施設の特徴+自分のスキルを結びつける\n\n" +
+          "3. 「5年後のキャリアプランは？」\n" +
+          "  → 具体的に。認定看護師、管理職等\n\n" +
+          "【退職の伝え方】\n" +
+          "・直属の上司に口頭で（メールNG）\n" +
+          "・「〇月末で退職したい」と時期を明確に\n" +
+          "・引き止められても「決めました」と伝える\n" +
+          "・退職届は受理後に提出（退職願ではなく届）\n\n" +
+          "【持ち物チェックリスト】\n" +
+          "□ 履歴書（写真貼付）\n" +
+          "□ 看護師免許のコピー\n" +
+          "□ 筆記用具\n" +
+          "□ メモ帳\n\n" +
+          "質問があれば何でも聞いてくださいね！",
+        quickReply: {
+          items: [
+            qrItem("質問がある", "prep=question"),
+            qrItem("ありがとう！", "prep=done"),
+          ],
+        },
+      }];
+
+    case "handoff": {
+      if (entry.appliedAt) {
+        return [{
+          type: "text",
+          text: "応募手続き完了です！お疲れさまでした 🎉\n\n担当者がこのLINEで進捗をお知らせします。\n書類選考結果は3営業日以内にご連絡します。\n\n質問があればいつでもメッセージください。\n（担当者が確認してお返事します）",
+        }];
+      }
       return [{
         type: "text",
         text: "ありがとうございます！\n\nここからは担当者が引き継いで、このLINEでご連絡します。\n翌営業日までにはお返事しますね。\n\n電話はしませんので、ご安心ください。\n気になることがあればいつでもメッセージしてください！",
       }];
+    }
 
     default:
       return null;
@@ -3277,11 +3515,51 @@ function handleLinePostback(dataStr, entry) {
     const val = params.get("consult");
     entry.unexpectedTextCount = 0;
     if (val === "handoff") {
-      nextPhase = "handoff";
+      nextPhase = "consult_handoff_choice"; // 応募 or 担当者直接引き継ぎを選択
+    } else if (val === "apply") {
+      nextPhase = "apply_info"; // 応募フローへ
+    } else if (val === "direct_handoff") {
+      nextPhase = "handoff"; // 応募せず直接引き継ぎ
     } else if (val === "start") {
       nextPhase = "ai_consultation_waiting"; // テキスト入力待ち
     } else if (val === "continue") {
       nextPhase = "ai_consultation_waiting"; // 追加質問待ち
+    }
+  }
+  // 応募同意
+  else if (params.has("apply")) {
+    const val = params.get("apply");
+    entry.unexpectedTextCount = 0;
+    if (val === "agree") {
+      nextPhase = "career_sheet"; // 同意 → キャリアシート生成
+    } else if (val === "reselect") {
+      nextPhase = "matching"; // 施設選び直し
+    } else if (val === "cancel") {
+      nextPhase = "apply_cancelled"; // 応募キャンセル
+    }
+  }
+  // キャリアシート確認
+  else if (params.has("sheet")) {
+    const val = params.get("sheet");
+    entry.unexpectedTextCount = 0;
+    if (val === "ok") {
+      nextPhase = "apply_confirm"; // 応募確定
+    } else if (val === "edit") {
+      nextPhase = "career_sheet_edit"; // 修正モード
+    }
+  }
+  // 面接対策
+  else if (params.has("prep")) {
+    const val = params.get("prep");
+    entry.unexpectedTextCount = 0;
+    if (val === "start") {
+      nextPhase = "interview_prep";
+    } else if (val === "skip") {
+      nextPhase = "handoff";
+    } else if (val === "question") {
+      nextPhase = "ai_consultation_waiting"; // 自由相談に戻す
+    } else if (val === "done") {
+      nextPhase = "handoff";
     }
   }
 
@@ -3307,6 +3585,56 @@ function handleFreeTextInput(text, entry) {
 
   // consent中の自由テキスト → Quick Reply再表示
   if (phase === "consent") {
+    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+    return null;
+  }
+
+  // apply_info: 個人情報入力サブステップ
+  if (phase === "apply_info") {
+    if (!entry.applyStep || entry.applyStep === "name") {
+      entry.fullName = text;
+      entry.applyStep = "birth";
+      entry.unexpectedTextCount = 0;
+      return "apply_info_birth";
+    } else if (entry.applyStep === "birth") {
+      entry.birthDate = text;
+      entry.applyStep = "phone";
+      entry.unexpectedTextCount = 0;
+      return "apply_info_phone";
+    } else if (entry.applyStep === "phone") {
+      entry.phone = text;
+      entry.applyStep = "workplace";
+      entry.unexpectedTextCount = 0;
+      return "apply_info_workplace";
+    } else if (entry.applyStep === "workplace") {
+      entry.currentWorkplace = text;
+      entry.applyStep = "done";
+      entry.unexpectedTextCount = 0;
+      return "apply_consent";
+    }
+  }
+
+  // career_sheet修正モード: ユーザーの修正指示を受け取る
+  if (phase === "career_sheet_edit") {
+    entry.careerSheetEditRequest = text;
+    entry.unexpectedTextCount = 0;
+    return "career_sheet_apply_edit";
+  }
+
+  // apply_consent中の自由テキスト → Quick Reply再表示
+  if (phase === "apply_consent") {
+    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+    return null;
+  }
+
+  // apply_confirm中の自由テキスト → Quick Reply再表示
+  if (phase === "apply_confirm") {
+    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+    return null;
+  }
+
+  // interview_prep中の自由テキスト → Quick Reply再表示
+  if (phase === "interview_prep") {
     entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
     return null;
   }
@@ -3509,6 +3837,52 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             type: "text",
             text: "どうぞ、何でも聞いてください！",
           }];
+        } else if (nextPhase === "consult_handoff_choice") {
+          // 応募に進むか担当者と話すかの選択
+          entry.phase = "ai_consultation"; // phaseはai_consultationのまま
+          replyMessages = [{
+            type: "text",
+            text: "応募に進みますか？それとも担当者と話しますか？",
+            quickReply: {
+              items: [
+                qrItem("応募に進む", "consult=apply"),
+                qrItem("担当者と話したい", "consult=direct_handoff"),
+              ],
+            },
+          }];
+        } else if (nextPhase === "apply_info") {
+          entry.phase = "apply_info";
+          entry.applyStep = "name";
+          replyMessages = buildPhaseMessage("apply_info", entry);
+        } else if (nextPhase === "apply_consent") {
+          entry.phase = "apply_consent";
+          replyMessages = buildPhaseMessage("apply_consent", entry);
+        } else if (nextPhase === "career_sheet") {
+          entry.phase = "career_sheet";
+          replyMessages = buildPhaseMessage("career_sheet", entry);
+        } else if (nextPhase === "apply_confirm") {
+          entry.phase = "apply_confirm";
+          entry.appliedAt = new Date().toISOString();
+          entry.status = "applied";
+          replyMessages = buildPhaseMessage("apply_confirm", entry);
+          // Slack通知
+          await sendApplyNotification(userId, entry, env);
+        } else if (nextPhase === "apply_cancelled") {
+          entry.phase = "handoff";
+          replyMessages = [{
+            type: "text",
+            text: "承知しました。いつでもお気軽にご相談ください。\n\n担当者がこのLINEでサポートしますので、気になることがあればメッセージくださいね。",
+          }];
+          await sendHandoffNotification(userId, entry, env);
+        } else if (nextPhase === "career_sheet_edit") {
+          entry.phase = "career_sheet_edit";
+          replyMessages = [{
+            type: "text",
+            text: "修正したい箇所を教えてください！\n例：「電話番号を修正したい」「転職理由を変えたい」",
+          }];
+        } else if (nextPhase === "interview_prep") {
+          entry.phase = "interview_prep";
+          replyMessages = buildPhaseMessage("interview_prep", entry);
         } else if (nextPhase === "handoff") {
           replyMessages = buildPhaseMessage("handoff", entry);
           await sendHandoffNotification(userId, entry, env);
@@ -3685,6 +4059,34 @@ ${userText}`;
                 items: [
                   qrItem("OK！これでいい", "resume=ok"),
                   qrItem("修正したい", "resume=edit"),
+                ],
+              },
+            },
+          ].slice(0, 5);
+        } else if (nextPhase === "apply_info_birth" || nextPhase === "apply_info_phone" || nextPhase === "apply_info_workplace") {
+          // apply_infoサブステップ: phaseはapply_infoのまま、サブステップメッセージを返す
+          entry.phase = "apply_info";
+          replyMessages = buildPhaseMessage(nextPhase, entry);
+        } else if (nextPhase === "apply_consent") {
+          // apply_info完了 → apply_consent
+          entry.phase = "apply_consent";
+          replyMessages = buildPhaseMessage("apply_consent", entry);
+        } else if (nextPhase === "career_sheet_apply_edit") {
+          // キャリアシート修正適用
+          // 簡易実装: 修正指示をもとにキャリアシートを再生成
+          // 修正指示に基づく部分更新（簡易: 全体再生成）
+          entry.phase = "career_sheet";
+          const sheet = generateCareerSheet(entry);
+          entry.careerSheet = sheet;
+          replyMessages = [
+            { type: "text", text: "修正しました！確認してください。\n\n" + sheet },
+            {
+              type: "text",
+              text: "この内容で病院にお送りしてよろしいですか？",
+              quickReply: {
+                items: [
+                  qrItem("✅ これでOK", "sheet=ok"),
+                  qrItem("修正したい", "sheet=edit"),
                 ],
               },
             },
