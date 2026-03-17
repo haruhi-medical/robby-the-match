@@ -3929,27 +3929,47 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               shonan_east: "shonan_east", shonan_west: "shonan_west",
               kenoh: "kenoh", kensei: "kensei", undecided: "undecided",
             };
+            // 診断7問のデータを全てentryにマッピング
             if (webSession.area && webAreaMap[webSession.area]) {
               entry.area = webAreaMap[webSession.area];
               entry.areaLabel = POSTBACK_LABELS[`q3_${entry.area}`] || webSession.area;
             }
-            const webExpMap = { "1年未満": "under1", "1〜3年": "1to3", "3〜5年": "3to5", "5〜10年": "5to10", "10年以上": "over10" };
+            // 経験年数
+            const webExpMap = { "1to3": "1to3", "3to5": "3to5", "5to10": "5to10", "10plus": "over10", "blank": "under1" };
             if (webSession.experience && webExpMap[webSession.experience]) {
               entry.experience = webExpMap[webSession.experience];
             }
-            const webConcernMap = { salary: "salary", commute: "commute", nightshift: "night", environment: "human", workstyle: "rest", blank: "blank" };
+            // 重視点 → change
+            const webConcernMap = { salary: "salary", holidays: "rest", atmosphere: "human", commute: "commute", skillup: "career" };
             if (webSession.concern && webConcernMap[webSession.concern]) {
               entry.change = webConcernMap[webSession.concern];
             }
+            // 時期 → urgency
+            const webTimingMap = { urgent: "urgent", "3months": "good", "6months": "good", info: "info" };
+            if (webSession.timing && webTimingMap[webSession.timing]) {
+              entry.urgency = webTimingMap[webSession.timing];
+            }
+            // 働き方 → workStyle
+            const webWorkMap = { day_only: "day", with_night: "twoshift", parttime: "parttime", night_only: "night" };
+            if (webSession.workstyle && webWorkMap[webSession.workstyle]) {
+              entry.workStyle = webWorkMap[webSession.workstyle];
+            }
+            // 職種 → qualification
+            const webSpecMap = { kango: "nurse", junkango: "junkango", josanshi: "josanshi", hokenshi: "hokenshi" };
+            if (webSession.specialty && webSpecMap[webSession.specialty]) {
+              entry.qualification = webSpecMap[webSession.specialty];
+            }
 
-            entry.phase = "q1_urgency";
+            // 即マッチング → 求人提案
+            entry.phase = "matching";
+            generateLineMatching(entry);
             entry.messageCount++;
             entry.updatedAt = Date.now();
             await saveLineEntry(userId, entry, env);
 
             const msgs = [
-              { type: "text", text: "HPからの情報を引き継ぎました！\nいくつかすでにお伺いしていますね。" },
-              ...buildPhaseMessage("q1_urgency", entry),
+              { type: "text", text: "HPの診断結果を引き継ぎました！\nあなたの条件に合う求人を探しました 🔍" },
+              ...buildMatchingMessages(entry),
             ];
             await lineReply(event.replyToken, msgs.slice(0, 5), channelAccessToken);
 
