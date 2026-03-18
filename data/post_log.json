@@ -278,5 +278,26 @@
     "timestamp": "2026-03-17T17:53:06.721739",
     "status": "error",
     "error": "No slides found"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0303_01",
+    "timestamp": "2026-03-18T17:37:49.278075",
+    "status": "error",
+    "error": "No slides found"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_給与_0303_01",
+    "timestamp": "2026-03-18T21:11:02.822754",
+    "status": "error",
+    "error": "No slides found"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_給与_0303_01",
+    "timestamp": "2026-03-18T21:33:12.240782",
+    "status": "error",
+    "error": "No slides found"
   }
 ]

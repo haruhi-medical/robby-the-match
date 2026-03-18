@@ -12,7 +12,7 @@
       "retries": 3,
       "status": "retry_exhausted",
       "last_error": "",
-      "last_alert_ts": "2026-03-18T14:00:01.169159"
+      "last_alert_ts": "2026-03-18T23:00:00.733030"
     },
     "ai_marketing": {
       "date": "2026-03-13",
@@ -34,6 +34,13 @@
       "status": "config_error",
       "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
       "last_alert_ts": "2026-03-04T20:00:01.170412"
+    },
+    "sns_post": {
+      "date": "2026-03-18",
+      "retries": 1,
+      "status": "recovered",
+      "last_error": "",
+      "last_alert_ts": ""
     }
   }
 }
