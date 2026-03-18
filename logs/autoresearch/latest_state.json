@@ -1,0 +1,11 @@
+{
+  "round": 0,
+  "current_score": null,
+  "baseline_score": null,
+  "consecutive_95_count": 0,
+  "status": "not_started",
+  "last_change": null,
+  "item_failure_rates": {},
+  "improved_prompt_path": "scripts/ai_content_engine_improved.py",
+  "original_prompt_path": "scripts/ai_content_engine.py"
+}

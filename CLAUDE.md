@@ -148,6 +148,7 @@ LINEブロック率: 15%以下 / 開封率: 50%以上
 | ブランドシステム設計 | docs/brand-system.md |
 | CSSデザイントークン | docs/design-tokens.css |
 | コンテンツ生成ルール詳細 | docs/content-rules.md |
+| SNS台本自動改善（autoresearch） | @docs/strategy-autoresearch.md |
 
 ## 失敗ログ（運用中に追記）
 
