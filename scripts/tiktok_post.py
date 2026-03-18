@@ -35,7 +35,7 @@ CONTENT_DIR = PROJECT_DIR / "content" / "generated"
 TEMP_DIR = PROJECT_DIR / "content" / "temp_videos"
 ENV_FILE = PROJECT_DIR / ".env"
 VENV_PYTHON = PROJECT_DIR / ".venv" / "bin" / "python3"
-TIKTOK_USERNAME = "robby15051"
+TIKTOK_USERNAME = "nurse_robby"
 LOG_DIR = PROJECT_DIR / "logs"
 
 

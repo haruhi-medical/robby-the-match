@@ -90,7 +90,7 @@ fi
 
 # 10. TikTok cookies
 echo -n "  TikTok cookies: "
-if [ -f "$PROJECT_DIR/TK_cookies_robby15051.json" ]; then
+if [ -f "$PROJECT_DIR/TK_cookies_nurse_robby.json" ]; then
     echo "OK"
 else
     echo "MISSING"

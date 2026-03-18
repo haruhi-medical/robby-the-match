@@ -1980,3 +1980,28 @@ AI Marketing PDCA:
    - 「看護師転職の手順と注意点」
    - 「神奈川県の看護師求人情報まとめ」
 
+### 🔎 競合監視（10:00:00）
+   - 「小田原市の看護師転職ガイド」
+   - 「看護師転職の手順と注意点」
+   - 「神奈川県の看護師求人情報まとめ」
+[pdca_ai_engine] job=competitor 完了 (exit=0)
+[INFO] commit済み（pushは日次レビューで一括）
+
+### 📊 全チャネルデータ収集（15:30）
+Chrome DevTools MCPで各サービスの画面を直接確認:
+
+**GA4（過去7日間）**: ユーザー22（-47.6%） / イベント722（+109.9%） / 新規15（-61.5%） / キーイベント0
+**Search Console**: クリック25回/月 / インデックス17/87（19.5%） / guide/first-transfer.html インプレ+165%
+**Google検索 site:**: 約10ページ確認（トップ/ブログ/LP-A/エリア4/ガイド2）
+**TikTok（7日間）**: 視聴3.5K（+77.3%） / いいね24 / おすすめ97.7% / プロフ表示20
+**Instagram**: 投稿14件（自動投稿稼働中） / フォロワー3
+
+### 🔧 SEOインデックス改善（16:00）
+- sitemap.xml lastmod 2026-03-18に更新 + デプロイ済み
+- Search Consoleで優先10URLにインデックス登録リクエスト送信
+  - 成功9件: salary-comparison / night-shift / interview-tips / odawara / fujisawa / atsugi / yokosuka / fee-comparison-detail / work-life-balance
+  - 失敗1件: resignation-guide（ページ存在しない可能性）
+  - 既存1件: kawasaki（既にインデックス済み）
+- TikTok @robby15051 プロフィールページが404（Studio側は正常、要確認）
+- Instagram投稿数 4→14に増加（自動投稿パイプライン正常稼働確認）
+

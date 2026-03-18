@@ -35,7 +35,7 @@ COOKIE_TXT = PROJECT_DIR / "data" / ".tiktok_cookies.txt"
 LOG_DIR = PROJECT_DIR / "logs"
 ENV_FILE = PROJECT_DIR / ".env"
 VENV_PYTHON = PROJECT_DIR / ".venv" / "bin" / "python3"
-TIKTOK_USERNAME = "robby15051"
+TIKTOK_USERNAME = "nurse_robby"
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -1048,7 +1048,7 @@ def main():
     load_env()
 
     parser = argparse.ArgumentParser(
-        description="TikTok Analytics Collection v3.0 - @robby15051"
+        description="TikTok Analytics Collection v3.0 - @nurse_robby"
     )
     parser.add_argument(
         "--status", action="store_true",

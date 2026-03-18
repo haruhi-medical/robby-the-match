@@ -20,6 +20,7 @@ content/temp_instagram/
 content/temp_videos/
 data/.instagram_session.json
 data/.tiktok_cookies.*
+data/ga4-credentials.json
 data/public_data/*.csv
 data/public_data/*.xlsx
 data/public_data/*.zip

@@ -141,7 +141,7 @@ IG_CONTENT_H = INSTAGRAM_H - IG_SAFE["top"] - IG_SAFE["bottom"]  # 1210
 
 # Platform watermarks
 PLATFORM_WATERMARKS = {
-    "tiktok": "@robby15051",
+    "tiktok": "@nurse_robby",
     "instagram": "@robby.for.nurse",
     "instagram_story": "@robby.for.nurse",
 }
@@ -1076,7 +1076,7 @@ def _draw_brand_watermark(draw: ImageDraw.ImageDraw, light_bg: bool = False,
                           canvas_h: int = CANVAS_H, safe_bottom: int = SAFE_BOTTOM):
     """Draw subtle brand watermark with platform-specific handle."""
     font = load_font(bold=False, size=22)
-    text = PLATFORM_WATERMARKS.get(platform, "@robby15051")
+    text = PLATFORM_WATERMARKS.get(platform, "@nurse_robby")
     tw, _ = measure_text(text, font)
     x = (canvas_w - tw) // 2
     y = canvas_h - safe_bottom + 15

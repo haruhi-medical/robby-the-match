@@ -415,7 +415,7 @@ def post_next():
         print("")
         print("セットアップ手順:")
         print("  1. https://www.upload-post.com/ でアカウント作成")
-        print("  2. TikTokアカウント(@robby15051)を接続")
+        print("  2. TikTokアカウント(@nurse_robby)を接続")
         print("  3. APIキーを取得")
         print("  4. .env に UPLOADPOST_API_KEY=your-key を追加")
         print("  5. .env に UPLOADPOST_USER=your-profile-name を追加")

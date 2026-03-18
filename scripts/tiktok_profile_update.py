@@ -15,8 +15,8 @@ import time
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).parent.parent
-COOKIE_FILE = PROJECT_DIR / "TK_cookies_robby15051.json"
-TIKTOK_USERNAME = "robby15051"
+COOKIE_FILE = PROJECT_DIR / "TK_cookies_nurse_robby.json"
+TIKTOK_USERNAME = "nurse_robby"
 
 # 新しいプロフィール設定
 NEW_PROFILE = {
@@ -27,7 +27,7 @@ NEW_PROFILE = {
 
 
 def load_cookies():
-    """TK_cookies_robby15051.json からCookieを読み込む"""
+    """TK_cookies_nurse_robby.json からCookieを読み込む"""
     if not COOKIE_FILE.exists():
         print(f"[ERROR] Cookie file not found: {COOKIE_FILE}")
         sys.exit(1)
@@ -363,7 +363,7 @@ def update_profile_api():
         "-H", f"Cookie: {cookie_str}",
         "-H", "Content-Type: application/x-www-form-urlencoded",
         "-H", f"X-Csrftoken: {csrf_token}",
-        "-H", "Referer: https://www.tiktok.com/@robby15051",
+        "-H", "Referer: https://www.tiktok.com/@nurse_robby",
         "-H", "Origin: https://www.tiktok.com",
         "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
     ]

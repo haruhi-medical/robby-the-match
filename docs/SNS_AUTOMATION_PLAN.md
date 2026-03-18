@@ -10,7 +10,7 @@
 
 | 項目 | 状態 |
 |------|------|
-| TikTokアカウント | @robby15051（Google認証、Cookie取得済み、sessionid確認済み） |
+| TikTokアカウント | @nurse_robby（Google認証、Cookie取得済み、sessionid確認済み） |
 | Cookie有効期限 | sessionid: 2027-08頃まで有効 |
 | 投稿キュー | 16件（うち2件manual_required、14件pending） |
 | 動画生成 | ffmpegスライドショー（6枚x3秒=18秒MP4）テスト成功 |
@@ -331,7 +331,7 @@ def upload_to_tiktok(video_path, caption, hashtags):
         video=video_path,
         description=caption,
         hashtags=tags,
-        accountname="robby15051",
+        accountname="nurse_robby",
         sound_name=None,       # 将来: トレンド音楽名
         schedule=None,          # 将来: スケジュール投稿
     )
@@ -376,7 +376,7 @@ python3 scripts/tiktok_auth.py --check
 
 ```
 # Claude Codeで以下の指示を出す:
-# 「TikTokにログインして、@robby15051のプロフィールを設定して:
+# 「TikTokにログインして、@nurse_robbyのプロフィールを設定して:
 #   - アイコン: content/base-images/robby_icon.png
 #   - BIO: 看護師の転職を、手数料10%で。AI×人のハイブリッドサポート。神奈川県西部。
 #   - リンク: https://quads-nurse.com/lp/job-seeker/
