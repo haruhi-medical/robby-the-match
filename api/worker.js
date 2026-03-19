@@ -4155,11 +4155,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         if (nextPhase === "ai_consultation_reply") {
+          // AI呼び出しは時間がかかるため、replyTokenではなくPush APIで返信
+          let aiMsgs;
           try {
-            replyMessages = await handleLineAIConsultation(userText, entry, env);
+            aiMsgs = await handleLineAIConsultation(userText, entry, env);
           } catch (aiErr) {
             console.error(`[LINE] AI consultation error: ${aiErr.message}`);
-            replyMessages = [{
+            aiMsgs = [{
               type: "text",
               text: "すみません、少し混み合っています。\n担当者におつなぎしましょうか？",
               quickReply: {
@@ -4171,8 +4173,23 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             }];
           }
           await saveLineEntry(userId, entry, env);
-          if (replyMessages && replyMessages.length > 0) {
-            await lineReply(event.replyToken, replyMessages.slice(0, 5), channelAccessToken);
+          if (aiMsgs && aiMsgs.length > 0) {
+            // Push APIで返信（replyTokenの期限切れを回避）
+            try {
+              const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
+                body: JSON.stringify({ to: userId, messages: aiMsgs.slice(0, 5) }),
+              });
+              if (!pushRes.ok) {
+                const errBody = await pushRes.text().catch(() => "");
+                console.error(`[LINE] Push API error: ${pushRes.status} ${errBody}`);
+              } else {
+                console.log(`[LINE] Push OK for AI consultation`);
+              }
+            } catch (pushErr) {
+              console.error(`[LINE] Push fetch error: ${pushErr.message}`);
+            }
           }
           console.log(`[LINE] AI consultation: "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
           continue;
