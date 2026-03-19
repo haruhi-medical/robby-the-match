@@ -27,30 +27,30 @@
     "platform": "instagram",
     "dir": "20260224_day5",
     "timestamp": "2026-02-24T22:18:00",
-    "status": "error",
-    "error": "This user is inactive so they cannot upload."
+    "status": "skipped",
+    "error": "Directory missing - skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260224_day5",
     "timestamp": "2026-02-24T22:30:11.698377",
     "retry": true,
-    "status": "error",
-    "error": "{\"message\":\"This user is inactive so they cannot upload.\",\"status\":\"fail\"}"
+    "status": "skipped",
+    "error": "Directory missing - skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260224_day5",
     "timestamp": "2026-02-25T17:30:13.466456",
-    "status": "error",
-    "error": "アカウント再開のためのメールを送信することができます。. If you are sure that the password is correct, then change your IP address, because it is added to the blacklist of the Instagram Server"
+    "status": "skipped",
+    "error": "Directory missing - skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260224_day5",
     "timestamp": "2026-02-26T17:30:14.976365",
-    "status": "error",
-    "error": "アカウント再開のためのメールを送信することができます。. If you are sure that the password is correct, then change your IP address, because it is added to the blacklist of the Instagram Server"
+    "status": "skipped",
+    "error": "Directory missing - skipped"
   },
   {
     "platform": "instagram",
@@ -171,133 +171,133 @@
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-06T18:02:03.319410",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-07T20:16:32.727222",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-09T17:03:09.611197",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-10T12:05:30.046241",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-11T17:53:23.730012",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-11T21:06:46.416033",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-12T17:10:40.228725",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-12T17:48:44.865209",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-13T17:44:59.275677",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-13T18:00:44.797263",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-14T17:31:35.506261",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-14T20:04:39.120973",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-16T17:02:38.793615",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0301_02",
     "timestamp": "2026-03-16T17:57:21.702446",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No caption.txt - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0303_01",
     "timestamp": "2026-03-17T12:00:47.123303",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No slides - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0303_01",
     "timestamp": "2026-03-17T17:53:06.721739",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No slides - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_ある_0303_01",
     "timestamp": "2026-03-18T17:37:49.278075",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No slides - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_給与_0303_01",
     "timestamp": "2026-03-18T21:11:02.822754",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No slides - permanently skipped"
   },
   {
     "platform": "instagram",
     "dir": "20260303_ai_給与_0303_01",
     "timestamp": "2026-03-18T21:33:12.240782",
-    "status": "error",
-    "error": "No slides found"
+    "status": "skipped",
+    "error": "No slides - permanently skipped"
   }
 ]

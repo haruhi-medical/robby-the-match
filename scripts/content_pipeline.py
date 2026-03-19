@@ -331,6 +331,12 @@ def invoke_claude(prompt: str) -> Optional[str]:
         env.pop("CLAUDECODE", None)
         env.pop("CLAUDE_CODE_ENTRYPOINT", None)
 
+        # Ensure PATH includes homebrew for cron environment
+        if "/opt/homebrew/bin" not in env.get("PATH", ""):
+            env["PATH"] = f"/opt/homebrew/bin:/usr/local/bin:{env.get('PATH', '/usr/bin:/bin')}"
+        # Ensure HOME is set for auth token access
+        env.setdefault("HOME", os.path.expanduser("~"))
+
         result = subprocess.run(
             ["claude", "-p", prompt, "--max-turns", "1"],
             capture_output=True,
