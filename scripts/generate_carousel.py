@@ -112,9 +112,9 @@ PLATFORM_SIZES = {
 }
 
 # TikTok UI safe zones (includes +20px buffer for video motion crop at 1.04x scale)
-SAFE_TOP = 170
-SAFE_BOTTOM = 270
-SAFE_RIGHT = 115
+SAFE_TOP = 150
+SAFE_BOTTOM = 280
+SAFE_RIGHT = 160
 SAFE_LEFT = 75
 
 # Instagram safe zones (less restrictive, no UI overlay)
@@ -122,7 +122,7 @@ IG_SAFE = {"top": 70, "bottom": 70, "left": 70, "right": 70}
 
 # Platform safe zones lookup
 SAFE_ZONES = {
-    "tiktok": {"top": 170, "bottom": 270, "left": 75, "right": 115},
+    "tiktok": {"top": 150, "bottom": 280, "left": 75, "right": 160},
     "instagram": IG_SAFE,
     "instagram_story": {"top": 150, "bottom": 250, "left": 60, "right": 100},
 }
@@ -130,8 +130,8 @@ SAFE_ZONES = {
 # Derived safe content area (TikTok)
 CONTENT_X = SAFE_LEFT
 CONTENT_Y = SAFE_TOP
-CONTENT_W = CANVAS_W - SAFE_LEFT - SAFE_RIGHT  # 920
-CONTENT_H = CANVAS_H - SAFE_TOP - SAFE_BOTTOM  # 1520
+CONTENT_W = CANVAS_W - SAFE_LEFT - SAFE_RIGHT  # 845
+CONTENT_H = CANVAS_H - SAFE_TOP - SAFE_BOTTOM  # 1490
 
 # Derived safe content area (Instagram native)
 IG_CONTENT_X = IG_SAFE["left"]                                    # 70
@@ -415,7 +415,7 @@ def wrap_text_jp(text: str, font: ImageFont.FreeTypeFont, max_width: int, max_ch
                     # Allow slight overflow for kinsoku (up to 1 char width extra)
                     single_char_bbox = font.getbbox(char)
                     # Cap tolerance to prevent right overflow at large font sizes
-                    tolerance = min(single_char_bbox[2] - single_char_bbox[0], 20)
+                    tolerance = min(single_char_bbox[2] - single_char_bbox[0], 8)
                     if char_w <= max_width + tolerance:
                         current_line += char
                         all_lines.append(current_line)
@@ -573,6 +573,11 @@ def draw_centered_text_block(
     for line in lines:
         tw, _ = measure_text(line, font)
         tx = center_x - tw // 2
+        # 左右セーフゾーンへのクリッピング
+        if tx < SAFE_LEFT:
+            tx = SAFE_LEFT
+        elif tx + tw > CANVAS_W - SAFE_RIGHT:
+            tx = CANVAS_W - SAFE_RIGHT - tw
         if shadow:
             draw_text_shadow(draw, tx, cy, line, font, fill=fill,
                              shadow_color=shadow_color, shadow_offset=shadow_offset)
@@ -1652,11 +1657,11 @@ def generate_slide_hook(
     else:
         hook_zone_top = s_top + 250
         hook_zone_height = int(c_h * 0.45)
-    max_text_width = c_w - 80  # 40px margin each side within safe zone
+    max_text_width = c_w - 120  # 左右60pxずつのマージン
 
-    # Enforce hook character limit (MAX_HOOK_CHARS is advisory from AI, enforce here)
+    # フック強制25文字制限
     if len(hook_text) > 25:
-        hook_text = hook_text[:25]
+        hook_text = hook_text[:24] + "…"
 
     best_font_size = 60
     best_lines = [hook_text]
@@ -1668,7 +1673,14 @@ def generate_slide_hook(
         font = load_font(bold=True, size=size)
         lines = wrap_text_jp(hook_text, font, max_text_width)
         block_h = text_block_height(lines, size)
-        if block_h <= effective_zone_height and len(lines) <= 4:
+        # 各行の幅がmax_text_widthを超えないかチェック
+        width_ok = True
+        for line in lines:
+            lw, _ = measure_text(line, font)
+            if lw > max_text_width + 5:  # 5px許容
+                width_ok = False
+                break
+        if block_h <= effective_zone_height and len(lines) <= 4 and width_ok:
             best_font_size = size
             best_lines = lines
             break
