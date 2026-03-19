@@ -1,0 +1,48 @@
+# ============================================
+# ROBBY THE MATCH 高速自律PDCA
+# ============================================
+# 日次（月〜土）
+0  4 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_seo_batch.sh
+0  7 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_healthcheck.sh
+0 10 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_competitor.sh
+0 15 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_content.sh
+0 23 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_review.sh
+# 週次（日曜）
+0  6 * * 0   /bin/bash ~/robby-the-match/scripts/pdca_weekly.sh
+# Slack監視（5分間隔）
+# ============================================
+# SNS自動投稿 v5.0（投稿時間A/Bテスト対応）
+# posting_schedule.jsonの曜日別時間に従い、該当時間以外はスクリプト内で即exit
+0 12,17,18,20,21 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_sns_post.sh
+# ============================================
+# Instagramエンゲージメント自動化（毎日12:00-13:00、ランダム遅延付き）
+0 12 * * 1-6 sleep $((RANDOM \% 3600)) && cd ~/robby-the-match && /usr/bin/python3 scripts/instagram_engage.py --daily >> logs/instagram_engage_$(date +\%Y-\%m-\%d).log 2>&1
+# ============================================
+# AI SNSマーケティング自動化（日次 06:00）
+0  6 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_ai_marketing.sh
+# 週次コンテンツバッチ生成（日曜 05:00 — weekly前に実行）
+0  5 * * 0   /bin/bash ~/robby-the-match/scripts/pdca_weekly_content.sh
+*/30 * * * * cd ~/robby-the-match && /usr/bin/python3 scripts/watchdog.py >>logs/watchdog.log 2>&1
+# 品質ゲート（Opus 4.6画像点検、コンテンツ生成15:00の前に実行）
+# DISABLED: Claude Code対話セッションで実行する
+0 16 * * 1-6 /bin/bash ~/robby-the-match/scripts/pdca_quality_gate.sh >> ~/robby-the-match/logs/quality_gate.log 2>&1
+# Instagram自動投稿（毎日17:30、ランダム遅延付き）
+30 17 * * 1-6 sleep $((RANDOM \% 1800)) && cd ~/robby-the-match && /usr/bin/python3 scripts/auto_post.py --instagram >> logs/instagram_post_$(date +\%Y-\%m-\%d).log 2>&1
+# ハローワーク求人取得（毎朝06:30）
+# ハローワーク求人全自動パイプライン（毎朝06:30）
+30 6 * * * /bin/bash ~/robby-the-match/scripts/pdca_hellowork.sh
+# ============================================
+# 日次レポート・プレビュー・承認チェック（2026-03-13追加）
+# ============================================
+# Meta広告日次レポート（毎朝08:00）
+0  8 * * * cd ~/robby-the-match && .venv/bin/python3 scripts/meta_ads_report.py --cron >> logs/meta_report_$(date +\%Y\%m\%d).log 2>&1
+# GA4/SC日次レポート（毎朝08:05）
+5  8 * * * cd ~/robby-the-match && .venv/bin/python3 scripts/ga4_report.py >> logs/ga4_report_$(date +\%Y\%m\%d).log 2>&1
+# 投稿プレビュー送信（毎日16:00 — Instagram投稿17:30の1.5h前）
+0 16 * * 1-6 cd ~/robby-the-match && /usr/bin/python3 scripts/post_preview.py --platform instagram --slot 17:30 >> logs/post_preview_$(date +\%Y\%m\%d).log 2>&1
+# Slackリプライチェック（16:30, 17:00, 17:15 — プレビュー後〜投稿前に3回）
+30 16 * * 1-6 cd ~/robby-the-match && /usr/bin/python3 scripts/slack_reply_check.py --platform instagram --slot 17:30 >> logs/slack_reply_$(date +\%Y\%m\%d).log 2>&1
+0  17 * * 1-6 cd ~/robby-the-match && /usr/bin/python3 scripts/slack_reply_check.py --platform instagram --slot 17:30 >> logs/slack_reply_$(date +\%Y\%m\%d).log 2>&1
+15 17 * * 1-6 cd ~/robby-the-match && /usr/bin/python3 scripts/slack_reply_check.py --platform instagram --slot 17:30 >> logs/slack_reply_$(date +\%Y\%m\%d).log 2>&1
+# autoresearch: SNS台本自動改善ループ（毎日深夜2:00）
+0 2 * * * cd ~/robby-the-match && /opt/homebrew/bin/claude --dangerously-skip-permissions -p "docs/strategy-autoresearch.md に従い autoresearchを1ラウンド実行せよ" --max-turns 30 >> logs/autoresearch/cron.log 2>&1
