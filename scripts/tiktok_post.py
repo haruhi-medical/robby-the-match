@@ -863,6 +863,43 @@ except Exception as e:
         return False
 
 
+def upload_method_playwright_direct(video_path, description, hashtags):
+    """
+    方法2b: Playwright直接アップロード（DOM変更対応版）
+    tiktok-uploaderが壊れた時のフォールバック
+    """
+    print("   [方法2b] Playwright直接アップロード")
+    full_caption = description
+    if hashtags:
+        full_caption += "\n\n" + " ".join(hashtags)
+
+    try:
+        script_path = PROJECT_DIR / "scripts" / "tiktok_upload_playwright.py"
+        result = subprocess.run(
+            [str(VENV_PYTHON), str(script_path), "--video", str(video_path), "--caption", full_caption],
+            capture_output=True, text=True, timeout=300,
+            cwd=str(PROJECT_DIR),
+            env={**os.environ, "DISPLAY": ":0"}
+        )
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+
+        if "投稿成功" in stdout or result.returncode == 0:
+            print("   ✅ Playwright直接: 成功")
+            return True
+        else:
+            print(f"   ⚠️ Playwright直接: 失敗")
+            if stdout:
+                print(f"      stdout: {stdout[-300:]}")
+            return False
+    except subprocess.TimeoutExpired:
+        print("   ⚠️ Playwright直接: タイムアウト (300秒)")
+        return False
+    except Exception as e:
+        print(f"   ⚠️ Playwright直接: {e}")
+        return False
+
+
 def upload_method_slack_manual(video_path, description, hashtags):
     """
     方法3: Slack通知で手動投稿依頼（最終フォールバック）
@@ -901,6 +938,7 @@ def upload_to_tiktok(video_path, caption, hashtags, max_retries=2):
 
     methods = [
         ("tiktokautouploader", upload_method_autouploader),
+        ("playwright-direct", upload_method_playwright_direct),
         ("tiktok-uploader", upload_method_tiktok_uploader),
     ]
 
