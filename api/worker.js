@@ -952,6 +952,47 @@ export default {
       return jsonResponse({ status: "ok", timestamp: new Date().toISOString() });
     }
 
+    // デバッグ: AI相談テスト
+    if (url.pathname === "/api/debug-ai" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const msg = body.message || "テスト";
+        let result = { openai: null, workersai: null };
+        // OpenAI
+        if (env.OPENAI_API_KEY) {
+          try {
+            const r = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: msg }], max_tokens: 50 }),
+            });
+            const d = await r.json();
+            result.openai = { status: r.status, response: d.choices?.[0]?.message?.content || d.error };
+          } catch (e) { result.openai = { error: e.message }; }
+        } else { result.openai = "NO_KEY"; }
+        // Workers AI
+        if (env.AI) {
+          try {
+            const r = await env.AI.run("@cf/meta/llama-3-8b-instruct", { messages: [{ role: "user", content: msg }], max_tokens: 50 });
+            result.workersai = { response: r?.response?.slice(0, 100) };
+          } catch (e) { result.workersai = { error: e.message }; }
+        } else { result.workersai = "NO_BINDING"; }
+        // Push test
+        result.push_test = "not_tested";
+        if (body.userId && env.LINE_CHANNEL_ACCESS_TOKEN) {
+          try {
+            const pr = await fetch("https://api.line.me/v2/bot/message/push", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}` },
+              body: JSON.stringify({ to: body.userId, messages: [{ type: "text", text: `[DEBUG] AI応答: ${result.openai?.response || result.workersai?.response || "none"}` }] }),
+            });
+            result.push_test = { status: pr.status, ok: pr.ok };
+          } catch (e) { result.push_test = { error: e.message }; }
+        }
+        return jsonResponse(result);
+      } catch (e) { return jsonResponse({ error: e.message }, 500); }
+    }
+
     return jsonResponse({ error: "Not Found" }, 404);
   },
 };
@@ -4155,43 +4196,50 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         if (nextPhase === "ai_consultation_reply") {
-          // AI呼び出しは時間がかかるため、replyTokenではなくPush APIで返信
-          let aiMsgs;
-          try {
-            aiMsgs = await handleLineAIConsultation(userText, entry, env);
-          } catch (aiErr) {
-            console.error(`[LINE] AI consultation error: ${aiErr.message}`);
-            aiMsgs = [{
-              type: "text",
-              text: "すみません、少し混み合っています。\n担当者におつなぎしましょうか？",
-              quickReply: {
-                items: [
-                  qrItem("もう一度聞く", "consult=continue"),
-                  qrItem("担当者と話したい", "consult=handoff"),
-                ],
-              },
-            }];
-          }
-          await saveLineEntry(userId, entry, env);
-          if (aiMsgs && aiMsgs.length > 0) {
-            // Push APIで返信（replyTokenの期限切れを回避）
+          // AI呼び出しはctx.waitUntilでバックグラウンド実行
+          // Webhookには即座に200を返し、AI応答はPush APIで後送する
+          const aiUserId = userId;
+          const aiUserText = userText;
+          const aiEntry = entry;
+          const aiToken = channelAccessToken;
+          ctx.waitUntil((async () => {
             try {
-              const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
-                body: JSON.stringify({ to: userId, messages: aiMsgs.slice(0, 5) }),
-              });
-              if (!pushRes.ok) {
-                const errBody = await pushRes.text().catch(() => "");
-                console.error(`[LINE] Push API error: ${pushRes.status} ${errBody}`);
-              } else {
-                console.log(`[LINE] Push OK for AI consultation`);
+              let aiMsgs;
+              try {
+                aiMsgs = await handleLineAIConsultation(aiUserText, aiEntry, env);
+              } catch (aiErr) {
+                console.error(`[LINE] AI consultation error: ${aiErr.message}`);
+                aiMsgs = [{
+                  type: "text",
+                  text: "すみません、少し混み合っています。\n担当者におつなぎしましょうか？",
+                  quickReply: {
+                    items: [
+                      qrItem("もう一度聞く", "consult=continue"),
+                      qrItem("担当者と話したい", "consult=handoff"),
+                    ],
+                  },
+                }];
               }
-            } catch (pushErr) {
-              console.error(`[LINE] Push fetch error: ${pushErr.message}`);
+              await saveLineEntry(aiUserId, aiEntry, env);
+              if (aiMsgs && aiMsgs.length > 0) {
+                const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${aiToken}` },
+                  body: JSON.stringify({ to: aiUserId, messages: aiMsgs.slice(0, 5) }),
+                });
+                if (!pushRes.ok) {
+                  const errBody = await pushRes.text().catch(() => "");
+                  console.error(`[LINE] Push API error: ${pushRes.status} ${errBody}`);
+                } else {
+                  console.log(`[LINE] Push OK for AI consultation`);
+                }
+              }
+              console.log(`[LINE] AI consultation done: "${aiUserText.slice(0, 30)}", User: ${aiUserId.slice(0, 8)}`);
+            } catch (e) {
+              console.error(`[LINE] AI background error: ${e.message}`);
             }
-          }
-          console.log(`[LINE] AI consultation: "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
+          })());
+          // Webhookには即200を返す（continueでループ脱出）
           continue;
         }
 
