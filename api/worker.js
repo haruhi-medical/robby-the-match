@@ -3854,6 +3854,24 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             { type: "text", text: "ありがとうございます！\nあなたの条件に近い施設の情報をお探ししますね。\n※現時点での参考情報です。実際の求人状況は変動しますので、詳しくは担当者が確認いたします。" },
             ...buildMatchingMessages(entry),
           ].slice(0, 5);
+          // Slack通知: 求人提案完了 + ヒアリングサマリ
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            const qualLabel = POSTBACK_LABELS[`q10_${entry.qualification}`] || "不明";
+            const expLabel = POSTBACK_LABELS[`q4_${entry.experience}`] || "不明";
+            const areaLabel = entry.areaLabel || POSTBACK_LABELS[`q3_${entry.area}`] || "不明";
+            const workStyleLabel = POSTBACK_LABELS[`q5_${entry.workStyle}`] || "不明";
+            const changeLabel = POSTBACK_LABELS[`q2_${entry.change}`] || "不明";
+            const urgLabel = POSTBACK_LABELS[`q1_${entry.urgency}`] || "不明";
+            const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
+              `  ${r.matchScore}pt: ${r.name}（${r.salary || ""}）`
+            ).join("\n") || "（なし）";
+            fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人提案完了*\n\n📋 *ヒアリング内容*\n資格: ${qualLabel} / 経験: ${expLabel}\n緊急度: ${urgLabel}\n変えたいこと: ${changeLabel}\nエリア: ${areaLabel} / 働き方: ${workStyleLabel}\n\n🏆 *提案した施設*\n${matchingText}\n\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n\n💬 返信: \`!reply ${userId} メッセージ\`` }),
+            }).catch(() => {});
+          }
         } else if (nextPhase === "resume_confirm") {
           replyMessages = await buildResumeConfirmMessages(entry, env);
         } else if (nextPhase === "matching") {
@@ -3862,6 +3880,24 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             { type: "text", text: "あなたの条件に近い施設の情報をお探ししますね。\n※現時点での参考情報です。実際の求人状況は変動しますので、詳しくは担当者が確認いたします。" },
             ...buildMatchingMessages(entry),
           ].slice(0, 5);
+          // Slack通知: 求人提案完了 + ヒアリングサマリ
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            const qualLabel = POSTBACK_LABELS[`q10_${entry.qualification}`] || "不明";
+            const expLabel = POSTBACK_LABELS[`q4_${entry.experience}`] || "不明";
+            const areaLabel = entry.areaLabel || POSTBACK_LABELS[`q3_${entry.area}`] || "不明";
+            const workStyleLabel = POSTBACK_LABELS[`q5_${entry.workStyle}`] || "不明";
+            const changeLabel = POSTBACK_LABELS[`q2_${entry.change}`] || "不明";
+            const urgLabel = POSTBACK_LABELS[`q1_${entry.urgency}`] || "不明";
+            const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
+              `  ${r.matchScore}pt: ${r.name}（${r.salary || ""}）`
+            ).join("\n") || "（なし）";
+            fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人提案完了*\n\n📋 *ヒアリング内容*\n資格: ${qualLabel} / 経験: ${expLabel}\n緊急度: ${urgLabel}\n変えたいこと: ${changeLabel}\nエリア: ${areaLabel} / 働き方: ${workStyleLabel}\n\n🏆 *提案した施設*\n${matchingText}\n\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n\n💬 返信: \`!reply ${userId} メッセージ\`` }),
+            }).catch(() => {});
+          }
         } else if (nextPhase === "matching_more") {
           entry.phase = "ai_consultation";
           replyMessages = [{
