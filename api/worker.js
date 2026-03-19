@@ -1430,7 +1430,7 @@ async function handleChatComplete(request, env) {
 
     // Build Slack message with conversation log
     const botToken = env.SLACK_BOT_TOKEN;
-    const channelId = env.SLACK_CHANNEL_ID || "C09A7U4TV4G";
+    const channelId = env.SLACK_CHANNEL_ID || "C0AEG626EUW";
 
     if (!botToken) {
       console.warn("[ChatComplete] SLACK_BOT_TOKEN not configured");
@@ -1577,7 +1577,7 @@ async function handleNotify(request, env) {
   try {
     const body = await request.json();
     const botToken = env.SLACK_BOT_TOKEN;
-    const channelId = env.SLACK_CHANNEL_ID || "C09A7U4TV4G";
+    const channelId = env.SLACK_CHANNEL_ID || "C0AEG626EUW";
 
     if (!botToken) {
       return jsonResponse({ error: "Slack not configured" }, 503, allowedOrigin);
@@ -1749,7 +1749,7 @@ function calcUrgency(data) {
 
 async function sendToSlack(data, urgency, env) {
   const botToken = env.SLACK_BOT_TOKEN;
-  const channelId = env.SLACK_CHANNEL_ID || "C09A7U4TV4G";
+  const channelId = env.SLACK_CHANNEL_ID || "C0AEG626EUW";
 
   if (!botToken) {
     console.warn("[Slack] SLACK_BOT_TOKEN が未設定です");
@@ -2663,7 +2663,7 @@ async function sendApplyNotification(userId, entry, env) {
   await fetch("https://slack.com/api/chat.postMessage", {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-    body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C09A7U4TV4G", text }),
+    body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text }),
   }).catch(() => {});
 }
 
@@ -3304,7 +3304,7 @@ function buildMatchingMessages(entry) {
 async function sendHandoffNotification(userId, entry, env) {
   if (!env.SLACK_BOT_TOKEN) return;
 
-  const channelId = env.SLACK_CHANNEL_ID || "C09A7U4TV4G";
+  const channelId = env.SLACK_CHANNEL_ID || "C0AEG626EUW";
   const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
 
   // ラベル変換
@@ -3771,6 +3771,16 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
       try { // 個別イベントのエラーで全体が止まらないように
 
+      // --- 全メッセージをSlack転送（リアルタイム監視用） ---
+      if (event.type === "message" && event.message?.type === "text" && env.SLACK_BOT_TOKEN) {
+        const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+        fetch("https://slack.com/api/chat.postMessage", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📩 *LINE受信*\nユーザー: \`${userId.slice(0, 8)}...\`\nメッセージ: ${event.message.text.slice(0, 200)}\n時刻: ${nowJST}` }),
+        }).catch(() => {});
+      }
+
       // --- followイベント（友だち追加） ---
       if (event.type === "follow") {
         const entry = createLineEntry();
@@ -3792,11 +3802,20 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // Slack通知
         if (env.SLACK_BOT_TOKEN) {
           const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-          await fetch("https://slack.com/api/chat.postMessage", {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-            body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C09A7U4TV4G", text: `💬 *LINE新規友だち追加*\nユーザーID: ${userId.slice(0, 8)}....\n日時: ${nowJST}` }),
-          }).catch(() => {});
+          console.log(`[LINE] Sending Slack notification, token length: ${env.SLACK_BOT_TOKEN.length}, channel: ${env.SLACK_CHANNEL_ID || "C0AEG626EUW"}`);
+          try {
+            const slackRes = await fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `💬 *LINE新規友だち追加*\nユーザーID: ${userId.slice(0, 8)}....\n日時: ${nowJST}` }),
+            });
+            const slackBody = await slackRes.text();
+            console.log(`[LINE] Slack response: ${slackRes.status} ${slackBody.slice(0, 200)}`);
+          } catch (slackErr) {
+            console.error(`[LINE] Slack notification error: ${slackErr.message}`);
+          }
+        } else {
+          console.warn("[LINE] SLACK_BOT_TOKEN not set, skipping notification");
         }
 
         console.log(`[LINE] Follow event, user ${userId.slice(0, 8)}, sent consent`);
@@ -4025,7 +4044,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               await fetch("https://slack.com/api/chat.postMessage", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C09A7U4TV4G", text: `💬 *LINE新規会話（HP引き継ぎ）*\nコード: ${userText}\nエリア: ${webSession.area || "不明"}\n日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}` }),
+                body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `💬 *LINE新規会話（HP引き継ぎ）*\nコード: ${userText}\nエリア: ${webSession.area || "不明"}\n日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}` }),
               }).catch(() => {});
             }
 
@@ -4062,7 +4081,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({
-                channel: env.SLACK_CHANNEL_ID || "C09A7U4TV4G",
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
                 text: `💬 *LINE受信（引き継ぎ済み・要返信）*\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
               }),
             }).catch(() => {});
@@ -4086,7 +4105,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({
-                channel: env.SLACK_CHANNEL_ID || "C09A7U4TV4G",
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
                 text: `💬 *LINE受信（引き継ぎ済み・要返信）*\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
               }),
             }).catch(() => {});
