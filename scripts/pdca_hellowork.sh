@@ -13,6 +13,8 @@ SLACK_BRIDGE="$PROJECT_DIR/scripts/slack_bridge.py"
 PYTHON="/usr/bin/python3"
 NPX="/opt/homebrew/bin/npx"
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 mkdir -p "$LOG_DIR"
 
 log() {
