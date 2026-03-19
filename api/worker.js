@@ -4115,7 +4115,21 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         if (nextPhase === "ai_consultation_reply") {
-          replyMessages = await handleLineAIConsultation(userText, entry, env);
+          try {
+            replyMessages = await handleLineAIConsultation(userText, entry, env);
+          } catch (aiErr) {
+            console.error(`[LINE] AI consultation error: ${aiErr.message}`);
+            replyMessages = [{
+              type: "text",
+              text: "すみません、少し混み合っています。\n担当者におつなぎしましょうか？",
+              quickReply: {
+                items: [
+                  qrItem("もう一度聞く", "consult=continue"),
+                  qrItem("担当者と話したい", "consult=handoff"),
+                ],
+              },
+            }];
+          }
           await saveLineEntry(userId, entry, env);
           if (replyMessages && replyMessages.length > 0) {
             await lineReply(event.replyToken, replyMessages.slice(0, 5), channelAccessToken);
@@ -4319,18 +4333,22 @@ ${MARKET_DATA}
     } catch (e) { console.error("[AI] OpenAI error:", e); }
   }
 
-  // Cloudflare Workers AIフォールバック
+  // Cloudflare Workers AIフォールバック（10秒タイムアウト）
   if (!aiResponse && env.AI) {
     try {
-      const result = await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+      console.log("[AI] Trying Workers AI...");
+      const aiPromise = env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
         messages: [
           { role: "system", content: systemPrompt },
           ...entry.consultMessages.slice(-6),
         ],
         max_tokens: 300,
       });
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Workers AI timeout 10s")), 10000));
+      const result = await Promise.race([aiPromise, timeoutPromise]);
       aiResponse = result?.response;
-    } catch (e) { console.error("[AI] Workers AI error:", e); }
+      console.log(`[AI] Workers AI OK: ${(aiResponse || "").slice(0, 50)}`);
+    } catch (e) { console.error("[AI] Workers AI error:", e.message || e); }
   }
 
   if (!aiResponse) {
