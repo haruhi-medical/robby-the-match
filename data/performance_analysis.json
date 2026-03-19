@@ -1,5 +1,5 @@
 {
-  "analyzed_at": "2026-03-18T23:00:14",
+  "analyzed_at": "2026-03-19T23:00:14",
   "content_performance": {
     "total_posted": 21,
     "verified": 21,
@@ -13,14 +13,14 @@
     "message": "パフォーマンスデータ未収集（tiktok_analytics.py --updateで収集）"
   },
   "kpi_trend": {
-    "latest_date": "2026-03-18",
-    "followers_change": 4,
-    "videos_change": 6,
+    "latest_date": "2026-03-19",
+    "followers_change": 0,
+    "videos_change": 0,
     "views_change": 0,
-    "likes_change": 13,
+    "likes_change": 0,
     "current_followers": 4,
     "current_videos": 6,
-    "days_tracked": 26
+    "days_tracked": 27
   },
   "content_mix": {
     "total_stock": 2,
@@ -60,7 +60,6 @@
   },
   "recommendations": [
     "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
-    "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。",
-    "フォロワー増加中 (+4)"
+    "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
   ]
 }

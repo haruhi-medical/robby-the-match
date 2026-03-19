@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-18T21:54:48.499816",
+  "updated": "2026-03-19T19:21:14.082956",
   "posts": [
     {
       "id": 1,
@@ -1858,11 +1858,11 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "failed",
-      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0305_08_20260318.mp4",
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0305_08_20260319.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": "all_upload_methods_failed",
+      "error": null,
       "performance": {
         "views": null,
         "likes": null,
@@ -1889,7 +1889,7 @@
       "cta_type": "soft",
       "content_type": "career",
       "status": "ready",
-      "video_path": null,
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_転職_0305_07_20260319.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -1900,7 +1900,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 9.04,
+      "quality_checked": true
     },
     {
       "id": 121,

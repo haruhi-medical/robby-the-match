@@ -299,5 +299,22 @@
     "timestamp": "2026-03-18T21:33:12.240782",
     "status": "skipped",
     "error": "No slides - permanently skipped"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0301_02",
+    "timestamp": "2026-03-19T17:02:57.731075",
+    "status": "success",
+    "media_id": "3856136491513357859_45884164083",
+    "code": "DWDv7VWEyYj",
+    "url": "https://www.instagram.com/p/DWDv7VWEyYj/",
+    "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0303_01",
+    "timestamp": "2026-03-19T17:30:08.334111",
+    "status": "error",
+    "error": "No slides found"
   }
 ]
