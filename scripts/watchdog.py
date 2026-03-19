@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-自己修復ウォッチドッグ v3.0
+自己修復ウォッチドッグ v3.1
 - 全cronジョブのハートビートを監視
 - 失敗・未実行を検出してリカバリ試行
 - sns_postの投稿スケジュール対応（posting_schedule.json連動）
@@ -9,10 +9,14 @@
 - 時間依存スクリプトの誤リカバリ防止
 - Slackにアラート通知
 
+v3.1 改善点:
+- アラート重複排除を4時間→日次に変更（同一ジョブは1日1回のみ通知）
+- retry_exhausted/config_error/recoveredステータスは同日中の再リカバリをスキップ
+- "recovered"ジョブの不要な再リカバリ試行を防止
+
 v3.0 改善点:
 - 日次リトライカウンタ自動リセット
 - スマートリトライ分類（CONFIG_ERROR → リトライしない）
-- アラート重複排除（同一ジョブ4時間以内は再通知しない）
 - MAX_RETRIES 2→3
 - --reset フラグで手動リセット
 - Slackメッセージに実際のエラー内容を含める
@@ -61,8 +65,9 @@ LOG_BASED_JOBS = {
 
 MAX_RETRIES = 3
 
-# アラート重複排除: 同一ジョブのSlackアラートを何秒間抑制するか（4時間）
-ALERT_COOLDOWN_SECONDS = 4 * 60 * 60
+# アラート重複排除: 同一ジョブのSlackアラートを1日1回に制限
+# （日次リセットで翌日には再通知される）
+ALERT_COOLDOWN_SECONDS = 24 * 60 * 60
 
 # エラー分類パターン: ログにこれらの文字列が含まれていれば CONFIG_ERROR（リトライ不要）
 CONFIG_ERROR_PATTERNS = [
@@ -699,11 +704,14 @@ def run_watchdog():
             continue
 
         if status in ("missing", "stale", "failed"):
-            # 既にconfig_errorまたはretry_exhaustedなら再実行しない
+            # 既にconfig_error/retry_exhausted/recoveredなら再実行しない
             entry = get_job_recovery(recovery, job_name)
-            if entry.get("status") in ("config_error", "retry_exhausted"):
+            if entry.get("status") in ("config_error", "retry_exhausted", "recovered"):
                 error_detail = entry.get("last_error", "不明")
-                if entry["status"] == "config_error":
+                if entry["status"] == "recovered":
+                    # 今日既に自動復旧済み — 再リカバリ不要。ログのみ記録
+                    continue
+                elif entry["status"] == "config_error":
                     msg = f"{job_name}: {error_detail}（自動リトライ対象外）"
                 else:
                     msg = (f"{job_name}: リトライ上限到達"
@@ -778,17 +786,20 @@ def run_watchdog():
         if sns_status == "rest_day":
             info.append(f"sns_post: {sns_detail}")
     elif sns_status in ("missing", "stale", "failed"):
-        # 既にconfig_errorまたはretry_exhaustedなら再実行しない
+        # 既にconfig_error/retry_exhausted/recoveredなら再実行しない
         entry = get_job_recovery(recovery, "sns_post")
-        if entry.get("status") in ("config_error", "retry_exhausted"):
-            error_detail = entry.get("last_error", "不明")
-            msg = f"sns_post: {error_detail}（{sns_detail}）"
-            if should_send_alert(recovery, "sns_post"):
-                issues.append(msg)
-                mark_alert_sent(recovery, "sns_post")
-                save_recovery_log(recovery)
+        if entry.get("status") in ("config_error", "retry_exhausted", "recovered"):
+            if entry.get("status") == "recovered":
+                pass  # 今日既に自動復旧済み — 再リカバリ不要
             else:
-                suppressed.append(msg)
+                error_detail = entry.get("last_error", "不明")
+                msg = f"sns_post: {error_detail}（{sns_detail}）"
+                if should_send_alert(recovery, "sns_post"):
+                    issues.append(msg)
+                    mark_alert_sent(recovery, "sns_post")
+                    save_recovery_log(recovery)
+                else:
+                    suppressed.append(msg)
         else:
             result, error_detail = attempt_sns_post_recovery()
             if result == "recovered":
@@ -838,17 +849,20 @@ def run_watchdog():
     if ig_status in ("ok", "not_due_yet", "possibly_running"):
         pass
     elif ig_status in ("missing", "stale", "failed"):
-        # 既にconfig_errorまたはretry_exhaustedなら再実行しない
+        # 既にconfig_error/retry_exhausted/recoveredなら再実行しない
         entry = get_job_recovery(recovery, "instagram_engage")
-        if entry.get("status") in ("config_error", "retry_exhausted"):
-            error_detail = entry.get("last_error", "不明")
-            msg = f"instagram_engage: {error_detail}（{ig_detail}）"
-            if should_send_alert(recovery, "instagram_engage"):
-                issues.append(msg)
-                mark_alert_sent(recovery, "instagram_engage")
-                save_recovery_log(recovery)
+        if entry.get("status") in ("config_error", "retry_exhausted", "recovered"):
+            if entry.get("status") == "recovered":
+                pass  # 今日既に自動復旧済み — 再リカバリ不要
             else:
-                suppressed.append(msg)
+                error_detail = entry.get("last_error", "不明")
+                msg = f"instagram_engage: {error_detail}（{ig_detail}）"
+                if should_send_alert(recovery, "instagram_engage"):
+                    issues.append(msg)
+                    mark_alert_sent(recovery, "instagram_engage")
+                    save_recovery_log(recovery)
+                else:
+                    suppressed.append(msg)
         else:
             result, error_detail = attempt_instagram_engage_recovery()
             if result == "recovered":
