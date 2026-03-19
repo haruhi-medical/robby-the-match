@@ -2065,17 +2065,21 @@ async function verifyLineSignature(body, signature, channelSecret) {
 // LINE Reply API呼び出し
 async function lineReply(replyToken, messages, channelAccessToken) {
   try {
+    const bodyStr = JSON.stringify({ replyToken, messages });
+    console.log(`[LINE] Reply: ${messages.length} msgs, ${bodyStr.length} bytes, token: ${replyToken.slice(0, 8)}...`);
     const res = await fetch("https://api.line.me/v2/bot/message/reply", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${channelAccessToken}`,
       },
-      body: JSON.stringify({ replyToken, messages }),
+      body: bodyStr,
     });
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
       console.error(`[LINE] Reply API error: ${res.status} ${errBody}`);
+    } else {
+      console.log(`[LINE] Reply OK: ${res.status}`);
     }
   } catch (e) {
     console.error(`[LINE] Reply fetch error: ${e.message}`);
@@ -4369,18 +4373,18 @@ ${MARKET_DATA}
     } catch (e) { console.error("[AI] OpenAI error:", e); }
   }
 
-  // Cloudflare Workers AIフォールバック（10秒タイムアウト）
+  // Cloudflare Workers AIフォールバック（5秒タイムアウト — replyToken有効期限内に返す必要あり）
   if (!aiResponse && env.AI) {
     try {
-      console.log("[AI] Trying Workers AI...");
-      const aiPromise = env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+      console.log("[AI] Trying Workers AI (5s timeout)...");
+      const aiPromise = env.AI.run("@cf/meta/llama-3-8b-instruct", {
         messages: [
           { role: "system", content: systemPrompt },
-          ...entry.consultMessages.slice(-6),
+          ...entry.consultMessages.slice(-4),
         ],
-        max_tokens: 300,
+        max_tokens: 200,
       });
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Workers AI timeout 10s")), 10000));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Workers AI timeout")), 5000));
       const result = await Promise.race([aiPromise, timeoutPromise]);
       aiResponse = result?.response;
       console.log(`[AI] Workers AI OK: ${(aiResponse || "").slice(0, 50)}`);
@@ -4388,7 +4392,14 @@ ${MARKET_DATA}
   }
 
   if (!aiResponse) {
-    aiResponse = "すみません、一時的に回答を生成できませんでした。担当者におつなぎしましょうか？";
+    // AIが間に合わなかった場合のテンプレート返信
+    const templates = [
+      "ご質問ありがとうございます！\n詳しい情報は担当者がお答えしますね。24時間以内にこのLINEでご連絡します。",
+      "気になりますよね！\n具体的な条件は担当者が詳しくお伝えできます。このLINEでご連絡しますね。",
+      "大事なポイントですね！\n担当者が詳しい情報をお伝えしますので、少しお待ちください。",
+    ];
+    aiResponse = templates[Math.floor(Math.random() * templates.length)];
+    console.log("[AI] Using template fallback");
   }
 
   entry.consultMessages.push({ role: "assistant", content: aiResponse });
