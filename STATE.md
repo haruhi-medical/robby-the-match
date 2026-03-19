@@ -1,5 +1,5 @@
 # 神奈川ナース転職 状態ファイル
-# 最終更新: 2026-03-19 10:00 by 競合監視
+# 最終更新: 2026-03-19 15:00 by コンテンツ生成
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -111,7 +111,11 @@
 ## デプロイ状態
 - **Netlify**: ✅ 公開中（quads-nurse.com）
 - **SSL**: ✅ Let's Encrypt自動発行
-- **Cloudflare Worker**: ✅ デプロイ済み（AIチャット）
+- **Cloudflare Worker**: ✅ robby-the-match-api デプロイ済み（LINE Bot + AIチャット）
+  - シークレット7件設定済み（LINE×3 + Slack×2 + OpenAI + ChatSecret）
+  - ⚠️ デプロイ後にシークレット消失する問題あり → 必ず `wrangler secret list` で確認
+  - AI相談: OpenAI GPT-4o-mini優先 → ctx.waitUntilバックグラウンド + Push API
+  - LINE通知先: C0AEG626EUW（ロビー小田原人材紹介）
 - git remote: origin https://github.com/Quads-Inc/robby-the-match.git
 - デプロイ: `git push origin main && git push origin main:master`
 
