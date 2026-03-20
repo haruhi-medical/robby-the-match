@@ -237,7 +237,27 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-03-20T17:02:07.019298",
+      "content_id": "ai_転職_0305_08",
+      "success": true,
+      "method": "tiktokautouploader"
+    },
+    {
+      "timestamp": "2026-03-20T18:39:34.413971",
+      "content_id": "ai_トレ_0305_09",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-03-20T18:57:45.570270",
+      "content_id": "ai_トレ_0305_09",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-03-19T19:42:34.752257"
+  "last_updated": "2026-03-20T18:57:45.570280"
 }

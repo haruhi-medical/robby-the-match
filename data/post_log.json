@@ -348,5 +348,55 @@
     "code": "DWFbleZjBll",
     "url": "https://www.instagram.com/p/DWFbleZjBll/",
     "format": "reel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_給与_0305_03",
+    "timestamp": "2026-03-20T16:56:06.782088",
+    "status": "success",
+    "media_id": "3856857606866612318_45884164083",
+    "code": "DWGT48WjDBe",
+    "url": "https://www.instagram.com/p/DWGT48WjDBe/",
+    "format": "reel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_地域_0305_09",
+    "timestamp": "2026-03-20T18:02:56.195876",
+    "status": "success",
+    "media_id": "3856891148111712093_45884164083",
+    "code": "DWGbhCEjA9d",
+    "url": "https://www.instagram.com/p/DWGbhCEjA9d/",
+    "format": "reel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_ある_0305_01",
+    "timestamp": "2026-03-20T18:16:19.433459",
+    "status": "success",
+    "media_id": "3856897950383621895_45884164083",
+    "code": "DWGdEBLjEcH",
+    "url": "https://www.instagram.com/p/DWGdEBLjEcH/",
+    "format": "reel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_転職_0305_10",
+    "timestamp": "2026-03-20T18:37:22.191816",
+    "status": "success",
+    "media_id": "3856908564581612125_45884164083",
+    "code": "DWGfeebDHpd",
+    "url": "https://www.instagram.com/p/DWGfeebDHpd/",
+    "format": "reel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_claude_ある_0305_01",
+    "timestamp": "2026-03-20T20:03:17.562710",
+    "status": "success",
+    "media_id": "3856951901942968425_45884164083",
+    "code": "DWGpVHfE_Bp",
+    "url": "https://www.instagram.com/p/DWGpVHfE_Bp/",
+    "format": "carousel"
   }
 ]

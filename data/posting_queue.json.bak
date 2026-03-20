@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-20T08:35:56.028348",
+  "updated": "2026-03-20T18:39:34.407099",
   "posts": [
     {
       "id": 1,
@@ -1919,9 +1919,9 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "ready",
-      "video_path": null,
-      "posted_at": null,
+      "status": "posted",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_転職_0305_08_20260320.mp4",
+      "posted_at": "2026-03-20T17:02:07.014965",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -1931,7 +1931,10 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 7.91,
+      "quality_checked": true,
+      "verified": true,
+      "video_type": "animated"
     },
     {
       "id": 122,
@@ -1948,11 +1951,11 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_トレ_0305_09_20260320.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -2035,9 +2038,9 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-20T18:02:56.199354",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2047,7 +2050,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8,
+      "instagram_dir": "carousel_20260320_ai_地域_0305_09"
     },
     {
       "id": 128,
@@ -2151,9 +2155,9 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-20T18:16:19.436617",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2163,7 +2167,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8,
+      "instagram_dir": "carousel_20260320_ai_ある_0305_01"
     },
     {
       "id": 134,

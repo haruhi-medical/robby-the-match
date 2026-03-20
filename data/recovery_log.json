@@ -36,7 +36,7 @@
       "last_alert_ts": "2026-03-04T20:00:01.170412"
     },
     "sns_post": {
-      "date": "2026-03-18",
+      "date": "2026-03-20",
       "retries": 1,
       "status": "recovered",
       "last_error": "",
