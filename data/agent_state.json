@@ -2,7 +2,7 @@
   "lastRun": {
     "seo_optimizer": "2026-03-20T04:00:15",
     "health_monitor": "2026-03-20T08:30:21",
-    "competitor_analyst": "2026-03-19T10:00:12",
+    "competitor_analyst": "2026-03-20T10:00:00",
     "content_creator": "2026-03-19T15:00:44",
     "daily_reviewer": "2026-03-19T23:00:28",
     "weekly_strategist": "2026-03-15T06:00:56",
@@ -13,7 +13,7 @@
   "status": {
     "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
