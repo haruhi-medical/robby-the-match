@@ -2203,3 +2203,29 @@ SNS自動投稿: IG済18件 / 未投稿27件 (IG=0, TK=0)
 2. TikTokの投稿数を増やすために、コンテンツの生成と投稿を強化します。
 3. LINE登録数と成約数を増やすための戦略を検討し、実施します。
 
+
+## 2026-03-21
+
+### 🔍 SEO診断（04:00:00）
+1. SEO改善が必要なページ：
+以下のページでは、title、h1、descriptionの問題点が見受けられます。
+- lp/job-seeker/area/kaisei.html：h1タグが見つかりません。
+- lp/job-seeker/guide/first-transfe：タイトルとdescriptionが不完全です。
+- lp/job-seeker/area/index.html：descriptionが短すぎます。
+- lp/job-seeker/guide/career-change.html：タイトルとh1が類似していますが、descriptionが短すぎます。
+- lp/job-seeker/area/hakone.html：descriptionに地域の特徴が不足しています。
+
+2. 不足しているテーマ/地域：
+新規ページ提案：
+- タイトル：「神奈川県の看護師転職市場動向」
+  ターゲットKW：「神奈川県看護師転職市場」
+- タイトル：「湘南地域の看護師求人情報」
+  ターゲットKW：「湘南看護師求人」
+- タイトル：「看護師のキャリアデザインと転職戦略」
+  ターゲットKW：「看護師キャリアデザイン」
+
+3. 内部リンクの改善提案：
+- 現在のページでは、内部リンクが不足しています。特に、guideページからareaページへのリンクや、blogページからのリンクを増やすことで、ユーザーの滞在時間を延ばし、サイトのナビゲーションを改善できます。
+- 例えば、lp/job-seeker/guide/career-change.htmlからlp/job-seeker/area/fujisawa.htmlへのリンクを追加することで、ユーザーが関連する地域の求人情報にアクセスしやすくなります。
+- また、footerやヘッダーに主要なページへのリンクを追加することで、サイト全体のナビゲーションを強化できます。
+
