@@ -570,14 +570,25 @@ def draw_centered_text_block(
     """Draw multiple lines centered. Returns Y after last line."""
     line_h = int(font_size * line_height_ratio)
     cy = start_y
+    # キャンバス幅をcenter_xから推定し、プラットフォーム別セーフゾーンを適用
+    canvas_w = center_x * 2
+    if canvas_w <= IG_CANVAS_W:
+        # Instagram (1080x1350)
+        effective_left = IG_SAFE["left"]    # 70
+        effective_right = IG_SAFE["right"]  # 70
+    else:
+        # TikTok (1080x1920)
+        effective_left = SAFE_LEFT   # 75
+        effective_right = SAFE_RIGHT # 160
+
     for line in lines:
         tw, _ = measure_text(line, font)
         tx = center_x - tw // 2
         # 左右セーフゾーンへのクリッピング
-        if tx < SAFE_LEFT:
-            tx = SAFE_LEFT
-        elif tx + tw > CANVAS_W - SAFE_RIGHT:
-            tx = CANVAS_W - SAFE_RIGHT - tw
+        if tx < effective_left:
+            tx = effective_left
+        elif tx + tw > canvas_w - effective_right:
+            tx = max(effective_left, canvas_w - effective_right - tw)  # 負にならないよう保護
         if shadow:
             draw_text_shadow(draw, tx, cy, line, font, fill=fill,
                              shadow_color=shadow_color, shadow_offset=shadow_offset)
