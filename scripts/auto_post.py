@@ -67,11 +67,11 @@ PLATFORM_INTERVAL = 30
 # 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
 INSTAGRAM_FORMAT_SCHEDULE = {
     0: "carousel",   # 月: カルーセル
-    1: "reel",       # 火: リール（TikTok動画流用）
-    2: "single",     # 水: 単画像
+    1: "carousel",   # 火: カルーセル
+    2: "carousel",   # 水: カルーセル
     3: "carousel",   # 木: カルーセル
-    4: "reel",       # 金: リール
-    5: "story",      # 土: ストーリーのみ
+    4: "carousel",   # 金: カルーセル
+    5: "carousel",   # 土: カルーセル
     6: None,         # 日: 休み
 }
 
