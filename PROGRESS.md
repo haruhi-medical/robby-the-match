@@ -2148,3 +2148,13 @@ SNS自動投稿: IG済13件 / 未投稿27件 (IG=0, TK=0)
    - 現在のページから関連するガイドページや地域別ページにリンクを追加することで、ユーザーの滞在時間を増やし、サイト内での探索を促進する。
    - 例えば、看護師求人ページから「看護師のキャリアチェンジ完全ガイド」へのリンクを追加する。
 
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-03-20 SEO改善
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=29 ready=29 posted=21 failed=1
+  Generated today: 0
+  Quality issues: 29
+  Status: Healthy
+

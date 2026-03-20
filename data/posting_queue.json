@@ -1888,9 +1888,9 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "ready",
+      "status": "posted",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_転職_0305_07_20260319.mp4",
-      "posted_at": null,
+      "posted_at": "2026-03-20T08:44:26.210403",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -1901,7 +1901,8 @@
       },
       "ai_score": null,
       "quality_score": 9.04,
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_dir": "carousel_20260320_ai_転職_0305_07"
     },
     {
       "id": 121,
@@ -1909,7 +1910,7 @@
       "batch": "ai_batch_20260305_1337",
       "slide_dir": "content/generated/ai_batch_20260305_1337/carousel_20260320_ai_転職_0305_08",
       "json_path": "content/generated/ai_batch_20260305_1337/ai_転職_0305_08.json",
-      "caption": "看護師5年目、退職理由は何?\n\n自由に仕事が選べる人生の方が大切\n\nロビーと一緒に、新しい看護師ライフを始めてみない？",
+      "caption": "看護師5年目、退職理由は何?\n\n自由に仕事が選べる人生の方が大切\n\n新しい看護師ライフを始めてみない？",
       "hashtags": [
         "#神奈川県",
         "#ナース",
@@ -2083,7 +2084,7 @@
       "batch": "ai_batch_20260305_1343",
       "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_業界_0305_06",
       "json_path": "content/generated/ai_batch_20260305_1343/ai_業界_0305_06.json",
-      "caption": "看護師の時給、コンビニと同じ?\n\nロビーが調べたデータ\n\n同じ状況の看護師さんにシェアして\nあなたの市場価値、30秒で診断できるよ👇\nプロフのリンクから無料診断 →",
+      "caption": "看護師の時給、コンビニと同じ?\n\n調べたデータ\n\n同じ状況の看護師さんにシェアして\nあなたの市場価値、30秒で診断できるよ👇\nプロフのリンクから無料診断 →",
       "hashtags": [
         "#神奈川",
         "#看護師",

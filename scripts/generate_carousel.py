@@ -278,21 +278,25 @@ CATEGORY_TEMPLATE_TYPE = {
 }
 
 # ===========================================================================
-# Instagram Design System — "Warm Coral" palette
+# Instagram Design System — "Kanagawa Coastal Calm" palette
 # ===========================================================================
-# Unique in the nurse recruitment market: competitors use pink/blue.
-# This warm coral palette creates a distinctive, trustworthy impression.
+# Deep teal + sunset coral: calm professionalism with warm CTA accents.
+# Competitors use pink/blue — this palette stands apart.
 
 INSTAGRAM_COLORS = {
-    "primary": (255, 123, 107),        # Warm Coral #FF7B6B
-    "primary_dark": (232, 93, 74),     # Deep Coral #E85D4A
-    "background": (255, 248, 240),     # Soft Cream #FFF8F0
-    "card_bg": (255, 255, 255),        # White card
-    "text_primary": (45, 45, 45),      # Charcoal #2D2D2D
-    "text_secondary": (107, 107, 107), # Warm Gray #6B6B6B
-    "accent": (255, 217, 61),          # Sunny Yellow #FFD93D
-    "trust": (46, 196, 182),           # Teal Green #2EC4B6
-    "card_shadow": (0, 0, 0, 20),      # Subtle shadow
+    "primary": (42, 123, 139),         # #2A7B8B Deep Teal
+    "primary_light": (224, 242, 237),  # #E0F2ED Pale Mint
+    "accent": (232, 115, 74),          # #E8734A Sunset Coral
+    "accent_light": (252, 232, 222),   # #FCE8DE Light Coral
+    "background": (255, 248, 240),     # #FFF8F0 Warm Cream
+    "text_primary": (45, 45, 45),      # #2D2D2D Charcoal
+    "text_secondary": (107, 107, 107), # #6B6B6B Warm Gray
+    "cta": (232, 115, 74),             # #E8734A Coral (CTA button)
+    "cta_dark": (212, 87, 58),         # #D4573A Darker Coral
+    "trust": (42, 123, 139),           # #2A7B8B Teal (same as primary)
+    "white": (255, 255, 255),
+    "card_bg": (255, 255, 255),        # White card (kept for compatibility)
+    "card_shadow": (0, 0, 0, 20),      # Subtle shadow (kept for compatibility)
 }
 
 IG_FONTS = {
@@ -1127,8 +1131,8 @@ def _draw_progress_dots(
     total_w = total_slides * dot_diameter + (total_slides - 1) * dot_spacing
     start_x = (canvas_w - total_w) // 2
 
-    coral = INSTAGRAM_COLORS["primary"]
-    gray_outline = (180, 180, 180)
+    teal = INSTAGRAM_COLORS["primary"]       # Deep Teal filled
+    light_gray = (210, 210, 210)              # Light gray unfilled
 
     for i in range(total_slides):
         cx = start_x + i * (dot_diameter + dot_spacing) + dot_radius
@@ -1136,11 +1140,11 @@ def _draw_progress_dots(
         bbox = (cx - dot_radius, cy - dot_radius, cx + dot_radius, cy + dot_radius)
 
         if i + 1 == slide_index:
-            # Current slide: filled coral
-            draw.ellipse(bbox, fill=coral)
+            # Current slide: filled teal
+            draw.ellipse(bbox, fill=teal)
         else:
-            # Other slides: gray outline only
-            draw.ellipse(bbox, fill=None, outline=gray_outline, width=2)
+            # Other slides: light gray filled
+            draw.ellipse(bbox, fill=light_gray)
 
 
 def _ig_draw_brand_logo(draw: ImageDraw.ImageDraw, canvas_w: int):
@@ -1164,9 +1168,9 @@ def generate_ig_hook_slide(
 
     Layout:
     - Background: Cream (#FFF8F0)
-    - Top-left: Small brand logo text (28px, coral)
+    - Top-left: Small brand logo text (28px, teal)
     - Center: Large title (72-80px, charcoal, max 2 lines)
-    - Bottom: Coral bar (80px height) with swipe CTA
+    - Bottom: Teal bar (80px height) with swipe CTA
     """
     cw, ch = IG_CANVAS_W, IG_CANVAS_H
     bg = _ig_build_cream_bg(cw, ch)
@@ -1211,12 +1215,12 @@ def generate_ig_hook_slide(
         shadow=False,
     )
 
-    # -- Bottom coral bar (80px height, full width) --
+    # -- Bottom teal bar (80px height, full width) --
     bar_h = 80
     bar_y = ch - bar_h
     draw.rectangle([(0, bar_y), (cw, ch)], fill=colors["primary"])
 
-    # "スワイプで解説 →" on coral bar
+    # "スワイプで解説 →" on teal bar
     swipe_font = load_font(bold=True, size=28)
     swipe_text = "スワイプで解説 →"
     stw, _ = measure_text(swipe_text, swipe_font)
@@ -1249,22 +1253,24 @@ def generate_ig_content_slide(
 ) -> Image.Image:
     """Instagram content slide (Slides 2 through N-1).
 
-    Layout (v3.2 - variable-height card, vertically centered):
+    Layout (v4.0 - Kanagawa Coastal Calm):
     - Background: Cream (#FFF8F0)
-    - Header bar: Coral rectangle (120px), white title text (48-56px bold)
-    - Content card: White rounded rectangle, height adapts to text content
-    - Card + header are vertically centered in the available space
+    - Slide number badge: Teal circle with white number
+    - Title: Charcoal text below badge
+    - Content card: White rounded rectangle with subtle shadow
     - Body text: Charcoal (#2D2D2D), 36-40px
-    - Highlight box: Yellow accent background at 30% opacity for key stats
-    - Progress dots at bottom center
+    - Highlight box: Coral accent background at 30% opacity for key stats
+    - Progress dots at bottom center (teal filled / light gray unfilled)
     """
     cw, ch = IG_CANVAS_W, IG_CANVAS_H
     colors = INSTAGRAM_COLORS
     center_x = cw // 2
 
     # Layout constants
-    header_h = 120
-    header_card_gap = 40       # gap between header bar and card
+    badge_diameter = 64        # teal circle badge for slide number
+    badge_title_gap = 16       # gap between badge and title text
+    header_h = 120             # total header zone (badge + title)
+    header_card_gap = 40       # gap between header zone and card
     card_left = 50
     card_right = cw - 50
     card_radius = 16
@@ -1383,18 +1389,29 @@ def generate_ig_content_slide(
     bg = _ig_build_cream_bg(cw, ch)
     draw = ImageDraw.Draw(bg)
 
-    # -- Coral header bar --
-    draw.rectangle([(0, header_top), (cw, header_top + header_h)], fill=colors["primary"])
+    # -- Teal circle badge with white slide number --
+    badge_cx = center_x
+    badge_cy = header_top + badge_diameter // 2
+    badge_r = badge_diameter // 2
+    draw.ellipse(
+        (badge_cx - badge_r, badge_cy - badge_r, badge_cx + badge_r, badge_cy + badge_r),
+        fill=colors["primary"],
+    )
+    badge_num_font = load_font(bold=True, size=32)
+    num_str = str(slide_num)
+    ntw, _ = measure_text(num_str, badge_num_font)
+    draw.text((badge_cx - ntw // 2, badge_cy - 18), num_str,
+              fill=colors.get("white", COLOR_WHITE), font=badge_num_font)
 
-    # Title text inside header bar (vertically centered within bar)
+    # -- Title text below badge (charcoal on cream) --
     title_line_h = int(title_font_size * LINE_HEIGHT_RATIO)
     title_block_h = title_line_h * len(title_lines)
-    title_y = header_top + (header_h - title_block_h) // 2
+    title_y = header_top + badge_diameter + badge_title_gap
 
     draw_centered_text_block(
         draw, title_lines, title_font, title_font_size,
         center_x, title_y,
-        fill=COLOR_WHITE,
+        fill=colors["text_primary"],
         shadow=False,
     )
 
@@ -1426,8 +1443,8 @@ def generate_ig_content_slide(
         ntw, _ = measure_text(highlight_number, num_font)
         nx = center_x - ntw // 2
 
-        # Yellow highlight box behind the number (30% opacity)
-        accent_yellow = colors["accent"]  # #FFD93D
+        # Coral accent highlight box behind the number (30% opacity)
+        accent_coral = colors["accent"]  # #E8734A Sunset Coral
         hl_pad_x = 30
         hl_pad_y = 10
         hl_box = (
@@ -1440,13 +1457,13 @@ def generate_ig_content_slide(
         hl_draw = ImageDraw.Draw(hl_overlay)
         hl_draw.rounded_rectangle(
             hl_box, radius=12,
-            fill=(*accent_yellow[:3], 77),  # ~30% opacity (77/255)
+            fill=(*accent_coral[:3], 77),  # ~30% opacity (77/255)
         )
         bg = Image.alpha_composite(bg, hl_overlay)
         draw = ImageDraw.Draw(bg)
 
         draw.text((nx, content_y), highlight_number,
-                  fill=colors["primary"], font=num_font)
+                  fill=colors["accent"], font=num_font)
         content_y += int(num_font_size * 1.3)
 
         if highlight_label:
@@ -1501,23 +1518,23 @@ def generate_ig_cta_slide(
 ) -> Image.Image:
     """Instagram CTA slide (last slide).
 
-    Layout:
-    - Background: Gradient from cream to light coral
-    - "まとめ" header (48px, bold)
+    Layout (Kanagawa Coastal Calm):
+    - Background: Gradient from cream to pale mint
+    - "まとめ" header (48px, bold, charcoal)
     - 2-3 bullet points summarizing the carousel (36px)
     - Divider line
-    - CTA text for LINE or profile check (40px, bold)
-    - Brand footer (32px, coral)
-    - "保存・シェアお願いします！" (28px, gray)
+    - CTA text (40px, bold, charcoal)
+    - Brand footer "シン・AI転職" (32px, coral accent)
+    - "保存・シェアお願いします！" (28px, warm gray)
     """
     cw, ch = IG_CANVAS_W, IG_CANVAS_H
     colors = INSTAGRAM_COLORS
     center_x = cw // 2
 
-    # -- Background: cream-to-light-coral gradient --
+    # -- Background: cream-to-pale-mint gradient --
     cream = colors["background"]
-    light_coral = (255, 200, 190)
-    bg = create_gradient(cw, ch, cream, light_coral, direction="vertical")
+    pale_mint = colors["primary_light"]  # #E0F2ED Pale Mint
+    bg = create_gradient(cw, ch, cream, pale_mint, direction="vertical")
     draw = ImageDraw.Draw(bg)
 
     current_y = 60
@@ -1539,12 +1556,12 @@ def generate_ig_cta_slide(
         ]
 
     bullet_font = load_font(bold=False, size=36)
-    bullet_coral = colors["primary"]
+    bullet_teal = colors["primary"]
     bullet_line_h = int(36 * LINE_HEIGHT_RATIO)
 
     for point in summary_points[:3]:
         dot_y = current_y + 18
-        draw.ellipse((60, dot_y - 6, 72, dot_y + 6), fill=bullet_coral)
+        draw.ellipse((60, dot_y - 6, 72, dot_y + 6), fill=bullet_teal)
 
         lines = wrap_text_jp(point, bullet_font, cw - 160)
         for line in lines:
@@ -1594,7 +1611,7 @@ def generate_ig_cta_slide(
             break
         blw, _ = measure_text(bl, brand_font)
         draw.text((center_x - blw // 2, current_y), bl,
-                  fill=colors["primary"], font=brand_font)
+                  fill=colors["accent"], font=brand_font)
         current_y += int(32 * LINE_HEIGHT_RATIO)
 
     # -- Save/share request (only if space remains) --

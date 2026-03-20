@@ -316,5 +316,37 @@
     "timestamp": "2026-03-19T17:30:08.334111",
     "status": "error",
     "error": "No slides found"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_ある_0303_01",
+    "timestamp": "2026-03-20T08:38:39.239100",
+    "status": "error",
+    "error": "No slides found and generation failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_転職_0305_07",
+    "timestamp": "2026-03-20T08:40:08.914778",
+    "status": "error",
+    "error": "No slides found and generation failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_転職_0305_07",
+    "timestamp": "2026-03-20T08:40:48.096936",
+    "status": "dry_run",
+    "slides": 8,
+    "format": "reel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_転職_0305_07",
+    "timestamp": "2026-03-20T08:44:26.208283",
+    "status": "success",
+    "media_id": "3856609978430003557_45884164083",
+    "code": "DWFbleZjBll",
+    "url": "https://www.instagram.com/p/DWFbleZjBll/",
+    "format": "reel"
   }
 ]

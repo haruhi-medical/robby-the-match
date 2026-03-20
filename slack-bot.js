@@ -1,5 +1,5 @@
 // ========================================
-// NURSE ROBBY (神奈川ナース転職) - Slack → Claude Code Bridge
+// 神奈川ナース転職 - Slack → Claude Code Bridge
 // Slackメッセージ = Claude Code入力と同等に処理
 // ========================================
 
@@ -125,7 +125,7 @@ app.event("app_mention", async ({ event, say }) => {
 (async () => {
   await app.start();
   console.log("==========================================");
-  console.log("  NURSE ROBBY (神奈川ナース転職) - Claude Code Bridge");
+  console.log("  神奈川ナース転職 - Claude Code Bridge");
   console.log("  Slack message = Claude Code input");
   console.log("  Socket Mode: Active");
   console.log(`  Channel: #平島claudecode`);

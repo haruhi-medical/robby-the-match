@@ -164,7 +164,7 @@ def get_rotated_hashtags():
         except Exception as e:
             print(f"[WARN] Failed to load hashtag rotation: {e}")
     # Fallback
-    return ["#看護師あるある", "#看護師の日常", "#神奈川看護師", "#神奈川ナース転職"]
+    return ["#看護師あるある", "#看護師の日常", "#神奈川看護師", "#看護師転職"]
 
 
 def validate_hashtags(tags):
@@ -2618,7 +2618,7 @@ def _plan_calendar_types(need: int, current_mix: Dict[str, int]) -> Dict[str, in
 
 def main():
     parser = argparse.ArgumentParser(
-        description="AI Content Engine for Nurse Robby (Claude Code CLI + CF AI fallback)",
+        description="AI Content Engine for 神奈川ナース転職 (Claude Code CLI + CF AI fallback)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

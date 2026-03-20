@@ -226,7 +226,7 @@ def cmd_validate():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="BGM management for Nurse Robby TikTok videos"
+        description="BGM management for 神奈川ナース転職 TikTok videos"
     )
     parser.add_argument("--generate-placeholders", action="store_true",
                         help="Generate sine-wave placeholder BGM files using ffmpeg")
