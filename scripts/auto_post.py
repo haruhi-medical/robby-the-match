@@ -313,6 +313,11 @@ def optimize_for_instagram(img_path: str, output_path: str) -> str:
     # Pre-sharpen to compensate for Instagram compression
     img = img.filter(ImageFilter.UnsharpMask(radius=1.0, percent=50, threshold=2))
 
+    # Force exact dimensions as final step (guards against any upstream drift,
+    # e.g. humanize_image's ±2px dimension variance or rotation expand artifacts)
+    if img.size != (target_w, target_h):
+        img = img.resize((target_w, target_h), Image.LANCZOS)
+
     # Save as optimized JPEG
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     img.save(

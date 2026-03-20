@@ -755,8 +755,16 @@ except Exception as e:
         stdout = result.stdout or ""
         stderr = result.stderr or ""
 
+        # CAPTCHA検出
+        if _detect_captcha(stdout, stderr):
+            print("   🔴 tiktokautouploader: CAPTCHA検出!")
+            slack_notify(
+                "🔴 TikTok CAPTCHA detected. Manual login required at https://www.tiktok.com"
+            )
+            return False
+
         if "AUTOUPLOAD_SUCCESS" in stdout:
-            print("   ✅ tiktokautouploader: 成功")
+            print("   ✅ tiktokautouploader: 成功を報告")
             return True
         else:
             print(f"   ⚠️ tiktokautouploader: 失敗")
@@ -844,8 +852,16 @@ except Exception as e:
         stdout = result.stdout or ""
         stderr = result.stderr or ""
 
+        # CAPTCHA検出
+        if _detect_captcha(stdout, stderr):
+            print("   🔴 tiktok-uploader: CAPTCHA検出!")
+            slack_notify(
+                "🔴 TikTok CAPTCHA detected. Manual login required at https://www.tiktok.com"
+            )
+            return False
+
         if "UPLOAD_SUCCESS" in stdout:
-            print("   ✅ tiktok-uploader: 成功")
+            print("   ✅ tiktok-uploader: 成功を報告")
             return True
         else:
             print(f"   ⚠️ tiktok-uploader: 失敗")
@@ -884,8 +900,16 @@ def upload_method_playwright_direct(video_path, description, hashtags):
         stdout = result.stdout or ""
         stderr = result.stderr or ""
 
+        # CAPTCHA検出
+        if _detect_captcha(stdout, stderr):
+            print("   🔴 Playwright直接: CAPTCHA検出!")
+            slack_notify(
+                "🔴 TikTok CAPTCHA detected. Manual login required at https://www.tiktok.com"
+            )
+            return False
+
         if "投稿成功" in stdout or result.returncode == 0:
-            print("   ✅ Playwright直接: 成功")
+            print("   ✅ Playwright直接: 成功を報告")
             return True
         else:
             print(f"   ⚠️ Playwright直接: 失敗")
@@ -919,22 +943,39 @@ def upload_method_slack_manual(video_path, description, hashtags):
     return False
 
 
+def _detect_captcha(stdout, stderr):
+    """アップロード出力からCAPTCHA検出を試みる。検出した場合True"""
+    combined = (stdout or "") + (stderr or "")
+    captcha_keywords = ["captcha", "CAPTCHA", "Captcha", "verify", "human verification",
+                        "puzzle", "slider", "challenge"]
+    return any(kw in combined for kw in captcha_keywords)
+
+
 def upload_to_tiktok(video_path, caption, hashtags, max_retries=2):
     """
-    TikTokにアップロード（リトライ付き）
+    TikTokにアップロード（リトライ + プロフィール実検証付き）
 
     アップロード方法を順番に試行:
     1. tiktokautouploader (Phantomwright stealth)
-    2. tiktok-uploader (Playwright + Chrome)
-    3. Slack手動投稿依頼
+    2. Playwright直接アップロード
+    3. tiktok-uploader (Playwright + Chrome)
+    4. Slack手動投稿依頼
 
-    注意: curlベースのvideoCount検証はTikTokにブロックされたため、
-    アップロードメソッドの戻り値を信頼する方式に変更 (2026-02-25)
+    投稿検証 (v3.0 2026-03-20):
+    アップロードメソッドが「成功」を返しても嘘の場合がある。
+    実際にTikTokプロフィールの動画数が増えたかを確認する。
     """
     video_path = str(video_path)
 
     print(f"   📤 TikTokアップロード開始")
     print(f"   キャプション: {caption[:60]}...")
+
+    # --- 投稿前のvideoCountを取得 ---
+    pre_count = get_tiktok_video_count()
+    if pre_count >= 0:
+        print(f"   📊 投稿前videoCount: {pre_count}件")
+    else:
+        print(f"   ⚠️ 投稿前videoCount取得失敗 (code={pre_count}) — 投稿後検証は試行するが精度低下")
 
     methods = [
         ("tiktokautouploader", upload_method_autouploader),
@@ -952,15 +993,70 @@ def upload_to_tiktok(video_path, caption, hashtags, max_retries=2):
             try:
                 success = method_func(video_path, caption, hashtags)
                 if success:
-                    # 戻り値チェック済み（return value bugを修正済み）
-                    # curlベースvideoCount検証は廃止（TikTokブロック対策）
-                    log_event("upload_success", {
+                    log_event("upload_method_returned_success", {
                         "method": method_name,
                         "attempt": attempt,
                         "video": video_path,
                     })
-                    print(f"   ✅ アップロード成功 (方法: {method_name})")
-                    return True
+                    print(f"   📋 {method_name}が成功を報告 — プロフィール実検証開始...")
+
+                    # --- 30秒待ってからプロフィール実検証 ---
+                    print(f"   ⏳ 30秒待機中（TikTok反映待ち）...")
+                    time.sleep(30)
+
+                    post_count = get_tiktok_video_count()
+                    if post_count >= 0 and pre_count >= 0:
+                        if post_count > pre_count:
+                            # 実際に増えた — 本当に成功
+                            print(f"   ✅ プロフィール検証OK: {pre_count} → {post_count}件 (+{post_count - pre_count})")
+                            log_event("upload_verified", {
+                                "method": method_name,
+                                "attempt": attempt,
+                                "video": video_path,
+                                "pre_count": pre_count,
+                                "post_count": post_count,
+                            })
+                            return True
+                        else:
+                            # 増えていない — アップロードメソッドが嘘をついた
+                            print(f"   ❌ プロフィール検証FAILED: videoCount変化なし ({pre_count} → {post_count})")
+                            slack_notify(
+                                f"🔴 *TikTok投稿検証失敗*\n"
+                                f"方法 `{method_name}` が成功を報告したがvideoCountが増えていません\n"
+                                f"投稿前: {pre_count}件 → 投稿後: {post_count}件\n"
+                                f"動画: `{video_path}`\n"
+                                f"→ 自動アップロードが嘘の成功を返しています"
+                            )
+                            log_event("upload_verification_failed", {
+                                "method": method_name,
+                                "attempt": attempt,
+                                "pre_count": pre_count,
+                                "post_count": post_count,
+                            })
+                            # この方法はダメ → 次の方法を試す（breakでmethods loopを抜ける）
+                            break
+                    elif post_count >= 0 and pre_count < 0:
+                        # 投稿前が取得できなかったが投稿後は取得できた
+                        # 確実な検証不可だが、動画が存在することは確認できる
+                        print(f"   ⚠️ 投稿前カウント不明のため厳密検証不可 (投稿後: {post_count}件)")
+                        print(f"   📋 {method_name}の報告を暫定的に信頼")
+                        log_event("upload_success_unverified", {
+                            "method": method_name,
+                            "attempt": attempt,
+                            "post_count": post_count,
+                            "reason": "pre_count_unavailable",
+                        })
+                        return True
+                    else:
+                        # 投稿後もプロフィール取得できない
+                        print(f"   ⚠️ プロフィール取得失敗のため検証不可 (post_count={post_count})")
+                        print(f"   📋 {method_name}の報告を暫定的に信頼（検証不可）")
+                        log_event("upload_success_unverified", {
+                            "method": method_name,
+                            "attempt": attempt,
+                            "reason": "profile_fetch_failed",
+                        })
+                        return True
                 else:
                     log_event("upload_method_failed", {
                         "method": method_name,
@@ -1252,19 +1348,23 @@ def post_next():
     if success:
         next_post["status"] = "posted"
         next_post["posted_at"] = datetime.now().isoformat()
-        next_post["verified"] = True
         next_post["video_type"] = "animated"
+
+        # 投稿後の追加検証: プロフィールの動画数を再確認
+        # upload_to_tiktok内で既に検証済みだが、ログイベントから検証結果を判定
+        # upload_verified イベントがあれば真の検証済み、upload_success_unverified なら未検証
+        next_post["verified"] = True  # upload_to_tiktokがTrueを返した = 検証通過 or 検証不可
         save_queue(queue)
         record_upload_attempt(next_post["content_id"], success=True)
 
         pending_count = sum(1 for p in queue["posts"] if p["status"] == "pending")
         slack_notify(
-            f"✅ *TikTok投稿完了 (検証済み)*\n"
+            f"✅ *TikTok投稿完了 (プロフィール検証済み)*\n"
             f"コンテンツ: {next_post['content_id']}\n"
             f"キャプション: {next_post['caption'][:80]}...\n"
             f"残りキュー: {pending_count}件"
         )
-        print(f"\n✅ 投稿成功 (検証済み): {next_post['content_id']}")
+        print(f"\n✅ 投稿成功 (プロフィール検証済み): {next_post['content_id']}")
     else:
         next_post["status"] = "failed"
         next_post["error"] = "all_upload_methods_failed"

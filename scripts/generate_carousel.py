@@ -1197,7 +1197,13 @@ def generate_ig_hook_slide(
     else:
         font = load_font(bold=True, size=72)
         best_size = 72
-        best_lines = wrap_text_jp(hook_text, font, max_text_w)[:2]
+        all_lines = wrap_text_jp(hook_text, font, max_text_w)
+        best_lines = all_lines[:2]
+        # 3行以上に折り返された場合、2行目末尾に「…」を追加
+        if len(all_lines) > 2 and best_lines:
+            last = best_lines[-1]
+            if not last.endswith("…") and not last.endswith("..."):
+                best_lines[-1] = last[:-1] + "…" if len(last) > 1 else last + "…"
 
     font = load_font(bold=True, size=best_size)
     line_h = int(best_size * LINE_HEIGHT_RATIO)
