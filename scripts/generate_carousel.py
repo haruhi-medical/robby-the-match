@@ -420,7 +420,7 @@ def wrap_text_jp(text: str, font: ImageFont.FreeTypeFont, max_width: int, max_ch
                     single_char_bbox = font.getbbox(char)
                     # Cap tolerance to prevent right overflow at large font sizes
                     tolerance = min(single_char_bbox[2] - single_char_bbox[0], 8)
-                    if char_w <= max_width + tolerance:
+                    if char_w <= max_width:  # 禁則処理でもmax_widthを超えない
                         current_line += char
                         all_lines.append(current_line)
                         current_line = ""
@@ -574,16 +574,20 @@ def draw_centered_text_block(
     """Draw multiple lines centered. Returns Y after last line."""
     line_h = int(font_size * line_height_ratio)
     cy = start_y
-    # キャンバス幅をcenter_xから推定し、プラットフォーム別セーフゾーンを適用
-    canvas_w = center_x * 2
-    if canvas_w <= IG_CANVAS_W:
-        # Instagram (1080x1350)
-        effective_left = IG_SAFE["left"]    # 70
-        effective_right = IG_SAFE["right"]  # 70
-    else:
-        # TikTok (1080x1920)
+    # キャンバス幅は常に CANVAS_W (1080) — center_x からの推定はやめる
+    actual_canvas_w = CANVAS_W  # 1080
+    # center_x が真ん中(540)かどうかでプラットフォームを判定するのではなく、
+    # center_x の位置に関係なく常に正しいセーフゾーンを使う
+    # Instagram: 左右70px / TikTok: 左75px 右160px
+    # TikTok は center_x が 497 (セーフゾーン内中央) で渡されることがある
+    if center_x < 510:
+        # TikTok (center_x=497 or similar off-center value)
         effective_left = SAFE_LEFT   # 75
         effective_right = SAFE_RIGHT # 160
+    else:
+        # Instagram or centered (center_x=540)
+        effective_left = IG_SAFE["left"]    # 70
+        effective_right = IG_SAFE["right"]  # 70
 
     for line in lines:
         tw, _ = measure_text(line, font)
@@ -591,8 +595,8 @@ def draw_centered_text_block(
         # 左右セーフゾーンへのクリッピング
         if tx < effective_left:
             tx = effective_left
-        elif tx + tw > canvas_w - effective_right:
-            tx = max(effective_left, canvas_w - effective_right - tw)  # 負にならないよう保護
+        elif tx + tw > actual_canvas_w - effective_right:
+            tx = max(effective_left, actual_canvas_w - effective_right - tw)  # 負にならないよう保護
         if shadow:
             draw_text_shadow(draw, tx, cy, line, font, fill=fill,
                              shadow_color=shadow_color, shadow_offset=shadow_offset)
@@ -1184,19 +1188,26 @@ def generate_ig_hook_slide(
     # -- Large centered title --
     max_text_w = cw - 2 * IG_SAFE["left"] - 40  # 70 + 70 safe zone + 40px inner margin = 180px total
 
-    # Try fitting at 80px, fall back to 72px if text wraps beyond 2 lines
+    # Try progressively smaller font sizes until text fits in ≤2 lines
+    # AND every wrapped line fits within max_text_w.
     best_size = IG_FONTS["cover_title"]
     best_lines = [hook_text]
-    for size in (80, 72):
+    _HOOK_FONT_SIZES = (80, 72, 64, 56, 48)
+    found_fit = False
+    for size in _HOOK_FONT_SIZES:
         font = load_font(bold=True, size=size)
         lines = wrap_text_jp(hook_text, font, max_text_w)
-        if len(lines) <= 2:
+        # Verify every line actually fits within max_text_w
+        all_fit = all(measure_text(ln, font)[0] <= max_text_w for ln in lines)
+        if len(lines) <= 2 and all_fit:
             best_size = size
             best_lines = lines
+            found_fit = True
             break
-    else:
-        font = load_font(bold=True, size=72)
-        best_size = 72
+    if not found_fit:
+        # Even at smallest size, text is too long — use smallest and truncate to 2 lines
+        font = load_font(bold=True, size=_HOOK_FONT_SIZES[-1])
+        best_size = _HOOK_FONT_SIZES[-1]
         all_lines = wrap_text_jp(hook_text, font, max_text_w)
         best_lines = all_lines[:2]
         # 3行以上に折り返された場合、2行目末尾に「…」を追加
@@ -1293,7 +1304,7 @@ def generate_ig_content_slide(
     # -- Measure title for header bar --
     title_font_size = IG_FONTS["slide_title"]  # 52px
     title_font = load_font(bold=True, size=title_font_size)
-    title_max_w = cw - 100  # 50px margin each side
+    title_max_w = cw - 2 * IG_SAFE["left"] - 40  # 70+70 safe zone + 40 inner margin = 180px total
     title_lines = wrap_text_jp(title, title_font, title_max_w)
 
     if len(title_lines) > 1:
