@@ -257,7 +257,14 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-03-21T20:29:09.440143",
+      "content_id": "ai_トレ_0305_10",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-03-20T18:57:45.570280"
+  "last_updated": "2026-03-21T20:29:09.440154"
 }

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-20T18:57:45.563589",
+  "updated": "2026-03-21T20:08:51.886866",
   "posts": [
     {
       "id": 1,
@@ -1980,8 +1980,8 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_トレ_0305_10_20260321.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -1992,7 +1992,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.22,
+      "quality_checked": true
     },
     {
       "id": 126,
