@@ -1,19 +1,19 @@
 {
   "lastRun": {
-    "seo_optimizer": "2026-03-21T04:00:00",
-    "health_monitor": "2026-03-20T08:30:21",
-    "competitor_analyst": "2026-03-20T10:00:23",
+    "seo_optimizer": "2026-03-21T04:00:25",
+    "health_monitor": "2026-03-21T08:30:17",
+    "competitor_analyst": "2026-03-21T10:00:01",
     "content_creator": "2026-03-20T15:00:45",
     "daily_reviewer": "2026-03-20T23:00:30",
     "weekly_strategist": "2026-03-15T06:00:56",
     "sns_poster": "2026-03-20T18:57:45",
-    "ai_marketing_orchestrator": "2026-03-20T06:00:04",
+    "ai_marketing_orchestrator": "2026-03-21T06:00:02",
     "weekly_content_planner": "2026-03-15T05:00:02"
   },
   "status": {
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
@@ -27,15 +27,15 @@
         "from": "health_monitor",
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-03-19T07:00:17.001116",
+        "created": "2026-03-20T07:00:18.674645",
         "status": "processing"
       },
       {
         "from": "health_monitor",
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-03-20T07:00:18.674645",
-        "status": "processing"
+        "created": "2026-03-21T07:00:17.866997",
+        "status": "pending"
       }
     ]
   },
@@ -57,8 +57,8 @@
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
     ],
     "queueRemaining": 0,
-    "lastMarketingPDCA": "2026-03-20 06:00:00",
-    "queuePending": 29,
+    "lastMarketingPDCA": "2026-03-21 06:00:00",
+    "queuePending": 22,
     "dailyGeneratedCount": 0,
     "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
     "lastWeeklyContentRun": "2026-03-01"
