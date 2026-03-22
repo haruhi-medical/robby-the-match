@@ -426,8 +426,43 @@ def get_today_format() -> Optional[str]:
     return INSTAGRAM_FORMAT_SCHEDULE.get(weekday, "carousel")
 
 
+def _sync_chrome_cookies():
+    """Sync Instagram cookies from Chrome browser to session file."""
+    try:
+        import browser_cookie3
+        cj = browser_cookie3.chrome(domain_name='.instagram.com')
+        cookies = {c.name: c.value for c in cj}
+        sessionid = cookies.get('sessionid', '')
+        if not sessionid:
+            print("[IG] Chrome has no Instagram sessionid")
+            return False
+
+        settings = {}
+        if SESSION_FILE.exists():
+            with open(SESSION_FILE) as f:
+                settings = json.load(f)
+
+        settings.setdefault('cookies', {})
+        settings['cookies']['sessionid'] = sessionid
+        settings['cookies']['csrftoken'] = cookies.get('csrftoken', '')
+        settings['cookies']['ds_user_id'] = cookies.get('ds_user_id', '')
+        settings['cookies']['mid'] = cookies.get('mid', '')
+        settings['cookies']['rur'] = cookies.get('rur', '')
+        settings.setdefault('authorization_data', {})
+        settings['authorization_data']['ds_user_id'] = cookies.get('ds_user_id', '')
+        settings['authorization_data']['sessionid'] = sessionid
+
+        with open(SESSION_FILE, 'w') as f:
+            json.dump(settings, f, indent=2)
+        print("[IG] Chrome cookies synced to session file")
+        return True
+    except Exception as e:
+        print(f"[IG] Chrome cookie sync failed: {e}")
+        return False
+
+
 def instagram_login():
-    """Login to Instagram with device rotation and session reuse."""
+    """Login to Instagram with Chrome cookie sync + session reuse."""
     from instagrapi import Client
 
     cl = Client()
@@ -436,35 +471,41 @@ def instagram_login():
     device = get_device_profile()
     print(f"[IG] Device: {device['device_name']}")
 
-    # Try loading existing session
+    # Step 1: Sync fresh cookies from Chrome (Googleログイン対応)
+    _sync_chrome_cookies()
+
+    # Step 2: Load session with synced cookies
     if SESSION_FILE.exists():
         try:
             cl.load_settings(str(SESSION_FILE))
-            cl.login(
-                os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse"),
-                os.environ.get("INSTAGRAM_PASSWORD", "")
-            )
-            print(f"[IG] Session loaded. User: {cl.username}")
+            # Don't call cl.login() — Googleログインではパスワードがない
+            # Cookieベースのセッションで直接APIを叩く
+            cl.user_id  # This triggers session validation
+            print(f"[IG] Session loaded via Chrome cookies. User ID: {cl.user_id}")
             return cl
         except Exception as e:
-            print(f"[IG] Session expired, re-logging in: {e}")
+            print(f"[IG] Chrome cookie session failed: {e}")
 
-    # Fresh login with rotated device profile
-    cl.set_settings({
-        "user_agent": device["user_agent"],
-        "country": "JP",
-        "country_code": 81,
-        "locale": "ja_JP",
-        "timezone_offset": 32400,
-    })
+    # Step 3: Fallback — try password login if available
+    password = os.environ.get("INSTAGRAM_PASSWORD", "")
+    if password:
+        cl.set_settings({
+            "user_agent": device["user_agent"],
+            "country": "JP",
+            "country_code": 81,
+            "locale": "ja_JP",
+            "timezone_offset": 32400,
+        })
+        cl.login(
+            os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse"),
+            password,
+        )
+        cl.dump_settings(str(SESSION_FILE))
+        print(f"[IG] Password login. User: {cl.username}")
+        return cl
 
-    cl.login(
-        os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse"),
-        os.environ.get("INSTAGRAM_PASSWORD", "")
-    )
-    cl.dump_settings(str(SESSION_FILE))
-    print(f"[IG] Fresh login. User: {cl.username}")
-    return cl
+    print("[IG] FAILED: No valid session. Login to Instagram in Chrome first.")
+    return None
 
 
 def warm_up_session(cl, dry_run: bool = False):

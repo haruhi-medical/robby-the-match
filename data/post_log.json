@@ -419,5 +419,19 @@
     "timestamp": "2026-03-22T05:58:09.929852",
     "status": "error",
     "error": "login_required"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_claude_転職_0305_10",
+    "timestamp": "2026-03-22T17:15:11.788778",
+    "status": "error",
+    "error": "login_required"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_claude_転職_0305_10",
+    "timestamp": "2026-03-22T17:16:33.001924",
+    "status": "error",
+    "error": "login_required"
   }
 ]
