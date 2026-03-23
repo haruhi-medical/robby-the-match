@@ -2365,3 +2365,10 @@ AI Marketing PDCA:
 [pdca_ai_engine] job=competitor 完了 (exit=0)
 [INFO] commit済み（pushは日次レビューで一括）
 
+### content（15:00:00）
+コンテンツ生成:   地域ネタ    :   0本  (実績  0.0% / 目標  15%) [!]
+  転職      :   0本  (実績  0.0% / 目標  10%) [!]
+  トレンド    :   0本  (実績  0.0% / 目標   5%) [OK]
+
+[NOTE] available (20) >= threshold (7) -- --auto では生成スキップ
+

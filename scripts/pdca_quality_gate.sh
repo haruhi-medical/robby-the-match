@@ -177,7 +177,7 @@ posts[idx]['quality_score']   = score
 Path(queue_file).write_text(json.dumps(data, ensure_ascii=False, indent=2))
 print(f"[OK] #{idx} marked quality_checked=true score={score}")
 PYEOF
-    else:
+    else
         FAIL_COUNT=$((FAIL_COUNT + 1))
         # Append to failures file (safe: no shell interpolation into Python code)
         printf -- '- #%s %s: %s\n' "$INDEX" "$HOOK" "$ISSUES" >> "$FAIL_DETAILS_FILE"

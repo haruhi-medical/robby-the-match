@@ -52,22 +52,38 @@ def load_env():
     return env
 
 
-def api_post(url):
-    """POST リクエストを送信してXMLレスポンスを返す"""
-    req = urllib.request.Request(url, method="POST", data=b"")
-    req.add_header("User-Agent", "HaruiMedical-HWClient/1.0")
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            return resp.read().decode("utf-8")
-    except urllib.error.HTTPError as e:
-        if e.code == 503:
-            print("⚠️ メンテナンス中（0-6時 or 月末21:30-翌6時）")
-        else:
-            print(f"❌ HTTP {e.code}: {e.reason}")
-        return None
-    except Exception as e:
-        print(f"❌ リクエスト失敗: {e}")
-        return None
+def api_post(url, retries=2):
+    """POST リクエストを送信してXMLレスポンスを返す（リトライ付き）"""
+    for attempt in range(retries + 1):
+        req = urllib.request.Request(url, method="POST", data=b"")
+        req.add_header("User-Agent", "HaruiMedical-HWClient/1.0")
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                body = resp.read().decode("utf-8")
+                # XMLとして妥当か簡易チェック
+                if not body.strip().startswith("<?xml") and not body.strip().startswith("<"):
+                    print(f"⚠️ 非XMLレスポンス（リトライ {attempt+1}/{retries+1}）: {body[:200]}")
+                    if attempt < retries:
+                        import time; time.sleep(5)
+                        continue
+                    return None
+                return body
+        except urllib.error.HTTPError as e:
+            if e.code == 503:
+                print("⚠️ メンテナンス中（0-6時 or 月末21:30-翌6時）")
+            else:
+                print(f"❌ HTTP {e.code}: {e.reason}")
+            if attempt < retries:
+                import time; time.sleep(5)
+                continue
+            return None
+        except Exception as e:
+            print(f"❌ リクエスト失敗: {e}")
+            if attempt < retries:
+                import time; time.sleep(5)
+                continue
+            return None
+    return None
 
 
 def get_token(user_id, password):
@@ -76,7 +92,12 @@ def get_token(user_id, password):
     xml_str = api_post(f"{API_BASE}/auth/getToken?{params}")
     if not xml_str:
         return None
-    root = ET.fromstring(xml_str)
+    try:
+        root = ET.fromstring(xml_str)
+    except ET.ParseError as e:
+        print(f"❌ XMLパースエラー: {e}")
+        print(f"   レスポンス先頭200文字: {xml_str[:200]}")
+        return None
     token = root.findtext("token")
     if not token:
         err = root.findtext("errorDetail", "不明なエラー")

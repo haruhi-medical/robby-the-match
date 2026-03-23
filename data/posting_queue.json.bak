@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-21T20:29:09.431237",
+  "updated": "2026-03-22T06:00:56.578224",
   "posts": [
     {
       "id": 1,
@@ -2477,9 +2477,9 @@
       ],
       "cta_type": "soft",
       "content_type": "給与",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-23T11:00:39",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2488,7 +2488,8 @@
         "saves": null,
         "comments": null
       },
-      "quality_score": 9
+      "quality_score": 9,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 145,

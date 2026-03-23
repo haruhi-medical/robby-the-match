@@ -3,7 +3,7 @@
     "seo_optimizer": "2026-03-23T04:00:18",
     "health_monitor": "2026-03-23T08:30:18",
     "competitor_analyst": "2026-03-23T10:00:13",
-    "content_creator": "2026-03-21T15:00:44",
+    "content_creator": "2026-03-23T15:00:45",
     "daily_reviewer": "2026-03-21T23:00:29",
     "weekly_strategist": "2026-03-22T06:00:58",
     "sns_poster": "2026-03-21T20:29:09",
@@ -28,7 +28,7 @@
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
         "created": "2026-03-23T07:00:17.718604",
-        "status": "pending"
+        "status": "processing"
       }
     ]
   },
