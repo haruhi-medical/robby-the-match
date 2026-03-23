@@ -308,6 +308,86 @@ def _cron_daily_report():
         blocks.append({"type": "divider"})
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*キャンペーン別内訳*\n" + "\n".join(lines)}})
 
+    # ── 深掘り分析 ──
+
+    # 年齢×性別
+    age_params = {
+        "fields": "impressions,clicks,spend,ctr",
+        "time_range": json.dumps({"since": yesterday, "until": yesterday}),
+        "breakdowns": "age,gender", "level": "account",
+    }
+    age_data = api_get(f"{account}/insights", age_params).get("data", [])
+    if age_data:
+        age_lines = []
+        for r in sorted(age_data, key=lambda x: int(x.get("impressions", 0)), reverse=True):
+            g = "♀" if r.get("gender") == "female" else "♂"
+            age = r.get("age", "?")
+            imp = int(r.get("impressions", 0))
+            clk = int(r.get("clicks", 0))
+            sp = float(r.get("spend", 0))
+            ctr = float(r.get("ctr", 0))
+            reliable = "✅" if imp >= 100 else "⚠️" if imp >= 30 else "❌"
+            age_lines.append(f"{reliable} {g}{age}: {imp}imp / {clk}click / CTR{ctr:.1f}% / ¥{sp:,.0f}")
+        blocks.append({"type": "divider"})
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*👥 年齢×性別（信憑性付き）*\n" + "\n".join(age_lines)}})
+
+    # 配置別
+    place_params = {
+        "fields": "impressions,clicks,spend,ctr",
+        "time_range": json.dumps({"since": yesterday, "until": yesterday}),
+        "breakdowns": "publisher_platform,platform_position", "level": "account",
+    }
+    place_data = api_get(f"{account}/insights", place_params).get("data", [])
+    if place_data:
+        place_lines = []
+        for r in sorted(place_data, key=lambda x: int(x.get("impressions", 0)), reverse=True):
+            plat = r.get("publisher_platform", "?")
+            pos = r.get("platform_position", "?")
+            imp = int(r.get("impressions", 0))
+            clk = int(r.get("clicks", 0))
+            sp = float(r.get("spend", 0))
+            ctr = float(r.get("ctr", 0))
+            reliable = "✅" if imp >= 100 else "⚠️" if imp >= 30 else "❌"
+            place_lines.append(f"{reliable} {plat}/{pos}: {imp}imp / {clk}click / CTR{ctr:.1f}% / ¥{sp:,.0f}")
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*📍 配置別*\n" + "\n".join(place_lines[:8])}})
+
+    # 広告別 動画視聴
+    video_params = {
+        "fields": "ad_name,impressions,clicks,spend,ctr,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions",
+        "time_range": json.dumps({"since": yesterday, "until": yesterday}),
+        "level": "ad",
+    }
+    video_data = api_get(f"{account}/insights", video_params).get("data", [])
+    if video_data:
+        video_lines = []
+        for r in video_data:
+            name = r.get("ad_name", "?")
+            imp = int(r.get("impressions", 0))
+            clk = int(r.get("clicks", 0))
+            ctr = float(r.get("ctr", 0))
+            p25 = sum(int(v.get("value", 0)) for v in r.get("video_p25_watched_actions", []))
+            p50 = sum(int(v.get("value", 0)) for v in r.get("video_p50_watched_actions", []))
+            p75 = sum(int(v.get("value", 0)) for v in r.get("video_p75_watched_actions", []))
+            p100 = sum(int(v.get("value", 0)) for v in r.get("video_p100_watched_actions", []))
+            completion = f"{p100/p25*100:.0f}%" if p25 > 0 else "-"
+            dropout_25_50 = f"{(p25-p50)/p25*100:.0f}%" if p25 > 0 else "-"
+            video_lines.append(f"*{name}*: {imp}imp CTR{ctr:.1f}%")
+            video_lines.append(f"  視聴: 25%={p25} → 50%={p50} → 75%={p75} → 完走={p100} (完走率{completion})")
+            video_lines.append(f"  最大離脱: 25%→50%で{dropout_25_50}離脱")
+        blocks.append({"type": "divider"})
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*🎬 動画視聴分析*\n" + "\n".join(video_lines)}})
+
+    # 信憑性・判断の注意
+    total_imp = t.get("impressions", 0)
+    total_clk = t.get("clicks", 0)
+    credibility = "🟢 判断可能" if total_imp >= 1000 and total_clk >= 30 else "🟡 傾向のみ" if total_imp >= 300 else "🔴 データ不足（判断不可）"
+    blocks.append({"type": "divider"})
+    blocks.append({"type": "section", "text": {"type": "mrkdwn", "text":
+        f"*📐 データ信憑性: {credibility}*\n"
+        f"表示{total_imp:,} / クリック{total_clk} — 統計的に有意な判断には表示1,000+/クリック30+が必要\n"
+        f"_各行の ✅=100imp以上(信頼可) ⚠️=30-99(傾向のみ) ❌=30未満(判断不可)_"
+    }})
+
     fb = f"📊 Meta広告 {yesterday}: ¥{t['spend']:,.0f} / {t['impressions']:,}imp / CTR {t['ctr']:.2f}%"
     result = send_message(SLACK_CHANNEL_REPORT, fb, blocks=blocks)
     print(f"[{'OK' if result['ok'] else 'ERROR'}] Slack送信")
