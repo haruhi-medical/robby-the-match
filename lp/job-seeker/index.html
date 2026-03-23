@@ -48,6 +48,10 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-X4G2BYW13B');
+      // 内部トラフィック除外（開発者アクセス）
+      fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
+        if(d.ip==='210.139.65.172'){gtag('set',{'traffic_type':'internal'});}
+      }).catch(function(){});
     </script>
 
     <!-- Meta Pixel（Facebook/Instagram広告計測用） -->
