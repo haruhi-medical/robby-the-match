@@ -107,11 +107,58 @@ def fetch_ga4(yesterday: str, day_before: str) -> dict:
             "sessions": int(row.metric_values[0].value),
         })
 
+    # モバイルのみ（実ユーザー推定）
+    from google.analytics.data_v1beta.types import FilterExpression, Filter
+    mobile_filter = FilterExpression(
+        filter=Filter(
+            field_name="deviceCategory",
+            string_filter=Filter.StringFilter(value="mobile", match_type=Filter.StringFilter.MatchType.EXACT),
+        )
+    )
+
+    mobile_req = RunReportRequest(
+        property=property_id,
+        date_ranges=[DateRange(start_date=yesterday, end_date=yesterday)],
+        metrics=[Metric(name="sessions"), Metric(name="activeUsers"), Metric(name="screenPageViews")],
+        dimension_filter=mobile_filter,
+    )
+    mobile_resp = client.run_report(mobile_req)
+    mobile_data = {}
+    if mobile_resp.rows:
+        row = mobile_resp.rows[0]
+        mobile_data = {
+            "sessions": int(float(row.metric_values[0].value)),
+            "users": int(float(row.metric_values[1].value)),
+            "pv": int(float(row.metric_values[2].value)),
+        }
+
+    # 診断ファネルイベント（モバイルのみ）
+    funnel_events = ["shindan_start", "shindan_q1", "shindan_complete", "shindan_line_click",
+                     "chat_open", "chat_line_click", "line_click"]
+    funnel_req = RunReportRequest(
+        property=property_id,
+        date_ranges=[DateRange(start_date=yesterday, end_date=yesterday)],
+        metrics=[Metric(name="eventCount"), Metric(name="totalUsers")],
+        dimensions=[Dimension(name="eventName")],
+        dimension_filter=mobile_filter,
+    )
+    funnel_resp = client.run_report(funnel_req)
+    funnel = {}
+    for row in funnel_resp.rows:
+        ev = row.dimension_values[0].value
+        if ev in funnel_events:
+            funnel[ev] = {
+                "count": int(row.metric_values[0].value),
+                "users": int(row.metric_values[1].value),
+            }
+
     return {
         "today": today_data,
         "prev": prev_data,
         "sources": sources,
         "landing_pages": landing_pages,
+        "mobile": mobile_data,
+        "funnel": funnel,
     }
 
 
@@ -215,6 +262,35 @@ def build_blocks(ga4: dict, sc: dict, date_str: str) -> list:
     if lps:
         lp_lines = [f"• `{l['page'][:50]}`: {l['sessions']}セッション" for l in lps]
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*LP TOP5*\n" + "\n".join(lp_lines)}})
+
+    # モバイル実ユーザー
+    mobile = ga4.get("mobile", {})
+    if mobile:
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text":
+            f"*📱 実ユーザー（モバイルのみ）*\n"
+            f"ユーザー: *{mobile.get('users', 0)}人* | セッション: {mobile.get('sessions', 0)} | PV: {mobile.get('pv', 0)}"
+        }})
+
+    # 診断ファネル
+    funnel = ga4.get("funnel", {})
+    if funnel:
+        funnel_lines = []
+        for ev, label in [
+            ("shindan_start", "診断開始"),
+            ("shindan_q1", "Q1回答"),
+            ("shindan_complete", "診断完了"),
+            ("shindan_line_click", "LINE click（診断）"),
+            ("chat_open", "チャット開封"),
+            ("chat_line_click", "LINE click（チャット）"),
+            ("line_click", "LINE click（その他）"),
+        ]:
+            if ev in funnel:
+                d = funnel[ev]
+                funnel_lines.append(f"• *{label}*: {d['count']}回 ({d['users']}人)")
+        if funnel_lines:
+            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text":
+                "*🔄 診断ファネル（モバイル実ユーザー）*\n" + "\n".join(funnel_lines)
+            }})
 
     # Search Console セクション
     if sc:
