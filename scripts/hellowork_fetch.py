@@ -116,7 +116,12 @@ def get_data_list(token):
     xml_str = api_post(f"{API_BASE}/kyujin?token={token}")
     if not xml_str:
         return None
-    root = ET.fromstring(xml_str)
+    try:
+        root = ET.fromstring(xml_str)
+    except ET.ParseError as e:
+        print(f"❌ XMLパースエラー（データ一覧）: {e}")
+        print(f"   レスポンス先頭200文字: {xml_str[:200]}")
+        return None
     for data in root.findall(".//data"):
         if data.findtext("data_id") == DATA_ID:
             return {
@@ -133,7 +138,11 @@ def fetch_page(token, page):
     xml_str = api_post(url)
     if not xml_str:
         return []
-    root = ET.fromstring(xml_str)
+    try:
+        root = ET.fromstring(xml_str)
+    except ET.ParseError as e:
+        print(f"❌ XMLパースエラー（ページ{page}）: {e}")
+        return []
     return root.findall(".//kyujin/data")
 
 
@@ -313,10 +322,24 @@ def main():
 
         max_pages = 1 if args.test else total_pages
         all_nurse_jobs = []
+        consecutive_failures = 0
 
         for page in range(1, max_pages + 1):
             print(f"   ページ {page}/{max_pages} 取得中...", end=" ", flush=True)
             records = fetch_page(token, page)
+
+            # 401/空レスポンス時はトークン再取得して1回リトライ
+            if not records:
+                print("⚠️ 取得失敗 → トークン再取得...", end=" ", flush=True)
+                token = get_token(user_id, password)
+                if not token:
+                    print("❌ トークン再取得失敗")
+                    consecutive_failures += 1
+                    if consecutive_failures >= 3:
+                        print("❌ 3ページ連続失敗 → 中断")
+                        break
+                    continue
+                records = fetch_page(token, page)
 
             if args.save_raw:
                 RAW_DIR.mkdir(parents=True, exist_ok=True)
@@ -328,11 +351,19 @@ def main():
                     all_nurse_jobs.append(job)
                     nurse_count += 1
 
+            if records:
+                consecutive_failures = 0
+            else:
+                consecutive_failures += 1
+                if consecutive_failures >= 3:
+                    print("❌ 3ページ連続失敗 → 中断")
+                    break
+
             print(f"{len(records)}件中 看護師{nurse_count}件")
 
             # レートリミット対策
             if page < max_pages:
-                time.sleep(1)
+                time.sleep(2)
 
         # JSON保存
         DATA_DIR.mkdir(parents=True, exist_ok=True)

@@ -436,27 +436,16 @@
   },
   {
     "platform": "instagram",
-    "dir": "carousel_20260320_claude_転職_0305_10",
-    "content_id": "claude_給与_0305_02",
-    "timestamp": "2026-03-23T10:55:30",
+    "dir": "20260303_ai_ある_0303_01",
+    "timestamp": "2026-03-23T17:14:49.780912",
     "status": "error",
-    "method": "meta_business_suite",
-    "error": "MBS posting failed"
+    "error": "No slides found and generation failed"
   },
   {
     "platform": "instagram",
     "dir": "carousel_20260320_claude_転職_0305_10",
-    "content_id": "claude_給与_0305_02",
-    "timestamp": "2026-03-23T10:56:34",
-    "status": "error",
-    "method": "meta_business_suite",
-    "error": "MBS posting failed"
-  },
-  {
-    "platform": "instagram",
-    "dir": "carousel_20260320_claude_転職_0305_10",
-    "content_id": "claude_給与_0305_02",
-    "timestamp": "2026-03-23T11:00:39",
+    "content_id": "claude_業界_0305_03",
+    "timestamp": "2026-03-23T18:26:10",
     "status": "success",
     "method": "meta_business_suite",
     "error": null

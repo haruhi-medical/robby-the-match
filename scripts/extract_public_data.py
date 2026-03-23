@@ -8,15 +8,17 @@ JSON形式で出力するスクリプト。
 import json
 import re
 import csv
+from pathlib import Path
 import unicodedata
 import openpyxl
 
 # ============================================================
 # 定数
 # ============================================================
-EXCEL_PATH = "/Users/robby2/robby-the-match/data/public_data/bed_function_facility.xlsx"
-CSV_PATH = "/Users/robby2/robby-the-match/data/public_data/hospital_facility/01-1_hospital_facility_info_20251201.csv"
-OUTPUT_PATH = "/Users/robby2/robby-the-match/data/public_data/kanagawa_hospitals_enriched.json"
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+EXCEL_PATH = str(PROJECT_DIR / "data/public_data/bed_function_facility.xlsx")
+CSV_PATH = str(PROJECT_DIR / "data/public_data/hospital_facility/01-1_hospital_facility_info_20251201.csv")
+OUTPUT_PATH = str(PROJECT_DIR / "data/public_data/kanagawa_hospitals_enriched.json")
 
 KANAGAWA_PREF_CODE = "14"
 

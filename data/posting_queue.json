@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-23T15:00:44.493914",
+  "updated": "2026-03-23T17:37:48.331561",
   "posts": [
     {
       "id": 1,
@@ -2010,11 +2010,11 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0305_03_20260323.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -2022,7 +2022,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.63,
+      "quality_checked": true
     },
     {
       "id": 127,
@@ -2081,7 +2082,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.23,
+      "quality_checked": true
     },
     {
       "id": 129,
@@ -2110,7 +2112,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.47,
+      "quality_checked": true
     },
     {
       "id": 132,
@@ -2139,7 +2142,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 9.02,
+      "quality_checked": true
     },
     {
       "id": 133,
@@ -2198,7 +2202,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.67,
+      "quality_checked": true
     },
     {
       "id": 135,
@@ -2506,9 +2511,9 @@
       ],
       "cta_type": "soft",
       "content_type": "業界裏側",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-23T18:26:10",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2517,7 +2522,8 @@
         "saves": null,
         "comments": null
       },
-      "quality_score": 9
+      "quality_score": 9,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 146,

@@ -40,6 +40,14 @@ else
     exit 1
 fi
 
+# Step 1.5: 差分分析（スナップショット保存 + 前日比較 + Slack送信）
+log "Step 1.5: 差分分析中..."
+if $PYTHON scripts/hellowork_diff.py >> "$LOG_FILE" 2>&1; then
+    log "✅ 差分分析完了"
+else
+    log "⚠️ 差分分析失敗（続行）"
+fi
+
 # Step 2: 求人ランク分け
 log "Step 2: 求人ランク分け中..."
 if $PYTHON scripts/hellowork_rank.py --summary >> "$LOG_FILE" 2>&1; then
