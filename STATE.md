@@ -51,10 +51,18 @@
 - **Playwright画像生成オプション追加**: generate_carousel.py --renderer playwright
 
 ## SNS状態
-- **TikTok**: @nurse_robby — 7本投稿済み、57本キュー待ち、自動投稿パイプライン稼働中
-- **Instagram**: @robby.for.nurse — 1本投稿済み、auto_post.py v2.1対応済み
+- **TikTok**: @nurse_robby — 7本投稿済み、キュー22件ready
+- **Instagram**: @robby.for.nurse — 21本投稿済み、キュー22件ready
 - Google認証: robby.the.robot.2026@gmail.com
-- 投稿スケジュール: pdca_sns_post.sh が12:00/17:00/18:00/20:00/21:00（月-土）で実行
+- **⚠️ 投稿方式変更（2026-03-23）**:
+  - 旧方式（instagrapi/tiktokautouploader）→ **BAN/CAPTCHAで停止。使うな**
+  - 新方式: **Chrome CDP経由で公式UI操作**
+  - Instagram: `scripts/ig_post_meta_suite.py`（Meta Business Suite経由）
+  - TikTok: Chrome CDPでTikTok Studio操作（スクリプト化予定）
+  - 前提: Chromeがデバッグモード(port 9222)で起動していること
+  - 起動: `scripts/start_chrome_debug.sh`
+  - デザイン: Kanagawa Coastal Calm（ティール+コーラル）
+- 投稿スケジュール: 全日カルーセル（Instagram）、1日1本（TikTok）
 - instagram_engage.py: 12:00（月-土）ランダム遅延付き
 
 ## Meta広告状態
