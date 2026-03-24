@@ -43,25 +43,12 @@ Step 6: STATE.md更新 + PROGRESS.md追記
 
 ## カスタムエージェント
 
-| エージェント | 用途 |
-|------------|------|
-| pdca | STATE.mdベースの自律PDCA実行 |
-| site-check | SEO・リンク切れ・構造化データ検証 |
-| content-gen | SNSコンテンツ一気通貫生成 |
-| seo-audit | 全ページSEO品質監査（Haiku高速） |
+pdca / site-check / content-gen / seo-audit（詳細: .claude/agents/）
 
 ## 短縮コマンド辞書（社長の口癖→アクション）
 
-```
-「進めて」「続きを」      → 現在のタスク続行
-「しといて」「push」      → /deploy 実行（確認不要）
-「よし」「OK」           → 承認。即実行
-「どう？」「状態は？」     → /status 実行
-「点検しろ」             → /site-check 実行
-「やって！」「全部いく」   → 提案全項目を実行
-「送って」               → /slack-report
-「YOLO」                → 確認なし最大速度で実行
-```
+「進めて」→続行 /「しといて」→/deploy /「よし」→即実行 /「どう？」→/status
+「点検しろ」→/site-check /「やって！」→全項目実行 /「送って」→/slack-report /「YOLO」→確認なし最大速度
 
 ## デフォルト動作
 
@@ -74,29 +61,19 @@ Step 6: STATE.md更新 + PROGRESS.md追記
 ## データドリブン運用方針（2026-03-16〜）
 
 **原則: 数字のないマーケ施策は実行しない。仮説→計測→改善のループを回せ。**
-
-| データソース | 取得手段 | 頻度 |
-|------------|---------|------|
-| GA4（PV/セッション/ファネル） | Chrome DevTools MCP / API | 毎日 |
-| Search Console（順位/CTR） | Chrome DevTools MCP / API | 毎日 |
-| Meta Ads（消化額/CTR/CPA） | Chrome DevTools MCP | 毎日 |
-| TikTok Creator Studio（再生/保存率） | Chrome DevTools MCP | 毎日 |
-| Instagram Insights（リーチ/ENG率） | Chrome DevTools MCP | 毎日 |
-| ハローワーク求人 | API（現行維持） | 毎日 |
-| LINE登録数 | API（現行維持） | 毎日 |
-
-**統合先:** `data/daily_snapshot.json` → 全データの唯一の真実のソース
-**週次経営レポート:** 日曜08:00にSlack自動送信（ファネル+SEO+SNS+広告）
-**判断基準:** CPA > ¥69,200 → 広告停止検討 / CPA < ¥10,000 → 予算増額検討
+- データソース: GA4/SC/Meta Ads/TikTok/IG/ハローワーク/LINE（全て毎日取得）
+- 取得手段: Chrome DevTools MCP / API / Computer Use（優先順位はツールヒエラルキー参照）
+- 統合先: `data/daily_snapshot.json` / 週次レポート: 日曜08:00 Slack自動送信
+- 判断基準: CPA > ¥69,200 → 広告停止 / CPA < ¥10,000 → 予算増額
 
 ## 行動原則（9つ）
 
-1. **絶対に嘘をつくな** — 推測を事実のように言うな。わからないことは「わからない」と言え。架空データを作るな。全てファクトベースで動け
-2. **データドリブン最優先** — 感覚で動くな。KPI/GA4/SC/SNSインサイトの数字で判断しろ
+1. **絶対に嘘をつくな** — 推測を事実のように言うな。架空データを作るな
+2. **データドリブン最優先** — 感覚で動くな。数字で判断しろ
 3. **コストを常に意識** — 無料でできることに金を使うな
 4. **ペルソナで判断** — 「ミサキ（28歳看護師）が動くか？」
 5. **調べてから動け** — 競合・市場をWeb検索してから設計
-6. **完璧な商品水準に高めろ** — 妥協するな。PDCAを回して品質を上げ続けろ
+6. **完璧な商品水準に高めろ** — PDCAを回して品質を上げ続けろ
 7. **法律を最優先** — 職業安定法・医療広告ガイドライン遵守
 8. **数字で判断** — KPIで進捗を測れ
 9. **平島禎之に聞け** — 迷ったら勝手に決めるな
@@ -130,27 +107,76 @@ LINEブロック率: 15%以下 / 開封率: 50%以上
 
 ## 判断に迷ったら
 
-1. コストに見合うか？ 2. ミサキが動くか？ 3. North Starに近づくか？
-4. 法的に問題ないか？ 5. 平島禎之に聞くべきか？
+コストに見合うか？→ミサキが動くか？→North Starに近づくか？→法的OK？→平島禎之に聞くべきか？
 
 ## 詳細リファレンス（必要な時だけ読め）
 
 | 何を知りたい | 読むファイル |
 |-------------|------------|
 | 現在の状態・KPI・タスク | STATE.md |
-| マーケティング3本柱 | @docs/strategy-marketing.md |
-| ペルソナ詳細 | @docs/strategy-persona.md |
-| LINE導線設計 | @docs/strategy-line.md |
-| 画像生成パイプライン | @docs/strategy-pipeline.md |
-| 法的制約・リスク | @docs/strategy-legal.md |
-| 過去の作業履歴 | PROGRESS.md |
-| cron・PDCA構築記録 | PDCA_SETUP.md |
-| パススコープルール | .claude/rules/ |
-| カスタムエージェント | .claude/agents/ |
-| ブランドシステム設計 | docs/brand-system.md |
-| CSSデザイントークン | docs/design-tokens.css |
-| コンテンツ生成ルール詳細 | docs/content-rules.md |
-| SNS台本自動改善（autoresearch） | @docs/strategy-autoresearch.md |
+| マーケ/ペルソナ/LINE/パイプライン/法的 | docs/strategy-*.md |
+| 過去の作業 / cron構築 | PROGRESS.md / PDCA_SETUP.md |
+| ルール/エージェント | .claude/rules/ / .claude/agents/ |
+| ブランド/デザイン/コンテンツルール | docs/brand-system.md / docs/design-tokens.css / docs/content-rules.md |
+| SNS台本自動改善 | @docs/strategy-autoresearch.md |
+
+## Computer Use（画面操作）+ Dispatch
+
+### ツール優先順位（この順で手段を選べ）
+1. **既存Pythonスクリプト** — 最速・最安定。scripts/内にあるなら使え
+2. **API/コネクタ** — Slack Bot, LINE Messaging API, GA4 API, Meta Ads API
+3. **Chrome DevTools MCP** — ブラウザ操作。コネクタがないWebサービス向け
+4. **Computer Use（画面操作）** — 上3つすべて不可の場合のみ。最終手段
+
+### 画面操作で狙うユースケース
+- TikTok Studio: 動画アップロード+投稿（API/ライブラリがBAN済み）
+- Instagram: Meta Business Suite経由カルーセル投稿（instagrapiがBAN済み）
+- GA4: アナリティクスダッシュボード読み取り（API認証未設定）
+- LINE OA管理画面: 友だち数推移、リッチメニュー設定変更
+
+### 認証ルール
+- パスワード入力OK（Mac Mini M4は専用機）
+- 認証情報は.envから読み取り（ハードコード厳禁）
+- 2FAが出たらSlackでYOSHIYUKIに通知して待機
+- ログイン操作はSlack #ロビー小田原人材紹介 に記録
+
+### Dispatch（スマホ遠隔指示）
+YOSHIYUKIがスマホから短文指示を送る。意図を汲み取って実行せよ。
+- 「TikTok数字」→ メトリクス取得→Slack報告
+- 「今日の投稿どう？」→ 直近投稿評価→Slack報告
+- 「カルーセル3本」→ carousel-gen起動
+- 「実験回して」→ autoresearch 1サイクル
+- 返答は簡潔に（3行以内）。詳細はSlackスレッドに分割
+
+### フォールバック
+画面操作が失敗したら（5分タイムアウト or 3回リトライ失敗）:
+1. 既存APIスクリプトにフォールバック
+2. それも失敗 → Slack #ロビー小田原人材紹介 に報告
+3. 「手動確認が必要」とDispatch通知
+決して無限リトライするな。
+## 自律判定ルール
+
+### 自動実行OK（Slack事後報告のみ）
+- 実験結果がkeep判定 → 自動でkeep + git commit
+- 実験結果がrevert判定 → 自動でrevert + git commit
+- 日次メトリクスが正常範囲（前日比±30%以内）→ レポートのみ
+- カルーセル生成・品質チェックOK → 投稿キューに追加
+- 求人DB差分更新 → 自動マージ
+
+### 人間の承認が必要（Slack+Dispatch通知して待て）
+- LINE登録者への最初のメッセージ送信（初回のみ。2回目以降は自動OK）
+- 手数料・金額に関わる情報の外部送信
+- 新規エリア（神奈川県外）への拡大施策
+- 月額予算を超えるMeta広告出稿
+- CLAUDE.md自体の変更（実験ルールの変更含む）
+- 3連続revert後の仮説方向転換
+
+### 異常検知 → 即時停止 + アラート
+- LINE Bot応答エラー率 > 10%
+- サイトダウン（200以外が3回連続）
+- Meta広告CPA > 69,200円
+- Slack通知失敗（監視系の生命線が切れた状態）
+- Computer Useで意図しないアプリにアクセスした形跡
 
 ## 失敗ログ（運用中に追記）
 
@@ -166,23 +192,9 @@ CTA毎回LINE登録 → 8:2ルール厳守
 ## バージョン
 
 ```
-v9.3 | 2026-03-24 | 行動原則強化 + cron全修復 + コード全体点検 + content-reviewerエージェント追加
-  - 行動原則第1条「絶対に嘘をつくな」追加。架空データ禁止を禁止事項に追記
-  - cron 20ジョブ全修復（PATH追加/IG投稿方式切替/XMLエラーハンドリング/SC API有効化）
-  - 5エージェント並列コード点検（セキュリティ/品質/SEO法的/DevOps/悪魔の代弁者）
-  - ハローワーク求人差分分析+Slack詳細レポート（hellowork_diff.py）
-  - .claude/agents/content-reviewer.md（SNS投稿品質ゲート）
-  - .claude/settings.json（パーミッション制御）
-v9.2 | 2026-03-16 | データドリブン運用方針導入 + Chrome DevTools MCP連携
-v9.1 | 2026-03-11 | シン・AI転職コンセプト導入
-  - LP全面リビルド（ミニ診断UI + エンドウメント効果）
-  - jobs-summary.json自動生成パイプライン
-  - 全68ページに診断CTAブロック追加
-  - GA4カスタムイベント6種追加（shindan_*）
-v9.0 | 2026-03-10 | Anthropic公式ガイド準拠リファクタ
-  - CLAUDE.md 978行→180行（公式推奨200行以内）
-  - 詳細戦略をdocs/strategy-*.mdに分離（@import参照）
-  - .claude/rules/: パススコープルール3種（HTML/scripts/content）
-  - .claude/agents/: カスタムサブエージェント4種（pdca/site-check/content-gen/seo-audit）
-  - hooks追加: Notification（macOSデスクトップ通知）、Stop（未コミット変更Slack通知）
+v9.4 | 2026-03-24 | Computer Use+Dispatch+自律判定ルール追加
+v9.3 | 2026-03-24 | 行動原則強化+cron全修復+コード点検+content-reviewer追加
+v9.2 | 2026-03-16 | データドリブン運用方針+Chrome DevTools MCP
+v9.1 | 2026-03-11 | シン・AI転職コンセプト+LP全面リビルド
+v9.0 | 2026-03-10 | Anthropic公式ガイド準拠リファクタ（978行→200行以内）
 ```
