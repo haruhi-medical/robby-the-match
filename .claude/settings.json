@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd ~/robby-the-match*)",
+      "Bash(python3 scripts/*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(crontab -l)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(cat ~/robby-the-match/logs/*)",
+      "Bash(tail ~/robby-the-match/logs/*)",
+      "Bash(.venv/bin/python3 *)",
+      "Bash(.venv/bin/pip *)",
+      "Bash(npx wrangler *)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/robby-the-match)"
+    ]
+  }
+}

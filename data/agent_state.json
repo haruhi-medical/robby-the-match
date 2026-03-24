@@ -1,19 +1,19 @@
 {
   "lastRun": {
-    "seo_optimizer": "2026-03-24T04:00:01",
-    "health_monitor": "2026-03-23T08:30:18",
-    "competitor_analyst": "2026-03-23T10:00:13",
+    "seo_optimizer": "2026-03-24T04:00:47",
+    "health_monitor": "2026-03-24T08:30:17",
+    "competitor_analyst": "2026-03-24T10:00:00",
     "content_creator": "2026-03-23T15:00:45",
     "daily_reviewer": "2026-03-23T23:00:40",
     "weekly_strategist": "2026-03-22T06:00:58",
     "sns_poster": "2026-03-23T17:37:48",
-    "ai_marketing_orchestrator": "2026-03-23T06:00:02",
+    "ai_marketing_orchestrator": "2026-03-24T06:00:03",
     "weekly_content_planner": "2026-03-22T05:00:02"
   },
   "status": {
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
@@ -29,6 +29,13 @@
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
         "created": "2026-03-23T07:00:17.718604",
         "status": "processing"
+      },
+      {
+        "from": "health_monitor",
+        "type": "emergency_generate",
+        "details": "キュー残り0件。緊急コンテンツ生成必要。",
+        "created": "2026-03-24T07:00:17.636391",
+        "status": "pending"
       }
     ]
   },
@@ -50,8 +57,8 @@
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
     ],
     "queueRemaining": 0,
-    "lastMarketingPDCA": "2026-03-23 06:00:00",
-    "queuePending": 21,
+    "lastMarketingPDCA": "2026-03-24 06:00:01",
+    "queuePending": 18,
     "dailyGeneratedCount": 0,
     "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
     "lastWeeklyContentRun": "2026-03-01"
