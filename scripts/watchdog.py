@@ -683,6 +683,56 @@ def reset_all():
 # ============================================================
 # メインウォッチドッグ
 # ============================================================
+def _cleanup_zombie_processes(info_list):
+    """ゾンビ化したブラウザ・Node.jsプロセスを掃除"""
+    import subprocess as _sp
+
+    zombies_killed = 0
+
+    # TikTok login.js ゾンビ（投稿失敗時に残る）
+    try:
+        result = _sp.run(
+            ["pgrep", "-f", "tiktokautouploader/Js_assets/login.js"],
+            capture_output=True, text=True, timeout=5
+        )
+        pids = result.stdout.strip().split("\n")
+        login_count = len([p for p in pids if p.strip()])
+        if login_count > 3:
+            _sp.run(["pkill", "-f", "tiktokautouploader/Js_assets/login.js"],
+                     capture_output=True, timeout=5)
+            zombies_killed += login_count
+    except Exception:
+        pass
+
+    # Google Chrome for Testing（Playwright）ゾンビ
+    try:
+        result = _sp.run(
+            ["pgrep", "-f", "Google Chrome for Testing"],
+            capture_output=True, text=True, timeout=5
+        )
+        pids = result.stdout.strip().split("\n")
+        chrome_count = len([p for p in pids if p.strip()])
+        if chrome_count > 10:
+            _sp.run(["pkill", "-f", "Google Chrome for Testing"],
+                     capture_output=True, timeout=5)
+            zombies_killed += chrome_count
+    except Exception:
+        pass
+
+    # Playwright temp profiles
+    import glob as _glob
+    temps = _glob.glob("/tmp/playwright_chromiumdev_profile-*")
+    for t in temps:
+        try:
+            import shutil
+            shutil.rmtree(t, ignore_errors=True)
+        except Exception:
+            pass
+
+    if zombies_killed > 0:
+        info_list.append(f"ゾンビプロセス{zombies_killed}個を掃除（Chrome for Testing + login.js）")
+
+
 def run_watchdog():
     """全ジョブの健全性チェック + 自己修復"""
     now = datetime.now()
@@ -934,6 +984,9 @@ def run_watchdog():
                 disc_state["resolved_at"] = now.isoformat()
                 save_tiktok_discrepancy_state(disc_state)
             info.append(f"TikTok: {detail}")
+
+    # ─── ゾンビプロセス掃除 ───
+    _cleanup_zombie_processes(info)
 
     # ─── ログ記録 ───
     LOG_DIR.mkdir(parents=True, exist_ok=True)

@@ -147,17 +147,35 @@ def fetch_page(token, page):
 
 
 def is_nurse_job(data_elem):
-    """看護師関連の求人か判定"""
-    fields_to_check = [
-        "sksu",                # 職種
-        "shigoto_ny",          # 仕事内容
-        "menkyo_skkuyohi1_n",  # 免許・資格1
-        "menkyo_skkuyohi2_n",  # 免許・資格2
-        "menkyo_skkuyohi3_n",  # 免許・資格3
-        "hynamenkyo_snta",     # 必要な免許資格その他
+    """看護師・准看護師の求人か判定（厳格版）
+
+    職種名 or 必要資格に看護師/准看護師が含まれる場合のみ通過。
+    事業所名や仕事内容だけに「看護」が含まれるケース（事務員、リハ職等）は除外。
+    """
+    # 除外: 看護助手・看護補助は看護師ではない
+    job_title = data_elem.findtext("sksu", "")
+    exclude_keywords = ["看護助手", "看護補助", "動物", "獣医", "リハビリ助手"]
+    if any(kw in job_title for kw in exclude_keywords):
+        return False
+
+    # 第1優先: 職種名に看護師/ナース/看護業務が含まれるか
+    title_keywords = ["看護師", "看護職", "看護業務", "看護スタッフ", "ナース", "准看護", "保健師", "助産師", "訪問看護"]
+    if any(kw in job_title for kw in title_keywords):
+        return True
+
+    # 第2優先: 必要資格に看護師免許が含まれるか
+    license_fields = [
+        "menkyo_skkuyohi1_n",
+        "menkyo_skkuyohi2_n",
+        "menkyo_skkuyohi3_n",
+        "hynamenkyo_snta",
     ]
-    text = " ".join(data_elem.findtext(f, "") for f in fields_to_check)
-    return any(kw in text for kw in NURSE_KEYWORDS)
+    license_text = " ".join(data_elem.findtext(f, "") for f in license_fields)
+    license_keywords = ["看護師", "准看護", "保健師", "助産師"]
+    if any(kw in license_text for kw in license_keywords):
+        return True
+
+    return False
 
 
 def parse_job(data_elem):

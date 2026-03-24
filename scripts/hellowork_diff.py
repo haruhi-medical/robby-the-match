@@ -284,16 +284,32 @@ def format_slack_report(diff, ranked_data=None):
         f"*新着:* {d['new_count']}件 | *終了:* {d['removed_count']}件 | *継続:* {d['continuing_count']}件",
     ]
 
-    # 新着求人 全詳細
+    # 新着求人（10件まで全詳細、それ以上はサマリ）
+    MAX_DETAIL = 10
     if d["new_jobs"]:
         lines.append("")
         lines.append(f"*🆕 新着求人（{d['new_count']}件）*")
-        for j in d["new_jobs"]:
+        for j in d["new_jobs"][:MAX_DETAIL]:
             lines.extend(_format_job_detail(j))
             lines.append("")
+        if d["new_count"] > MAX_DETAIL:
+            lines.append(f"*...他{d['new_count'] - MAX_DETAIL}件（詳細はdata/hellowork_history参照）*")
+            # 残りは1行サマリで表示
+            for j in d["new_jobs"][MAX_DETAIL:30]:
+                loc = j.get("work_location", "").replace("神奈川県", "")[:10]
+                sal = ""
+                if j.get("salary_low"):
+                    try:
+                        sal = f" {int(j['salary_low']):,}円〜"
+                    except ValueError:
+                        pass
+                lines.append(f"  • {j.get('employer', '?')[:25]} ({loc}){sal}")
+            if d["new_count"] > 30:
+                lines.append(f"  ...他{d['new_count'] - 30}件")
 
     # 終了求人
     if d["removed_jobs"]:
+        lines.append("")
         lines.append(f"*🔚 終了求人（{d['removed_count']}件）*")
         for j in d["removed_jobs"][:10]:
             loc = j.get("work_location", "").replace("神奈川県", "")

@@ -449,5 +449,27 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_給与_0303_01",
+    "timestamp": "2026-03-24T12:03:15.883124",
+    "status": "error",
+    "error": "No slides found and generation failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_給与_0303_01",
+    "timestamp": "2026-03-24T14:09:22.023746",
+    "status": "error",
+    "error": "No slides found and generation failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_業界_0305_06",
+    "timestamp": "2026-03-24T14:11:07.731236",
+    "status": "dry_run",
+    "slides": 8,
+    "format": "carousel"
   }
 ]

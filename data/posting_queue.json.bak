@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-23T17:17:40.612725",
+  "updated": "2026-03-24T12:26:36.291899",
   "posts": [
     {
       "id": 1,
@@ -2010,11 +2010,11 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0305_03_20260323.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -2070,11 +2070,11 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0305_05_20260324.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -2089,7 +2089,7 @@
       "id": 129,
       "content_id": "ai_業界_0305_06",
       "batch": "ai_batch_20260305_1343",
-      "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_地域_0305_09",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_業界_0305_06",
       "json_path": "content/generated/ai_batch_20260305_1343/ai_業界_0305_06.json",
       "caption": "看護師の時給、コンビニと同じ?\n\n調べたデータ\n\n同じ状況の看護師さんにシェアして\nあなたの市場価値、30秒で診断できるよ👇\nプロフのリンクから無料診断 →",
       "hashtags": [
@@ -2119,7 +2119,7 @@
       "id": 132,
       "content_id": "ai_地域_0305_10",
       "batch": "ai_batch_20260305_1343",
-      "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_地域_0305_09",
+      "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_地域_0305_10",
       "json_path": "content/generated/ai_batch_20260305_1343/ai_地域_0305_10.json",
       "caption": "看護師の給与って、地域によってこんなに差があるの？\n\n横浜と小田原、どっちが得なのかな？\n\nあとで見返したい人は保存しておいてね",
       "hashtags": [
@@ -2179,7 +2179,7 @@
       "id": 134,
       "content_id": "ai_ある_0305_02",
       "batch": "ai_batch_20260305_1351",
-      "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_地域_0305_09",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260305_ai_ある_0305_02",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_02.json",
       "caption": "神奈川の看護師さん、夜勤後報告書書いてたら朝になっちゃったの?\n\n看護師不足と過重労働の真実\n\n気になる人はプロフのリンクから無料で相談できるよ",
       "hashtags": [
@@ -2239,7 +2239,7 @@
       "id": 136,
       "content_id": "ai_ある_0305_04",
       "batch": "ai_batch_20260305_1351",
-      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_転職_0305_10",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_ある_0305_04",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_04.json",
       "caption": "神奈川の看護師は夜勤が多いでしょう\n\n夜勤看護師の時給は約1,500-2,000円です\n\nこの情報、知らなかった人いる？",
       "hashtags": [
@@ -2268,7 +2268,7 @@
       "id": 137,
       "content_id": "ai_給与_0305_05",
       "batch": "ai_batch_20260305_1351",
-      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_転職_0305_10",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_給与_0305_05",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_給与_0305_05.json",
       "caption": "神奈川県の看護師の平均年収は546万円\n\n夜勤手当が年間120万もある\n\n産業看護師と病棟看護師、同じ看護師免許で年収が100万も違う。そういう現実がある\n\n同じ看護師免許を持っていても、働き方によって年収が100-200万円も違う",
       "hashtags": [
@@ -2297,7 +2297,7 @@
       "id": 138,
       "content_id": "ai_給与_0305_06",
       "batch": "ai_batch_20260305_1351",
-      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_転職_0305_10",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_給与_0305_06",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_給与_0305_06.json",
       "caption": "横浜の看護師5年目、手取り24万って高いの？\n\n実際の給与は？\n\n保存しておくと、自分の将来の選択に役立つよ",
       "hashtags": [
@@ -2326,7 +2326,7 @@
       "id": 139,
       "content_id": "ai_業界_0305_07",
       "batch": "ai_batch_20260305_1351",
-      "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_地域_0305_09",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260305_ai_業界_0305_07",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_業界_0305_07.json",
       "caption": "神奈川県の看護師さん\n\n転職の舞台裏って?\n\nシェアしてほしい情報だよ\n転職迷ってる？30秒AI診断やってみて👇\nプロフのリンクから →",
       "hashtags": [
@@ -2355,7 +2355,7 @@
       "id": 140,
       "content_id": "ai_地域_0305_08",
       "batch": "ai_batch_20260305_1351",
-      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_転職_0305_10",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260320_ai_地域_0305_08",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_地域_0305_08.json",
       "caption": "小田原から横浜、片道72分って正しい？\n\n看護師の通勤時間って、どれくらいか知ってる？\n\nこの表、保存しといて損ないよ",
       "hashtags": [
@@ -2384,7 +2384,7 @@
       "id": 141,
       "content_id": "ai_地域_0305_09",
       "batch": "ai_batch_20260305_1351",
-      "slide_dir": "content/generated/ai_batch_20260305_1343/carousel_20260320_ai_地域_0305_09",
+      "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260305_ai_地域_0305_09",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_地域_0305_09.json",
       "caption": "神奈川県の看護師\n\n横浜と小田原、給与はどっちが得？\n\nこの表、保存しといて損ないよ",
       "hashtags": [
@@ -2511,9 +2511,9 @@
       ],
       "cta_type": "soft",
       "content_type": "業界裏側",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-23T18:26:10",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2522,13 +2522,14 @@
         "saves": null,
         "comments": null
       },
-      "quality_score": 9
+      "quality_score": 9,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 146,
       "content_id": "claude_地域_0305_04",
       "batch": "claude_batch_20260305",
-      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_転職_0305_10",
+      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_地域_0305_04",
       "json_path": "content/generated/claude_batch_20260305/claude_地域_0305_04.json",
       "caption": "小田原から横浜に通勤してる看護師さんへ\n\n年収の差と通勤時間を時給換算すると、意外な結果が出るよ\n\n#小田原 #看護師 #神奈川看護師 #看護師転職",
       "hashtags": [
@@ -2556,7 +2557,7 @@
       "id": 147,
       "content_id": "claude_転職_0305_05",
       "batch": "claude_batch_20260305",
-      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_転職_0305_10",
+      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_転職_0305_05",
       "json_path": "content/generated/claude_batch_20260305/claude_転職_0305_05.json",
       "caption": "美容クリニックの看護師って実際どうなの？\n\n夜勤なし・日勤のみで月収30〜40万。メリットもデメリットもまとめたよ\n\n#美容看護師 #看護師転職 #美容クリニック #神奈川看護師\n手数料10%で転職できるって知ってた？👇\nプロフのリンクからLINE相談 →",
       "hashtags": [
@@ -2584,7 +2585,7 @@
       "id": 148,
       "content_id": "claude_ある_0305_06",
       "batch": "claude_batch_20260305",
-      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_転職_0305_10",
+      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_ある_0305_06",
       "json_path": "content/generated/claude_batch_20260305/claude_ある_0305_06.json",
       "caption": "師長に辞めますって言ったら、急に優しくなった人いる？\n\n退職の伝え方と法律のことをまとめたよ\n\n#看護師あるある #退職 #看護師辞めたい #神奈川看護師",
       "hashtags": [
@@ -2612,7 +2613,7 @@
       "id": 149,
       "content_id": "claude_給与_0305_07",
       "batch": "claude_batch_20260305",
-      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_転職_0305_10",
+      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_給与_0305_07",
       "json_path": "content/generated/claude_batch_20260305/claude_給与_0305_07.json",
       "caption": "夜勤専従と日勤のみ、手取りの差って実はそんなにないって知ってた？\n\n税金と体への負担を考えたら、日勤の方がコスパいいかもよ\n\n#看護師給料 #夜勤専従 #日勤のみ #看護師転職",
       "hashtags": [
@@ -2640,7 +2641,7 @@
       "id": 150,
       "content_id": "claude_業界_0305_08",
       "batch": "claude_batch_20260305",
-      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_転職_0305_10",
+      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_業界_0305_08",
       "json_path": "content/generated/claude_batch_20260305/claude_業界_0305_08.json",
       "caption": "病院が紹介会社を使いたくない本当の理由を知ってる？\n\n手数料の仕組みが変わり始めてるから、知っておいた方がいいよ\n\n#看護師転職 #病院裏話 #手数料 #神奈川ナース転職",
       "hashtags": [
@@ -2668,7 +2669,7 @@
       "id": 151,
       "content_id": "claude_地域_0305_09",
       "batch": "claude_batch_20260305",
-      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_転職_0305_10",
+      "slide_dir": "content/generated/claude_batch_20260305/carousel_20260320_claude_地域_0305_09",
       "json_path": "content/generated/claude_batch_20260305/claude_地域_0305_09.json",
       "caption": "湘南鎌倉総合病院って知ってる？669床で看護師をずっと募集してるんだ\n\n湘南エリアの看護師求人事情をまとめたよ\n\n#湘南 #鎌倉 #看護師求人 #神奈川看護師\n30秒AI診断であなたに合う求人がわかる👇\nプロフィールのリンクから →",
       "hashtags": [
