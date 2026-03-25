@@ -1,7 +1,7 @@
 {
-  "created": "2026-03-03T21:30:55.401426",
-  "updated": "2026-03-05T15:00:28.053652",
-  "week_of": "2026-03-03",
+  "created": "2026-03-25T06:00:17.371555",
+  "updated": "2026-03-25T06:07:31.415130",
+  "week_of": "2026-03-25",
   "total": 7,
   "queue_pending_at_creation": 0,
   "plans": [
@@ -10,63 +10,63 @@
       "category": "あるある",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_ある_0303_01",
-      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた。全部、担当患者からもらったやつ",
-      "hook_idea": "ロビー、PHSストラップが重い"
+      "content_id": "ai_ある_0325_01",
+      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
+      "hook_idea": "看護師5年目、報告書書いて朝"
     },
     {
       "day": 2,
       "category": "あるある",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0303_02",
-      "hint": "ナースコール鳴らない夜勤が一番怖い。静かすぎる病棟は何かが起きる前兆",
-      "hook_idea": "ロビー、夜勤の静寂が怖い"
+      "content_id": "ai_ある_0325_02",
+      "hint": "有給申請したら師長に「みんな我慢してるのに」って言われた。それ法律違反では？",
+      "hook_idea": "有給申請したら『みんな我慢してる』"
     },
     {
       "day": 3,
-      "category": "給与",
+      "category": "転職",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_給与_0303_03",
-      "hint": "手取り24万。奨学金3万、家賃6万、車2万。残り13万で「命を預かる仕事」をしている",
-      "hook_idea": "ロビー、24万で命預かる"
+      "content_id": "ai_転職_0325_03",
+      "hint": "「3年は続けなさい」。それ、誰のための3年？病院の離職率のための3年だった",
+      "hook_idea": "看護師3年続けなさいって誰のため"
     },
     {
       "day": 4,
-      "category": "給与",
-      "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_給与_0303_04",
-      "hint": "「お金のために働いてるんじゃない」。それを言い続けた結果が手取り24万",
-      "hook_idea": "ロビー、お金のために働く"
-    },
-    {
-      "day": 5,
       "category": "あるある",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0303_05",
-      "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた夜勤明け",
-      "hook_idea": "ロビー、異常なしって言った後"
+      "content_id": "ai_ある_0325_04",
+      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
+      "hook_idea": "看護師向いてないかもと思う日"
+    },
+    {
+      "day": 5,
+      "category": "業界裏側",
+      "cta_type": "soft",
+      "status": "generated",
+      "content_id": "ai_業界_0325_05",
+      "hint": "紹介手数料を10%にしたら病院は90万浮く。その90万で看護師2人分の夜勤手当が上がる",
+      "hook_idea": "紹介手数料10%にしたら90万浮く"
     },
     {
       "day": 6,
-      "category": "転職",
+      "category": "給与",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_転職_0303_06",
-      "hint": "「3年は続けなさい」。それ、誰のための3年？病院の離職率のための3年だった",
-      "hook_idea": "ロビー、3年は続けなさい"
+      "content_id": "ai_給与_0325_06",
+      "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？",
+      "hook_idea": "夜勤専従で手取り35万"
     },
     {
       "day": 7,
-      "category": "転職",
+      "category": "地域ネタ",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_転職_0303_07",
-      "hint": "面接で「前の職場の不満は？」と聞かれた。不満がないなら転職しない。この茶番",
-      "hook_idea": "ロビー、面接で不満聞かれた"
+      "content_id": "ai_地域_0325_07",
+      "hint": "県西部の病院は紹介会社に135万払えない。だから看護師が来ない。この悪循環",
+      "hook_idea": "県西部は看護師来ない"
     }
   ]
 }

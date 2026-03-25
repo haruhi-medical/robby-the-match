@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-24T23:57:31.914984",
+  "updated": "2026-03-25T07:53:53.588723",
   "posts": [
     {
       "id": 1,
@@ -2133,7 +2133,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2193,7 +2193,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2253,7 +2253,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2283,7 +2283,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2313,7 +2313,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2343,7 +2343,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2373,7 +2373,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2403,7 +2403,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2432,7 +2432,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2548,7 +2548,7 @@
       ],
       "cta_type": "soft",
       "content_type": "地域ネタ",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2576,7 +2576,7 @@
       ],
       "cta_type": "hard",
       "content_type": "転職",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2604,7 +2604,7 @@
       ],
       "cta_type": "soft",
       "content_type": "あるある",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2632,7 +2632,7 @@
       ],
       "cta_type": "soft",
       "content_type": "給与",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2660,7 +2660,7 @@
       ],
       "cta_type": "soft",
       "content_type": "業界裏側",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2688,7 +2688,7 @@
       ],
       "cta_type": "soft",
       "content_type": "地域ネタ",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2716,7 +2716,7 @@
       ],
       "cta_type": "hard",
       "content_type": "転職",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2759,6 +2759,305 @@
       "ai_review": null,
       "verified": true,
       "video_type": "animated"
+    },
+    {
+      "id": 154,
+      "content_id": "ai_ある_0325_01",
+      "batch": "ai_batch_20260325_0600",
+      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_ある_0325_01",
+      "json_path": "content/generated/ai_batch_20260325_0600/ai_ある_0325_01.json",
+      "caption": "看護師5年目で手取り24万って普通なの?\n\n夜勤月8回の看護師の時給、コンビニと同じって本当?\n\n手数料10%の転職サポート、詳しくはプロフのリンクから",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#夜勤ナース",
+        "#ナース転職"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 6,
+        "empathy": 8,
+        "issues": [
+          "CTAの8:2ルールが守られていない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "ソフトCTAを追加して8:2ルールを守り、ハッシュタグを4個以内に絞り込む"
+      },
+      "scheduled_for": "2026-03-25 17:30"
+    },
+    {
+      "id": 155,
+      "content_id": "ai_ある_0325_02",
+      "batch": "ai_batch_20260325_0600",
+      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_ある_0325_02",
+      "json_path": "content/generated/ai_batch_20260325_0600/ai_ある_0325_02.json",
+      "caption": "神奈川の夜勤看護師\n\n夜勤明け、電車で座る暇ある？\n\n同じ状況の看護師さんにも教えてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#夜勤ナース",
+        "#看護師転職",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 8,
+        "empathy": 7,
+        "issues": [
+          "フックが25文字以内ではない",
+          "スライドのキャプションが200文字以内ではない"
+        ],
+        "suggestion": "フックを短くし、スライドのキャプションを簡潔にすることで、看護師の共感度とCTAの質を向上させることができる"
+      },
+      "scheduled_for": "2026-03-26 12:00"
+    },
+    {
+      "id": 156,
+      "content_id": "ai_転職_0325_03",
+      "batch": "ai_batch_20260325_0600",
+      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_転職_0325_03",
+      "json_path": "content/generated/ai_batch_20260325_0600/ai_転職_0325_03.json",
+      "caption": "横浜の看護師さん、時給2千円って知ってた？\n\n看護師の自由とは何か。\n\nこの情報、知らなかった人いる？",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#自由と責任",
+        "#ナースライフ"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックの25文字以内ルールに違反"
+        ],
+        "suggestion": "フックを25文字以内に修正し、看護師の共感度を高めることで更に効果的な投稿になる可能性がある"
+      },
+      "scheduled_for": "2026-03-27 21:00"
+    },
+    {
+      "id": 157,
+      "content_id": "ai_ある_0325_04",
+      "batch": "ai_batch_20260325_0600",
+      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_ある_0325_04",
+      "json_path": "content/generated/ai_batch_20260325_0600/ai_ある_0325_04.json",
+      "caption": "看護師5年目で年収550万って本当？\n\n神奈川県の看護師の平均年収は全国平均を上回っている。\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナース転職",
+        "#看護師年収"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを4個以内に調整することで、投稿の品質を向上させることができる"
+      },
+      "scheduled_for": "2026-03-28 17:30"
+    },
+    {
+      "id": 158,
+      "content_id": "ai_業界_0325_05",
+      "batch": "ai_batch_20260325_0600",
+      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_業界_0325_05",
+      "json_path": "content/generated/ai_batch_20260325_0600/ai_業界_0325_05.json",
+      "caption": "神奈川の看護師の紹介手数料、135万って本当?\n\n看護師の待遇改善の鍵はどこにある?\n\n同じ状況の看護師さんに送ってあげて。",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#紹介手数料",
+        "#ナースジョブ"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "スライド1の質問が少し長い"
+        ],
+        "suggestion": "スライド1の質問を短くして、より直接的に看護師の関心を引くようにする"
+      },
+      "scheduled_for": "2026-03-29 12:00"
+    },
+    {
+      "id": 159,
+      "content_id": "ai_給与_0325_06",
+      "batch": "ai_batch_20260325_0600",
+      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_給与_0325_06",
+      "json_path": "content/generated/ai_batch_20260325_0600/ai_給与_0325_06.json",
+      "caption": "夜勤専従の看護師は、命に碰いながら、コンビニバイトと同等の賃金で働いている。\n\n看護師の働き方を変えたい。\n\nこの情報を知って、看護師の評価を変えたい人、保存して。",
+      "hashtags": [
+        "#看護師",
+        "#夜勤専従",
+        "#横浜",
+        "#看護師の評価"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えていないが、#看護師の評価は曖昧"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグをより具体的かつ関連性の高いものに変更する"
+      },
+      "scheduled_for": "2026-03-30 21:00"
+    },
+    {
+      "id": 160,
+      "content_id": "ai_地域_0325_07",
+      "batch": "ai_batch_20260325_0600",
+      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_地域_0325_07",
+      "json_path": "content/generated/ai_batch_20260325_0600/ai_地域_0325_07.json",
+      "caption": "神奈川県西部の看護師はなぜ少ないの?\n\n住みやすさと給与の問題\n\n情報を共有して看護師の就業環境を改善しよう",
+      "hashtags": [
+        "#神奈川県",
+        "#看護師不足",
+        "#年収差",
+        "#地元愛"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 6,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 6,
+        "persona_fit": 8,
+        "hook_strength": 4,
+        "legal_compliance": 9,
+        "cta_quality": 7,
+        "empathy": 6,
+        "issues": [
+          "フックが25文字以内でない",
+          "CTAが8:2ルールに厳密に従っていない"
+        ],
+        "suggestion": "看護師の共感を深めるために、より具体的な数字や状況を盛り込むと良いでしょう"
+      },
+      "scheduled_for": "2026-03-31 17:30"
     }
   ],
   "archive": [

@@ -4,7 +4,7 @@ Instagram カルーセル投稿 via Meta Business Suite
 Chrome DevTools Protocol (CDP) を使ってMeta Business Suiteから投稿する。
 
 前提:
-- ChromeがリモートデバッグモードでPort 9222で起動していること
+- ChromeがリモートデバッグモードでPort 9223で起動していること
 - Meta Business Suiteにログイン済みであること
 
 Usage:
@@ -32,7 +32,7 @@ except ImportError:
 PROJECT_DIR = Path(__file__).parent.parent
 QUEUE_FILE = PROJECT_DIR / "data" / "posting_queue.json"
 POST_LOG_FILE = PROJECT_DIR / "data" / "post_log.json"
-CDP_PORT = 9222
+CDP_PORT = 9223
 
 # Meta Business Suite URLs
 MBS_COMPOSER_URL = "https://business.facebook.com/latest/composer/?asset_id=1030390126820320&business_id=2381678942279702&nav_ref=internal_nav&ref=biz_web_home_create_post&context_ref=HOME"
@@ -479,7 +479,7 @@ def main():
     # Connect to Chrome
     cdp = CDPClient(CDP_PORT)
     if not cdp.connect():
-        print("[MBS] FAILED: Cannot connect to Chrome. Is it running with --remote-debugging-port=9222?")
+        print("[MBS] FAILED: Cannot connect to Chrome. Is it running with --remote-debugging-port=9223?")
         return
 
     try:
