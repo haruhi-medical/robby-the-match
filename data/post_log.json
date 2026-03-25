@@ -471,5 +471,34 @@
     "status": "dry_run",
     "slides": 8,
     "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_地域_0305_10",
+    "content_id": "ai_地域_0305_10",
+    "timestamp": "2026-03-25T17:43:34",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260305_ai_ある_0305_02",
+    "timestamp": "2026-03-25T21:16:57.972443",
+    "status": "success",
+    "media_id": "3860612924080109997_45884164083",
+    "code": "DWTpwADE7mt",
+    "url": "https://www.instagram.com/p/DWTpwADE7mt/",
+    "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260320_ai_給与_0305_05",
+    "timestamp": "2026-03-25T21:43:44.734651",
+    "status": "success",
+    "media_id": "3860626316551518491_45884164083",
+    "code": "DWTsy4wk_kb",
+    "url": "https://www.instagram.com/p/DWTsy4wk_kb/",
+    "format": "carousel"
   }
 ]
