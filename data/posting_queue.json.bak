@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-25T06:08:52.638264",
+  "updated": "2026-03-25T07:53:53.588723",
   "posts": [
     {
       "id": 1,
@@ -2133,7 +2133,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2193,7 +2193,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2253,7 +2253,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2283,7 +2283,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2313,7 +2313,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2343,7 +2343,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2373,7 +2373,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2403,7 +2403,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2432,7 +2432,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2548,7 +2548,7 @@
       ],
       "cta_type": "soft",
       "content_type": "地域ネタ",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2576,7 +2576,7 @@
       ],
       "cta_type": "hard",
       "content_type": "転職",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2604,7 +2604,7 @@
       ],
       "cta_type": "soft",
       "content_type": "あるある",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2632,7 +2632,7 @@
       ],
       "cta_type": "soft",
       "content_type": "給与",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2660,7 +2660,7 @@
       ],
       "cta_type": "soft",
       "content_type": "業界裏側",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2688,7 +2688,7 @@
       ],
       "cta_type": "soft",
       "content_type": "地域ネタ",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2716,7 +2716,7 @@
       ],
       "cta_type": "hard",
       "content_type": "転職",
-      "status": "needs_regen",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2775,7 +2775,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2800,7 +2800,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "ソフトCTAを追加して8:2ルールを守り、ハッシュタグを4個以内に絞り込む"
-      }
+      },
+      "scheduled_for": "2026-03-25 17:30"
     },
     {
       "id": 155,
@@ -2817,7 +2818,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2842,7 +2843,8 @@
           "スライドのキャプションが200文字以内ではない"
         ],
         "suggestion": "フックを短くし、スライドのキャプションを簡潔にすることで、看護師の共感度とCTAの質を向上させることができる"
-      }
+      },
+      "scheduled_for": "2026-03-26 12:00"
     },
     {
       "id": 156,
@@ -2859,7 +2861,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2883,7 +2885,8 @@
           "フックの25文字以内ルールに違反"
         ],
         "suggestion": "フックを25文字以内に修正し、看護師の共感度を高めることで更に効果的な投稿になる可能性がある"
-      }
+      },
+      "scheduled_for": "2026-03-27 21:00"
     },
     {
       "id": 157,
@@ -2900,7 +2903,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2925,7 +2928,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くし、ハッシュタグを4個以内に調整することで、投稿の品質を向上させることができる"
-      }
+      },
+      "scheduled_for": "2026-03-28 17:30"
     },
     {
       "id": 158,
@@ -2942,7 +2946,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -2966,7 +2970,8 @@
           "スライド1の質問が少し長い"
         ],
         "suggestion": "スライド1の質問を短くして、より直接的に看護師の関心を引くようにする"
-      }
+      },
+      "scheduled_for": "2026-03-29 12:00"
     },
     {
       "id": 159,
@@ -2983,7 +2988,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3008,7 +3013,8 @@
           "ハッシュタグが4個を超えていないが、#看護師の評価は曖昧"
         ],
         "suggestion": "フックを短くし、ハッシュタグをより具体的かつ関連性の高いものに変更する"
-      }
+      },
+      "scheduled_for": "2026-03-30 21:00"
     },
     {
       "id": 160,
@@ -3025,7 +3031,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3050,7 +3056,8 @@
           "CTAが8:2ルールに厳密に従っていない"
         ],
         "suggestion": "看護師の共感を深めるために、より具体的な数字や状況を盛り込むと良いでしょう"
-      }
+      },
+      "scheduled_for": "2026-03-31 17:30"
     }
   ],
   "archive": [
