@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-25T22:07:10.457077",
+  "updated": "2026-03-26T17:08:22.568334",
   "posts": [
     {
       "id": 1,
@@ -2346,9 +2346,9 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-26T17:05:00.509812",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2359,7 +2359,8 @@
       },
       "ai_score": null,
       "quality_score": 8.1,
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_dir": "carousel_20260305_ai_業界_0305_07"
     },
     {
       "id": 140,
@@ -2376,8 +2377,8 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_地域_0305_08_20260326.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -2651,7 +2652,8 @@
         "saves": null,
         "comments": null
       },
-      "quality_score": 9
+      "quality_score": 8.69,
+      "quality_checked": true
     },
     {
       "id": 150,
@@ -2679,7 +2681,8 @@
         "saves": null,
         "comments": null
       },
-      "quality_score": 9
+      "quality_score": 7.81,
+      "quality_checked": true
     },
     {
       "id": 151,
@@ -2707,7 +2710,8 @@
         "saves": null,
         "comments": null
       },
-      "quality_score": 9
+      "quality_score": 8.41,
+      "quality_checked": true
     },
     {
       "id": 152,
@@ -2735,7 +2739,8 @@
         "saves": null,
         "comments": null
       },
-      "quality_score": 9
+      "quality_score": 8.28,
+      "quality_checked": true
     },
     {
       "id": 153,
@@ -2795,7 +2800,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.55,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -2809,7 +2814,8 @@
         ],
         "suggestion": "ソフトCTAを追加して8:2ルールを守り、ハッシュタグを4個以内に絞り込む"
       },
-      "scheduled_for": "2026-03-25 17:30"
+      "scheduled_for": "2026-03-25 17:30",
+      "quality_checked": true
     },
     {
       "id": 155,

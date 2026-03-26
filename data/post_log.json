@@ -500,5 +500,24 @@
     "code": "DWTsy4wk_kb",
     "url": "https://www.instagram.com/p/DWTsy4wk_kb/",
     "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260305_ai_業界_0305_07",
+    "timestamp": "2026-03-26T17:05:00.505922",
+    "status": "success",
+    "media_id": "3861210891690392908_45884164083",
+    "code": "DWVxtkyEz1M",
+    "url": "https://www.instagram.com/p/DWVxtkyEz1M/",
+    "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260305_ai_地域_0305_09",
+    "content_id": "ai_地域_0305_09",
+    "timestamp": "2026-03-26T18:01:03",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]
