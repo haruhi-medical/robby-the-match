@@ -152,10 +152,14 @@ def is_nurse_job(data_elem):
     職種名 or 必要資格に看護師/准看護師が含まれる場合のみ通過。
     事業所名や仕事内容だけに「看護」が含まれるケース（事務員、リハ職等）は除外。
     """
-    # 除外: 看護助手・看護補助は看護師ではない
+    # 除外: 看護助手・看護補助・動物・派遣は紹介対象外
     job_title = data_elem.findtext("sksu", "")
+    employment_type = data_elem.findtext("koyokeitai", "")
     exclude_keywords = ["看護助手", "看護補助", "動物", "獣医", "リハビリ助手"]
     if any(kw in job_title for kw in exclude_keywords):
+        return False
+    # 派遣求人は紹介できないため除外（職種名に「派」or 雇用形態に「派遣」）
+    if "（派）" in job_title or "派遣" in employment_type:
         return False
 
     # 第1優先: 職種名に看護師/ナース/看護業務が含まれるか
