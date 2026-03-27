@@ -279,12 +279,52 @@ def log_post(content_id, slide_dir, status, error=None):
         json.dump(log, f, ensure_ascii=False, indent=2)
 
 
+def check_mbs_session(cdp):
+    """Check if MBS session is valid. Returns True if logged in, False if session expired."""
+    page_text = cdp.evaluate("document.body.innerText.substring(0, 500)") or ""
+    login_indicators = [
+        "ログインすることで", "利用を開始", "Metaのビジネスツール\nの利用を開始",
+        "Log into Facebook", "Facebookにログイン", "Log In to Meta",
+    ]
+    for indicator in login_indicators:
+        if indicator in page_text:
+            return False
+    return True
+
+
+def notify_slack_error(message):
+    """Send error notification to Slack."""
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(PROJECT_DIR / ".env")
+        token = os.environ.get("SLACK_BOT_TOKEN", "")
+        if not token:
+            return
+        requests.post(
+            "https://slack.com/api/chat.postMessage",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={
+                "channel": "C0AEG626EUW",
+                "text": f"🚨 *Instagram自動投稿エラー*\n{message}\n\n手動対応が必要です。デバッグChromeでMeta Business Suiteに再ログインしてください。",
+            }
+        )
+    except Exception:
+        pass
+
+
 def post_carousel(cdp, slides, caption, dry_run=False):
     """Post carousel to Instagram via Meta Business Suite."""
 
     print(f"[MBS] Navigating to Meta Business Suite composer...")
     cdp.navigate(MBS_COMPOSER_URL)
     time.sleep(8)  # MBS is slow to load
+
+    # セッション切れチェック（最重要）
+    if not check_mbs_session(cdp):
+        error_msg = "MBSセッション切れ。ログインページにリダイレクトされました。"
+        print(f"[MBS] FATAL: {error_msg}")
+        notify_slack_error(error_msg)
+        return False
 
     # Close any welcome dialogs
     cdp.click_by_text("Done")
@@ -371,7 +411,34 @@ def post_carousel(cdp, slides, caption, dry_run=False):
         cdp.send("Page.setInterceptFileChooserDialog", {"enabled": False})
         time.sleep(3)  # Wait for upload to process
 
-    print(f"[MBS] All {len(slides)} slides uploaded")
+    # アップロード検証 — 画像がコンポーザーに実際に表示されているか確認
+    time.sleep(3)
+    upload_check = cdp.evaluate("""
+    (() => {
+        // Check for image thumbnails or media previews
+        const imgs = document.querySelectorAll('img[src*="blob:"], img[src*="scontent"], img[src*="fbcdn"]');
+        const mediaDivs = document.querySelectorAll('[class*="media"], [class*="thumbnail"], [class*="preview"]');
+        const hasRemoveBtn = document.body.innerText.includes('Remove') || document.body.innerText.includes('削除');
+        return JSON.stringify({
+            images: imgs.length,
+            mediaDivs: mediaDivs.length,
+            hasRemove: hasRemoveBtn,
+        });
+    })()
+    """)
+    print(f"[MBS] Upload verification: {upload_check}")
+
+    try:
+        check = json.loads(upload_check) if upload_check else {}
+    except (json.JSONDecodeError, TypeError):
+        check = {}
+
+    if not check.get("images") and not check.get("hasRemove"):
+        error_msg = "画像アップロードが確認できませんでした。ファイルが実際にアップされていない可能性があります。"
+        print(f"[MBS] WARNING: {error_msg}")
+        # Continue anyway — MBS might use different DOM structure
+
+    print(f"[MBS] All {len(slides)} slides upload attempted")
 
     # Fill caption
     print(f"[MBS] Setting caption...")
@@ -404,16 +471,41 @@ def post_carousel(cdp, slides, caption, dry_run=False):
     cdp.click_by_text("Publish")
     time.sleep(5)
 
-    # Check for success message
+    # Check for success message (厳密に判定 — 成功が確認できない場合は失敗)
     page_text = cdp.evaluate("document.body.innerText") or ""
-    if "published" in page_text.lower() or "投稿" in page_text:
+    page_text_lower = page_text.lower()
+
+    # 成功の明確なサイン
+    success_indicators = [
+        "your post has been published",
+        "published",
+        "投稿が公開されました",
+        "post shared",
+    ]
+    # 失敗の明確なサイン
+    failure_indicators = [
+        "ログインすることで", "利用を開始", "log in",
+        "error", "エラー", "couldn't publish", "投稿できません",
+    ]
+
+    is_success = any(ind in page_text_lower for ind in success_indicators)
+    is_failure = any(ind in page_text_lower for ind in failure_indicators)
+
+    if is_success and not is_failure:
         print("[MBS] SUCCESS - Post published!")
-        # Click Done on success dialog
         cdp.click_by_text("Done")
         return True
+    elif is_failure:
+        error_msg = f"投稿失敗。ページ: {page_text[:200]}"
+        print(f"[MBS] FAILED: {error_msg}")
+        notify_slack_error(error_msg)
+        return False
     else:
-        print(f"[MBS] Publish result unclear. Page text preview: {page_text[:200]}")
-        return True  # Assume success if no error
+        # 成功も失敗も確認できない → 失敗扱い（以前はTrueだった）
+        error_msg = f"投稿結果が不明。成功を確認できないため失敗扱い。ページ: {page_text[:200]}"
+        print(f"[MBS] UNCERTAIN: {error_msg}")
+        notify_slack_error(error_msg)
+        return False
 
 
 def notify_slack(content_id, caption):
@@ -479,7 +571,10 @@ def main():
     # Connect to Chrome
     cdp = CDPClient(CDP_PORT)
     if not cdp.connect():
-        print("[MBS] FAILED: Cannot connect to Chrome. Is it running with --remote-debugging-port=9223?")
+        error_msg = "Chrome接続失敗。デバッグモード(port 9223)で起動されていません。"
+        print(f"[MBS] FAILED: {error_msg}")
+        notify_slack_error(error_msg)
+        log_post(content_id, slide_dir, "error", error_msg)
         return
 
     try:

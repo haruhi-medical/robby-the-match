@@ -187,11 +187,13 @@
             font-size: 0.82rem;
             font-weight: 700;
             color: var(--accent-strong);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             letter-spacing: 0.06em;
+            background: var(--accent-light);
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: var(--radius-full);
         }
-        .cta-deco::before { content: '＼ '; }
-        .cta-deco::after { content: ' ／'; }
 
         /* ===== LINE CTA Button ===== */
         .cta-line {
@@ -200,15 +202,29 @@
             justify-content: center;
             gap: 10px;
             width: 100%;
-            background: linear-gradient(135deg, #4CE890 0%, #3DD67E 100%);
+            background: linear-gradient(135deg, #06C755 0%, #05B34C 100%);
             color: #fff;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
-            padding: 18px 24px;
+            padding: 16px 48px;
             border-radius: var(--radius-full);
             letter-spacing: 0.03em;
             box-shadow: 0 6px 20px var(--line-glow-strong), 0 2px 6px rgba(0,0,0,0.06);
             transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-line::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
         }
         .cta-line:active {
             transform: scale(0.97);
@@ -221,88 +237,87 @@
             margin-top: 8px;
         }
 
-        @keyframes ctaPulse {
-            0%, 100% { box-shadow: 0 6px 20px var(--line-glow-strong), 0 2px 6px rgba(0,0,0,0.06); }
-            50% { box-shadow: 0 8px 28px var(--line-glow-strong), 0 3px 8px rgba(0,0,0,0.08); }
-        }
-
         /* ===== 1. HERO ===== */
         .hero {
             padding: 0;
             position: relative;
-            background: linear-gradient(135deg, #EBF5FB 0%, #FFF8F5 100%);
+            background: linear-gradient(160deg, #D4EDFA 0%, #F5E0E8 35%, #EBD4F0 65%, #D4EDFA 100%);
+            min-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        .hero-img-wrap {
-            position: relative;
-            overflow: hidden;
-        }
-        .hero-img-wrap img {
-            width: 100%;
-            aspect-ratio: 9/10;
-            object-fit: cover;
-        }
-        .hero-overlay {
+        .hero::after {
+            content: '';
             position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 32px 20px 24px;
-            background: linear-gradient(to top, rgba(15,30,50,0.45) 0%, transparent 100%);
+            bottom: -1px;
+            left: 0; right: 0;
+            height: 60px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 60'%3E%3Cpath d='M0,30 C120,60 360,0 480,30 L480,60 L0,60 Z' fill='%23F8F5F2'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .hero-content {
+            padding: 80px 32px 40px;
+            text-align: center;
         }
         .hero-catch {
-            font-size: 1.6rem;
+            font-size: 2rem;
             font-weight: 800;
-            color: #fff;
-            line-height: 1.5;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            margin-bottom: 8px;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
         }
         .hero-sub {
-            font-size: 0.88rem;
-            color: rgba(255,255,255,0.9);
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1rem;
+            color: var(--accent-strong);
             line-height: 1.6;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            letter-spacing: 0.05em;
         }
         .hero-badges {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            padding: 16px 20px;
+            gap: 8px;
+            padding: 20px 24px;
+            justify-content: center;
         }
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            background: var(--primary-light);
-            border: 1.5px solid rgba(61,139,181,0.25);
+            background: rgba(255,255,255,0.7);
+            border: none;
             border-radius: var(--radius-full);
             padding: 8px 16px;
             font-size: 0.82rem;
             font-weight: 700;
             color: var(--primary-dark);
             white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(61,139,181,0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         .hero-badge svg { flex-shrink: 0; }
-        .hero-cta {
-            padding: 0 20px 24px;
-        }
+        .hero-cta { padding: 0 24px 28px; text-align: center; }
 
         /* ===== 2. EMPATHY ===== */
         .empathy {
-            background:
-                radial-gradient(ellipse 80% 50% at 20% 80%, rgba(212,145,122,0.05) 0%, transparent 60%),
-                linear-gradient(175deg, var(--bg-base), var(--accent-light));
-            padding-bottom: 80px;
+            background: #F8F5F2;
+            padding-bottom: 96px;
         }
         .empathy::after {
             content: '';
             position: absolute;
             bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: var(--bg-tint);
-            clip-path: ellipse(55% 100% at 50% 100%);
+            left: 0; right: 0;
+            height: 60px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 60'%3E%3Cpath d='M0,30 C120,60 360,0 480,30 L480,60 L0,60 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
             z-index: 2;
+            pointer-events: none;
         }
         .empathy-cards {
             display: grid;
@@ -310,27 +325,21 @@
         }
         .empathy-card {
             display: flex;
-            align-items: flex-start;
-            gap: 14px;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
             background: #FFFFFF;
-            border-radius: var(--radius-sm);
-            padding: 20px 16px;
-            border-left: 4px solid;
-            box-shadow: var(--shadow-md);
+            border-radius: var(--radius-md);
+            padding: 36px 28px;
+            border-left: none;
+            box-shadow: var(--shadow-sm);
         }
-        .empathy-card:nth-child(1) { border-left-color: #E88B82; }
-        .empathy-card:nth-child(2) { border-left-color: #E8A88B; }
-        .empathy-card:nth-child(3) { border-left-color: #7BC4B8; }
-        .empathy-card:nth-child(4) { border-left-color: #8FA8D4; }
-        .empathy-card-icon {
-            font-size: 1.5rem;
-            line-height: 1;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
+        .empathy-card-icon { font-size: 1.8rem; margin-bottom: 4px; }
         .empathy-card p {
+            text-align: center;
+            line-height: 1.9;
             font-size: 0.9rem;
-            line-height: 1.7;
             color: var(--text-secondary);
         }
         .empathy-card strong {
@@ -340,8 +349,20 @@
 
         /* ===== 3. ROBBY INTRO ===== */
         .robby-intro {
-            background: var(--bg-tint);
+            background: #FFFFFF;
             text-align: center;
+            padding-bottom: 96px;
+        }
+        .robby-intro::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0; right: 0;
+            height: 60px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 60'%3E%3Cpath d='M0,30 C120,60 360,0 480,30 L480,60 L0,60 Z' fill='%23F8F5F2'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+            z-index: 2;
+            pointer-events: none;
         }
         .robby-avatar {
             width: 120px;
@@ -403,17 +424,14 @@
 
         /* ===== 4. SALARY CHECK ===== */
         .salary-check {
-            background:
-                radial-gradient(circle, rgba(77,160,204,0.06) 1px, transparent 1px),
-                var(--bg-warm);
-            background-size: 20px 20px;
+            background: #F8F5F2;
         }
         .salary-preview {
             background: var(--bg-base);
             border-radius: var(--radius-md);
             padding: 24px 20px;
             box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(90,143,168,0.1);
+            border: none;
         }
         .salary-example {
             display: flex;
@@ -442,7 +460,7 @@
         }
 
         /* ===== 5. THREE NOs ===== */
-        .three-nos { background: linear-gradient(180deg, #fff 0%, var(--bg-tint) 40%, #fff 100%); }
+        .three-nos { background: #FFFFFF; }
         .no-cards {
             display: grid;
             gap: 16px;
@@ -452,7 +470,7 @@
             padding: 32px 20px;
             border-radius: var(--radius-md);
             background: var(--bg-base);
-            border: 1.5px solid rgba(61,139,181,0.12);
+            border: none;
             box-shadow: var(--shadow-sm);
         }
         .no-icon {
@@ -478,7 +496,7 @@
         }
 
         /* ===== 6. WHAT YOU GET ===== */
-        .what-you-get { background: var(--bg-tint); }
+        .what-you-get { background: #F8F5F2; }
         .wyg-cards { display: grid; gap: 14px; }
         .wyg-card {
             display: flex;
@@ -514,7 +532,14 @@
         }
 
         /* ===== 7. FEE STRUCTURE ===== */
-        .fee-structure { background: var(--bg-base); }
+        .fee-structure {
+            background: linear-gradient(170deg, #1E3247 0%, #2A4562 100%);
+            color: #fff;
+        }
+        .fee-structure .sec-label { color: rgba(255,255,255,0.6); }
+        .fee-structure .sec-title { color: #fff; }
+        .fee-structure .sec-title .marker { background: linear-gradient(transparent 55%, rgba(239,139,127,0.3) 55%); }
+        .fee-structure .sec-title::after { color: rgba(255,255,255,0.4); }
         .fee-compare {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -527,13 +552,15 @@
             text-align: center;
         }
         .fee-box--other {
-            background: #F0EDE8;
-            border: 1px solid #DDD8D0;
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: rgba(255,255,255,0.6);
         }
         .fee-box--us {
-            background: linear-gradient(135deg, var(--primary-light), #e6f3fa);
-            border: 2.5px solid var(--primary);
-            box-shadow: 0 4px 16px rgba(61,139,181,0.15);
+            background: rgba(255,255,255,0.12);
+            border: none;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         .fee-box-label {
             font-size: 0.72rem;
@@ -541,7 +568,7 @@
             color: var(--text-muted);
             margin-bottom: 8px;
         }
-        .fee-box--us .fee-box-label { color: var(--primary); }
+        .fee-box--us .fee-box-label { color: #8ECAE6; }
         .fee-box-rate {
             font-size: 1.8rem;
             font-weight: 900;
@@ -549,7 +576,7 @@
             margin-bottom: 4px;
         }
         .fee-box--other .fee-box-rate {
-            color: #aaa;
+            color: rgba(255,255,255,0.4);
             font-size: 1.6rem;
             text-decoration: line-through;
             text-decoration-color: var(--accent);
@@ -557,7 +584,7 @@
         }
         .fee-box--us { transform: scale(1.03); }
         .fee-box--us .fee-box-rate {
-            color: var(--accent-strong);
+            color: #EF8B7F;
             font-size: 2.4rem;
             font-weight: 900;
         }
@@ -568,19 +595,18 @@
         .fee-explain {
             font-size: 0.88rem;
             line-height: 1.85;
-            color: var(--text-secondary);
-            background: var(--bg-tint);
+            color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.06);
             padding: 20px;
             border-radius: var(--radius-sm);
         }
-        .fee-explain strong { color: var(--primary); }
+        .fee-explain strong { color: #8ECAE6; }
         .fee-hero-block {
             text-align: center;
             padding: 40px 24px;
             margin-bottom: 24px;
-            background: var(--accent-light);
+            background: rgba(239,139,127,0.12);
             border-radius: var(--radius-md);
-            border: 1px solid rgba(212,145,122,0.15);
         }
         .fee-hero-number {
             font-size: 3.5rem;
@@ -594,54 +620,60 @@
         }
         .fee-hero-caption {
             font-size: 0.95rem;
-            color: var(--text-secondary);
+            color: rgba(255,255,255,0.7);
             margin-top: 12px;
             line-height: 1.7;
         }
         .fee-merit {
             margin-top: 16px;
-            background: linear-gradient(135deg, var(--accent-light), #fff5ee);
-            border: 2px solid var(--accent);
+            background: rgba(239,139,127,0.15);
+            border: none;
             border-radius: var(--radius-sm);
             padding: 18px;
             font-size: 1rem;
             font-weight: 800;
-            color: var(--accent-strong);
+            color: #EF8B7F;
             text-align: center;
             line-height: 1.6;
-            box-shadow: var(--shadow-sm);
         }
 
         /* ===== 8. MARKET DATA (DARK) ===== */
         .market-data {
-            background: linear-gradient(170deg, #2A4562 0%, #2E4F6B 100%);
-            color: #fff;
+            background: linear-gradient(160deg, #D4EDFA 0%, #F5E0E8 50%, #EBD4F0 100%);
+            color: var(--text-primary);
         }
-        .market-data .sec-label {
-            background: rgba(255,255,255,0.1);
-            color: #8ec5e0;
-            border-color: rgba(255,255,255,0.15);
+        .market-data .sec-label { color: var(--accent); background: none; border: none; }
+        .market-data .sec-title { color: var(--text-primary); }
+        .market-data .sec-title::after { color: var(--accent); }
+        .market-data::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0; right: 0;
+            height: 60px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 60'%3E%3Cpath d='M0,30 C120,60 360,0 480,30 L480,60 L0,60 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+            z-index: 2;
+            pointer-events: none;
         }
-        .market-data .sec-title { color: #fff; }
-        .market-data .sec-title::after { background: rgba(142,202,230,0.4); }
         .stat-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
         .stat-card {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.7);
+            border: none;
             border-radius: var(--radius-sm);
             padding: 22px 16px;
             text-align: center;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         .stat-number {
             font-size: 1.5rem;
             font-weight: 900;
-            color: #8ECAE6;
+            color: var(--primary-dark);
             line-height: 1.2;
             margin-bottom: 4px;
         }
@@ -651,12 +683,12 @@
         }
         .stat-label {
             font-size: 0.72rem;
-            color: rgba(255,255,255,0.6);
+            color: var(--text-muted);
             line-height: 1.4;
         }
 
         /* ===== 9. FLOW ===== */
-        .flow-sec { background: var(--bg-base); }
+        .flow-sec { background: #FFFFFF; }
         .flow-steps { display: grid; gap: 0; }
         .flow-step {
             display: flex;
@@ -702,7 +734,21 @@
         }
 
         /* ===== 10. FAQ ===== */
-        .faq-sec { background: var(--bg-tint); }
+        .faq-sec {
+            background: #F8F5F2;
+            padding-bottom: 96px;
+        }
+        .faq-sec::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0; right: 0;
+            height: 60px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 60'%3E%3Cpath d='M0,30 C120,60 360,0 480,30 L480,60 L0,60 Z' fill='%23D4EDFA'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
         .faq-list { list-style: none; }
         .faq-item { border-bottom: 1px solid rgba(0,0,0,0.06); }
         .faq-q {
@@ -753,20 +799,15 @@
 
         /* ===== 11. FINAL CTA ===== */
         .final-cta {
-            background: linear-gradient(170deg, var(--primary) 0%, var(--primary-deeper) 100%);
-            color: #fff;
+            background: linear-gradient(160deg, #D4EDFA 0%, #F5E0E8 35%, #EBD4F0 65%, #D4EDFA 100%);
+            color: var(--text-primary);
             text-align: center;
-            padding: 56px 20px;
+            padding: 96px 28px;
         }
-        .final-cta .sec-title { color: #fff; }
-        .final-cta .sec-title::after { background: rgba(255,255,255,0.4); }
-        .final-cta .sec-sub { color: rgba(255,255,255,0.75); }
-        .final-cta .cta-line {
-            background: #fff;
-            color: var(--line-green);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-        .final-cta .cta-note { color: rgba(255,255,255,0.6); }
+        .final-cta .sec-title { color: var(--text-primary); }
+        .final-cta .sec-title::after { color: var(--accent); }
+        .final-cta .sec-sub { color: var(--text-secondary); }
+        .final-cta .cta-note { color: var(--text-muted); }
 
         /* ===== 12. FOOTER ===== */
         .ad-footer {
@@ -832,17 +873,9 @@
          Withmal式: 感情的な問い + バッジ + CTA
          ======================================= -->
     <section class="hero">
-        <div class="hero-img-wrap">
-            <!-- 社長が作成する画像: 837x930 (9:10) スマホ向け -->
-            <!-- 暫定: 既存のSP画像を使用 -->
-            <img src="/assets/hero-nurse-sp.jpg"
-                 alt="看護師のための働き方相談"
-                 width="837" height="930"
-                 fetchpriority="high">
-            <div class="hero-overlay">
-                <p class="hero-catch">今の働き方、<br>ずっと続けられますか？</p>
-                <p class="hero-sub">AI転職相談 — 早い × 簡単 × 24時間</p>
-            </div>
+        <div class="hero-content">
+            <p class="hero-sub">AI Career Support</p>
+            <h1 class="hero-catch">今の働き方、<br>ずっと続けられますか？</h1>
         </div>
 
         <!-- Withmal式: 4バッジ -->
@@ -940,15 +973,7 @@
             転職を決めてなくてもOK。<strong>まずは相場チェックから</strong>。</p>
         </div>
 
-        <!-- CTA #3 -->
-        <div style="margin-top:28px;" class="reveal reveal-d2">
-            <a href="https://lin.ee/oUgDB3x" class="cta-line" target="_blank" rel="noopener"
-               onclick="trackLead(this,'robby')">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
-                エリアの給与相場をチェック
-            </a>
-            <p class="cta-note">※ LINEで友だち追加するだけ</p>
-        </div>
+        <!-- CTA removed (robby) -->
     </section>
 
     <!-- =======================================
@@ -981,15 +1006,7 @@
         </div>
         <p class="salary-note reveal reveal-d2">※ 正看護師・常勤の参考値（ハローワーク公開求人 2026年3月時点の集計）</p>
 
-        <!-- CTA #4 -->
-        <div style="margin-top:24px;" class="reveal reveal-d3">
-            <a href="https://lin.ee/oUgDB3x" class="cta-line" target="_blank" rel="noopener"
-               onclick="trackLead(this,'salary')">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
-                エリアの給与相場をチェック
-            </a>
-            <p class="cta-note">※ LINEでエリア別の詳細データをお届け</p>
-        </div>
+        <!-- CTA removed (salary) -->
     </section>
 
     <!-- =======================================
@@ -1212,14 +1229,7 @@
             </li>
         </ul>
 
-        <!-- CTA #6 -->
-        <div style="margin-top:32px;" class="reveal reveal-d2">
-            <a href="https://lin.ee/oUgDB3x" class="cta-line" target="_blank" rel="noopener"
-               onclick="trackLead(this,'faq')">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
-                LINEで無料相談する
-            </a>
-        </div>
+        <!-- CTA removed (faq) -->
     </section>
 
     <!-- =======================================
@@ -1234,7 +1244,7 @@
             <!-- CTA #7 -->
             <a href="https://lin.ee/oUgDB3x" class="cta-line" target="_blank" rel="noopener"
                onclick="trackLead(this,'final')">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--line-green)"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
                 LINEで無料相談する
             </a>
             <p class="cta-note">※ 有料職業紹介事業 許可番号 23-ユ-302928</p>

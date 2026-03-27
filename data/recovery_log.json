@@ -24,7 +24,7 @@
     "competitor": {
       "date": "2026-03-27",
       "retries": 1,
-      "status": "retrying",
+      "status": "recovered",
       "last_error": "",
       "last_alert_ts": ""
     },
@@ -41,6 +41,13 @@
       "status": "ok",
       "last_error": "",
       "last_alert_ts": "2026-03-25T22:00:00.519235"
+    },
+    "instagram_engage": {
+      "date": "2026-03-27",
+      "retries": 1,
+      "status": "recovered",
+      "last_error": "",
+      "last_alert_ts": ""
     }
   }
 }
