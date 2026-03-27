@@ -1698,10 +1698,8 @@
     (function() {
         'use strict';
 
-        /* --- ページ読み込み時のハッシュジャンプ防止（広告トラフィック除外） --- */
-        var params = new URLSearchParams(window.location.search);
-        var isAdTraffic = params.has('utm_source') || params.has('fbclid');
-        if (window.location.hash && !isAdTraffic) {
+        /* --- ページ読み込み時のハッシュジャンプ防止 --- */
+        if (window.location.hash) {
             history.replaceState(null, '', window.location.pathname + window.location.search);
             window.scrollTo(0, 0);
         }
@@ -1714,15 +1712,6 @@
                 }
             });
         });
-
-        /* --- 広告トラフィック: 診断スキップで求人結果を即表示 --- */
-        if (isAdTraffic) {
-            setTimeout(function() {
-                if (typeof window.shindanSkip === 'function') {
-                    window.shindanSkip();
-                }
-            }, 800);
-        }
 
         /* --- FAQ Accordion --- */
         document.querySelectorAll('.faq-question').forEach(function(btn) {
