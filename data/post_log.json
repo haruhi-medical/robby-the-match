@@ -519,5 +519,24 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_ai_転職_0305_10",
+    "content_id": "ai_転職_0305_10",
+    "timestamp": "2026-03-27T17:53:42",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_claude_地域_0305_04",
+    "timestamp": "2026-03-27T18:03:22.163179",
+    "status": "success",
+    "media_id": "3861965102359215763_45884164083",
+    "code": "DWYdMyNE36T",
+    "url": "https://www.instagram.com/p/DWYdMyNE36T/",
+    "format": "carousel"
   }
 ]

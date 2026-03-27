@@ -87,18 +87,71 @@ def make_dots_html(total: int, current: int) -> str:
 
 
 def auto_hook_font_size(text: str) -> int:
-    """Choose font size based on hook text length."""
-    length = len(text)
-    if length <= 10:
+    """Choose font size based on hook text length.
+    Max width is ~920px. At font-weight 900, roughly:
+    72px = ~12 chars/line, 56px = ~16 chars/line, 42px = ~21 chars/line
+    """
+    length = len(text.replace("\n", ""))
+    if length <= 12:
         return 72
-    elif length <= 15:
-        return 64
-    elif length <= 20:
-        return 56
-    elif length <= 30:
-        return 48
+    elif length <= 16:
+        return 60
+    elif length <= 21:
+        return 52
+    elif length <= 28:
+        return 46
     else:
-        return 42
+        return 40
+
+
+def smart_line_break(text: str, max_chars_per_line: int = 18) -> str:
+    """Insert <br> at natural break points for Japanese text.
+    Avoids breaking in the middle of words/phrases.
+    Break at: 、。？！・ or after particles (は/が/を/に/で/と/の/も/へ/から/まで/より)
+    """
+    if "\n" in text:
+        # Already has manual line breaks
+        return text.replace("\n", "<br>")
+
+    if len(text) <= max_chars_per_line:
+        return text
+
+    # Natural break points (higher priority first)
+    break_after = ["、", "。", "？", "！", "…", "・"]
+    # Particles to break after (「の」は除外 — 「本当の理由」等が割れる)
+    particles = ["は", "が", "を", "に", "で", "と", "も", "へ"]
+
+    lines = []
+    remaining = text
+
+    while len(remaining) > max_chars_per_line:
+        # Look for a natural break point within the line
+        best_break = -1
+
+        # First try: punctuation breaks
+        for i in range(min(len(remaining), max_chars_per_line + 3), max(0, max_chars_per_line // 2), -1):
+            if i < len(remaining) and remaining[i - 1] in break_after:
+                best_break = i
+                break
+
+        # Second try: particle breaks (less ideal)
+        if best_break == -1:
+            for i in range(min(len(remaining), max_chars_per_line + 2), max(0, max_chars_per_line // 2), -1):
+                if i < len(remaining) and remaining[i - 1] in particles:
+                    best_break = i
+                    break
+
+        # Last resort: break at max_chars_per_line
+        if best_break == -1:
+            best_break = max_chars_per_line
+
+        lines.append(remaining[:best_break])
+        remaining = remaining[best_break:]
+
+    if remaining:
+        lines.append(remaining)
+
+    return "<br>".join(lines)
 
 
 def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_scheme="teal"):
@@ -141,7 +194,11 @@ def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_s
             template = TEMPLATE_DIR / "slide_hook.html"
             variables.update(hook_colors)
             hook_text = slide.get("hook_text", "")
-            variables["hook_html"] = hook_text.replace("\n", "<br>")
+            # Hookのmax_chars_per_lineはフォントサイズに合わせる
+            fs = auto_hook_font_size(hook_text)
+            # 920px幅, font-weight:900 の日本語は1文字≈フォントサイズ*0.95
+            chars_per_line = int(920 / (fs * 0.95))
+            variables["hook_html"] = smart_line_break(hook_text, max_chars_per_line=chars_per_line)
             variables["hook_font_size"] = str(auto_hook_font_size(hook_text))
             variables["sub_text"] = slide.get("sub_text", "")
 

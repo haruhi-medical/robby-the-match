@@ -299,7 +299,14 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-03-27T18:27:28.072097",
+      "content_id": "claude_転職_0305_05",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-03-26T17:28:37.854189"
+  "last_updated": "2026-03-27T18:27:28.072114"
 }
