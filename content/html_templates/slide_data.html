@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1350px;
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    background: {{background}};
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .top-bar { width: 100%; height: 8px; background: {{primary}}; }
+  .brand {
+    position: absolute; top: 24px; left: 40px;
+    font-size: 24px; font-weight: 700;
+    color: {{primary}}; opacity: 0.5;
+  }
+  .main-area {
+    flex: 1;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 60px 60px 100px;
+    text-align: center;
+  }
+  .label {
+    font-size: 30px; font-weight: 700;
+    color: {{text_secondary}};
+    margin-bottom: 16px;
+  }
+  .big-number {
+    font-size: 120px;
+    font-weight: 900;
+    color: {{accent}};
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+  .big-unit {
+    font-size: 48px;
+    font-weight: 700;
+    color: {{text_primary}};
+  }
+  .description {
+    margin-top: 32px;
+    font-size: 32px;
+    color: {{text_primary}};
+    line-height: 1.7;
+    max-width: 860px;
+  }
+  .comparison {
+    margin-top: 36px;
+    display: flex; gap: 24px;
+    justify-content: center;
+  }
+  .comp-item {
+    background: white;
+    border-radius: 16px;
+    padding: 28px 36px;
+    box-shadow: 0 2px 12px rgba(42,123,139,0.10);
+    text-align: center;
+    min-width: 200px;
+  }
+  .comp-item.active {
+    border: 3px solid {{accent}};
+  }
+  .comp-label {
+    font-size: 24px; color: {{text_secondary}};
+    margin-bottom: 8px;
+  }
+  .comp-value {
+    font-size: 40px; font-weight: 900;
+    color: {{text_primary}};
+  }
+  .comp-item.active .comp-value {
+    color: {{accent}};
+  }
+  .source {
+    margin-top: 24px;
+    font-size: 20px;
+    color: {{text_secondary}};
+  }
+  .dots {
+    position: absolute; bottom: 48px; left: 0; right: 0;
+    display: flex; gap: 12px; justify-content: center;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: {{dot_inactive}}; }
+  .dot.active { background: {{primary}}; }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="brand">{{brand_name}}</div>
+  <div class="main-area">
+    <div class="label">{{label}}</div>
+    <div class="big-number">{{number}}<span class="big-unit">{{unit}}</span></div>
+    <div class="description">{{description}}</div>
+    {{#if comparison}}<div class="comparison">{{comparison}}</div>{{/if}}
+    {{#if source}}<div class="source">{{source}}</div>{{/if}}
+  </div>
+  <div class="dots">{{dots_html}}</div>
+</body>
+</html>

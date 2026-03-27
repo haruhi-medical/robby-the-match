@@ -618,6 +618,30 @@
     observer.observe(container);
   }
 
+  /* ── Skip to result (診断スキップ) ── */
+  window.shindanSkip = function () {
+    C = document.getElementById('shindan-container');
+    if (!C) return;
+    A = { a: 'yokohama_kawasaki', age: '30s', exp: '3to5', s: 'kango', w: 'day_only', c: 'salary', t: 'info' };
+    ga('shindan_skip');
+    if (!D) {
+      showSkeleton();
+      var attempts = 0;
+      var poll = setInterval(function () {
+        attempts++;
+        if (D || attempts > 20) {
+          clearInterval(poll);
+          result();
+        }
+      }, 100);
+    } else {
+      result();
+    }
+    setTimeout(function () {
+      C.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', lazyInit);
   } else {

@@ -477,6 +477,23 @@
             box-shadow: 0 8px 28px var(--line-glow-strong), 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .cta-secondary-hero {
+            display: inline-block;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 10px;
+            padding: 8px 20px;
+            border: 1.5px solid rgba(255,255,255,0.7);
+            border-radius: var(--radius-full);
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .cta-secondary-hero:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #fff;
+        }
+
         /* ===== CTA Buttons ===== */
         .cta-primary {
             display: inline-block;
@@ -1178,7 +1195,7 @@
             background: linear-gradient(135deg, #06C755 0%, #05b34c 100%);
             color: #fff;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 1rem;
             padding: 14px 20px;
             border-radius: var(--radius-full);
             text-decoration: none;
@@ -1312,14 +1329,19 @@
             }
 
             .hero-cta-overlay {
-                text-align: right;
+                text-align: center;
                 padding: 0 16px 24px;
-                background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%);
+                background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%);
             }
 
             .cta-line-hero {
-                font-size: 0.9rem;
-                padding: 14px 24px;
+                font-size: 1rem;
+                padding: 16px 32px;
+                width: 80%;
+                justify-content: center;
+            }
+            .cta-secondary-hero {
+                font-size: 0.85rem;
             }
 
             .hero-sub-title::before,
@@ -1382,13 +1404,16 @@
             <p>シン・AI転職 — 早い × 簡単 × 24時間</p>
             <p>神奈川県の看護師専門・完全無料・電話なし</p>
         </div>
-        <!-- CTAオーバーレイ（右下にLINE誘導ボタン） -->
+        <!-- CTAオーバーレイ -->
         <div class="hero-cta-overlay">
             <a href="https://lin.ee/oUgDB3x" class="cta-line-hero" target="_blank" rel="noopener" onclick="typeof fbq==='function'&&fbq('track','Lead');typeof gtag==='function'&&gtag('event','lead_click',{link:this.href});if(navigator.sendBeacon)navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
-                LINEで無料相談
+                LINEで求人を見る
             </a>
-            <p class="hero-note">※完全無料でご利用できます</p>
+            <a href="#shindan" class="cta-secondary-hero" onclick="if(typeof shindanSkip==='function'){event.preventDefault();shindanSkip();}">
+                今すぐ求人をチェック &rsaquo;
+            </a>
+            <p class="hero-note">※完全無料・電話なし・1分で完了</p>
         </div>
     </section>
 
@@ -1662,7 +1687,10 @@
 
     <!-- Mobile Sticky CTA -->
     <div class="mobile-sticky-cta" id="mobile-sticky-cta">
-        <a href="#shindan" onclick="typeof fbq==='function'&&fbq('track','Lead');typeof gtag==='function'&&gtag('event','lead_click',{link:this.href});if(navigator.sendBeacon)navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');">30秒で診断スタート &#9654;</a>
+        <a href="https://lin.ee/oUgDB3x" target="_blank" rel="noopener" class="mobile-sticky-line" onclick="typeof fbq==='function'&&fbq('track','Lead');typeof gtag==='function'&&gtag('event','lead_click',{link:this.href});if(navigator.sendBeacon)navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" style="vertical-align:middle;margin-right:4px;"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
+            LINEで求人を見る
+        </a>
     </div>
 
     <!-- FAQ Accordion + Scroll Animations + Header Shadow + Mobile Sticky CTA -->
@@ -1670,8 +1698,10 @@
     (function() {
         'use strict';
 
-        /* --- ページ読み込み時のハッシュジャンプ防止 --- */
-        if (window.location.hash) {
+        /* --- ページ読み込み時のハッシュジャンプ防止（広告トラフィック除外） --- */
+        var params = new URLSearchParams(window.location.search);
+        var isAdTraffic = params.has('utm_source') || params.has('fbclid');
+        if (window.location.hash && !isAdTraffic) {
             history.replaceState(null, '', window.location.pathname + window.location.search);
             window.scrollTo(0, 0);
         }
@@ -1684,6 +1714,15 @@
                 }
             });
         });
+
+        /* --- 広告トラフィック: 診断スキップで求人結果を即表示 --- */
+        if (isAdTraffic) {
+            setTimeout(function() {
+                if (typeof window.shindanSkip === 'function') {
+                    window.shindanSkip();
+                }
+            }, 800);
+        }
 
         /* --- FAQ Accordion --- */
         document.querySelectorAll('.faq-question').forEach(function(btn) {

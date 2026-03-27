@@ -19,7 +19,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
 
     <!-- GA4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
@@ -72,18 +72,18 @@
             --accent-strong: #D4706A;
             --accent-light: #FFF2EF;
             --line-green: #06C755;
-            --line-glow: rgba(76, 232, 144, 0.25);
-            --line-glow-strong: rgba(76, 232, 144, 0.4);
-            --text-primary: #1E2D3D;
-            --text-secondary: #3D4F5F;
-            --text-muted: #6B7D8D;
+            --line-glow: rgba(6, 199, 85, 0.25);
+            --line-glow-strong: rgba(6, 199, 85, 0.4);
+            --text-primary: #3A3A5C;
+            --text-secondary: #52526E;
+            --text-muted: #7B7B96;
             --bg-base: #FFFFFF;
             --bg-tint: #FAF7F5;
             --bg-warm: #FFF8F6;
             --bg-dark: #2A4562;
-            --shadow-sm: 0 2px 12px rgba(77, 160, 204, 0.08);
-            --shadow-md: 0 4px 20px rgba(77, 160, 204, 0.10);
-            --shadow-lg: 0 8px 28px rgba(77, 160, 204, 0.12);
+            --shadow-sm: 8px 8px 20px -6px rgba(200,200,210,0.3);
+            --shadow-md: 12px 12px 24px -8px rgba(200,200,210,0.35);
+            --shadow-lg: 16px 16px 32px -10px rgba(200,200,210,0.4);
             --radius-sm: 12px;
             --radius-md: 20px;
             --radius-lg: 28px;
@@ -99,7 +99,7 @@
 
         body {
             font-family: var(--font-base);
-            line-height: 1.8;
+            line-height: 2.0;
             color: var(--text-primary);
             background: var(--bg-base);
             font-feature-settings: "palt";
@@ -130,51 +130,56 @@
         }
 
         /* ===== Section Base ===== */
-        section { padding: 56px 20px; position: relative; }
+        section { padding: 80px 24px; position: relative; }
         .sec-label {
-            display: inline-block;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--primary);
-            background: var(--primary-glass);
-            padding: 6px 16px;
-            border-radius: var(--radius-full);
-            margin-bottom: 14px;
-            border: 1px solid rgba(77, 160, 204, 0.25);
+            display: block;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.82rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            text-transform: none;
+            color: var(--accent);
+            background: none;
+            padding: 0;
+            border-radius: 0;
+            margin-bottom: 8px;
+            border: none;
+            opacity: 0.5;
         }
         .sec-title {
-            font-size: 1.65rem;
-            font-weight: 900;
-            line-height: 1.45;
-            margin-bottom: 14px;
-            letter-spacing: -0.02em;
+            font-size: 1.7rem;
+            font-weight: 800;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            letter-spacing: 0;
         }
         .sec-title::after {
-            content: '';
+            content: '\25CF \25CF';
             display: block;
-            width: 48px;
-            height: 3px;
-            background: var(--accent);
-            border-radius: 2px;
-            margin: 14px auto 0;
+            width: auto;
+            height: auto;
+            background-image: none;
+            background-color: transparent;
+            font-size: 0.45rem;
+            letter-spacing: 0.6em;
+            color: var(--accent);
+            margin: 20px auto 0;
+            border-radius: 0;
+            text-align: center;
         }
         .sec-title .marker {
             background: linear-gradient(transparent 55%, rgba(212,145,122,0.3) 55%);
             padding: 0 4px;
         }
         /* アクセント系ラベル */
-        .sec-label-accent {
-            color: var(--accent-strong);
-            background: rgba(212,145,122,0.10);
-            border-color: rgba(212,145,122,0.2);
-        }
+        .sec-label-accent { color: var(--accent-strong); }
         .sec-sub {
             color: var(--text-muted);
             font-size: 0.88rem;
-            line-height: 1.7;
-            margin-bottom: 32px;
+            line-height: 2.0;
+            margin-bottom: 48px;
+            letter-spacing: 0.04em;
         }
         /* CTA装飾 */
         .cta-deco {

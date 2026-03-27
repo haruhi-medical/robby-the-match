@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1350px;
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, {{background}} 0%, {{primary_light}} 100%);
+  }
+  .top-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 8px; background: {{primary}}; z-index: 2;
+  }
+  .content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100%;
+    padding: 80px 80px 140px;
+    text-align: center;
+  }
+  .summary-label {
+    font-size: 32px; font-weight: 700;
+    color: {{primary}};
+    margin-bottom: 32px;
+    padding: 10px 36px;
+    border: 2px solid {{primary}};
+    border-radius: 100px;
+  }
+  .summary-list {
+    list-style: none;
+    margin-bottom: 40px;
+  }
+  .summary-list li {
+    font-size: 30px;
+    color: {{text_primary}};
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .summary-list li::before {
+    content: "✓ ";
+    color: {{primary}};
+    font-weight: 900;
+  }
+  .divider {
+    width: 160px; height: 2px;
+    background: {{text_secondary}};
+    opacity: 0.25;
+    margin-bottom: 40px;
+  }
+  .cta-text {
+    font-size: 38px; font-weight: 900;
+    color: {{text_primary}};
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+  .cta-button {
+    display: inline-block;
+    background: {{accent}};
+    color: white;
+    font-size: 32px; font-weight: 700;
+    padding: 18px 52px;
+    border-radius: 100px;
+    box-shadow: 0 6px 20px rgba(232, 115, 74, 0.30);
+    margin-bottom: 20px;
+  }
+  .cta-sub {
+    font-size: 24px;
+    color: {{text_secondary}};
+    line-height: 1.5;
+  }
+  .trust-badge {
+    margin-top: 24px;
+    display: flex; gap: 24px; justify-content: center;
+  }
+  .trust-item {
+    font-size: 22px; font-weight: 700;
+    color: {{primary}};
+    padding: 8px 20px;
+    border: 2px solid {{primary}};
+    border-radius: 8px;
+    background: rgba(255,255,255,0.7);
+  }
+  .brand-footer {
+    position: absolute; bottom: 64px;
+    left: 0; right: 0; text-align: center;
+    font-size: 26px; font-weight: 700;
+    color: {{accent}}; opacity: 0.8;
+  }
+  .save-hint {
+    position: absolute; bottom: 32px;
+    left: 0; right: 0; text-align: center;
+    font-size: 22px;
+    color: {{text_secondary}};
+    opacity: 0.6;
+  }
+  .dots {
+    position: absolute; bottom: 96px; left: 0; right: 0;
+    display: flex; gap: 12px; justify-content: center; z-index: 2;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: {{dot_inactive}}; }
+  .dot.active { background: {{primary}}; }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="top-bar"></div>
+  <div class="content">
+    <div class="summary-label">まとめ</div>
+    <ul class="summary-list">{{summary_items_html}}</ul>
+    <div class="divider"></div>
+    <div class="cta-text">{{cta_text}}</div>
+    {{#if show_button}}<div class="cta-button">{{button_text}}</div>{{/if}}
+    <div class="cta-sub">{{cta_sub}}</div>
+    <div class="trust-badge">
+      <div class="trust-item">電話なし</div>
+      <div class="trust-item">営業なし</div>
+      <div class="trust-item">LINEだけ</div>
+    </div>
+  </div>
+  <div class="dots">{{dots_html}}</div>
+  <div class="brand-footer">{{brand_tagline}}</div>
+  <div class="save-hint">保存してあとで読み返してね</div>
+</body>
+</html>

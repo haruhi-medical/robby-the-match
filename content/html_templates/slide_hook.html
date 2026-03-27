@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1350px;
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    background: {{bg_color}};
+    display: flex; flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+  /* 薄いドットパターン */
+  .dot-pattern {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .content {
+    position: relative; z-index: 1;
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 100px 80px 120px;
+    text-align: center;
+  }
+  .hook-text {
+    font-size: {{hook_font_size}}px;
+    font-weight: 900;
+    color: {{hook_text_color}};
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    max-width: 920px;
+  }
+  .sub-text {
+    margin-top: 36px;
+    font-size: 30px;
+    font-weight: 400;
+    color: {{sub_text_color}};
+    line-height: 1.6;
+  }
+  .swipe-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: {{swipe_bar_color}};
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+  }
+  .swipe-bar span {
+    font-size: 24px; font-weight: 700;
+    color: white;
+    letter-spacing: 0.05em;
+  }
+  .swipe-bar .arrow {
+    font-size: 28px; color: white;
+    animation: slide 1.5s ease-in-out infinite;
+  }
+  .dots {
+    position: absolute; bottom: 92px;
+    display: flex; gap: 12px;
+    justify-content: center; z-index: 2;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: {{dot_inactive_hook}};
+  }
+  .dot.active {
+    background: {{dot_active_hook}};
+  }
+</style>
+</head>
+<body>
+  <div class="dot-pattern"></div>
+  <div class="content">
+    <div class="hook-text">{{hook_html}}</div>
+    {{#if sub_text}}<div class="sub-text">{{sub_text}}</div>{{/if}}
+  </div>
+  <div class="dots">{{dots_html}}</div>
+  <div class="swipe-bar">
+    <span>スワイプで解説</span>
+    <span class="arrow">→→→</span>
+  </div>
+</body>
+</html>
