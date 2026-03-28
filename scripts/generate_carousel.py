@@ -32,7 +32,9 @@ import argparse
 import json
 import math
 import random
+import re as _re
 import sys
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -58,6 +60,30 @@ try:
     HAS_PLAYWRIGHT = True
 except ImportError:
     HAS_PLAYWRIGHT = False
+
+# ===========================================================================
+# テキストサニタイズ（画像レンダリング用 — 絵文字/特殊文字をトーフ防止）
+# ===========================================================================
+def sanitize_for_image(text: str) -> str:
+    """画像レンダリング用にテキストから問題のあるUnicode文字を除去/置換する。"""
+    if not text:
+        return text
+    emoji_num_map = {
+        '0️⃣': '0', '1️⃣': '1', '2️⃣': '2', '3️⃣': '3', '4️⃣': '4',
+        '5️⃣': '5', '6️⃣': '6', '7️⃣': '7', '8️⃣': '8', '9️⃣': '9', '🔟': '10',
+    }
+    for emoji, num in emoji_num_map.items():
+        text = text.replace(emoji, num)
+    for i in range(0x2460, 0x2474):
+        text = text.replace(chr(i), str(i - 0x245F))
+    text = _re.sub(r'[\uFE00-\uFE0F]', '', text)
+    text = text.replace('\u200D', '')
+    text = unicodedata.normalize('NFKC', text)
+    text = _re.sub(
+        r'[\U0001F300-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF'
+        r'\U00002702-\U000027B0]', '', text)
+    return text
+
 
 # ===========================================================================
 # ブランドカラーシステム（docs/brand-system.md 準拠）
@@ -3380,6 +3406,13 @@ def generate_carousel(
     """
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
+
+    # テキストサニタイズ（絵文字・特殊文字→トーフ防止）
+    hook = sanitize_for_image(hook)
+    for s in slides:
+        for k in ("title", "body", "highlight_label", "highlight_number", "text"):
+            if k in s and isinstance(s[k], str):
+                s[k] = sanitize_for_image(s[k])
 
     # Resolve category aliases (e.g. "aruaru" -> "あるある")
     resolved_cat = CATEGORY_ALIASES.get(category, category)

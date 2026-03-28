@@ -538,5 +538,34 @@
     "code": "DWYdMyNE36T",
     "url": "https://www.instagram.com/p/DWYdMyNE36T/",
     "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_claude_ある_0305_06",
+    "timestamp": "2026-03-28T20:26:11.347729",
+    "status": "success",
+    "media_id": "3862761712592851483_45884164083",
+    "code": "DWbSU_TE5Ib",
+    "url": "https://www.instagram.com/p/DWbSU_TE5Ib/",
+    "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_claude_業界_0305_08",
+    "timestamp": "2026-03-28T20:38:58.805387",
+    "status": "success",
+    "media_id": "3862768169338007538_45884164083",
+    "code": "DWbTy8nE-_y",
+    "url": "https://www.instagram.com/p/DWbTy8nE-_y/",
+    "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_claude_地域_0305_09",
+    "content_id": "claude_地域_0305_09",
+    "timestamp": "2026-03-28T21:21:23",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]

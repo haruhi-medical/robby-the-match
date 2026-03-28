@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-28T15:00:46.949739",
+  "updated": "2026-03-28T20:59:21.440088",
   "posts": [
     {
       "id": 1,
@@ -2615,9 +2615,9 @@
       ],
       "cta_type": "soft",
       "content_type": "あるある",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-28T20:26:11.354894",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2627,7 +2627,8 @@
         "comments": null
       },
       "quality_score": 7.95,
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_dir": "html_claude_ある_0305_06"
     },
     {
       "id": 149,
@@ -2644,11 +2645,11 @@
       ],
       "cta_type": "soft",
       "content_type": "給与",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_claude_給与_0305_07_20260328.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -2673,9 +2674,9 @@
       ],
       "cta_type": "soft",
       "content_type": "業界裏側",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-28T20:38:58.811967",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2685,7 +2686,8 @@
         "comments": null
       },
       "quality_score": 7.81,
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_dir": "html_claude_業界_0305_08"
     },
     {
       "id": 151,
@@ -2702,9 +2704,9 @@
       ],
       "cta_type": "soft",
       "content_type": "地域ネタ",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-28T21:21:23",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2714,7 +2716,8 @@
         "comments": null
       },
       "quality_score": 8.41,
-      "quality_checked": true
+      "quality_checked": true,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 152,
@@ -3065,7 +3068,7 @@
         "comments": null
       },
       "ai_score": 6,
-      "quality_score": 8,
+      "quality_score": 6.98,
       "ai_review": {
         "score": 6,
         "persona_fit": 8,
@@ -3079,7 +3082,8 @@
         ],
         "suggestion": "看護師の共感を深めるために、より具体的な数字や状況を盛り込むと良いでしょう"
       },
-      "scheduled_for": "2026-03-31 17:30"
+      "scheduled_for": "2026-03-31 17:30",
+      "quality_checked": true
     }
   ],
   "archive": [

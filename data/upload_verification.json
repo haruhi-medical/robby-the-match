@@ -306,7 +306,21 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-03-28T20:49:49.214255",
+      "content_id": "claude_給与_0305_07",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-03-28T20:59:21.448821",
+      "content_id": "claude_給与_0305_07",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-03-27T18:27:28.072114"
+  "last_updated": "2026-03-28T20:59:21.448834"
 }

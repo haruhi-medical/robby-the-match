@@ -14,6 +14,7 @@ import json
 import re
 import argparse
 import time
+import unicodedata
 from pathlib import Path
 
 try:
@@ -58,6 +59,34 @@ HOOK_COLORS_CORAL = {
     "dot_inactive_hook": "rgba(255,255,255,0.35)",
     "dot_active_hook": "#FFFFFF",
 }
+
+
+def sanitize_for_image(text: str) -> str:
+    """画像レンダリング用にテキストから問題のあるUnicode文字を除去/置換する。
+    絵文字数字・丸数字・装飾文字 → 半角数字/通常文字に変換。"""
+    if not text:
+        return text
+    # 絵文字数字 → 半角数字
+    emoji_num_map = {
+        '0️⃣': '0', '1️⃣': '1', '2️⃣': '2', '3️⃣': '3', '4️⃣': '4',
+        '5️⃣': '5', '6️⃣': '6', '7️⃣': '7', '8️⃣': '8', '9️⃣': '9', '🔟': '10',
+    }
+    for emoji, num in emoji_num_map.items():
+        text = text.replace(emoji, num)
+    # 丸数字 → 半角数字 (①-⑳)
+    for i in range(0x2460, 0x2474):
+        text = text.replace(chr(i), str(i - 0x245F))
+    # Variation Selector (VS15/VS16) 除去
+    text = re.sub(r'[\uFE00-\uFE0F]', '', text)
+    # ZWJ (Zero Width Joiner) 除去
+    text = text.replace('\u200D', '')
+    # 装飾的Unicode（数学用英数字等）をASCII正規化
+    text = unicodedata.normalize('NFKC', text)
+    # 残存する絵文字系文字を除去（補助面の絵文字ブロックのみ）
+    text = re.sub(
+        r'[\U0001F300-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF'
+        r'\U00002702-\U000027B0]', '', text)
+    return text
 
 
 def render_template(template_path: Path, variables: dict) -> str:
@@ -193,7 +222,7 @@ def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_s
         if slide_type == "hook":
             template = TEMPLATE_DIR / "slide_hook.html"
             variables.update(hook_colors)
-            hook_text = slide.get("hook_text", "")
+            hook_text = sanitize_for_image(slide.get("hook_text", ""))
             # Hookのmax_chars_per_lineはフォントサイズに合わせる
             fs = auto_hook_font_size(hook_text)
             # 920px幅, font-weight:900 の日本語は1文字≈フォントサイズ*0.95
@@ -205,18 +234,18 @@ def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_s
         elif slide_type == "content":
             template = TEMPLATE_DIR / "slide_content.html"
             variables["slide_number"] = str(slide.get("slide_number", slide_num))
-            variables["title"] = slide.get("title", "")
-            body = slide.get("body", "")
+            variables["title"] = sanitize_for_image(slide.get("title", ""))
+            body = sanitize_for_image(slide.get("body", ""))
             variables["body_html"] = body.replace("\n", "<br>")
-            variables["highlight"] = slide.get("highlight", "")
+            variables["highlight"] = sanitize_for_image(slide.get("highlight", ""))
             variables["source"] = slide.get("source", "")
 
         elif slide_type == "data":
             template = TEMPLATE_DIR / "slide_data.html"
-            variables["label"] = slide.get("label", "")
-            variables["number"] = str(slide.get("number", ""))
-            variables["unit"] = slide.get("unit", "")
-            variables["description"] = slide.get("description", "").replace("\n", "<br>")
+            variables["label"] = sanitize_for_image(slide.get("label", ""))
+            variables["number"] = sanitize_for_image(str(slide.get("number", "")))
+            variables["unit"] = sanitize_for_image(slide.get("unit", ""))
+            variables["description"] = sanitize_for_image(slide.get("description", "")).replace("\n", "<br>")
             variables["source"] = slide.get("source", "")
             # Build comparison cards
             comps = slide.get("comparisons", [])
@@ -234,17 +263,17 @@ def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_s
 
         elif slide_type == "list":
             template = TEMPLATE_DIR / "slide_list.html"
-            variables["title"] = slide.get("title", "")
+            variables["title"] = sanitize_for_image(slide.get("title", ""))
             items = slide.get("items", [])
             items_html = ""
             for i, item in enumerate(items):
-                icon = item.get("icon", str(i + 1))
+                icon = sanitize_for_image(item.get("icon", str(i + 1)))
                 items_html += f'<div class="list-item">'
                 items_html += f'<div class="list-icon">{icon}</div>'
                 items_html += f'<div class="list-content">'
-                items_html += f'<div class="list-label">{item["label"]}</div>'
+                items_html += f'<div class="list-label">{sanitize_for_image(item["label"])}</div>'
                 if item.get("desc"):
-                    items_html += f'<div class="list-desc">{item["desc"]}</div>'
+                    items_html += f'<div class="list-desc">{sanitize_for_image(item["desc"])}</div>'
                 items_html += '</div></div>'
             variables["list_items_html"] = items_html
 
@@ -252,9 +281,9 @@ def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_s
             template = TEMPLATE_DIR / "slide_cta.html"
             items = slide.get("summary_items", [])
             variables["summary_items_html"] = "\n".join(
-                f"<li>{item}</li>" for item in items
+                f"<li>{sanitize_for_image(item)}</li>" for item in items
             )
-            variables["cta_text"] = slide.get("cta_text", "").replace("\n", "<br>")
+            variables["cta_text"] = sanitize_for_image(slide.get("cta_text", "")).replace("\n", "<br>")
             btn = slide.get("button_text", "")
             if btn:
                 variables["show_button"] = "true"
