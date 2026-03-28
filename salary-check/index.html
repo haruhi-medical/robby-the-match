@@ -21,7 +21,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- GA4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
@@ -65,148 +65,365 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;color:#3A3A5C;background:#fff;line-height:1.7;-webkit-font-smoothing:antialiased}
+body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;color:#2D2D3F;background:#FAFBFC;line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh}
 
 :root{
-  --primary:#4DA0CC;--primary-dark:#3B8DB8;--primary-light:#EBF5FB;
-  --accent:#EF8B7F;--accent-light:#FFF2EF;
+  --primary:#3D8FBF;--primary-dark:#2E7AAD;--primary-light:#EDF5FA;
+  --accent:#E8756A;--accent-light:#FFF0EE;--accent-bg:rgba(232,117,106,0.08);
   --line-green:#06C755;
-  --text-primary:#3A3A5C;--text-secondary:#52526E;--text-muted:#7B7B96;
-  --shadow-md:12px 12px 24px -8px rgba(200,200,210,0.35);
-  --radius-card:24px;--radius-full:9999px;
+  --text-primary:#2D2D3F;--text-secondary:#5A5A72;--text-muted:#8E8EA0;
+  --bg-card:#FFFFFF;--bg-page:#FAFBFC;--bg-subtle:#F4F5F7;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.04);
+  --radius-sm:10px;--radius-md:16px;--radius-lg:20px;--radius-full:9999px;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
 }
 
-.container{max-width:480px;margin:0 auto;padding:0 20px}
+.container{max-width:480px;margin:0 auto;padding:0 24px}
 
-/* Hero */
-.hero{background:linear-gradient(135deg,#D4EDFA 0%,#F5E0E8 50%,#EBD4F0 100%);padding:48px 20px 40px;text-align:center}
-.hero-script{font-family:'Playfair Display',serif;font-style:italic;font-size:1.6rem;color:var(--primary-dark);margin-bottom:8px;opacity:.85}
-.hero h1{font-size:1.55rem;font-weight:800;line-height:1.5;margin-bottom:12px;color:var(--text-primary)}
-.hero-sub{font-size:.95rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;gap:6px}
-.hero-sub span{background:var(--accent);color:#fff;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:var(--radius-full)}
+/* ========== Hero ========== */
+.hero{
+  background:linear-gradient(160deg,#F0F7FF 0%,#F8F0F6 100%);
+  padding:52px 24px 44px;text-align:center;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;
+  background:radial-gradient(circle,rgba(61,143,191,0.06) 0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.hero::after{
+  content:'';position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;
+  background:radial-gradient(circle,rgba(232,117,106,0.05) 0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--bg-card);border:1px solid rgba(61,143,191,0.15);
+  padding:6px 14px;border-radius:var(--radius-full);
+  font-size:.78rem;font-weight:500;color:var(--primary-dark);
+  margin-bottom:16px;box-shadow:var(--shadow-sm);
+}
+.hero-badge svg{width:16px;height:16px;fill:var(--primary)}
+.hero h1{
+  font-size:1.75rem;font-weight:800;line-height:1.45;
+  margin-bottom:14px;color:var(--text-primary);
+  letter-spacing:-0.02em;
+}
+.hero-sub{
+  font-size:.88rem;font-weight:400;color:var(--text-secondary);
+  line-height:1.6;
+}
+.hero-sub strong{font-weight:600;color:var(--text-primary)}
+.hero-social{
+  margin-top:16px;font-size:.78rem;color:var(--text-muted);font-weight:400;
+}
+.hero-social strong{font-weight:600;color:var(--text-secondary)}
 
-/* Progress bar */
-.progress-wrap{padding:20px 20px 0;max-width:480px;margin:0 auto}
-.progress-bar{display:flex;gap:6px;margin-bottom:6px}
-.progress-bar .step{flex:1;height:5px;border-radius:3px;background:#E8E8F0;transition:background .4s}
-.progress-bar .step.active{background:var(--primary)}
-.progress-bar .step.done{background:var(--primary)}
-.progress-label{font-size:.8rem;color:var(--text-muted);text-align:center}
+/* ========== Stepper ========== */
+.stepper-wrap{padding:28px 24px 0;max-width:480px;margin:0 auto}
+.stepper{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:8px}
+.stepper-step{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;
+  font-size:.8rem;font-weight:700;color:var(--text-muted);
+  background:var(--bg-subtle);border:2px solid transparent;
+  transition:all .4s var(--ease-out);position:relative;
+}
+.stepper-step.active{
+  background:var(--primary);color:#fff;border-color:var(--primary);
+  box-shadow:0 2px 8px rgba(61,143,191,0.25);
+}
+.stepper-step.done{
+  background:var(--primary);color:#fff;border-color:var(--primary);
+}
+.stepper-step.done::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:10px;height:6px;
+  border-left:2px solid #fff;border-bottom:2px solid #fff;
+  transform:translate(-50%,-60%) rotate(-45deg);
+}
+.stepper-step.done span{visibility:hidden}
+.stepper-line{width:40px;height:2px;background:var(--bg-subtle);transition:background .4s}
+.stepper-line.done{background:var(--primary)}
+.stepper-label{font-size:.78rem;color:var(--text-muted);text-align:center;font-weight:400}
 
-/* Quiz Section */
-.quiz-section{padding:16px 0 40px}
-.quiz-card{max-width:480px;margin:0 auto;padding:0 20px}
-.question{display:none;animation:fadeIn .4s ease}
+/* ========== Quiz Section ========== */
+.quiz-section{padding:24px 0 48px}
+.quiz-card{max-width:480px;margin:0 auto;padding:0 24px}
+.question{display:none;animation:slideUp .45s var(--ease-out)}
 .question.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-.q-label{font-size:.85rem;font-weight:600;color:var(--primary-dark);margin-bottom:4px}
-.q-title{font-size:1.2rem;font-weight:700;margin-bottom:20px;color:var(--text-primary)}
+.q-label{
+  display:inline-block;font-size:.72rem;font-weight:700;color:var(--primary);
+  background:var(--primary-light);padding:3px 10px;border-radius:var(--radius-full);
+  margin-bottom:10px;letter-spacing:.04em;
+}
+.q-title{font-size:1.15rem;font-weight:700;margin-bottom:24px;color:var(--text-primary);line-height:1.5}
 
-/* Option buttons */
+/* ========== Option buttons ========== */
 .options{display:flex;flex-direction:column;gap:10px}
-.opt-btn{width:100%;padding:16px 20px;background:#fff;border:2px solid #E8E8F0;border-radius:var(--radius-card);font-size:1rem;font-weight:600;color:var(--text-primary);cursor:pointer;text-align:left;box-shadow:var(--shadow-md);transition:all .2s ease;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden}
-.opt-btn:active{transform:scale(.97)}
-.opt-btn.selected{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
-.opt-btn:hover{border-color:var(--primary);transform:translateY(-1px)}
+.opt-btn{
+  width:100%;padding:16px 20px;background:var(--bg-card);
+  border:1.5px solid #E5E7EB;border-radius:var(--radius-md);
+  font-size:.95rem;font-weight:600;color:var(--text-primary);
+  cursor:pointer;text-align:left;
+  box-shadow:var(--shadow-sm);
+  transition:all .2s var(--ease-out);
+  -webkit-tap-highlight-color:transparent;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:12px;
+}
+.opt-btn .opt-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--bg-subtle);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+  transition:all .2s var(--ease-out);
+}
+.opt-btn:active{transform:scale(.98)}
+.opt-btn.selected{
+  border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark);
+  box-shadow:0 0 0 3px rgba(61,143,191,0.1),var(--shadow-sm);
+}
+.opt-btn.selected .opt-icon{background:var(--primary);color:#fff}
+.opt-btn.selected .opt-check{opacity:1;transform:scale(1)}
+.opt-btn:hover{border-color:#D0D5DD;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.opt-check{
+  margin-left:auto;width:22px;height:22px;border-radius:50%;
+  background:var(--primary);display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(.5);transition:all .25s var(--ease-out);flex-shrink:0;
+}
+.opt-check svg{width:12px;height:12px;fill:#fff}
 
-/* Slider */
-.slider-wrap{text-align:center;margin-top:8px}
-.slider-value{font-size:2.8rem;font-weight:800;color:var(--primary-dark);margin-bottom:4px;line-height:1.2}
-.slider-unit{font-size:1rem;font-weight:600;color:var(--text-muted);margin-bottom:16px}
-.slider-input{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:4px;background:linear-gradient(to right,var(--primary-light),var(--primary));outline:none;cursor:pointer}
-.slider-input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:32px;height:32px;border-radius:50%;background:var(--primary);border:4px solid #fff;box-shadow:0 2px 8px rgba(77,160,204,.4);cursor:pointer;transition:transform .15s}
-.slider-input::-webkit-slider-thumb:active{transform:scale(1.15)}
-.slider-input::-moz-range-thumb{width:32px;height:32px;border-radius:50%;background:var(--primary);border:4px solid #fff;box-shadow:0 2px 8px rgba(77,160,204,.4);cursor:pointer}
-.slider-range{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-muted);margin-top:8px}
+/* ========== Slider ========== */
+.slider-wrap{text-align:center;margin-top:12px}
+.slider-value{font-size:2.6rem;font-weight:800;color:var(--primary-dark);margin-bottom:2px;line-height:1.1;letter-spacing:-0.02em}
+.slider-unit{font-size:.85rem;font-weight:400;color:var(--text-muted);margin-bottom:24px}
+.slider-track{position:relative;padding:16px 0}
+.slider-input{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;
+  background:var(--bg-subtle);outline:none;cursor:pointer;position:relative;
+}
+.slider-input::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:36px;height:36px;border-radius:50%;
+  background:var(--primary);border:4px solid #fff;
+  box-shadow:0 2px 12px rgba(61,143,191,0.35);
+  cursor:pointer;transition:transform .15s var(--ease-out);
+}
+.slider-input::-webkit-slider-thumb:active{transform:scale(1.12)}
+.slider-input::-moz-range-thumb{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--primary);border:4px solid #fff;
+  box-shadow:0 2px 12px rgba(61,143,191,0.35);cursor:pointer;
+}
+.slider-range{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-muted);margin-top:4px;font-weight:400}
 
-/* Navigation buttons */
-.nav-btns{display:flex;gap:10px;margin-top:24px;max-width:480px;margin-left:auto;margin-right:auto;padding:0 20px}
-.btn-back{flex:0 0 auto;padding:12px 20px;border:2px solid #E8E8F0;border-radius:var(--radius-full);background:#fff;font-size:.9rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all .2s}
+/* ========== Navigation buttons ========== */
+.nav-btns{display:flex;gap:10px;margin-top:28px;max-width:480px;margin-left:auto;margin-right:auto;padding:0 24px}
+.btn-back{
+  flex:0 0 auto;padding:13px 22px;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);
+  background:var(--bg-card);font-size:.88rem;font-weight:600;color:var(--text-muted);
+  cursor:pointer;transition:all .2s;
+}
 .btn-back:hover{border-color:var(--primary);color:var(--primary)}
-.btn-next{flex:1;padding:14px 20px;border:none;border-radius:var(--radius-full);background:var(--primary);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(77,160,204,.3)}
-.btn-next:hover{background:var(--primary-dark);transform:translateY(-1px)}
-.btn-next:disabled{background:#CCC;box-shadow:none;cursor:not-allowed;transform:none}
+.btn-next{
+  flex:1;padding:15px 24px;border:none;border-radius:var(--radius-sm);
+  background:var(--primary);color:#fff;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:all .25s var(--ease-out);
+  box-shadow:0 4px 14px rgba(61,143,191,0.25);
+  letter-spacing:.02em;
+}
+.btn-next:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(61,143,191,0.3)}
+.btn-next:disabled{background:#D0D5DD;box-shadow:none;cursor:not-allowed;transform:none}
 
-/* Result Section */
-.result-section{display:none;animation:fadeIn .5s ease}
+/* ========== Result Section ========== */
+.result-section{display:none;animation:slideUp .5s var(--ease-out)}
 .result-section.active{display:block}
-.result-hero{background:linear-gradient(135deg,#D4EDFA 0%,#F5E0E8 50%,#EBD4F0 100%);padding:40px 20px;text-align:center}
-.result-hero .label{font-size:.9rem;color:var(--text-secondary);margin-bottom:4px}
-.result-hero .your-salary{font-size:1.5rem;font-weight:800;color:var(--text-primary);margin-bottom:2px}
-.result-hero .area-label{font-size:.9rem;color:var(--text-secondary);margin-bottom:16px}
-.result-percentile{font-size:4rem;font-weight:800;color:var(--accent);line-height:1.1}
-.result-percentile-unit{font-size:1.3rem;font-weight:700;color:var(--accent)}
-.result-rank{font-size:.9rem;color:var(--text-muted);margin-top:4px}
 
-.result-body{max-width:480px;margin:0 auto;padding:24px 20px 40px}
+.result-hero{
+  background:linear-gradient(160deg,#F0F7FF 0%,#F8F0F6 100%);
+  padding:44px 24px 48px;text-align:center;position:relative;overflow:hidden;
+}
+.result-hero::before{
+  content:'';position:absolute;top:50%;left:50%;width:300px;height:300px;
+  background:radial-gradient(circle,rgba(232,117,106,0.06) 0%,transparent 60%);
+  border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;
+}
+.result-hero .label{font-size:.85rem;color:var(--text-secondary);margin-bottom:4px;font-weight:400}
+.result-hero .your-salary{font-size:1.5rem;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+.result-hero .area-label{font-size:.85rem;color:var(--text-secondary);margin-bottom:20px;font-weight:400}
 
-/* Comparison card */
-.compare-card{background:#fff;border-radius:var(--radius-card);box-shadow:var(--shadow-md);padding:24px;margin-bottom:20px}
-.compare-card h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text-primary)}
-.compare-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F0F0F5}
-.compare-row:last-child{border-bottom:none}
-.compare-row .clabel{font-size:.85rem;color:var(--text-secondary)}
-.compare-row .cvalue{font-size:1.1rem;font-weight:700;color:var(--text-primary)}
-.compare-row .cvalue.highlight{color:var(--primary-dark)}
-.compare-row .cvalue.accent{color:var(--accent)}
+.result-ring{
+  position:relative;width:180px;height:180px;margin:0 auto 16px;
+}
+.result-ring svg{width:180px;height:180px;transform:rotate(-90deg)}
+.result-ring .ring-bg{fill:none;stroke:#E5E7EB;stroke-width:8}
+.result-ring .ring-fill{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s var(--ease-out)}
+.result-ring-inner{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;
+}
+.result-ring-label{font-size:.75rem;font-weight:500;color:var(--text-muted);margin-bottom:2px}
+.result-percentile{font-size:3rem;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-0.03em}
+.result-percentile-unit{font-size:1.1rem;font-weight:700;color:var(--accent)}
+.result-rank{font-size:.82rem;color:var(--text-muted);margin-top:4px;font-weight:400}
 
-/* Jobs card */
-.jobs-card{background:#fff;border-radius:var(--radius-card);box-shadow:var(--shadow-md);padding:24px;margin-bottom:20px}
-.jobs-card h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text-primary)}
-.job-item{padding:14px;background:#FAFBFD;border-radius:16px;margin-bottom:10px}
-.job-item .job-employer{font-size:.85rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;line-height:1.4}
-.job-item .job-salary{font-size:.95rem;font-weight:700;color:var(--primary-dark);margin-bottom:2px}
-.job-item .job-type{font-size:.8rem;color:var(--text-muted)}
+.result-comment{
+  display:inline-block;margin-top:12px;padding:8px 20px;
+  background:var(--accent-bg);border-radius:var(--radius-full);
+  font-size:.85rem;font-weight:600;color:var(--accent);
+}
+
+.result-body{max-width:480px;margin:0 auto;padding:28px 24px 40px}
+
+/* ========== Comparison card ========== */
+.compare-card{
+  background:var(--bg-card);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-md);padding:24px;margin-bottom:16px;
+}
+.compare-card h3{font-size:.9rem;font-weight:700;margin-bottom:20px;color:var(--text-primary);letter-spacing:.02em}
+
+/* Visual bar comparison */
+.compare-visual{margin-bottom:20px}
+.compare-bar-group{margin-bottom:16px}
+.compare-bar-group:last-child{margin-bottom:0}
+.compare-bar-label{
+  font-size:.78rem;font-weight:500;color:var(--text-secondary);margin-bottom:6px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.compare-bar-label .bar-value{font-weight:700;color:var(--text-primary)}
+.compare-bar-label .bar-value.is-you{color:var(--primary-dark)}
+.compare-bar-track{height:10px;background:var(--bg-subtle);border-radius:5px;overflow:hidden}
+.compare-bar-fill{height:100%;border-radius:5px;transition:width 1s var(--ease-out)}
+.compare-bar-fill.median{background:linear-gradient(90deg,#D0D5DD,#B0B5BD)}
+.compare-bar-fill.you{background:linear-gradient(90deg,var(--primary),var(--primary-dark))}
+
+.compare-stat{
+  display:flex;align-items:center;gap:8px;padding:12px 16px;
+  background:var(--bg-subtle);border-radius:var(--radius-sm);
+  margin-top:12px;
+}
+.compare-stat-icon{font-size:1.1rem}
+.compare-stat-text{font-size:.82rem;color:var(--text-secondary);font-weight:400}
+.compare-stat-text strong{font-weight:700;color:var(--accent)}
+
+/* ========== Jobs card ========== */
+.jobs-card{
+  background:var(--bg-card);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-md);padding:24px;margin-bottom:16px;
+}
+.jobs-card h3{font-size:.9rem;font-weight:700;margin-bottom:16px;color:var(--text-primary);letter-spacing:.02em}
+.job-item{
+  padding:16px;background:var(--bg-subtle);border-radius:var(--radius-sm);margin-bottom:10px;
+  border:1px solid #ECEDF0;transition:all .2s;
+}
+.job-item .job-employer{font-size:.82rem;font-weight:600;color:var(--text-primary);margin-bottom:6px;line-height:1.4}
+.job-item .job-salary{
+  font-size:1rem;font-weight:700;color:var(--primary-dark);margin-bottom:4px;
+  display:flex;align-items:center;gap:6px;
+}
+.job-item .job-salary::before{
+  content:'';display:inline-block;width:4px;height:16px;
+  background:var(--primary);border-radius:2px;flex-shrink:0;
+}
+.job-item .job-type{font-size:.75rem;color:var(--text-muted);font-weight:400}
 .job-item-wrap{position:relative}
 .job-item.blur{filter:blur(5px);pointer-events:none;user-select:none}
-.blur-overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none}
-.blur-overlay span{background:var(--line-green);color:#fff;font-size:.85rem;font-weight:700;padding:8px 20px;border-radius:var(--radius-full);box-shadow:0 2px 8px rgba(6,199,85,.3);pointer-events:auto}
+.blur-overlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none;
+}
+.blur-overlay span{
+  background:var(--line-green);color:#fff;font-size:.82rem;font-weight:700;
+  padding:10px 24px;border-radius:var(--radius-full);
+  box-shadow:0 4px 12px rgba(6,199,85,.25);pointer-events:auto;
+}
 
-.more-label{text-align:center;font-size:.85rem;color:var(--text-muted);margin-top:8px;margin-bottom:4px}
+.more-label{text-align:center;font-size:.82rem;color:var(--text-muted);margin-top:12px;font-weight:400}
 
-/* Insufficient data */
-.insufficient{text-align:center;padding:40px 20px}
-.insufficient h2{font-size:1.2rem;font-weight:700;color:var(--text-primary);margin-bottom:8px}
-.insufficient p{font-size:.9rem;color:var(--text-secondary);line-height:1.6}
+/* ========== Insufficient data ========== */
+.insufficient{text-align:center;padding:48px 24px}
+.insufficient h2{font-size:1.15rem;font-weight:700;color:var(--text-primary);margin-bottom:10px}
+.insufficient p{font-size:.88rem;color:var(--text-secondary);line-height:1.6;font-weight:400}
 
-/* CTA */
-.cta-section{text-align:center;margin:8px 0 24px}
-.cta-msg{font-size:.9rem;color:var(--text-secondary);line-height:1.7;margin-bottom:16px}
-.cta-line{display:inline-flex;align-items:center;gap:8px;padding:16px 40px;background:var(--line-green);color:#fff;font-size:1.05rem;font-weight:700;border-radius:var(--radius-full);text-decoration:none;box-shadow:0 4px 16px rgba(6,199,85,.3);transition:all .2s}
-.cta-line:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(6,199,85,.4)}
-.cta-line svg{width:24px;height:24px;fill:#fff}
-.cta-note{font-size:.8rem;color:var(--text-muted);margin-top:10px}
+/* ========== CTA ========== */
+.cta-section{text-align:center;margin:8px 0 28px}
+.cta-msg{font-size:.88rem;color:var(--text-secondary);line-height:1.8;margin-bottom:20px;font-weight:400}
+.cta-msg strong{font-weight:600;color:var(--text-primary)}
+.cta-line{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:16px 36px;background:var(--line-green);color:#fff;
+  font-size:1rem;font-weight:700;border-radius:var(--radius-sm);
+  text-decoration:none;box-shadow:0 4px 16px rgba(6,199,85,.25);
+  transition:all .25s var(--ease-out);letter-spacing:.02em;
+}
+.cta-line:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(6,199,85,.3)}
+.cta-line svg{width:22px;height:22px;fill:#fff}
+.cta-note{font-size:.78rem;color:var(--text-muted);margin-top:12px;font-weight:400}
+.cta-note-items{
+  display:flex;justify-content:center;gap:16px;margin-top:8px;
+  font-size:.75rem;color:var(--text-muted);font-weight:400;
+}
 
-/* Retry */
-.retry-btn{display:inline-block;margin-top:16px;padding:10px 28px;border:2px solid #E8E8F0;border-radius:var(--radius-full);background:#fff;font-size:.9rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all .2s;text-decoration:none}
+/* ========== Retry ========== */
+.retry-btn{
+  display:inline-block;margin-top:20px;padding:11px 28px;
+  border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);
+  background:var(--bg-card);font-size:.85rem;font-weight:600;color:var(--text-muted);
+  cursor:pointer;transition:all .2s;text-decoration:none;
+}
 .retry-btn:hover{border-color:var(--primary);color:var(--primary)}
 
-/* Source note */
-.source-note{font-size:.75rem;color:var(--text-muted);text-align:center;margin:16px 20px;line-height:1.6}
+/* ========== Source note ========== */
+.source-note{font-size:.72rem;color:var(--text-muted);text-align:center;margin:20px 24px;line-height:1.6;font-weight:400}
 
-/* Footer */
-footer{text-align:center;padding:24px 20px;border-top:1px solid #F0F0F5;font-size:.75rem;color:var(--text-muted)}
+/* ========== Footer ========== */
+footer{
+  text-align:center;padding:28px 24px;border-top:1px solid #ECEDF0;
+  font-size:.72rem;color:var(--text-muted);background:var(--bg-page);font-weight:400;
+}
 footer a{color:var(--text-muted);text-decoration:none}
+footer .footer-links{display:flex;justify-content:center;gap:16px;margin-bottom:8px}
+footer .footer-links a:hover{color:var(--primary)}
+
+/* ========== Animations ========== */
+@keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.animate-in{animation:countUp .6s var(--ease-out) forwards}
+@keyframes ringDraw{from{stroke-dashoffset:440}to{stroke-dashoffset:var(--target-offset)}}
+
+/* ========== Responsive fine-tune ========== */
+@media(max-width:380px){
+  .hero h1{font-size:1.5rem}
+  .result-percentile{font-size:2.6rem}
+  .slider-value{font-size:2.2rem}
+}
 </style>
 </head>
 <body>
 
 <!-- Hero -->
 <section class="hero">
-  <div class="hero-script">Salary Check</div>
+  <div class="hero-badge">
+    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    給与診断
+  </div>
   <h1>あなたの給与、<br>神奈川で何位？</h1>
-  <div class="hero-sub"><span>無料</span> 30秒・3問だけ・登録不要</div>
+  <div class="hero-sub"><strong>30秒</strong>・3問だけ・登録不要</div>
+  <div class="hero-social" id="heroSocial"><strong>600</strong>件の求人データで診断</div>
 </section>
 
-<!-- Progress Bar -->
-<div class="progress-wrap" id="progressWrap">
-  <div class="progress-bar">
-    <div class="step active" data-step="1"></div>
-    <div class="step" data-step="2"></div>
-    <div class="step" data-step="3"></div>
+<!-- Stepper -->
+<div class="stepper-wrap" id="stepperWrap">
+  <div class="stepper">
+    <div class="stepper-step active" data-step="1"><span>1</span></div>
+    <div class="stepper-line" data-line="1"></div>
+    <div class="stepper-step" data-step="2"><span>2</span></div>
+    <div class="stepper-line" data-line="2"></div>
+    <div class="stepper-step" data-step="3"><span>3</span></div>
   </div>
-  <div class="progress-label" id="progressLabel">3問中 1問目</div>
+  <div class="stepper-label" id="stepperLabel">3問中 1問目</div>
 </div>
 
 <!-- Quiz -->
@@ -216,24 +433,56 @@ footer a{color:var(--text-muted);text-decoration:none}
     <!-- Q1: Area -->
     <div class="question active" id="q1">
       <div class="q-label">Q1</div>
-      <div class="q-title">お住まい（勤務希望）のエリアは？</div>
+      <div class="q-title">働きたいエリアは？</div>
       <div class="options">
-        <button class="opt-btn" data-area="yokohama_kawasaki">横浜市・川崎市</button>
-        <button class="opt-btn" data-area="shonan">湘南・鎌倉</button>
-        <button class="opt-btn" data-area="sagamihara_kenoh">相模原・県央</button>
-        <button class="opt-btn" data-area="yokosuka_miura">横須賀・三浦</button>
-        <button class="opt-btn" data-area="kensai">小田原・県西</button>
+        <button class="opt-btn" data-area="yokohama_kawasaki">
+          <div class="opt-icon">&#x1F3D9;</div>
+          <span>横浜市・川崎市</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button class="opt-btn" data-area="shonan">
+          <div class="opt-icon">&#x1F30A;</div>
+          <span>湘南・鎌倉</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button class="opt-btn" data-area="sagamihara_kenoh">
+          <div class="opt-icon">&#x1F333;</div>
+          <span>相模原・県央</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button class="opt-btn" data-area="yokosuka_miura">
+          <div class="opt-icon">&#x26F5;</div>
+          <span>横須賀・三浦</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button class="opt-btn" data-area="kensai">
+          <div class="opt-icon">&#x2668;</div>
+          <span>小田原・県西</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
       </div>
     </div>
 
     <!-- Q2: Workstyle -->
     <div class="question" id="q2">
       <div class="q-label">Q2</div>
-      <div class="q-title">現在（または希望）の働き方は？</div>
+      <div class="q-title">希望の働き方は？</div>
       <div class="options">
-        <button class="opt-btn" data-ws="with_night">常勤（夜勤あり）</button>
-        <button class="opt-btn" data-ws="day_only">常勤（日勤のみ）</button>
-        <button class="opt-btn" data-ws="part_time">パート</button>
+        <button class="opt-btn" data-ws="with_night">
+          <div class="opt-icon">&#x1F319;</div>
+          <span>常勤（夜勤あり）</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button class="opt-btn" data-ws="day_only">
+          <div class="opt-icon">&#x2600;</div>
+          <span>常勤（日勤のみ）</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button class="opt-btn" data-ws="part_time">
+          <div class="opt-icon">&#x23F0;</div>
+          <span>パート</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
       </div>
     </div>
 
@@ -243,8 +492,10 @@ footer a{color:var(--text-muted);text-decoration:none}
       <div class="q-title" id="q4Title">現在の月収は？</div>
       <div class="slider-wrap">
         <div class="slider-value" id="sliderValue">25万円</div>
-        <div class="slider-unit" id="sliderUnit">（夜勤手当込み・税引前の額面。だいたいでOK）</div>
-        <input type="range" class="slider-input" id="salarySlider" min="15" max="50" value="25" step="1">
+        <div class="slider-unit" id="sliderUnit">夜勤手当込み・税引前の額面。だいたいでOK</div>
+        <div class="slider-track">
+          <input type="range" class="slider-input" id="salarySlider" min="15" max="50" value="25" step="1">
+        </div>
         <div class="slider-range">
           <span id="sliderMin">15万</span>
           <span id="sliderMax">50万</span>
@@ -266,25 +517,49 @@ footer a{color:var(--text-muted);text-decoration:none}
     <div class="label">あなたの<span id="resultSalaryType">月収</span></div>
     <div class="your-salary" id="resultYourSalary">25万円</div>
     <div class="area-label">神奈川（<span id="resultAreaName">横浜市・川崎市</span>）の看護師求人の中で</div>
-    <div class="result-percentile">上位 <span id="resultPercentile">30</span><span class="result-percentile-unit">%</span></div>
+
+    <div class="result-ring" id="resultRing">
+      <svg viewBox="0 0 160 160">
+        <circle class="ring-bg" cx="80" cy="80" r="70"/>
+        <circle class="ring-fill" id="ringFill" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="440"/>
+      </svg>
+      <div class="result-ring-inner">
+        <div class="result-ring-label">上位</div>
+        <div class="result-percentile"><span id="resultPercentile">30</span><span class="result-percentile-unit">%</span></div>
+      </div>
+    </div>
+
     <div class="result-rank" id="resultRank">72件中 22位</div>
+    <div class="result-comment" id="resultComment">平均より高い水準です</div>
   </div>
 
   <div class="result-body">
     <!-- Comparison -->
     <div class="compare-card">
       <h3>エリア中央値との比較</h3>
-      <div class="compare-row">
-        <span class="clabel">エリア中央値</span>
-        <span class="cvalue" id="resultMedian">20.2万円</span>
+      <div class="compare-visual">
+        <div class="compare-bar-group">
+          <div class="compare-bar-label">
+            <span>エリア中央値</span>
+            <span class="bar-value" id="resultMedian">20.2万円</span>
+          </div>
+          <div class="compare-bar-track">
+            <div class="compare-bar-fill median" id="barMedian" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="compare-bar-group">
+          <div class="compare-bar-label">
+            <span>あなた</span>
+            <span class="bar-value is-you" id="resultYou">25万円</span>
+          </div>
+          <div class="compare-bar-track">
+            <div class="compare-bar-fill you" id="barYou" style="width:0%"></div>
+          </div>
+        </div>
       </div>
-      <div class="compare-row">
-        <span class="clabel">あなた</span>
-        <span class="cvalue highlight" id="resultYou">25万円</span>
-      </div>
-      <div class="compare-row">
-        <span class="clabel">あなたより高い求人</span>
-        <span class="cvalue accent" id="resultHigher">50件</span>
+      <div class="compare-stat">
+        <span class="compare-stat-icon">&#x1F4C8;</span>
+        <span class="compare-stat-text">あなたより高い求人が<strong id="resultHigher">50件</strong>あります</span>
       </div>
     </div>
 
@@ -292,17 +567,21 @@ footer a{color:var(--text-muted);text-decoration:none}
     <div class="jobs-card" id="jobsCard">
       <h3>条件に近い求人</h3>
       <div id="jobsList"></div>
-      <div class="more-label">もっと見たい方は...</div>
+      <div class="more-label" id="moreLabel">もっと見たい方は...</div>
     </div>
 
     <!-- CTA -->
     <div class="cta-section">
-      <p class="cta-msg">給与診断は以上です。<br>さらにあなたの条件に合う求人を見たい方は、<br>LINEでお届けします。</p>
+      <p class="cta-msg"><strong>お疲れさまでした！</strong><br>あなたの条件に合う求人を<br>LINEでお届けします。</p>
       <a href="https://lin.ee/oUgDB3x" class="cta-line" id="ctaLine" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .348-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .349-.281.631-.63.631h-2.386c-.345 0-.627-.282-.627-.631V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.627-.631.627-.346 0-.626-.283-.626-.627V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.627-.631.627-.345 0-.627-.283-.627-.627V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.627H4.917c-.345 0-.63-.282-.63-.627V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .349-.281.631-.629.631M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-        条件に合う求人をLINEで受け取る
+        LINEで求人を受け取る
       </a>
-      <p class="cta-note">※ 無料・営業電話なし</p>
+      <p class="cta-note">※ 完全無料・営業電話なし</p>
+      <div class="cta-note-items">
+        <span>1分で登録</span>
+        <span>いつでもブロックOK</span>
+      </div>
     </div>
 
     <div style="text-align:center">
@@ -328,7 +607,7 @@ footer a{color:var(--text-muted);text-decoration:none}
         <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .348-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .349-.281.631-.63.631h-2.386c-.345 0-.627-.282-.627-.631V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.627-.631.627-.346 0-.626-.283-.626-.627V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.627-.631.627-.345 0-.627-.283-.627-.627V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.627H4.917c-.345 0-.63-.282-.63-.627V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .349-.281.631-.629.631M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
         LINEで相談する
       </a>
-      <p class="cta-note">※ 無料・営業電話なし</p>
+      <p class="cta-note">※ 完全無料・営業電話なし</p>
     </div>
     <div style="text-align:center">
       <button class="retry-btn" id="retryBtn2">もう一度診断する</button>
@@ -338,13 +617,18 @@ footer a{color:var(--text-muted);text-decoration:none}
 </section>
 
 <footer>
+  <div class="footer-links">
+    <a href="/">トップページ</a>
+    <a href="/privacy.html">プライバシーポリシー</a>
+    <a href="/terms.html">利用規約</a>
+  </div>
   <div>神奈川ナース転職　有料職業紹介事業 23-ユ-302928</div>
   <div style="margin-top:4px">&copy; 2026 神奈川ナース転職 All Rights Reserved.</div>
 </footer>
 
 <script>
 (function(){
-  // State — 3問構成: Q1=area, Q2=workstyle, Q3=salary
+  // State
   let currentQ = 1;
   let answers = { area: null, workstyle: null, salary: null };
   let salaryData = null;
@@ -354,8 +638,9 @@ footer a{color:var(--text-muted);text-decoration:none}
   const questions = [null, document.getElementById('q1'), document.getElementById('q2'), document.getElementById('q3')];
   const btnNext = document.getElementById('btnNext');
   const btnBack = document.getElementById('btnBack');
-  const progressSteps = document.querySelectorAll('.progress-bar .step');
-  const progressLabel = document.getElementById('progressLabel');
+  const stepperSteps = document.querySelectorAll('.stepper-step');
+  const stepperLines = document.querySelectorAll('.stepper-line');
+  const stepperLabel = document.getElementById('stepperLabel');
   const slider = document.getElementById('salarySlider');
   const sliderValue = document.getElementById('sliderValue');
   const sliderUnit = document.getElementById('sliderUnit');
@@ -364,36 +649,51 @@ footer a{color:var(--text-muted);text-decoration:none}
   const q4Title = document.getElementById('q4Title');
 
   // Fetch data
-  fetch('/salary-check/salary-data.json').then(r=>r.json()).then(d=>{salaryData=d}).catch(()=>{
-    fetch('salary-data.json').then(r=>r.json()).then(d=>{salaryData=d}).catch(()=>{
+  fetch('/salary-check/salary-data.json').then(r=>r.json()).then(d=>{
+    salaryData=d;
+    // Update hero social proof with actual count
+    var total = d.total_analyzed || 600;
+    document.getElementById('heroSocial').innerHTML = '<strong>' + total + '</strong>件の求人データで診断';
+  }).catch(()=>{
+    fetch('salary-data.json').then(r=>r.json()).then(d=>{
+      salaryData=d;
+      var total = d.total_analyzed || 600;
+      document.getElementById('heroSocial').innerHTML = '<strong>' + total + '</strong>件の求人データで診断';
+    }).catch(()=>{
       console.warn('Using inline salary data');
     });
   });
 
+  // Update slider track fill color
+  function updateSliderTrack(){
+    var val = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+    slider.style.background = 'linear-gradient(to right, var(--primary) 0%, var(--primary) ' + val + '%, var(--bg-subtle) ' + val + '%, var(--bg-subtle) 100%)';
+  }
+
   // Q1: Area
-  document.querySelectorAll('#q1 .opt-btn').forEach(btn=>{
+  document.querySelectorAll('#q1 .opt-btn').forEach(function(btn){
     btn.addEventListener('click',function(){
-      document.querySelectorAll('#q1 .opt-btn').forEach(b=>b.classList.remove('selected'));
+      document.querySelectorAll('#q1 .opt-btn').forEach(function(b){b.classList.remove('selected')});
       this.classList.add('selected');
       answers.area = this.dataset.area;
       btnNext.disabled = false;
       gaEvent('salary_check_start');
       gaEvent('salary_check_q1',{area:answers.area});
-      setTimeout(()=>goNext(),300);
+      setTimeout(function(){goNext()},350);
     });
   });
 
   // Q2: Workstyle
-  document.querySelectorAll('#q2 .opt-btn').forEach(btn=>{
+  document.querySelectorAll('#q2 .opt-btn').forEach(function(btn){
     btn.addEventListener('click',function(){
-      document.querySelectorAll('#q2 .opt-btn').forEach(b=>b.classList.remove('selected'));
+      document.querySelectorAll('#q2 .opt-btn').forEach(function(b){b.classList.remove('selected')});
       this.classList.add('selected');
       answers.workstyle = this.dataset.ws;
       isPartTime = answers.workstyle === 'part_time';
       setupSlider();
       btnNext.disabled = false;
       gaEvent('salary_check_q2',{workstyle:answers.workstyle});
-      setTimeout(()=>goNext(),300);
+      setTimeout(function(){goNext()},350);
     });
   });
 
@@ -403,18 +703,19 @@ footer a{color:var(--text-muted);text-decoration:none}
     if(isPartTime){
       slider.min=1000; slider.max=3000; slider.value=1500; slider.step=100;
       sliderValue.textContent = '1,500円';
-      sliderUnit.textContent = '（税込時給）';
+      sliderUnit.textContent = '税込時給';
       sliderMin.textContent = '1,000円';
       sliderMax.textContent = '3,000円';
       q4Title.textContent = '現在の時給は？';
     } else {
       slider.min=15; slider.max=50; slider.value=25; slider.step=1;
       sliderValue.textContent = '25万円';
-      sliderUnit.textContent = '（夜勤手当込み・税引前の額面。だいたいでOK）';
+      sliderUnit.textContent = '夜勤手当込み・税引前の額面。だいたいでOK';
       sliderMin.textContent = '15万';
       sliderMax.textContent = '50万';
       q4Title.textContent = '現在の月収は？';
     }
+    updateSliderTrack();
   }
 
   slider.addEventListener('input',function(){
@@ -426,20 +727,25 @@ footer a{color:var(--text-muted);text-decoration:none}
       answers.salary = Number(this.value);
     }
     btnNext.disabled = false;
+    updateSliderTrack();
   });
 
   // Navigation
-  function updateProgress(){
-    progressSteps.forEach((s,i)=>{
+  function updateStepper(){
+    stepperSteps.forEach(function(s,i){
       s.classList.remove('active','done');
       if(i < currentQ - 1) s.classList.add('done');
       if(i === currentQ - 1) s.classList.add('active');
     });
-    progressLabel.textContent = '3問中 ' + currentQ + '問目';
+    stepperLines.forEach(function(l,i){
+      l.classList.remove('done');
+      if(i < currentQ - 1) l.classList.add('done');
+    });
+    stepperLabel.textContent = '3問中 ' + currentQ + '問目';
     btnBack.style.display = currentQ > 1 ? 'block' : 'none';
 
     if(currentQ === 3){
-      btnNext.textContent = '結果を見る';
+      btnNext.textContent = '診断結果を見る';
       btnNext.disabled = false;
     } else {
       btnNext.textContent = '次へ';
@@ -447,10 +753,11 @@ footer a{color:var(--text-muted);text-decoration:none}
   }
 
   function showQuestion(n){
-    questions.forEach((q,i)=>{if(q)q.classList.remove('active')});
+    questions.forEach(function(q){if(q)q.classList.remove('active')});
     if(questions[n]) questions[n].classList.add('active');
     currentQ = n;
-    updateProgress();
+    updateStepper();
+    if(n===3) updateSliderTrack();
 
     if(n===1) btnNext.disabled = !answers.area;
     else if(n===2) btnNext.disabled = !answers.workstyle;
@@ -478,97 +785,146 @@ footer a{color:var(--text-muted);text-decoration:none}
     if(typeof gtag==='function') gtag('event', name, params||{});
   }
 
+  // Animate percentile ring
+  function animateRing(percentile){
+    var circumference = 440; // 2 * PI * 70
+    var fill = (100 - percentile) / 100; // lower percentile = more fill (top 10% = 90% fill)
+    var offset = circumference * (1 - fill);
+    var ringEl = document.getElementById('ringFill');
+    // Start from full offset then animate
+    ringEl.style.strokeDashoffset = circumference;
+    setTimeout(function(){
+      ringEl.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.16,1,0.3,1)';
+      ringEl.style.strokeDashoffset = offset;
+    }, 100);
+  }
+
+  // Animate count up
+  function animateCount(el, target, suffix, duration){
+    var start = 0;
+    var startTime = null;
+    suffix = suffix || '';
+    duration = duration || 800;
+    function step(timestamp){
+      if(!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+      var current = Math.round(start + (target - start) * eased);
+      el.textContent = current + suffix;
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Get result comment based on percentile
+  function getComment(percentile){
+    if(percentile <= 10) return '非常に高い水準です！';
+    if(percentile <= 20) return '高い水準です！';
+    if(percentile <= 40) return '平均より高い水準です';
+    if(percentile <= 60) return 'ちょうど平均的な水準です';
+    if(percentile <= 80) return '上を目指せる可能性があります';
+    return '給与アップの余地が大きいです';
+  }
+
   // Show result
   function showResult(){
-
     if(!salaryData){
       alert('データの読み込みに失敗しました。ページを再読み込みしてください。');
       return;
     }
 
-    const areaData = salaryData.areas[answers.area];
+    var areaData = salaryData.areas[answers.area];
     if(!areaData){showInsufficient();return;}
 
-    const wsData = areaData.workstyles[answers.workstyle];
+    var wsData = areaData.workstyles[answers.workstyle];
     if(!wsData || wsData.insufficient_data || wsData.count < 5){
       showInsufficient();
       return;
     }
 
-    const p = wsData.percentiles;
-    let userVal = answers.salary;
+    var p = wsData.percentiles;
+    var userVal = answers.salary;
 
-    let userCompare;
+    var userCompare;
     if(isPartTime){
-      userCompare = userVal; // yen
+      userCompare = userVal;
     } else {
-      userCompare = userVal * 10; // 25万 → 250 (千円 units to match percentiles)
+      userCompare = userVal * 10;
     }
 
     // Determine percentile rank
-    const pKeys = ['p10','p20','p30','p40','p50','p60','p70','p80','p90'];
-    const pRanks = [100, 90, 80, 70, 60, 50, 40, 30, 20, 10];
-    let percentileRank = 100;
-    for(let i=0; i<pKeys.length; i++){
+    var pKeys = ['p10','p20','p30','p40','p50','p60','p70','p80','p90'];
+    var pRanks = [100, 90, 80, 70, 60, 50, 40, 30, 20, 10];
+    var percentileRank = 100;
+    for(var i=0; i<pKeys.length; i++){
       if(userCompare >= p[pKeys[i]]){
         percentileRank = pRanks[i+1];
       }
     }
-
-    // 修正5: 下限を90%に（「上位100%」を出さない）
     percentileRank = Math.min(percentileRank, 90);
 
-    // 修正3: 正しい順位計算
-    const count = wsData.count;
-    const rank = Math.max(1, Math.round((percentileRank / 100) * count));
-    const higherCount = rank - 1;
+    var count = wsData.count;
+    var rank = Math.max(1, Math.round((percentileRank / 100) * count));
 
-    // Format user salary
-    let userSalaryText, medianText, youText, salaryTypeText;
+    // Format
+    var userSalaryText, medianText, youText, salaryTypeText, medianNum, youNum, maxSalary;
     if(isPartTime){
       userSalaryText = Number(userVal).toLocaleString() + '円';
       medianText = Number(wsData.median).toLocaleString() + '円';
       youText = Number(userVal).toLocaleString() + '円';
       salaryTypeText = '時給';
+      medianNum = wsData.median;
+      youNum = userVal;
+      maxSalary = wsData.max || 3000;
     } else {
       userSalaryText = userVal + '万円';
-      const medianMan = (wsData.median / 10000).toFixed(1);
+      var medianMan = (wsData.median / 10000).toFixed(1);
       medianText = medianMan + '万円';
       youText = userVal + '万円';
       salaryTypeText = '月収';
+      medianNum = wsData.median / 10000;
+      youNum = userVal;
+      maxSalary = (wsData.max || 500000) / 10000;
     }
 
     document.getElementById('resultSalaryType').textContent = salaryTypeText;
     document.getElementById('resultYourSalary').textContent = userSalaryText;
     document.getElementById('resultAreaName').textContent = areaData.name;
-    document.getElementById('resultPercentile').textContent = percentileRank;
     document.getElementById('resultRank').textContent = count + '件中 ' + rank + '位';
     document.getElementById('resultMedian').textContent = medianText;
     document.getElementById('resultYou').textContent = youText;
     document.getElementById('resultHigher').textContent = (count - rank) + '件';
+    document.getElementById('resultComment').textContent = getComment(percentileRank);
+
+    // Animate bar chart
+    var barMax = Math.max(medianNum, youNum) * 1.2;
+    setTimeout(function(){
+      document.getElementById('barMedian').style.width = Math.round((medianNum / barMax) * 100) + '%';
+      document.getElementById('barYou').style.width = Math.round((youNum / barMax) * 100) + '%';
+    }, 200);
 
     // Sample jobs
-    const jobsList = document.getElementById('jobsList');
+    var jobsList = document.getElementById('jobsList');
     jobsList.innerHTML = '';
-    const samples = wsData.sample_jobs || [];
-    samples.forEach((job,i)=>{
+    var samples = wsData.sample_jobs || [];
+    var remainingCount = count - 2;
+    samples.forEach(function(job,i){
       if(i >= 2){
-        // blur求人はwrapで囲んでオーバーレイ付き
-        const wrap = document.createElement('div');
+        var wrap = document.createElement('div');
         wrap.className = 'job-item-wrap';
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.className = 'job-item blur';
         div.innerHTML = '<div class="job-employer">' + escHtml(job.employer) + '</div>' +
           '<div class="job-salary">' + escHtml(job.salary_range) + '</div>' +
           '<div class="job-type">' + escHtml(job.employment_type) + (job.work_hours ? ' / ' + escHtml(job.work_hours) : '') + '</div>';
-        const overlay = document.createElement('div');
+        var overlay = document.createElement('div');
         overlay.className = 'blur-overlay';
-        overlay.innerHTML = '<span>LINE登録で全件表示</span>';
+        overlay.innerHTML = '<span>LINE登録であと' + Math.max(remainingCount,1) + '件を表示</span>';
         wrap.appendChild(div);
         wrap.appendChild(overlay);
         jobsList.appendChild(wrap);
       } else {
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.className = 'job-item';
         div.innerHTML = '<div class="job-employer">' + escHtml(job.employer) + '</div>' +
           '<div class="job-salary">' + escHtml(job.salary_range) + '</div>' +
@@ -581,21 +937,25 @@ footer a{color:var(--text-muted);text-decoration:none}
 
     // Show result, hide quiz
     document.getElementById('quizSection').style.display = 'none';
-    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('stepperWrap').style.display = 'none';
     document.getElementById('navBtns').style.display = 'none';
     document.getElementById('resultSection').classList.add('active');
     document.getElementById('insufficientSection').classList.remove('active');
     window.scrollTo({top:0, behavior:'smooth'});
 
-    gaEvent('salary_check_result',{percentile:percentileRank, area:answers.area, workstyle:answers.workstyle});
+    // Animate ring + count
+    setTimeout(function(){
+      animateRing(percentileRank);
+      animateCount(document.getElementById('resultPercentile'), percentileRank, '', 1000);
+    }, 300);
 
-    // Meta Pixel Lead
+    gaEvent('salary_check_result',{percentile:percentileRank, area:answers.area, workstyle:answers.workstyle});
     if(typeof fbq==='function') fbq('track','Lead');
   }
 
   function showInsufficient(){
     document.getElementById('quizSection').style.display = 'none';
-    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('stepperWrap').style.display = 'none';
     document.getElementById('navBtns').style.display = 'none';
     document.getElementById('resultSection').classList.remove('active');
     document.getElementById('insufficientSection').classList.add('active');
@@ -605,13 +965,19 @@ footer a{color:var(--text-muted);text-decoration:none}
   function resetQuiz(){
     answers = {area:null, workstyle:null, salary:null};
     isPartTime = false;
-    document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+    document.querySelectorAll('.opt-btn').forEach(function(b){b.classList.remove('selected')});
     setupSlider();
     document.getElementById('quizSection').style.display = '';
-    document.getElementById('progressWrap').style.display = '';
+    document.getElementById('stepperWrap').style.display = '';
     document.getElementById('navBtns').style.display = 'flex';
     document.getElementById('resultSection').classList.remove('active');
     document.getElementById('insufficientSection').classList.remove('active');
+    // Reset bar charts
+    document.getElementById('barMedian').style.width = '0%';
+    document.getElementById('barYou').style.width = '0%';
+    // Reset ring
+    document.getElementById('ringFill').style.transition = 'none';
+    document.getElementById('ringFill').style.strokeDashoffset = '440';
     showQuestion(1);
     window.scrollTo({top:0, behavior:'smooth'});
   }
@@ -634,6 +1000,7 @@ footer a{color:var(--text-muted);text-decoration:none}
 
   // Initial setup
   setupSlider();
+  updateStepper();
 })();
 </script>
 </body>
