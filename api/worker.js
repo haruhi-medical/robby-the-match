@@ -779,6 +779,7 @@ function buildSystemPrompt(userMsgCount, profession, area, experience) {
 - 敬語は使いつつも、堅すぎず親しみやすい口調で（「〜ですよね」「〜かもしれませんね」）
 - 1回の返答は3-5文。具体的な数字や施設名を含めて信頼感を出す
 - 「何かお手伝いできることはありますか？」のような機械的な表現は禁止
+- 一人称は「わたし」を使ってください
 - 具体的な施設名を出す時は「○○病院は△△床で、□□に力を入れている病院です」のように具体的事実を添える
 
 【最重要ルール: 1ターン1問】
@@ -3837,7 +3838,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         const msgs = [{
           type: "text",
-          text: "友だち追加ありがとうございます！\n神奈川ナース転職です 🎉\n\nHPで診断を受けられた方は、表示された6文字のコードをこのチャットに送ってください。\n\n初めての方は「はじめる」をタップしてください！",
+          text: "友だち追加ありがとうございます！神奈川ナース転職のAIアドバイザー、ロビーです😊\n\nHPで診断を受けられた方は、表示された6文字のコードをこのチャットに送ってください。\n\n初めての方は「はじめる」をタップしてください！",
           quickReply: {
             items: [
               qrItem("はじめる", "welcome=start"),
@@ -4398,6 +4399,7 @@ async function handleLineAIConsultation(userText, entry, env) {
 - 答えられないことは正直に「担当者に確認します」
 - 施設の個別評判・口コミは答えない（法的リスク）
 - 患者体験談は使わない
+- 一人称は「わたし」
 
 【給与データ】
 ${JSON.stringify(SALARY_DATA["看護師"])}

@@ -47,7 +47,7 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-X4G2BYW13B');
+      gtag('config', 'G-X4G2BYW13B', { page_title: 'job-seeker-lp' });
       // 内部トラフィック除外（開発者アクセス）
       fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
         if(d.ip==='210.139.65.172'){gtag('set',{'traffic_type':'internal'});}
@@ -1428,7 +1428,7 @@
                 <div class="feature-card reveal reveal-delay-1">
                     <div class="feature-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4L28 16H40L30 24L34 36L24 28L14 36L18 24L8 16H20L24 4Z" fill="var(--primary)"/></svg></div>
                     <div class="feature-label">早い</div>
-                    <p class="feature-desc">AIが24時間であなたの条件を分析。<br>待ち時間ゼロで求人をお届け。<br>スピーディーなマッチングを実現。</p>
+                    <p class="feature-desc">AIが24時間であなたの条件を分析。<br>最短即日で求人をお届け。<br>スピーディーなマッチングを実現。</p>
                 </div>
                 <div class="feature-card reveal reveal-delay-2">
                     <div class="feature-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="12" y="4" width="24" height="40" rx="4" stroke="var(--primary)" stroke-width="2.5" fill="none"/><line x1="20" y1="40" x2="28" y2="40" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><rect x="16" y="10" width="16" height="24" rx="1" fill="var(--primary-light)"/></svg></div>
@@ -1488,7 +1488,7 @@
                         <tr>
                             <td>病院の採用しやすさ</td>
                             <td class="comparison-dim">コスト大</td>
-                            <td class="comparison-highlight">コスト半減 ★</td>
+                            <td class="comparison-highlight">コスト大幅削減 ★</td>
                         </tr>
                         <tr>
                             <td>連絡方法</td>
@@ -1507,6 +1507,7 @@
                 手数料が安いから<strong>病院が採用しやすい</strong>。<br>
                 採用コスト半減で<strong>あなたに声がかかりやすい</strong>。
             </div>
+            <p style="text-align:center;font-size:0.75rem;color:#888;margin-top:12px;">※ 年収480万円の場合の試算です</p>
             <div class="trust-badge reveal reveal-delay-3">
                 <div class="trust-badge-icon" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
                 <div class="trust-badge-text">
@@ -1681,6 +1682,7 @@
             <a href="/blog/">ブログ</a>
             <a href="/lp/job-seeker/area/">地域別求人</a>
             <a href="/lp/job-seeker/guide/">転職ガイド</a>
+            <a href="/salary-check/">給与診断</a>
         </div>
         <p class="footer-copy">&copy; 2026 神奈川ナース転職 All Rights Reserved.</p>
     </footer>

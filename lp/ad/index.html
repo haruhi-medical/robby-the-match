@@ -16,6 +16,7 @@
     <meta property="og:url" content="https://quads-nurse.com/lp/ad/">
     <meta property="og:image" content="https://quads-nurse.com/assets/ogp.png">
     <meta property="og:locale" content="ja_JP">
+    <meta property="og:site_name" content="神奈川ナース転職">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -411,7 +412,6 @@
             position: absolute;
             top: -8px;
             left: 50%;
-            transform: translateX(-50%);
             width: 16px;
             height: 16px;
             background: var(--bg-base);
@@ -568,6 +568,7 @@
             color: var(--text-muted);
             margin-bottom: 8px;
         }
+        .fee-structure .fee-box-label { color: rgba(255,255,255,0.5); }
         .fee-box--us .fee-box-label { color: #8ECAE6; }
         .fee-box-rate {
             font-size: 1.8rem;
@@ -864,6 +865,7 @@
             padding: 13px 20px;
             animation: none;
         }
+        .sticky-cta .cta-line::after { animation: none; }
     </style>
 </head>
 <body>
@@ -1112,7 +1114,7 @@
             だから<strong>同じスキルなら、紹介料が低い方を選びたい</strong>——それが採用側のリアルです。</p>
         </div>
         <div class="fee-merit reveal reveal-d3">
-            つまり、うちを通せば<br>あなたの「チャンスが広がり」ます
+            つまり、うちを通せば<br>あなたのチャンスが広がります
         </div>
 
         <!-- CTA #5 -->
@@ -1147,8 +1149,8 @@
                 <p class="stat-label">県内主要病院の<br>データを掲載</p>
             </div>
             <div class="stat-card">
-                <p class="stat-number">全国<span class="stat-unit">3位</span></p>
-                <p class="stat-label">人口あたり看護師数<br>ワースト（※厚労省統計）</p>
+                <p class="stat-number">ワースト3<span class="stat-unit">位</span></p>
+                <p class="stat-label">人口あたり看護師数<br>（※厚労省統計）</p>
             </div>
         </div>
     </section>
@@ -1285,9 +1287,6 @@
                 page: 'ad-lp',
                 transport_type: 'beacon'
             });
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');
-            }
         };
 
         // === Scroll reveal ===
@@ -1319,8 +1318,6 @@
         // === Sticky CTA (show after scrolling past hero) ===
         var stickyCta = document.getElementById('stickyCta');
         var heroHeight = document.querySelector('.hero').offsetHeight;
-        var lastScroll = 0;
-
         window.addEventListener('scroll', function() {
             var st = window.pageYOffset;
             if (st > heroHeight) {
@@ -1328,7 +1325,6 @@
             } else {
                 stickyCta.classList.remove('visible');
             }
-            lastScroll = st;
         }, { passive: true });
 
         // === Scroll depth tracking ===
