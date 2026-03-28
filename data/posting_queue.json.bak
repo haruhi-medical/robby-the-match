@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-27T18:07:00.224535",
+  "updated": "2026-03-27T18:27:28.062554",
   "posts": [
     {
       "id": 1,
@@ -2586,11 +2586,11 @@
       ],
       "cta_type": "hard",
       "content_type": "転職",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_claude_転職_0305_05_20260327.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -2780,7 +2780,7 @@
       "id": 154,
       "content_id": "ai_ある_0325_01",
       "batch": "ai_batch_20260325_0600",
-      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_ある_0325_01",
+      "slide_dir": "/Users/robby2/robby-the-match/content/generated/html_ai_ある_0325_01",
       "json_path": "content/generated/ai_batch_20260325_0600/ai_ある_0325_01.json",
       "caption": "看護師5年目で手取り24万って普通なの?\n\n夜勤月8回の看護師の時給、コンビニと同じって本当?\n\n手数料10%の転職サポート、詳しくはプロフのリンクから",
       "hashtags": [
@@ -2824,7 +2824,7 @@
       "id": 155,
       "content_id": "ai_ある_0325_02",
       "batch": "ai_batch_20260325_0600",
-      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_ある_0325_02",
+      "slide_dir": "/Users/robby2/robby-the-match/content/generated/html_ai_ある_0325_02",
       "json_path": "content/generated/ai_batch_20260325_0600/ai_ある_0325_02.json",
       "caption": "神奈川の夜勤看護師\n\n夜勤明け、電車で座る暇ある？\n\n同じ状況の看護師さんにも教えてあげて",
       "hashtags": [
@@ -2868,7 +2868,7 @@
       "id": 156,
       "content_id": "ai_転職_0325_03",
       "batch": "ai_batch_20260325_0600",
-      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_転職_0325_03",
+      "slide_dir": "/Users/robby2/robby-the-match/content/generated/html_ai_転職_0325_03",
       "json_path": "content/generated/ai_batch_20260325_0600/ai_転職_0325_03.json",
       "caption": "横浜の看護師さん、時給2千円って知ってた？\n\n看護師の自由とは何か。\n\nこの情報、知らなかった人いる？",
       "hashtags": [
@@ -2911,7 +2911,7 @@
       "id": 157,
       "content_id": "ai_ある_0325_04",
       "batch": "ai_batch_20260325_0600",
-      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_ある_0325_04",
+      "slide_dir": "/Users/robby2/robby-the-match/content/generated/html_ai_ある_0325_04",
       "json_path": "content/generated/ai_batch_20260325_0600/ai_ある_0325_04.json",
       "caption": "看護師5年目で年収550万って本当？\n\n神奈川県の看護師の平均年収は全国平均を上回っている。\n\nこの表、保存しといて損ないよ",
       "hashtags": [
@@ -2955,7 +2955,7 @@
       "id": 158,
       "content_id": "ai_業界_0325_05",
       "batch": "ai_batch_20260325_0600",
-      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_業界_0325_05",
+      "slide_dir": "/Users/robby2/robby-the-match/content/generated/html_ai_業界_0325_05",
       "json_path": "content/generated/ai_batch_20260325_0600/ai_業界_0325_05.json",
       "caption": "神奈川の看護師の紹介手数料、135万って本当?\n\n看護師の待遇改善の鍵はどこにある?\n\n同じ状況の看護師さんに送ってあげて。",
       "hashtags": [
@@ -2998,7 +2998,7 @@
       "id": 159,
       "content_id": "ai_給与_0325_06",
       "batch": "ai_batch_20260325_0600",
-      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_給与_0325_06",
+      "slide_dir": "/Users/robby2/robby-the-match/content/generated/html_ai_給与_0325_06",
       "json_path": "content/generated/ai_batch_20260325_0600/ai_給与_0325_06.json",
       "caption": "夜勤専従の看護師は、命に碰いながら、コンビニバイトと同等の賃金で働いている。\n\n看護師の働き方を変えたい。\n\nこの情報を知って、看護師の評価を変えたい人、保存して。",
       "hashtags": [
@@ -3042,7 +3042,7 @@
       "id": 160,
       "content_id": "ai_地域_0325_07",
       "batch": "ai_batch_20260325_0600",
-      "slide_dir": "content/generated/ai_batch_20260325_0600/ai_地域_0325_07",
+      "slide_dir": "/Users/robby2/robby-the-match/content/generated/html_ai_地域_0325_07",
       "json_path": "content/generated/ai_batch_20260325_0600/ai_地域_0325_07.json",
       "caption": "神奈川県西部の看護師はなぜ少ないの?\n\n住みやすさと給与の問題\n\n情報を共有して看護師の就業環境を改善しよう",
       "hashtags": [

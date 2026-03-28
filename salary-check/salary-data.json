@@ -1,0 +1,556 @@
+{
+  "generated_at": "2026-03-28T14:59:30.510473",
+  "source": "ハローワーク求人API（神奈川県看護師）",
+  "source_fetched_at": "2026-03-28T06:34:19.771702",
+  "total_analyzed": 600,
+  "areas": {
+    "yokohama_kawasaki": {
+      "name": "横浜市・川崎市",
+      "total_count": 354,
+      "workstyles": {
+        "with_night": {
+          "count": 72,
+          "unit": "月給",
+          "min": 128400,
+          "max": 380000,
+          "median": 202350,
+          "avg": 213327,
+          "percentiles": {
+            "p10": 149.0,
+            "p20": 171.4,
+            "p30": 180.0,
+            "p40": 200.0,
+            "p50": 202.3,
+            "p60": 211.2,
+            "p70": 223.5,
+            "p80": 240.0,
+            "p90": 290.0
+          },
+          "sample_jobs": [
+            {
+              "employer": "株式会社ＬＩＦＥＬＩＢ",
+              "salary_range": "320,000円～450,000円",
+              "employment_type": "正社員",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "株式会社ＬＩＦＥＬＩＢ",
+              "salary_range": "320,000円～450,000円",
+              "employment_type": "正社員",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "医療法人社団　かもめ成人疾病予防会　介護老人保健施設　シオンよこはま",
+              "salary_range": "380,000円～380,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "day_only": {
+          "count": 17,
+          "unit": "月給",
+          "min": 188550,
+          "max": 272000,
+          "median": 228000,
+          "avg": 228055,
+          "percentiles": {
+            "p10": 208.0,
+            "p20": 221.6,
+            "p30": 228.0,
+            "p40": 228.0,
+            "p50": 228.0,
+            "p60": 228.0,
+            "p70": 228.8,
+            "p80": 232.8,
+            "p90": 246.4
+          },
+          "sample_jobs": [
+            {
+              "employer": "医療法人社団　ファミリーメディカル",
+              "salary_range": "260,000円～320,000円",
+              "employment_type": "正社員以外",
+              "work_hours": ""
+            },
+            {
+              "employer": "社会福祉法人　読売光と愛の事業団　特別養護老人ホームよみうりランド花ハウス",
+              "salary_range": "272,000円～296,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "社会福祉法人　和みの会",
+              "salary_range": "237,400円～294,800円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "part_time": {
+          "count": 265,
+          "unit": "時給",
+          "min": 1225,
+          "max": 4000,
+          "median": 1800,
+          "avg": 1780,
+          "percentiles": {
+            "p10": 1485,
+            "p20": 1600,
+            "p30": 1670,
+            "p40": 1700,
+            "p50": 1800,
+            "p60": 1800,
+            "p70": 1900,
+            "p80": 2000,
+            "p90": 2006
+          },
+          "sample_jobs": [
+            {
+              "employer": "ＮＥＸＴＣＡＲＥ株式会社　ケアマネステーションネクストケア",
+              "salary_range": "2,000円～4,000円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            },
+            {
+              "employer": "株式会社幸　訪問看護ステーション幸",
+              "salary_range": "4,000円～4,000円",
+              "employment_type": "パート労働者",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "合同会社あいびぃ",
+              "salary_range": "4,000円～4,000円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            }
+          ]
+        }
+      }
+    },
+    "shonan": {
+      "name": "湘南エリア",
+      "total_count": 59,
+      "workstyles": {
+        "with_night": {
+          "count": 16,
+          "unit": "月給",
+          "min": 149000,
+          "max": 270000,
+          "median": 227500,
+          "avg": 219362,
+          "percentiles": {
+            "p10": 165.0,
+            "p20": 171.0,
+            "p30": 177.7,
+            "p40": 179.4,
+            "p50": 227.5,
+            "p60": 250.0,
+            "p70": 270.0,
+            "p80": 270.0,
+            "p90": 270.0
+          },
+          "sample_jobs": [
+            {
+              "employer": "医療法人社団　健育会　湘南慶育病院",
+              "salary_range": "250,000円～380,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "医療法人社団　健育会　湘南慶育病院",
+              "salary_range": "250,000円～380,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "医療法人社団大樹会　介護老人保健施設　ふれあいの桜",
+              "salary_range": "205,000円～358,900円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "day_only": {
+          "count": 0,
+          "insufficient_data": true
+        },
+        "part_time": {
+          "count": 43,
+          "unit": "時給",
+          "min": 1400,
+          "max": 2500,
+          "median": 1750,
+          "avg": 1745,
+          "percentiles": {
+            "p10": 1500,
+            "p20": 1520,
+            "p30": 1600,
+            "p40": 1700,
+            "p50": 1750,
+            "p60": 1800,
+            "p70": 1800,
+            "p80": 1960,
+            "p90": 2000
+          },
+          "sample_jobs": [
+            {
+              "employer": "株式会社　ｍｅａｍａｋａｍａｅ",
+              "salary_range": "1,700円～3,000円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            },
+            {
+              "employer": "株式会社　昌英",
+              "salary_range": "2,500円～2,500円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            },
+            {
+              "employer": "社会福祉法人　富士白苑",
+              "salary_range": "1,500円～2,500円",
+              "employment_type": "パート労働者",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        }
+      }
+    },
+    "sagamihara_kenoh": {
+      "name": "相模原・県央エリア",
+      "total_count": 109,
+      "workstyles": {
+        "with_night": {
+          "count": 28,
+          "unit": "月給",
+          "min": 161500,
+          "max": 300000,
+          "median": 196000,
+          "avg": 209472,
+          "percentiles": {
+            "p10": 171.7,
+            "p20": 178.8,
+            "p30": 188.1,
+            "p40": 193.1,
+            "p50": 196.0,
+            "p60": 201.3,
+            "p70": 225.0,
+            "p80": 246.0,
+            "p90": 269.8
+          },
+          "sample_jobs": [
+            {
+              "employer": "医療法人社団　柏綾会　綾瀬厚生病院",
+              "salary_range": "225,200円～363,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "社会福祉法人　道志会老人ホーム",
+              "salary_range": "300,000円～340,000円",
+              "employment_type": "正社員",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "株式会社　エクセルシオール・ジャパン　エクセルシオール秦野",
+              "salary_range": "196,000円～327,280円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "day_only": {
+          "count": 8,
+          "unit": "月給",
+          "min": 188000,
+          "max": 270000,
+          "median": 227500,
+          "avg": 231125,
+          "percentiles": {
+            "p10": 210.4,
+            "p20": 221.0,
+            "p30": 222.8,
+            "p40": 224.5,
+            "p50": 227.5,
+            "p60": 232.0,
+            "p70": 238.8,
+            "p80": 248.1,
+            "p90": 258.6
+          },
+          "sample_jobs": [
+            {
+              "employer": "特別養護老人ホーム太陽の家　相模原清菊園　（社会福祉法人　ユーアイ二十一）",
+              "salary_range": "239,800円～305,500円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1年単位）"
+            },
+            {
+              "employer": "株式会社　日本ライフデザイン　有料老人ホーム　ベルビルガーデンやまと",
+              "salary_range": "188,000円～300,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "株式会社　川島コーポレーション　サニーライフ厚木戸室",
+              "salary_range": "270,000円～300,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "part_time": {
+          "count": 73,
+          "unit": "時給",
+          "min": 1225,
+          "max": 2010,
+          "median": 1698,
+          "avg": 1674,
+          "percentiles": {
+            "p10": 1400,
+            "p20": 1500,
+            "p30": 1540,
+            "p40": 1600,
+            "p50": 1698,
+            "p60": 1750,
+            "p70": 1800,
+            "p80": 1900,
+            "p90": 2000
+          },
+          "sample_jobs": [
+            {
+              "employer": "つづき脳神経外科・内科　都築　隆",
+              "salary_range": "2,000円～2,500円",
+              "employment_type": "パート労働者",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "株式会社　まちづくり公社",
+              "salary_range": "2,000円～2,500円",
+              "employment_type": "パート労働者",
+              "work_hours": "変形労働時間制（1年単位）"
+            },
+            {
+              "employer": "社会福祉法人　大六福祉会",
+              "salary_range": "1,700円～2,400円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            }
+          ]
+        }
+      }
+    },
+    "yokosuka_miura": {
+      "name": "横須賀・三浦エリア",
+      "total_count": 51,
+      "workstyles": {
+        "with_night": {
+          "count": 9,
+          "unit": "月給",
+          "min": 149000,
+          "max": 375000,
+          "median": 217000,
+          "avg": 240922,
+          "percentiles": {
+            "p10": 192.4,
+            "p20": 206.0,
+            "p30": 211.2,
+            "p40": 216.4,
+            "p50": 217.0,
+            "p60": 235.4,
+            "p70": 246.0,
+            "p80": 274.0,
+            "p90": 323.0
+          },
+          "sample_jobs": [
+            {
+              "employer": "有限会社Ｏｎｅ　ｕｐ",
+              "salary_range": "375,000円～541,666円",
+              "employment_type": "正社員以外",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "社会福祉法人聖テレジア会　聖ヨゼフ病院",
+              "salary_range": "207,800円～344,100円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "株式会社　川島コーポレーション　有料老人ホーム　サニーライフ三浦",
+              "salary_range": "310,000円～310,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "day_only": {
+          "count": 2,
+          "unit": "月給",
+          "min": 246000,
+          "max": 260000,
+          "median": 253000,
+          "avg": 253000,
+          "insufficient_data": true,
+          "sample_jobs": [
+            {
+              "employer": "株式会社　日本ライフデザイン　油壺マリーナヒルズ",
+              "salary_range": "246,000円～400,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "めぐみケアクリニック（大木　誠）",
+              "salary_range": "260,000円～300,000円",
+              "employment_type": "正社員",
+              "work_hours": ""
+            }
+          ]
+        },
+        "part_time": {
+          "count": 40,
+          "unit": "時給",
+          "min": 1280,
+          "max": 2300,
+          "median": 1800,
+          "avg": 1776,
+          "percentiles": {
+            "p10": 1490,
+            "p20": 1584,
+            "p30": 1650,
+            "p40": 1700,
+            "p50": 1800,
+            "p60": 1836,
+            "p70": 1915,
+            "p80": 2000,
+            "p90": 2019
+          },
+          "sample_jobs": [
+            {
+              "employer": "医療法人社団　蒼風会　あおと眼科",
+              "salary_range": "2,300円～4,500円",
+              "employment_type": "パート労働者",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "有限会社Ｏｎｅ　ｕｐ",
+              "salary_range": "2,000円～2,500円",
+              "employment_type": "パート労働者",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "医療法人　しんわ全人会",
+              "salary_range": "2,000円～2,300円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            }
+          ]
+        }
+      }
+    },
+    "kensai": {
+      "name": "県西エリア",
+      "total_count": 27,
+      "workstyles": {
+        "with_night": {
+          "count": 6,
+          "unit": "月給",
+          "min": 190000,
+          "max": 330000,
+          "median": 202500,
+          "avg": 237243,
+          "percentiles": {
+            "p10": 195.0,
+            "p20": 200.0,
+            "p30": 200.0,
+            "p40": 200.0,
+            "p50": 202.5,
+            "p60": 205.0,
+            "p70": 251.7,
+            "p80": 298.5,
+            "p90": 314.2
+          },
+          "sample_jobs": [
+            {
+              "employer": "株式会社　額田　マナマーレ",
+              "salary_range": "330,000円～360,000円",
+              "employment_type": "正社員",
+              "work_hours": "交替制（シフト制）"
+            },
+            {
+              "employer": "独立行政法人　国立病院機構箱根病院",
+              "salary_range": "200,000円～350,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "ＡＬＳＯＫ介護株式会社　第三地域本部",
+              "salary_range": "298,460円～318,460円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "day_only": {
+          "count": 2,
+          "unit": "月給",
+          "min": 206600,
+          "max": 255000,
+          "median": 230800,
+          "avg": 230800,
+          "insufficient_data": true,
+          "sample_jobs": [
+            {
+              "employer": "社会福祉法人　一燈会",
+              "salary_range": "255,000円～300,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "一般財団法人　日本老人福祉財団　　湯河原〈ゆうゆうの里〉",
+              "salary_range": "206,600円～211,000円",
+              "employment_type": "正社員",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        },
+        "part_time": {
+          "count": 19,
+          "unit": "時給",
+          "min": 1350,
+          "max": 2100,
+          "median": 1650,
+          "avg": 1639,
+          "percentiles": {
+            "p10": 1400,
+            "p20": 1500,
+            "p30": 1540,
+            "p40": 1610,
+            "p50": 1650,
+            "p60": 1700,
+            "p70": 1700,
+            "p80": 1740,
+            "p90": 1800
+          },
+          "sample_jobs": [
+            {
+              "employer": "株式会社　このまちふくし",
+              "salary_range": "1,400円～4,000円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            },
+            {
+              "employer": "株式会社　額田　マナマーレ",
+              "salary_range": "2,100円～2,500円",
+              "employment_type": "パート労働者",
+              "work_hours": ""
+            },
+            {
+              "employer": "社会福祉法人　富士白苑",
+              "salary_range": "1,500円～2,500円",
+              "employment_type": "パート労働者",
+              "work_hours": "変形労働時間制（1か月単位）"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
