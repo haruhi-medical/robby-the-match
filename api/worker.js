@@ -2718,6 +2718,14 @@ async function sendApplyNotification(userId, entry, env) {
 // ---------- フェーズ別メッセージ+Quick Reply生成 ----------
 function buildPhaseMessage(phase, entry) {
   switch (phase) {
+    case "welcome":
+      return [
+        {
+          type: "text",
+          text: "HPの診断結果画面に表示された6文字のコードを送ってください😊\n\nコードがない方は下のボタンをタップ👇",
+          quickReply: { items: [qrItem("求人を見る", "welcome=start")] },
+        },
+      ];
     case "q1_urgency":
       return [
         {
@@ -3567,6 +3575,10 @@ function handleLinePostback(dataStr, entry) {
     entry.unexpectedTextCount = 0;
     if (val === "start") {
       nextPhase = "q1_urgency";
+    } else if (val === "code") {
+      // コード入力待ち: phaseをwelcomeのままにしてコード入力を促す
+      // (welcomeフェーズで6文字テキストが来たらハンドオフコードとして処理される)
+      nextPhase = "welcome";
     }
   }
   // 同意取得
@@ -3838,10 +3850,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         const msgs = [{
           type: "text",
-          text: "友だち追加ありがとうございます！神奈川ナース転職のAIアドバイザー、ロビーです😊\n\nHPで診断を受けられた方は、表示された6文字のコードをこのチャットに送ってください。\n\n初めての方は「はじめる」をタップしてください！",
+          text: "友だち追加ありがとうございます！\n神奈川ナース転職のAIアドバイザー、ロビーです😊\n\n3つの質問に答えるだけで、あなたに合った求人をご紹介します。\n\n下のボタンをタップしてください👇",
           quickReply: {
             items: [
-              qrItem("はじめる", "welcome=start"),
+              qrItem("求人を見る", "welcome=start"),
+              qrItem("コードを入力", "welcome=code"),
             ],
           },
         }];
