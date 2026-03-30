@@ -1,12 +1,12 @@
 {
-  "ranked_at": "2026-03-30T06:38:15.181779",
-  "total_scored": 930,
+  "ranked_at": "2026-03-31T06:39:35.840413",
+  "total_scored": 935,
   "rank_counts": {
     "S": 13,
-    "A": 171,
+    "A": 170,
     "B": 253,
-    "C": 291,
-    "D": 202
+    "C": 296,
+    "D": 203
   },
   "jobs": [
     {
@@ -5486,43 +5486,6 @@
       "job_description": "■介護付有料老人ホームでの看護業務です。　■入居者様の体温・血圧・脈拍等を測定して入居者のお世話や健康　管理をしていただきます。　■入居者様６７名の定員に対して、看護師日勤は２～５名、　　夜勤は１名で対応しています。　■複雑な医療行為がないため、ブランク明けや未経験の方でも安心　して働いていただけま"
     },
     {
-      "kjno": "13080-09746261",
-      "rank": "A",
-      "score": 66,
-      "breakdown": {
-        "sal": 25,
-        "hol": 14,
-        "bon": 9,
-        "emp": 15,
-        "wel": 1,
-        "loc": 2
-      },
-      "employer": "株式会社　社会福祉総合研究所",
-      "job_title": "看護師　業務は介護と棲み分け　ロイヤルレジデンス小田原",
-      "area": "小田原",
-      "employment_type": "正社員",
-      "details": {
-        "salary": "月給30.0万円",
-        "holidays": "116日",
-        "bonus": "2.0ヶ月",
-        "emp_type": "正社員",
-        "welfare": "車通勤可",
-        "location": "神奈川県小田原市"
-      },
-      "work_location": "神奈川県小田原市",
-      "work_station_text": "各線　小田原",
-      "salary_low": "300000",
-      "salary_high": "300000",
-      "salary_form": "月給",
-      "annual_holidays": "116日",
-      "bonus_detail": "賞与月数　計 2ヶ月分（前年度実績）",
-      "childcare": "",
-      "retirement": "",
-      "shift1": "(1)9時00分～18時00分",
-      "shift2": "",
-      "job_description": "施設併設の訪問看護事業所における看護業務　※　併設施設内のみのご勤務です。　※　基本的にオンコールはありません。　　「変更範囲：会社の定める業務」"
-    },
-    {
       "kjno": "14060-00287561",
       "rank": "A",
       "score": 66,
@@ -8998,7 +8961,7 @@
       "retirement": "",
       "shift1": "(1)8時30分～17時00分",
       "shift2": "",
-      "job_description": "訪問看護業務です。　・主な訪問先は平塚～中郡　・訪問件数は４～５件　・車での訪問　・オンコールはありますが、夜間の出動は少なめ。　　電話対応が中止です。　　※ブランクのある方、指導致します。　　　　　　　　　　　　　　　　　　　　　「変更範囲：変更無し」"
+      "job_description": "訪問看護業務です。　・主な訪問先は平塚～中郡　・訪問件数は４～５件　・車での訪問　・オンコール対応あり。　　　　　　　　　　　　　　　　　　　　電話対応が中心で、夜間の出動は少なめです（面接時に説明）　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　※ブランクのある方、指導致します。　　"
     },
     {
       "kjno": "14050-01544261",
@@ -9281,9 +9244,9 @@
         "bonus": "2.2ヶ月",
         "emp_type": "正社員",
         "welfare": "車通勤可、住宅手当/寮",
-        "location": "神奈川県川崎市高津区"
+        "location": "神奈川県横浜市鶴見区"
       },
-      "work_location": "神奈川県川崎市高津区",
+      "work_location": "神奈川県横浜市鶴見区",
       "work_station_text": "",
       "salary_low": "249600",
       "salary_high": "270000",
@@ -11274,7 +11237,7 @@
       "area": "横浜",
       "employment_type": "正社員",
       "details": {
-        "salary": "月給24.7万円",
+        "salary": "月給25.5万円",
         "holidays": "111日",
         "bonus": "3.3ヶ月",
         "emp_type": "正社員",
@@ -11283,8 +11246,8 @@
       },
       "work_location": "神奈川県横浜市瀬谷区",
       "work_station_text": "相鉄線　瀬谷",
-      "salary_low": "203200",
-      "salary_high": "246700",
+      "salary_low": "208100",
+      "salary_high": "254600",
       "salary_form": "月給",
       "annual_holidays": "111日",
       "bonus_detail": "賞与月数　計 3.3ヶ月分（前年度実績）",
@@ -18473,6 +18436,43 @@
       "job_description": "＊２０２６年５月にオープン予定の１棟３８室の住宅型有料老人ホームに併設された訪問看護事業所での勤務になります。　・日々の記録　・訪問看護計画書の管理　・担当者会議や行政との連携で必要な会議　（地域ケア会議や行政の連絡会等）　・薬の管理、カルテ管理、レセプト請求等の管理　・施設売り上げ管理（医療保険・"
     },
     {
+      "kjno": "13080-30756361",
+      "rank": "C",
+      "score": 40,
+      "breakdown": {
+        "sal": 25,
+        "hol": 0,
+        "bon": 4,
+        "emp": 5,
+        "wel": 1,
+        "loc": 5
+      },
+      "employer": "ヒューマンライフケア　株式会社",
+      "job_title": "看護職員／小規模多機能型居宅介護／菅仙谷の宿（多摩区）",
+      "area": "川崎",
+      "employment_type": "パート労働者",
+      "details": {
+        "salary": "時給2,020円",
+        "holidays": "不明",
+        "bonus": "あり",
+        "emp_type": "パート労働者",
+        "welfare": "車通勤可",
+        "location": "神奈川県川崎市多摩区"
+      },
+      "work_location": "神奈川県川崎市多摩区",
+      "work_station_text": "京王線　京王稲田堤",
+      "salary_low": "1920",
+      "salary_high": "2020",
+      "salary_form": "時給",
+      "annual_holidays": "",
+      "bonus_detail": "賞与金額　30,000 円 ～ 30,000 円（前年度実績）",
+      "childcare": "",
+      "retirement": "",
+      "shift1": "(1)9時00分～18時00分",
+      "shift2": "(2)10時00分～19時00分",
+      "job_description": "住み慣れたご自宅・環境での生活を続けていく為の支援事業所です　ご利用者一人ひとりに寄り添い、ゆっくりと密に関わることができます　　・ご利用者の健康管理、服薬管理　・点滴や胃ろう、経管栄養などの管理　・傷や褥瘡（床ずれ）、インシュリン注射などの医療的処置　・往診医との連携　・通院介助　・介護業務の補助"
+    },
+    {
       "kjno": "14080-04272661",
       "rank": "C",
       "score": 40,
@@ -19100,6 +19100,43 @@
       "shift1": "(1)16時30分～9時30分",
       "shift2": "",
       "job_description": "看護師業務全般　　医療処置（主には痰吸引）　ナースコール対応　バックアップ看護師を配置しています。　他に介護職員２名配置あり。　常勤４名　非常勤１０名在籍　　変更範囲：変更なし"
+    },
+    {
+      "kjno": "14030-03192561",
+      "rank": "C",
+      "score": 39,
+      "breakdown": {
+        "sal": 25,
+        "hol": 0,
+        "bon": 0,
+        "emp": 5,
+        "wel": 1,
+        "loc": 8
+      },
+      "employer": "株式会社　保健科学研究所　グループホーム　さくら園",
+      "job_title": "看護師",
+      "area": "横浜",
+      "employment_type": "パート労働者",
+      "details": {
+        "salary": "時給1,700円",
+        "holidays": "不明",
+        "bonus": "なし",
+        "emp_type": "パート労働者",
+        "welfare": "車通勤可",
+        "location": "神奈川県横浜市栄区"
+      },
+      "work_location": "神奈川県横浜市栄区",
+      "work_station_text": "各駅よりバス「金井バス停」下車徒歩５分／戸塚駅・大船",
+      "salary_low": "1700",
+      "salary_high": "1700",
+      "salary_form": "時給",
+      "annual_holidays": "",
+      "bonus_detail": "",
+      "childcare": "",
+      "retirement": "",
+      "shift1": "(1)9時00分～18時00分",
+      "shift2": "",
+      "job_description": "ご利用者様の健康チェック等　＊未経験者も丁寧に指導しますので安心して応募してください。　「変更範囲：変更無し」"
     },
     {
       "kjno": "08010-06171961",
@@ -19879,6 +19916,43 @@
       "job_description": "特別養護老人ホームでの看護業務　＊利用者様の健康管理・疾病予防・薬剤管理・感染予防　＊就業日数・時間は応相談　＊１年ごと契約更新　　※施設見学もできますので、まずはお問合せ下さい　※車・バイク・自転車通勤可（駐車場代無料）　「変更範囲：変更無し」"
     },
     {
+      "kjno": "14070-01972361",
+      "rank": "C",
+      "score": 37,
+      "breakdown": {
+        "sal": 25,
+        "hol": 0,
+        "bon": 4,
+        "emp": 5,
+        "wel": 1,
+        "loc": 2
+      },
+      "employer": "医療法人社団　村田医院",
+      "job_title": "正・准看護師　★副業ＯＫ／時間日数の相談可／駅徒歩５分★",
+      "area": "小田原",
+      "employment_type": "パート労働者",
+      "details": {
+        "salary": "時給2,000円",
+        "holidays": "不明",
+        "bonus": "あり",
+        "emp_type": "パート労働者",
+        "welfare": "車通勤可",
+        "location": ""
+      },
+      "work_location": "",
+      "work_station_text": "小田急線　栢山",
+      "salary_low": "1800",
+      "salary_high": "2000",
+      "salary_form": "時給",
+      "annual_holidays": "",
+      "bonus_detail": "賞与金額　30,000 円 ～ 50,000 円（前年度実績）",
+      "childcare": "",
+      "retirement": "",
+      "shift1": "(1)9時00分～12時00分",
+      "shift2": "(2)15時00分～18時00分",
+      "job_description": "看護師業務（外来）　○診察の補助・検査・カルテの管理　○患者様の対応　○その他付随する業務　※業務の変更および就業場所の変更はありません。　　＊残業はほとんどなく、ご家庭やプライベートと両立できます。　＊お子様が小さい方にも配慮いたします。　＊副業もＯＫです"
+    },
+    {
       "kjno": "14090-04545561",
       "rank": "C",
       "score": 37,
@@ -20619,43 +20693,6 @@
       "job_description": "利用者様（機能訓練）指導・バイタルチェック等　　　【変更範囲：変更なし】"
     },
     {
-      "kjno": "14010-07770861",
-      "rank": "C",
-      "score": 37,
-      "breakdown": {
-        "sal": 25,
-        "hol": 0,
-        "bon": 4,
-        "emp": 5,
-        "wel": 1,
-        "loc": 2
-      },
-      "employer": "社会福祉法人　白百合会　西川島保育園",
-      "job_title": "看護師",
-      "area": "横浜",
-      "employment_type": "パート労働者",
-      "details": {
-        "salary": "時給2,110円",
-        "holidays": "不明",
-        "bonus": "あり",
-        "emp_type": "パート労働者",
-        "welfare": "車通勤可",
-        "location": ""
-      },
-      "work_location": "",
-      "work_station_text": "鶴ヶ峰",
-      "salary_low": "2020",
-      "salary_high": "2110",
-      "salary_form": "時給",
-      "annual_holidays": "",
-      "bonus_detail": "賞与金額　24,000 円 ～ 120,000 円（前年度実績）",
-      "childcare": "",
-      "retirement": "",
-      "shift1": "",
-      "shift2": "",
-      "job_description": "園児・職員の健康管理、健康指導、園児の保育、医療的ケアの必要な児童の対応、付随する事務等　　　変更範囲：変更なし"
-    },
-    {
       "kjno": "14060-01406561",
       "rank": "C",
       "score": 37,
@@ -21116,7 +21153,7 @@
       "area": "相模原",
       "employment_type": "パート労働者",
       "details": {
-        "salary": "時給2,100円",
+        "salary": "時給2,200円",
         "holidays": "不明",
         "bonus": "あり",
         "emp_type": "パート労働者",
@@ -21125,8 +21162,8 @@
       },
       "work_location": "",
       "work_station_text": "ＪＲ横浜線　淵野辺",
-      "salary_low": "2000",
-      "salary_high": "2100",
+      "salary_low": "2050",
+      "salary_high": "2200",
       "salary_form": "時給",
       "annual_holidays": "",
       "bonus_detail": "賞与金額　10,000 円 ～（前年度実績）",
@@ -21616,6 +21653,117 @@
       "shift1": "(1)14時00分～18時30分",
       "shift2": "(2)9時00分～17時00分",
       "job_description": "仕事内容　・重症心身障がい児及び医療的ケアが必要な就学児（小学１年生～高校３年生まで）を対象とした放課後・学校休業日の支援・医療ケア・送迎の添乗　・可能な方は、送迎車の運転業務をお願いすることがあります　　変更範囲：変更なし"
+    },
+    {
+      "kjno": "14080-04298661",
+      "rank": "C",
+      "score": 36,
+      "breakdown": {
+        "sal": 25,
+        "hol": 0,
+        "bon": 0,
+        "emp": 5,
+        "wel": 1,
+        "loc": 5
+      },
+      "employer": "さかい内科・胃腸科クリニック",
+      "job_title": "看護師（正・准）",
+      "area": "鎌倉",
+      "employment_type": "パート労働者",
+      "details": {
+        "salary": "時給2,500円",
+        "holidays": "不明",
+        "bonus": "なし",
+        "emp_type": "パート労働者",
+        "welfare": "車通勤可",
+        "location": "神奈川県鎌倉市"
+      },
+      "work_location": "神奈川県鎌倉市",
+      "work_station_text": "ＪＲ線　鎌倉",
+      "salary_low": "1800",
+      "salary_high": "2500",
+      "salary_form": "時給",
+      "annual_holidays": "",
+      "bonus_detail": "",
+      "childcare": "",
+      "retirement": "",
+      "shift1": "(1)9時00分～12時00分",
+      "shift2": "",
+      "job_description": "・外来看護業務　・内視鏡経験は特に必要ありません。　　※土曜日隔週で勤務できる方。　　（就業曜日・日数・時間は相談下さい。）　　※内視鏡経験者優遇　　【変更の範囲】変更なし"
+    },
+    {
+      "kjno": "14150-06194961",
+      "rank": "C",
+      "score": 36,
+      "breakdown": {
+        "sal": 25,
+        "hol": 0,
+        "bon": 0,
+        "emp": 5,
+        "wel": 1,
+        "loc": 5
+      },
+      "employer": "医療法人　横濱浩鳳会",
+      "job_title": "正看護師・准看護師／都筑区／駅近２分、週１日から勤務可",
+      "area": "横浜",
+      "employment_type": "パート労働者",
+      "details": {
+        "salary": "時給2,000円",
+        "holidays": "不明",
+        "bonus": "なし",
+        "emp_type": "パート労働者",
+        "welfare": "車通勤可",
+        "location": "神奈川県横浜市都筑区"
+      },
+      "work_location": "神奈川県横浜市都筑区",
+      "work_station_text": "横浜市営地下鉄　仲町台",
+      "salary_low": "2000",
+      "salary_high": "2000",
+      "salary_form": "時給",
+      "annual_holidays": "",
+      "bonus_detail": "",
+      "childcare": "",
+      "retirement": "",
+      "shift1": "(1)8時30分～12時30分",
+      "shift2": "(2)14時40分～18時30分",
+      "job_description": "・患者さんの問診　・患者さんの誘導　・診療補助　・採血、注射　・清掃など　　変更範囲：変更なし"
+    },
+    {
+      "kjno": "14150-06195161",
+      "rank": "C",
+      "score": 36,
+      "breakdown": {
+        "sal": 25,
+        "hol": 0,
+        "bon": 0,
+        "emp": 5,
+        "wel": 1,
+        "loc": 5
+      },
+      "employer": "医療法人　横濱浩鳳会",
+      "job_title": "正看護師・准看護師／中区／駅近２分、週１日から勤務可",
+      "area": "横浜",
+      "employment_type": "パート労働者",
+      "details": {
+        "salary": "時給2,000円",
+        "holidays": "不明",
+        "bonus": "なし",
+        "emp_type": "パート労働者",
+        "welfare": "車通勤可",
+        "location": "神奈川県横浜市中区"
+      },
+      "work_location": "神奈川県横浜市中区",
+      "work_station_text": "ＪＲ桜木町駅／横浜市営地下鉄ブルーライン桜木町",
+      "salary_low": "2000",
+      "salary_high": "2000",
+      "salary_form": "時給",
+      "annual_holidays": "",
+      "bonus_detail": "",
+      "childcare": "",
+      "retirement": "",
+      "shift1": "(1)8時40分～12時30分",
+      "shift2": "(2)14時40分～18時30分",
+      "job_description": "・患者さんの問診　・患者さんの誘導　・診療補助　・採血、注射　・清掃など　　変更範囲：変更なし"
     },
     {
       "kjno": "13040-42401961",
@@ -27610,6 +27758,43 @@
       "shift1": "",
       "shift2": "",
       "job_description": "●介護が必要なご利用者の看護、健康管理　バイタルチェック、処置、薬の管理・配薬、見守りなど　　「小規模多機能型居宅介護」は定員２９名で、日中１８名程の方をお世話します。　通い・泊まり・訪問の３つのサービスを組み合わせて、介護が必要な方を支えます。　★勤務日数・時間は応相談　　時間数により、社会保険加"
+    },
+    {
+      "kjno": "14110-01300861",
+      "rank": "D",
+      "score": 33,
+      "breakdown": {
+        "sal": 25,
+        "hol": 0,
+        "bon": 0,
+        "emp": 5,
+        "wel": 1,
+        "loc": 2
+      },
+      "employer": "株式会社　ハーフ・センチュリー・モア　サンシティ神奈川",
+      "job_title": "看護師【夜勤専従】",
+      "area": "秦野",
+      "employment_type": "パート労働者",
+      "details": {
+        "salary": "時給1,771円",
+        "holidays": "不明",
+        "bonus": "なし",
+        "emp_type": "パート労働者",
+        "welfare": "車通勤可",
+        "location": "神奈川県秦野市"
+      },
+      "work_location": "神奈川県秦野市",
+      "work_station_text": "小田急線　秦野",
+      "salary_low": "1771",
+      "salary_high": "1771",
+      "salary_form": "その他",
+      "annual_holidays": "",
+      "bonus_detail": "",
+      "childcare": "",
+      "retirement": "",
+      "shift1": "(1)16時30分～9時30分",
+      "shift2": "",
+      "job_description": "・健康管理や緊急時対応など、看護業務全般　＊健康相談　＊配薬管理　　【変更の範囲】当社業務全般"
     },
     {
       "kjno": "14030-03139061",
