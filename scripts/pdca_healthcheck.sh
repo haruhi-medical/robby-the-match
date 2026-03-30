@@ -42,9 +42,19 @@ HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$PUBLIC_URL" 2>/dev/null)
 LOG_SIZE=$(du -sm logs/ 2>/dev/null | awk '{print $1}')
 [ "${LOG_SIZE:-0}" -gt 500 ] && ISSUES="${ISSUES}\n⚠️ logs/ ${LOG_SIZE}MB"
 
-# === TikTok健全性チェック v3.0 ===
-# upload_verification.json を主要指標とする。
-# TikTokプロフィールスクレイプはbot検出で頻繁に失敗するため参考情報扱い。
+# === TikTok健全性チェック v4.0 ===
+# TikTok自動投稿は全方法失敗中（2026-03-30確認）。手動運用に切替。
+# アラート疲労防止: TikTok関連のCRITICALは1日1回のみ通知（heartbeat抑制）。
+TIKTOK_ALERT_FLAG="$PROJECT_DIR/data/heartbeats/tiktok_alert_sent.flag"
+TIKTOK_ALERT_SENT=false
+if [ -f "$TIKTOK_ALERT_FLAG" ]; then
+  ALERT_DATE=$(cat "$TIKTOK_ALERT_FLAG" 2>/dev/null || echo "")
+  TODAY=$(date +%Y-%m-%d)
+  if [ "$ALERT_DATE" = "$TODAY" ]; then
+    TIKTOK_ALERT_SENT=true
+    echo "[INFO] TikTokアラートは本日送信済み。重複通知をスキップ。" >> "$LOG"
+  fi
+fi
 
 # Step 1: upload_verification.json による主要健全性チェック（高速・確実）
 echo "[INFO] TikTokアップロード検証（upload_verification.json基準）" >> "$LOG"
@@ -79,8 +89,11 @@ except Exception as e:
     print(f'[WARN] upload_verification check failed: {e}')
     sys.exit(0)
 " >> "$LOG" 2>&1 && UV_EXIT=0 || UV_EXIT=$?
-if [ "$UV_EXIT" -eq 1 ]; then
-  ISSUES="${ISSUES}\n⚠️ TikTokアップロード失敗が連続中（upload_verification.json基準）"
+if [ "$UV_EXIT" -eq 1 ] && [ "$TIKTOK_ALERT_SENT" = "false" ]; then
+  ISSUES="${ISSUES}\n⚠️ TikTokアップロード失敗が連続中（手動投稿に切替推奨）"
+  date +%Y-%m-%d > "$TIKTOK_ALERT_FLAG"
+elif [ "$UV_EXIT" -eq 1 ]; then
+  echo "[INFO] TikTok失敗は既知。アラート抑制中。" >> "$LOG"
 fi
 
 # Step 2: ハートビート（Cookie有効期限、venv、キュー状態など）
@@ -95,7 +108,7 @@ VERIFY_EXIT=$?
 
 # heartbeat/検証の結果をログ解析してISSUESに追加
 # v3.0: upload_verification.json基準のみ。プロフィール取得失敗はINFO扱い
-if grep -q "アップロード健全性低下" "$LOG" 2>/dev/null; then
+if grep -q "アップロード健全性低下" "$LOG" 2>/dev/null && [ "$TIKTOK_ALERT_SENT" = "false" ]; then
   ISSUES="${ISSUES}\n⚠️ TikTokアップロード健全性低下"
 fi
 

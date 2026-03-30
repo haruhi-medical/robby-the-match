@@ -24,39 +24,25 @@ elif echo "$TASKS" | grep -q "generate_batch"; then
     echo "[INFO] バッチ生成タスク検出 → 7本強制生成" >> "$LOG"
 fi
 
-# === コンテンツパイプライン実行 ===
-echo "[INFO] Content Pipeline 実行開始" >> "$LOG"
+# === コンテンツ生成（ai_content_engine.py直接実行） ===
+# content_pipeline.pyはClaude CLI認証が必要でcron環境で100%失敗するため廃止。
+# ai_content_engine.pyはCloudflare Workers AI/OpenAI APIを使用し認証不要。
+echo "[INFO] ai_content_engine.py 実行開始" >> "$LOG"
 
 if [ "$FORCE_COUNT" -gt 0 ]; then
-    python3 "$PROJECT_DIR/scripts/content_pipeline.py" --force "$FORCE_COUNT" >> "$LOG" 2>&1
+    python3 "$PROJECT_DIR/scripts/ai_content_engine.py" --generate "$FORCE_COUNT" >> "$LOG" 2>&1
     PIPELINE_EXIT=$?
 else
-    python3 "$PROJECT_DIR/scripts/content_pipeline.py" --auto >> "$LOG" 2>&1
+    python3 "$PROJECT_DIR/scripts/ai_content_engine.py" --auto >> "$LOG" 2>&1
     PIPELINE_EXIT=$?
 fi
 
 if [ $PIPELINE_EXIT -eq 0 ]; then
-    echo "[OK] Content Pipeline 完了" >> "$LOG"
+    echo "[OK] コンテンツ生成完了" >> "$LOG"
     update_agent_state "content_creator" "completed"
 else
-    echo "[WARN] Content Pipeline 失敗 (exit $PIPELINE_EXIT) → ai_content_engine.py にフォールバック" >> "$LOG"
-    # content_pipeline.py はClaude CLI認証が必要。失敗時は ai_content_engine.py を使用
-    # （Claude CLI → Cloudflare Workers AI 自動フォールバック内蔵、認証不要）
-    if [ "$FORCE_COUNT" -gt 0 ]; then
-        python3 "$PROJECT_DIR/scripts/ai_content_engine.py" --generate "$FORCE_COUNT" >> "$LOG" 2>&1
-        PIPELINE_EXIT=$?
-    else
-        python3 "$PROJECT_DIR/scripts/ai_content_engine.py" --auto >> "$LOG" 2>&1
-        PIPELINE_EXIT=$?
-    fi
-
-    if [ $PIPELINE_EXIT -eq 0 ]; then
-        echo "[OK] ai_content_engine.py フォールバック成功" >> "$LOG"
-        update_agent_state "content_creator" "completed"
-    else
-        echo "[ERROR] ai_content_engine.py も失敗 (exit $PIPELINE_EXIT)" >> "$LOG"
-        handle_failure "content_creator" "Content Pipeline + ai_content_engine both failed (exit=$PIPELINE_EXIT)"
-    fi
+    echo "[ERROR] ai_content_engine.py 失敗 (exit $PIPELINE_EXIT)" >> "$LOG"
+    handle_failure "content_creator" "ai_content_engine failed (exit=$PIPELINE_EXIT)"
 fi
 
 # === 進捗記録 ===
