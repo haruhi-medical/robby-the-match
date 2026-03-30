@@ -712,7 +712,7 @@ def _cleanup_zombie_processes(info_list):
         )
         pids = result.stdout.strip().split("\n")
         chrome_count = len([p for p in pids if p.strip()])
-        if chrome_count > 10:
+        if chrome_count > 3:
             _sp.run(["pkill", "-f", "Google Chrome for Testing"],
                      capture_output=True, timeout=5)
             zombies_killed += chrome_count

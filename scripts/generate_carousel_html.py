@@ -202,107 +202,109 @@ def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_s
     hook_colors = HOOK_COLORS_TEAL if color_scheme == "teal" else HOOK_COLORS_CORAL
 
     own_browser = browser is None
+    pw = None
     if own_browser:
         pw = sync_playwright().start()
         browser = pw.chromium.launch()
 
-    page = browser.new_page(
-        viewport={"width": 1080, "height": 1350},
-        device_scale_factor=1,
-    )
-
+    page = None
     generated = []
-    for idx, slide in enumerate(slides_data):
-        slide_num = idx + 1
-        slide_type = slide.get("type", "content")
-        dots_html = make_dots_html(total, slide_num)
+    try:
+        page = browser.new_page(
+            viewport={"width": 1080, "height": 1350},
+            device_scale_factor=1,
+        )
 
-        variables = {**PALETTE, "dots_html": dots_html}
+        for idx, slide in enumerate(slides_data):
+            slide_num = idx + 1
+            slide_type = slide.get("type", "content")
+            dots_html = make_dots_html(total, slide_num)
 
-        if slide_type == "hook":
-            template = TEMPLATE_DIR / "slide_hook.html"
-            variables.update(hook_colors)
-            hook_text = sanitize_for_image(slide.get("hook_text", ""))
-            # Hookのmax_chars_per_lineはフォントサイズに合わせる
-            fs = auto_hook_font_size(hook_text)
-            # 920px幅, font-weight:900 の日本語は1文字≈フォントサイズ*0.95
-            chars_per_line = int(920 / (fs * 0.95))
-            variables["hook_html"] = smart_line_break(hook_text, max_chars_per_line=chars_per_line)
-            variables["hook_font_size"] = str(auto_hook_font_size(hook_text))
-            variables["sub_text"] = slide.get("sub_text", "")
+            variables = {**PALETTE, "dots_html": dots_html}
 
-        elif slide_type == "content":
-            template = TEMPLATE_DIR / "slide_content.html"
-            variables["slide_number"] = str(slide.get("slide_number", slide_num))
-            variables["title"] = sanitize_for_image(slide.get("title", ""))
-            body = sanitize_for_image(slide.get("body", ""))
-            variables["body_html"] = body.replace("\n", "<br>")
-            variables["highlight"] = sanitize_for_image(slide.get("highlight", ""))
-            variables["source"] = slide.get("source", "")
+            if slide_type == "hook":
+                template = TEMPLATE_DIR / "slide_hook.html"
+                variables.update(hook_colors)
+                hook_text = sanitize_for_image(slide.get("hook_text", ""))
+                fs = auto_hook_font_size(hook_text)
+                chars_per_line = int(920 / (fs * 0.95))
+                variables["hook_html"] = smart_line_break(hook_text, max_chars_per_line=chars_per_line)
+                variables["hook_font_size"] = str(auto_hook_font_size(hook_text))
+                variables["sub_text"] = slide.get("sub_text", "")
 
-        elif slide_type == "data":
-            template = TEMPLATE_DIR / "slide_data.html"
-            variables["label"] = sanitize_for_image(slide.get("label", ""))
-            variables["number"] = sanitize_for_image(str(slide.get("number", "")))
-            variables["unit"] = sanitize_for_image(slide.get("unit", ""))
-            variables["description"] = sanitize_for_image(slide.get("description", "")).replace("\n", "<br>")
-            variables["source"] = slide.get("source", "")
-            # Build comparison cards
-            comps = slide.get("comparisons", [])
-            if comps:
-                comp_html = ""
-                for c in comps:
-                    active = " active" if c.get("active") else ""
-                    comp_html += f'<div class="comp-item{active}">'
-                    comp_html += f'<div class="comp-label">{c["label"]}</div>'
-                    comp_html += f'<div class="comp-value">{c["value"]}</div>'
-                    comp_html += '</div>'
-                variables["comparison"] = comp_html
-            else:
-                variables["comparison"] = ""
+            elif slide_type == "content":
+                template = TEMPLATE_DIR / "slide_content.html"
+                variables["slide_number"] = str(slide.get("slide_number", slide_num))
+                variables["title"] = sanitize_for_image(slide.get("title", ""))
+                body = sanitize_for_image(slide.get("body", ""))
+                variables["body_html"] = body.replace("\n", "<br>")
+                variables["highlight"] = sanitize_for_image(slide.get("highlight", ""))
+                variables["source"] = slide.get("source", "")
 
-        elif slide_type == "list":
-            template = TEMPLATE_DIR / "slide_list.html"
-            variables["title"] = sanitize_for_image(slide.get("title", ""))
-            items = slide.get("items", [])
-            items_html = ""
-            for i, item in enumerate(items):
-                icon = sanitize_for_image(item.get("icon", str(i + 1)))
-                items_html += f'<div class="list-item">'
-                items_html += f'<div class="list-icon">{icon}</div>'
-                items_html += f'<div class="list-content">'
-                items_html += f'<div class="list-label">{sanitize_for_image(item["label"])}</div>'
-                if item.get("desc"):
-                    items_html += f'<div class="list-desc">{sanitize_for_image(item["desc"])}</div>'
-                items_html += '</div></div>'
-            variables["list_items_html"] = items_html
+            elif slide_type == "data":
+                template = TEMPLATE_DIR / "slide_data.html"
+                variables["label"] = sanitize_for_image(slide.get("label", ""))
+                variables["number"] = sanitize_for_image(str(slide.get("number", "")))
+                variables["unit"] = sanitize_for_image(slide.get("unit", ""))
+                variables["description"] = sanitize_for_image(slide.get("description", "")).replace("\n", "<br>")
+                variables["source"] = slide.get("source", "")
+                comps = slide.get("comparisons", [])
+                if comps:
+                    comp_html = ""
+                    for c in comps:
+                        active = " active" if c.get("active") else ""
+                        comp_html += f'<div class="comp-item{active}">'
+                        comp_html += f'<div class="comp-label">{c["label"]}</div>'
+                        comp_html += f'<div class="comp-value">{c["value"]}</div>'
+                        comp_html += '</div>'
+                    variables["comparison"] = comp_html
+                else:
+                    variables["comparison"] = ""
 
-        elif slide_type == "cta":
-            template = TEMPLATE_DIR / "slide_cta.html"
-            items = slide.get("summary_items", [])
-            variables["summary_items_html"] = "\n".join(
-                f"<li>{sanitize_for_image(item)}</li>" for item in items
-            )
-            variables["cta_text"] = sanitize_for_image(slide.get("cta_text", "")).replace("\n", "<br>")
-            btn = slide.get("button_text", "")
-            if btn:
-                variables["show_button"] = "true"
-                variables["button_text"] = btn
-            variables["cta_sub"] = slide.get("cta_sub", "")
+            elif slide_type == "list":
+                template = TEMPLATE_DIR / "slide_list.html"
+                variables["title"] = sanitize_for_image(slide.get("title", ""))
+                items = slide.get("items", [])
+                items_html = ""
+                for i, item in enumerate(items):
+                    icon = sanitize_for_image(item.get("icon", str(i + 1)))
+                    items_html += f'<div class="list-item">'
+                    items_html += f'<div class="list-icon">{icon}</div>'
+                    items_html += f'<div class="list-content">'
+                    items_html += f'<div class="list-label">{sanitize_for_image(item["label"])}</div>'
+                    if item.get("desc"):
+                        items_html += f'<div class="list-desc">{sanitize_for_image(item["desc"])}</div>'
+                    items_html += '</div></div>'
+                variables["list_items_html"] = items_html
 
-        html = render_template(template, variables)
-        page.set_content(html, wait_until="networkidle")
-        page.wait_for_timeout(800)
+            elif slide_type == "cta":
+                template = TEMPLATE_DIR / "slide_cta.html"
+                items = slide.get("summary_items", [])
+                variables["summary_items_html"] = "\n".join(
+                    f"<li>{sanitize_for_image(item)}</li>" for item in items
+                )
+                variables["cta_text"] = sanitize_for_image(slide.get("cta_text", "")).replace("\n", "<br>")
+                btn = slide.get("button_text", "")
+                if btn:
+                    variables["show_button"] = "true"
+                    variables["button_text"] = btn
+                variables["cta_sub"] = slide.get("cta_sub", "")
 
-        out_path = output_dir / f"slide_{slide_num:02d}.png"
-        page.screenshot(path=str(out_path), type="png")
-        generated.append(out_path)
-        print(f"  [HTML] slide_{slide_num:02d}.png ({slide_type})")
+            html = render_template(template, variables)
+            page.set_content(html, wait_until="networkidle")
+            page.wait_for_timeout(800)
 
-    page.close()
-    if own_browser:
-        browser.close()
-        pw.stop()
+            out_path = output_dir / f"slide_{slide_num:02d}.png"
+            page.screenshot(path=str(out_path), type="png")
+            generated.append(out_path)
+            print(f"  [HTML] slide_{slide_num:02d}.png ({slide_type})")
+    finally:
+        if page:
+            page.close()
+        if own_browser:
+            browser.close()
+            if pw:
+                pw.stop()
 
     return generated
 
