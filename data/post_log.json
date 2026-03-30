@@ -567,5 +567,24 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_claude_転職_0305_10",
+    "timestamp": "2026-03-30T17:22:22.481668",
+    "status": "success",
+    "media_id": "3864118763000644334_45884164083",
+    "code": "DWgG4q-k0Lu",
+    "url": "https://www.instagram.com/p/DWgG4q-k0Lu/",
+    "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_ai_ある_0325_02",
+    "content_id": "ai_ある_0325_02",
+    "timestamp": "2026-03-30T21:28:10",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]

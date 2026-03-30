@@ -89,19 +89,19 @@ body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans"
 
 /* ========== Hero ========== */
 .hero{
-  background:linear-gradient(160deg,#F0F7FF 0%,#F8F0F6 100%);
-  padding:52px 24px 44px;text-align:center;position:relative;overflow:hidden;
+  position:relative;overflow:hidden;
+  padding:52px 24px 44px;text-align:center;
+  min-height:70vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
 }
-.hero::before{
-  content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;
-  background:radial-gradient(circle,rgba(61,143,191,0.06) 0%,transparent 70%);
-  border-radius:50%;pointer-events:none;
+.hero-video{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  object-fit:cover;z-index:0;pointer-events:none;
 }
-.hero::after{
-  content:'';position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;
-  background:radial-gradient(circle,rgba(232,117,106,0.05) 0%,transparent 70%);
-  border-radius:50%;pointer-events:none;
+.hero-overlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(255,255,255,0.55);z-index:1;pointer-events:none;
 }
+.hero>*:not(.hero-video):not(.hero-overlay){position:relative;z-index:2;}
 .hero-badge{
   display:inline-flex;align-items:center;gap:6px;
   background:var(--bg-card);border:1px solid rgba(61,143,191,0.15);
@@ -124,6 +124,11 @@ body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans"
   margin-top:16px;font-size:.78rem;color:var(--text-muted);font-weight:400;
 }
 .hero-social strong{font-weight:600;color:var(--text-secondary)}
+.hero-illust{
+  display:block;max-width:200px;height:auto;margin:20px auto 0;
+  position:relative;z-index:2;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.08));
+}
 
 /* ========== Stepper ========== */
 .stepper-wrap{padding:28px 24px 0;max-width:480px;margin:0 auto}
@@ -184,6 +189,10 @@ body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans"
   width:36px;height:36px;border-radius:10px;
   background:var(--bg-subtle);
   display:flex;align-items:center;justify-content:center;
+  color:var(--primary-dark);
+}
+.opt-btn .opt-icon svg{width:20px;height:20px;
+  stroke:currentColor;stroke-width:2;fill:none;
   font-size:1.1rem;flex-shrink:0;
   transition:all .2s var(--ease-out);
 }
@@ -258,28 +267,32 @@ body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans"
   border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;
 }
 .result-hero .label{font-size:.85rem;color:var(--text-secondary);margin-bottom:4px;font-weight:400}
-.result-hero .your-salary{font-size:1.5rem;font-weight:700;color:var(--text-primary);margin-bottom:4px}
-.result-hero .area-label{font-size:.85rem;color:var(--text-secondary);margin-bottom:20px;font-weight:400}
+.result-hero .your-salary{font-size:2rem;font-weight:800;color:var(--text-primary);margin-bottom:12px;letter-spacing:-0.02em}
 
-.result-ring{
-  position:relative;width:180px;height:180px;margin:0 auto 16px;
-}
-.result-ring svg{width:180px;height:180px;transform:rotate(-90deg)}
-.result-ring .ring-bg{fill:none;stroke:#E5E7EB;stroke-width:8}
-.result-ring .ring-fill{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s var(--ease-out)}
-.result-ring-inner{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;
-}
-.result-ring-label{font-size:.75rem;font-weight:500;color:var(--text-muted);margin-bottom:2px}
-.result-percentile{font-size:3rem;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-0.03em}
-.result-percentile-unit{font-size:1.1rem;font-weight:700;color:var(--accent)}
-.result-rank{font-size:.82rem;color:var(--text-muted);margin-top:4px;font-weight:400}
+/* Star rating */
+.star-rating{display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:6px}
+.star-rating .star-filled{color:#EF8B7F;font-size:24px;line-height:1}
+.star-rating .star-empty{color:#D0D5DD;font-size:24px;line-height:1}
+.result-level{font-size:.92rem;font-weight:700;color:var(--accent);margin-bottom:16px}
 
-.result-comment{
-  display:inline-block;margin-top:12px;padding:8px 20px;
-  background:var(--accent-bg);border-radius:var(--radius-full);
-  font-size:.85rem;font-weight:600;color:var(--accent);
-}
+/* Salary diff */
+.result-diff{font-size:.88rem;color:var(--text-secondary);margin-bottom:6px;font-weight:400}
+.result-diff .diff-amount{font-size:1.15rem;font-weight:800}
+.result-diff .diff-amount.positive{color:#EF8B7F}
+.result-diff .diff-amount.negative{color:var(--primary)}
+
+/* Horizontal bar */
+.result-hbar{width:100%;max-width:320px;margin:0 auto;padding:0 8px}
+.result-hbar-track{position:relative;width:100%;height:8px;background:#E8EDF2;border-radius:4px;margin:32px 0 36px}
+.result-hbar-fill{position:absolute;top:0;left:0;height:8px;border-radius:4px;background:var(--primary);transition:width .8s var(--ease-out)}
+.result-hbar-marker{position:absolute;transform:translateX(-50%);font-size:11px;font-weight:700;white-space:nowrap;line-height:1}
+.result-hbar-marker.marker-median{color:var(--text-muted);top:-24px}
+.result-hbar-marker.marker-median .marker-label{margin-bottom:2px}
+.result-hbar-marker.marker-you{color:#EF8B7F;top:12px}
+.result-hbar-marker.marker-you .marker-label{margin-top:2px}
+.result-hbar-marker .marker-triangle{display:block;text-align:center;font-size:10px}
+.result-hbar-marker .marker-label{display:block;text-align:center;font-size:10px}
+.result-hbar-labels{display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);font-weight:400;margin-top:-24px}
 
 .result-body{max-width:480px;margin:0 auto;padding:28px 24px 40px}
 
@@ -396,27 +409,31 @@ footer .footer-links a:hover{color:var(--primary)}
 /* ========== Animations ========== */
 @keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 .animate-in{animation:countUp .6s var(--ease-out) forwards}
-@keyframes ringDraw{from{stroke-dashoffset:440}to{stroke-dashoffset:var(--target-offset)}}
 
 /* ========== Responsive fine-tune ========== */
 @media(max-width:380px){
   .hero h1{font-size:1.5rem}
-  .result-percentile{font-size:2.6rem}
   .slider-value{font-size:2.2rem}
+  .result-hero .your-salary{font-size:1.6rem}
 }
 </style>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 </head>
 <body>
 
 <!-- Hero -->
 <section class="hero">
+  <video class="hero-video" autoplay muted loop playsinline>
+    <source src="hero-bg.mp4" type="video/mp4">
+  </video>
+  <div class="hero-overlay"></div>
   <div class="hero-badge">
     <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
     給与診断
   </div>
   <h1>あなたの給与、<br>神奈川で何位？</h1>
   <div class="hero-sub"><strong>30秒</strong>・3問だけ・登録不要</div>
-  <div class="hero-social" id="heroSocial"><strong>600</strong>件の求人データで診断</div>
+  <div class="hero-social" id="heroSocial">神奈川県の看護師求人データに基づく診断</div>
 </section>
 
 <!-- Stepper -->
@@ -441,27 +458,27 @@ footer .footer-links a:hover{color:var(--primary)}
       <div class="q-title">働きたいエリアは？</div>
       <div class="options">
         <button type="button" class="opt-btn" data-area="yokohama_kawasaki">
-          <div class="opt-icon">&#x1F3D9;</div>
+          <div class="opt-icon"><i data-lucide="building-2"></i></div>
           <span>横浜市・川崎市</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
         <button type="button" class="opt-btn" data-area="shonan">
-          <div class="opt-icon">&#x1F30A;</div>
+          <div class="opt-icon"><i data-lucide="waves"></i></div>
           <span>湘南・鎌倉</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
         <button type="button" class="opt-btn" data-area="sagamihara_kenoh">
-          <div class="opt-icon">&#x1F333;</div>
+          <div class="opt-icon"><i data-lucide="trees"></i></div>
           <span>相模原・県央</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
         <button type="button" class="opt-btn" data-area="yokosuka_miura">
-          <div class="opt-icon">&#x26F5;</div>
+          <div class="opt-icon"><i data-lucide="sailboat"></i></div>
           <span>横須賀・三浦</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
         <button type="button" class="opt-btn" data-area="kensai">
-          <div class="opt-icon">&#x2668;</div>
+          <div class="opt-icon"><i data-lucide="mountain"></i></div>
           <span>小田原・県西</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
@@ -474,17 +491,17 @@ footer .footer-links a:hover{color:var(--primary)}
       <div class="q-title">希望の働き方は？</div>
       <div class="options">
         <button type="button" class="opt-btn" data-ws="with_night">
-          <div class="opt-icon">&#x1F319;</div>
+          <div class="opt-icon"><i data-lucide="sun-moon"></i></div>
           <span>常勤（夜勤あり）</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
         <button type="button" class="opt-btn" data-ws="day_only">
-          <div class="opt-icon">&#x2600;</div>
+          <div class="opt-icon"><i data-lucide="sun"></i></div>
           <span>常勤（日勤のみ）</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
         <button type="button" class="opt-btn" data-ws="part_time">
-          <div class="opt-icon">&#x23F0;</div>
+          <div class="opt-icon"><i data-lucide="clock"></i></div>
           <span>パート</span>
           <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
         </button>
@@ -520,32 +537,42 @@ footer .footer-links a:hover{color:var(--primary)}
 <section class="result-section" id="resultSection">
   <div class="result-hero" id="resultHero">
     <div class="label">あなたの<span id="resultSalaryType">月収</span></div>
-    <div class="your-salary" id="resultYourSalary">25万円</div>
-    <div class="area-label">神奈川（<span id="resultAreaName">横浜市・川崎市</span>）の看護師求人の中で</div>
+    <div class="your-salary" id="resultYourSalary">250,000円</div>
 
-    <div class="result-ring" id="resultRing">
-      <svg viewBox="0 0 160 160">
-        <circle class="ring-bg" cx="80" cy="80" r="70"/>
-        <circle class="ring-fill" id="ringFill" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="440"/>
-      </svg>
-      <div class="result-ring-inner">
-        <div class="result-ring-label">上位</div>
-        <div class="result-percentile"><span id="resultPercentile">30</span><span class="result-percentile-unit">%</span></div>
-      </div>
+    <div class="star-rating" id="starRating"></div>
+    <div class="result-level" id="resultLevel">かなり高い水準です！</div>
+
+    <div class="result-diff" id="resultDiff">
+      このエリアの相場より <span class="diff-amount positive" id="diffAmount">+30,000円</span> 高い
     </div>
 
-    <div class="result-rank" id="resultRank">72件中 22位</div>
-    <div class="result-comment" id="resultComment">平均より高い水準です</div>
+    <div class="result-hbar">
+      <div class="result-hbar-track" id="hbarTrack">
+        <div class="result-hbar-fill" id="hbarFill" style="width:0%"></div>
+        <div class="result-hbar-marker marker-median" id="hbarMedian" style="left:50%">
+          <span class="marker-label">相場</span>
+          <span class="marker-triangle">&#9661;</span>
+        </div>
+        <div class="result-hbar-marker marker-you" id="hbarYou" style="left:70%">
+          <span class="marker-triangle">&#9650;</span>
+          <span class="marker-label">あなた</span>
+        </div>
+      </div>
+      <div class="result-hbar-labels">
+        <span>低い</span>
+        <span>高い</span>
+      </div>
+    </div>
   </div>
 
   <div class="result-body">
     <!-- Comparison -->
     <div class="compare-card">
-      <h3>エリア中央値との比較</h3>
+      <h3>このエリアの相場との比較</h3>
       <div class="compare-visual">
         <div class="compare-bar-group">
           <div class="compare-bar-label">
-            <span>エリア中央値</span>
+            <span>このエリアの相場</span>
             <span class="bar-value" id="resultMedian">20.2万円</span>
           </div>
           <div class="compare-bar-track">
@@ -564,7 +591,7 @@ footer .footer-links a:hover{color:var(--primary)}
       </div>
       <div class="compare-stat">
         <span class="compare-stat-icon">&#x1F4C8;</span>
-        <span class="compare-stat-text">あなたより高い求人が<strong id="resultHigher">50件</strong>あります</span>
+        <span class="compare-stat-text">あなたより高い給与の求人が<strong id="resultHigher">50件</strong>あります</span>
       </div>
     </div>
 
@@ -580,7 +607,7 @@ footer .footer-links a:hover{color:var(--primary)}
       <p class="cta-msg"><strong>お疲れさまでした！</strong><br>あなたの条件に合う求人を<br>LINEでお届けします。</p>
       <a href="https://lin.ee/oUgDB3x" class="cta-line" id="ctaLine" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .348-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .349-.281.631-.63.631h-2.386c-.345 0-.627-.282-.627-.631V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.627-.631.627-.346 0-.626-.283-.626-.627V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.627-.631.627-.345 0-.627-.283-.627-.627V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.627H4.917c-.345 0-.63-.282-.63-.627V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .349-.281.631-.629.631M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-        LINEで求人を受け取る
+        <span id="ctaLineText">LINEで求人を受け取る</span>
       </a>
       <p class="cta-note">※ 完全無料・営業電話なし</p>
       <div class="cta-note-items">
@@ -658,12 +685,12 @@ footer .footer-links a:hover{color:var(--primary)}
     salaryData=d;
     // Update hero social proof with actual count
     var total = d.total_analyzed || 600;
-    document.getElementById('heroSocial').innerHTML = '<strong>' + total + '</strong>件の求人データで診断';
+    document.getElementById('heroSocial').textContent = '神奈川県の看護師求人データに基づく診断';
   }).catch(()=>{
     fetch('salary-data.json').then(r=>r.json()).then(d=>{
       salaryData=d;
       var total = d.total_analyzed || 600;
-      document.getElementById('heroSocial').innerHTML = '<strong>' + total + '</strong>件の求人データで診断';
+      document.getElementById('heroSocial').textContent = '神奈川県の看護師求人データに基づく診断';
     }).catch(()=>{
       console.warn('Using inline salary data');
     });
@@ -792,45 +819,29 @@ footer .footer-links a:hover{color:var(--primary)}
     if(typeof gtag==='function') gtag('event', name, params||{});
   }
 
-  // Animate percentile ring
-  function animateRing(percentile){
-    var circumference = 440; // 2 * PI * 70
-    var fill = (100 - percentile) / 100; // lower percentile = more fill (top 10% = 90% fill)
-    var offset = circumference * (1 - fill);
-    var ringEl = document.getElementById('ringFill');
-    // Start from full offset then animate
-    ringEl.style.strokeDashoffset = circumference;
-    setTimeout(function(){
-      ringEl.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.16,1,0.3,1)';
-      ringEl.style.strokeDashoffset = offset;
-    }, 100);
-  }
-
-  // Animate count up
-  function animateCount(el, target, suffix, duration){
-    var start = 0;
-    var startTime = null;
-    suffix = suffix || '';
-    duration = duration || 800;
-    function step(timestamp){
-      if(!startTime) startTime = timestamp;
-      var progress = Math.min((timestamp - startTime) / duration, 1);
-      var eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
-      var current = Math.round(start + (target - start) * eased);
-      el.textContent = current + suffix;
-      if(progress < 1) requestAnimationFrame(step);
+  // Star rating + level judgment
+  function getStarLevel(diff, partTime){
+    if(partTime){
+      if(diff >= 300) return {stars:5, label:'とても高い水準です！', isHigh:true};
+      if(diff >= 100) return {stars:4, label:'かなり高い水準です！', isHigh:true};
+      if(diff >= -99) return {stars:3, label:'相場どおりの水準です', isHigh:false};
+      return {stars:2, label:'もう少し上を狙えそうです', isHigh:false};
+    } else {
+      if(diff >= 50000) return {stars:5, label:'とても高い水準です！', isHigh:true};
+      if(diff >= 10000) return {stars:4, label:'かなり高い水準です！', isHigh:true};
+      if(diff >= -9999) return {stars:3, label:'相場どおりの水準です', isHigh:false};
+      return {stars:2, label:'もう少し上を狙えそうです', isHigh:false};
     }
-    requestAnimationFrame(step);
   }
 
-  // Get result comment based on percentile
-  function getComment(percentile){
-    if(percentile <= 10) return '非常に高い水準です！';
-    if(percentile <= 20) return '高い水準です！';
-    if(percentile <= 40) return '平均より高い水準です';
-    if(percentile <= 60) return 'ちょうど平均的な水準です';
-    if(percentile <= 80) return '上を目指せる可能性があります';
-    return '給与アップの余地が大きいです';
+  function renderStars(count){
+    var html = '';
+    for(var i=0;i<5;i++){
+      html += i < count
+        ? '<span class="star-filled">&#9733;</span>'
+        : '<span class="star-empty">&#9733;</span>';
+    }
+    return html;
   }
 
   // Show result
@@ -851,64 +862,107 @@ footer .footer-links a:hover{color:var(--primary)}
 
     var p = wsData.percentiles;
     var userVal = answers.salary;
+    var count = wsData.count;
 
-    var userCompare;
+    // Calculate diff and percentile (for GA4)
+    var userCompare, diff, userSalaryText, medianText, youText, salaryTypeText, diffText;
+    var medianNum, youNum, minVal, maxVal;
     if(isPartTime){
       userCompare = userVal;
-    } else {
-      userCompare = userVal * 10;
-    }
-
-    // Determine percentile rank
-    var pKeys = ['p10','p20','p30','p40','p50','p60','p70','p80','p90'];
-    var pRanks = [100, 90, 80, 70, 60, 50, 40, 30, 20, 10];
-    var percentileRank = 100;
-    for(var i=0; i<pKeys.length; i++){
-      if(userCompare >= p[pKeys[i]]){
-        percentileRank = pRanks[i+1];
-      }
-    }
-    percentileRank = Math.min(percentileRank, 90);
-
-    var count = wsData.count;
-    var rank = Math.max(1, Math.round((percentileRank / 100) * count));
-
-    // Format
-    var userSalaryText, medianText, youText, salaryTypeText, medianNum, youNum, maxSalary;
-    if(isPartTime){
+      diff = userVal - wsData.median;
       userSalaryText = Number(userVal).toLocaleString() + '円';
       medianText = Number(wsData.median).toLocaleString() + '円';
       youText = Number(userVal).toLocaleString() + '円';
       salaryTypeText = '時給';
       medianNum = wsData.median;
       youNum = userVal;
-      maxSalary = wsData.max || 3000;
+      minVal = wsData.min || 1000;
+      maxVal = wsData.max || 3000;
+      if(diff >= 0){
+        diffText = '+' + Number(diff).toLocaleString() + '円';
+      } else {
+        diffText = Number(diff).toLocaleString() + '円';
+      }
     } else {
-      userSalaryText = userVal + '万円';
+      // userVal is in 万円, median is raw yen
+      var userYen = userVal * 10000;
+      diff = userYen - wsData.median;
+      userSalaryText = Number(userYen).toLocaleString() + '円';
       var medianMan = (wsData.median / 10000).toFixed(1);
       medianText = medianMan + '万円';
       youText = userVal + '万円';
       salaryTypeText = '月収';
-      medianNum = wsData.median / 10000;
-      youNum = userVal;
-      maxSalary = (wsData.max || 500000) / 10000;
+      medianNum = wsData.median;
+      youNum = userYen;
+      minVal = wsData.min || 150000;
+      maxVal = wsData.max || 500000;
+      if(diff >= 0){
+        diffText = '+' + Number(diff).toLocaleString() + '円';
+      } else {
+        diffText = Number(diff).toLocaleString() + '円';
+      }
     }
 
+    // Percentile for GA4 (keep logic)
+    var pKeys = ['p10','p20','p30','p40','p50','p60','p70','p80','p90'];
+    var pRanks = [100, 90, 80, 70, 60, 50, 40, 30, 20, 10];
+    var percentileRank = 100;
+    var userCompareP = isPartTime ? userVal : userVal * 10;
+    for(var i=0; i<pKeys.length; i++){
+      if(userCompareP >= p[pKeys[i]]){
+        percentileRank = pRanks[i+1];
+      }
+    }
+    percentileRank = Math.min(percentileRank, 90);
+    var rank = Math.max(1, Math.round((percentileRank / 100) * count));
+
+    // Star level judgment
+    var level = getStarLevel(diff, isPartTime);
+
+    // Set result display
     document.getElementById('resultSalaryType').textContent = salaryTypeText;
     document.getElementById('resultYourSalary').textContent = userSalaryText;
-    document.getElementById('resultAreaName').textContent = areaData.name;
-    document.getElementById('resultRank').textContent = count + '件中 ' + rank + '位';
+    document.getElementById('starRating').innerHTML = renderStars(level.stars);
+    document.getElementById('resultLevel').textContent = level.label;
+
+    // Diff display
+    var diffContainer = document.getElementById('resultDiff');
+    if(diff >= 0){
+      diffContainer.innerHTML = 'このエリアの相場より <span class="diff-amount positive" id="diffAmount">' + diffText + '</span> 高い';
+    } else {
+      diffContainer.innerHTML = 'このエリアの相場より <span class="diff-amount negative" id="diffAmount">' + Number(Math.abs(diff)).toLocaleString() + '円</span> 低い';
+    }
+
+    // Horizontal bar
+    var barRange = maxVal - minVal;
+    if(barRange <= 0) barRange = 1;
+    var medianPct = Math.max(5, Math.min(95, ((medianNum - minVal) / barRange) * 100));
+    var youPct = Math.max(5, Math.min(95, ((youNum - minVal) / barRange) * 100));
+    setTimeout(function(){
+      document.getElementById('hbarFill').style.width = youPct + '%';
+      document.getElementById('hbarMedian').style.left = medianPct + '%';
+      document.getElementById('hbarYou').style.left = youPct + '%';
+    }, 200);
+
+    // Comparison card
     document.getElementById('resultMedian').textContent = medianText;
     document.getElementById('resultYou').textContent = youText;
     document.getElementById('resultHigher').textContent = (count - rank) + '件';
-    document.getElementById('resultComment').textContent = getComment(percentileRank);
 
-    // Animate bar chart
+    // Animate bar chart in comparison card
     var barMax = Math.max(medianNum, youNum) * 1.2;
     setTimeout(function(){
       document.getElementById('barMedian').style.width = Math.round((medianNum / barMax) * 100) + '%';
       document.getElementById('barYou').style.width = Math.round((youNum / barMax) * 100) + '%';
     }, 200);
+
+    // CTA text based on level
+    var ctaTextEl = document.getElementById('ctaLineText');
+    if(level.isHigh){
+      ctaTextEl.textContent = 'この水準を活かせる求人を見る';
+    } else {
+      ctaTextEl.textContent = 'あなたの経験なら、もっと上を狙えるかも';
+    }
 
     // Sample jobs
     var jobsList = document.getElementById('jobsList');
@@ -950,13 +1004,7 @@ footer .footer-links a:hover{color:var(--primary)}
     document.getElementById('insufficientSection').classList.remove('active');
     window.scrollTo({top:0, behavior:'smooth'});
 
-    // Animate ring + count
-    setTimeout(function(){
-      animateRing(percentileRank);
-      animateCount(document.getElementById('resultPercentile'), percentileRank, '', 1000);
-    }, 300);
-
-    gaEvent('salary_check_result',{percentile:percentileRank, area:answers.area, workstyle:answers.workstyle});
+    gaEvent('salary_check_result',{percentile:percentileRank, area:answers.area, workstyle:answers.workstyle, stars:level.stars});
     if(typeof fbq==='function') fbq('track','Lead');
   }
 
@@ -982,9 +1030,8 @@ footer .footer-links a:hover{color:var(--primary)}
     // Reset bar charts
     document.getElementById('barMedian').style.width = '0%';
     document.getElementById('barYou').style.width = '0%';
-    // Reset ring
-    document.getElementById('ringFill').style.transition = 'none';
-    document.getElementById('ringFill').style.strokeDashoffset = '440';
+    // Reset horizontal bar
+    document.getElementById('hbarFill').style.width = '0%';
     showQuestion(1);
     window.scrollTo({top:0, behavior:'smooth'});
   }
@@ -1008,7 +1055,13 @@ footer .footer-links a:hover{color:var(--primary)}
   // Initial setup
   setupSlider();
   updateStepper();
+  updateStepper();
+
+  // Lucide icons init
+  if(window.lucide) lucide.createIcons();
+  else document.addEventListener('DOMContentLoaded', function(){ if(window.lucide) lucide.createIcons(); });
 })();
 </script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.lucide)lucide.createIcons()});</script>
 </body>
 </html>

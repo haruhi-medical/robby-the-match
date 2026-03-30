@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-29T06:01:00.566009",
+  "updated": "2026-03-30T17:25:29.140301",
   "posts": [
     {
       "id": 1,
@@ -2734,9 +2734,9 @@
       ],
       "cta_type": "hard",
       "content_type": "転職",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-30T17:22:22.488800",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2746,7 +2746,8 @@
         "comments": null
       },
       "quality_score": 8.28,
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_dir": "html_claude_転職_0305_10"
     },
     {
       "id": 153,
@@ -2794,8 +2795,8 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0325_01_20260330.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
