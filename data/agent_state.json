@@ -1,25 +1,25 @@
 {
   "lastRun": {
-    "seo_optimizer": "2026-03-30T04:00:01",
-    "health_monitor": "2026-03-28T08:30:19",
-    "competitor_analyst": "2026-03-28T10:00:10",
+    "seo_optimizer": "2026-03-30T04:00:23",
+    "health_monitor": "2026-03-30T08:30:17",
+    "competitor_analyst": "2026-03-30T10:00:01",
     "content_creator": "2026-03-28T15:00:47",
     "daily_reviewer": "2026-03-28T23:00:26",
     "weekly_strategist": "2026-03-29T06:01:02",
     "sns_poster": "2026-03-28T20:59:21",
-    "ai_marketing_orchestrator": "2026-03-28T06:00:02",
+    "ai_marketing_orchestrator": "2026-03-30T06:00:02",
     "weekly_content_planner": "2026-03-29T05:00:02"
   },
   "status": {
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "daily_reviewer": "completed",
     "weekly_strategist": "completed",
     "sns_poster": "completed",
     "ai_marketing_orchestrator": "completed",
-    "weekly_content_planner": "failed"
+    "weekly_content_planner": "pending"
   },
   "pendingTasks": {
     "content_creator": [
@@ -27,15 +27,8 @@
         "from": "health_monitor",
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-03-27T07:00:17.756087",
-        "status": "processing"
-      },
-      {
-        "from": "health_monitor",
-        "type": "emergency_generate",
-        "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-03-28T07:00:18.413961",
-        "status": "processing"
+        "created": "2026-03-30T07:00:17.044798",
+        "status": "pending"
       }
     ]
   },
@@ -57,8 +50,8 @@
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
     ],
     "queueRemaining": 0,
-    "lastMarketingPDCA": "2026-03-28 06:00:00",
-    "queuePending": 12,
+    "lastMarketingPDCA": "2026-03-30 06:00:00",
+    "queuePending": 8,
     "dailyGeneratedCount": 0,
     "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
     "lastWeeklyContentRun": "2026-03-01"
