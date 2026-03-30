@@ -614,6 +614,7 @@ footer .footer-links a:hover{color:var(--primary)}
         <span>1分で登録</span>
         <span>いつでもブロックOK</span>
       </div>
+      <div id="handoffCode" style="text-align:center;padding:12px;margin-top:12px;background:#f0f8ff;border-radius:8px;font-size:0.95em;color:#333;display:none;"></div>
     </div>
 
     <div style="text-align:center">
@@ -1006,6 +1007,52 @@ footer .footer-links a:hover{color:var(--primary)}
 
     gaEvent('salary_check_result',{percentile:percentileRank, area:answers.area, workstyle:answers.workstyle, stars:level.stars});
     if(typeof fbq==='function') fbq('track','Lead');
+
+    // Generate handoff code
+    var codeEl = document.getElementById('handoffCode');
+    codeEl.style.display = 'block';
+    codeEl.innerHTML = '引き継ぎコード生成中...';
+    fetch('https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/web-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        area: answers.area,
+        workstyle: answers.workstyle,
+        concern: 'salary',
+        timing: 'info'
+      })
+    }).then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.code && codeEl) {
+        var code = data.code;
+        codeEl.innerHTML = '<div style="margin-bottom:6px;font-size:0.85em;color:#666;">LINE登録後、このコードを送ってください</div>' +
+          '<button id="copy-code-btn" style="display:inline-flex;align-items:center;gap:8px;background:#1a7f64;color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:1.1em;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.2s;">' +
+          code + ' <span style="font-size:0.75em;font-weight:400;">タップでコピー</span></button>' +
+          '<div id="copy-feedback" style="font-size:0.8em;color:#1a7f64;margin-top:6px;min-height:1.2em;"></div>';
+        var btn = document.getElementById('copy-code-btn');
+        if (btn) {
+          btn.addEventListener('click', function() {
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(code).then(function() {
+                document.getElementById('copy-feedback').textContent = 'コピーしました！LINEに貼り付けてください';
+              });
+            } else {
+              var ta = document.createElement('textarea');
+              ta.value = code;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              document.getElementById('copy-feedback').textContent = 'コピーしました！LINEに貼り付けてください';
+            }
+          });
+        }
+      }
+    }).catch(function() {
+      if (codeEl) { codeEl.style.display = 'none'; codeEl.innerHTML = ''; }
+    });
   }
 
   function showInsufficient(){
@@ -1032,6 +1079,9 @@ footer .footer-links a:hover{color:var(--primary)}
     document.getElementById('barYou').style.width = '0%';
     // Reset horizontal bar
     document.getElementById('hbarFill').style.width = '0%';
+    // Reset handoff code
+    var hc = document.getElementById('handoffCode');
+    if(hc){ hc.style.display = 'none'; hc.innerHTML = ''; }
     showQuestion(1);
     window.scrollTo({top:0, behavior:'smooth'});
   }

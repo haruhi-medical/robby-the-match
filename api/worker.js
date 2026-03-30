@@ -3682,16 +3682,35 @@ function handleFreeTextInput(text, entry) {
   // apply_info: 個人情報入力サブステップ
   if (phase === "apply_info") {
     if (!entry.applyStep || entry.applyStep === "name") {
+      // バリデーション: 2文字以上
+      if (text.trim().length < 2) {
+        return { type: "text", text: "お名前は2文字以上でご入力ください🙏\n例: 山田 花子" };
+      }
       entry.fullName = text;
       entry.applyStep = "birth";
       entry.unexpectedTextCount = 0;
       return "apply_info_birth";
     } else if (entry.applyStep === "birth") {
+      // バリデーション: 日付パターン（YYYY年MM月DD日, YYYY/MM/DD, YYYY-MM-DD, YYYYMMDD）
+      const birthPatterns = [
+        /^\d{4}年\d{1,2}月\d{1,2}日$/,
+        /^\d{4}\/\d{1,2}\/\d{1,2}$/,
+        /^\d{4}-\d{1,2}-\d{1,2}$/,
+        /^\d{8}$/,
+      ];
+      if (!birthPatterns.some(p => p.test(text.trim()))) {
+        return { type: "text", text: "生年月日の形式が正しくないようです🙏\n以下のいずれかの形式でご入力ください:\n\n・1995年6月15日\n・1995/06/15\n・1995-06-15\n・19950615" };
+      }
       entry.birthDate = text;
       entry.applyStep = "phone";
       entry.unexpectedTextCount = 0;
       return "apply_info_phone";
     } else if (entry.applyStep === "phone") {
+      // バリデーション: ハイフン除去後10桁以上
+      const digitsOnly = text.replace(/[-ー−‐]/g, "");
+      if (!/^\d{10,}$/.test(digitsOnly)) {
+        return { type: "text", text: "電話番号は10桁以上の数字でご入力ください🙏\n例: 090-1234-5678 または 09012345678" };
+      }
       entry.phone = text;
       entry.applyStep = "workplace";
       entry.unexpectedTextCount = 0;
@@ -3841,11 +3860,18 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }).catch(() => {});
       }
 
-      // --- followイベント（友だち追加） ---
+      // --- followイベント（友だち追加 / 再フォロー） ---
       if (event.type === "follow") {
-        const entry = createLineEntry();
-        entry.phase = "welcome";
-        entry.updatedAt = Date.now();
+        // 再フォロー: 既存データがあれば保持し、phaseだけリセット
+        let entry = await getLineEntryAsync(userId, env);
+        if (entry) {
+          entry.phase = "welcome";
+          entry.updatedAt = Date.now();
+        } else {
+          entry = createLineEntry();
+          entry.phase = "welcome";
+          entry.updatedAt = Date.now();
+        }
         await saveLineEntry(userId, entry, env);
 
         const msgs = [{
@@ -4191,6 +4217,14 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         const nextPhase = handleFreeTextInput(userText, entry);
 
         let replyMessages = null;
+
+        // バリデーションエラー: handleFreeTextInputがメッセージオブジェクトを返した場合
+        // phaseを変更せず、エラーメッセージをそのまま返す
+        if (nextPhase && typeof nextPhase === "object" && nextPhase.type === "text") {
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, [nextPhase], channelAccessToken);
+          continue;
+        }
 
         // handoff中: Bot完全沈黙 → Slackに転送のみ（フォールバック）
         if (nextPhase === "handoff_silent") {
