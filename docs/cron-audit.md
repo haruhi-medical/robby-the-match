@@ -15,8 +15,8 @@
 | 08:00 | 毎日 | meta_ads_report.py | Monitor | meta_ads_report.py | ✅ |
 | 08:05 | 毎日 | ga4_report.py | Monitor | ga4_report.py | ✅ |
 | 10:00 | 月-土 | pdca_competitor.sh | Monitor | — (claude CLI) | ✅ |
-| 12:00 | 月-土 | instagram_engage.py | Generator | instagram_engage.py | 🔴 BAN済み |
-| 12,17,18,20,21 | 月-土 | pdca_sns_post.sh | Generator | auto_post.py | ⚠️ 重複あり |
+| 12:00 | 月-土 | instagram_engage.py | Generator | instagram_engage.py | ✅ 15いいね/日 |
+| 12,17,18,20,21 | 月-土 | pdca_sns_post.sh | Generator | auto_post.py | ✅ IG2投稿/日 + TT🔴失敗 |
 | 15:00 | 月-土 | pdca_content.sh | Generator | — (claude CLI) | ⚠️ 重複疑い |
 | 16:00 | 月-土 | pdca_quality_gate.sh | **Evaluator** | quality_checker.py | ✅ |
 | 19:00 | 月-土 | post_preview.py | Evaluator | post_preview.py | ✅ |
@@ -55,8 +55,8 @@
 
 ## 問題点
 
-### 🔴 即削除
-1. **instagram_engage.py** (12:00) — instagrapiがBAN済み。実行しても失敗するだけ
+### ✅ 当初BAN判定→実際は動作中
+1. **instagram_engage.py** (12:00) — Chromeセッションcookie経由で動作中（15いいね/日）
 
 ### ⚠️ 重複・統合候補
 2. **pdca_content.sh** (15:00) vs **pdca_ai_marketing.sh** (06:00)
