@@ -874,6 +874,11 @@ ${MARKET_DATA}
 }
 
 export default {
+  // ===== Cron Trigger: ナーチャリング配信 + ハンドオフBot補助 =====
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleScheduledNurture(env));
+  },
+
   async fetch(request, env, ctx) {
     // CORS プリフライト
     if (request.method === "OPTIONS") {
@@ -2787,6 +2792,9 @@ function createLineEntry() {
     interestedFacility: null,
     browsedJobIds: [],          // matching_browse用: 表示済み求人名リスト
     nurtureSubscribed: false,   // nurture_warm: 新着通知購読フラグ
+    nurtureEnteredAt: null,     // nurture_warm: 入った日時
+    nurtureSentCount: 0,        // nurture_warm: 送信済みメッセージ数
+    handoffAt: null,            // handoff: 引継ぎ日時
     // 同意・相談
     consentAt: null,
     consultMessages: [],
@@ -3308,6 +3316,18 @@ function buildPhaseMessage(phase, entry) {
             qrItem("大丈夫です", "nurture=no"),
           ],
         },
+      }];
+
+    case "faq_free":
+      return [{
+        type: "text",
+        text: "はい、求職者の方は完全無料です。\n費用は採用する病院側が負担します。\n\n有料職業紹介事業の許可番号:\n23-ユ-302928",
+      }];
+
+    case "faq_no_phone":
+      return [{
+        type: "text",
+        text: "一切ありません。\n連絡はすべてLINEです。\n\nあなたのペースで\n転職活動できます。",
       }];
 
     case "resume_confirm":
@@ -3914,6 +3934,16 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "nurture_stay";
     }
   }
+  // FAQ（ハンドオフ後のQuick Reply用）
+  else if (params.has("faq")) {
+    const val = params.get("faq");
+    entry.unexpectedTextCount = 0;
+    if (val === "free") {
+      nextPhase = "faq_free";
+    } else if (val === "no_phone") {
+      nextPhase = "faq_no_phone";
+    }
+  }
   // Q1
   else if (params.has("q1")) {
     entry.urgency = params.get("q1");
@@ -4483,7 +4513,24 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // ===== nurture_warm =====
         else if (nextPhase === "nurture_warm") {
           entry.phase = "nurture_warm";
+          entry.nurtureEnteredAt = entry.nurtureEnteredAt || Date.now();
+          entry.nurtureSentCount = entry.nurtureSentCount || 0;
           replyMessages = buildPhaseMessage("nurture_warm", entry);
+          // KVにナーチャリングインデックス登録（Cron Triggerでスキャン用）
+          if (env?.LINE_SESSIONS) {
+            const nurtureData = JSON.stringify({
+              userId,
+              area: entry.area || null,
+              areaLabel: entry.areaLabel || null,
+              workStyle: entry.workStyle || null,
+              urgency: entry.urgency || null,
+              nurtureSubscribed: entry.nurtureSubscribed || false,
+              enteredAt: entry.nurtureEnteredAt,
+              sentCount: entry.nurtureSentCount,
+              lastSentAt: null,
+            });
+            env.LINE_SESSIONS.put(`nurture:${userId}`, nurtureData, { expirationTtl: 2592000 }).catch(() => {}); // 30日TTL
+          }
         }
         // ===== nurture_subscribed =====
         else if (nextPhase === "nurture_subscribed") {
@@ -4500,6 +4547,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             type: "text",
             text: "わかりました！\nいつでも気軽にメッセージくださいね。",
           }];
+        }
+        // ===== FAQ回答 =====
+        else if (nextPhase === "faq_free" || nextPhase === "faq_no_phone") {
+          // phaseは変えない（handoff中はhandoffのまま）
+          replyMessages = buildPhaseMessage(nextPhase, entry);
         }
         else if (nextPhase === "resume_confirm" && !entry.workHistoryText) {
           // 経歴スキップ → 経歴書生成を飛ばしてマッチングへ直行
@@ -4656,8 +4708,28 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.phase = "interview_prep";
           replyMessages = buildPhaseMessage("interview_prep", entry);
         } else if (nextPhase === "handoff") {
-          replyMessages = buildPhaseMessage("handoff", entry);
+          entry.handoffAt = Date.now();
+          replyMessages = [
+            { type: "text", text: "担当者に引き継ぎました。\nお返事まで少しお待ちくださいね。\n\nその間に、気になることがあればいつでもメッセージくださいね。" },
+            { type: "text", text: "よくある質問もまとめてあります👇",
+              quickReply: {
+                items: [
+                  qrItem("本当に無料？", "faq=free"),
+                  qrItem("電話は来ない？", "faq=no_phone"),
+                  qrItem("他の求人も見たい", "matching_preview=more"),
+                ],
+              },
+            },
+          ];
           await sendHandoffNotification(userId, entry, env);
+          // KVにハンドオフインデックス登録（Cron Triggerでフォロー用）
+          if (env?.LINE_SESSIONS) {
+            env.LINE_SESSIONS.put(`handoff:${userId}`, JSON.stringify({
+              userId,
+              handoffAt: entry.handoffAt,
+              followUpSent: false,
+            }), { expirationTtl: 604800 }).catch(() => {}); // 7日TTL
+          }
         } else if (nextPhase === "resume_edit") {
           replyMessages = [{
             type: "text",
@@ -5390,6 +5462,149 @@ async function handleGetAnalytics(request, env) {
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
   }
+}
+
+// ========== Cron Trigger: ナーチャリング配信 + ハンドオフBot補助 ==========
+async function handleScheduledNurture(env) {
+  if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN) {
+    console.log("[Cron] LINE_SESSIONS or LINE_CHANNEL_ACCESS_TOKEN not available, skipping");
+    return;
+  }
+
+  const token = env.LINE_CHANNEL_ACCESS_TOKEN;
+  const now = Date.now();
+  let nurtureCount = 0;
+  let handoffCount = 0;
+
+  // ----- ナーチャリング配信 -----
+  try {
+    const nurtureList = await env.LINE_SESSIONS.list({ prefix: "nurture:" });
+    for (const key of nurtureList.keys) {
+      try {
+        const raw = await env.LINE_SESSIONS.get(key.name);
+        if (!raw) continue;
+        const data = JSON.parse(raw);
+        const userId = data.userId;
+        if (!userId) continue;
+
+        const daysSinceEntry = Math.floor((now - data.enteredAt) / 86400000);
+        const sentCount = data.sentCount || 0;
+
+        // 配信スケジュール: Day3, Day7, Day14 （月3回まで）
+        let shouldSend = false;
+        let messageText = "";
+
+        if (sentCount === 0 && daysSinceEntry >= 3) {
+          // Day 3: エリア新着情報
+          const areaLabel = data.areaLabel || "神奈川県";
+          messageText = `${areaLabel}エリアの\n看護師求人に動きがありました。\n\nよかったら見てみませんか？`;
+          shouldSend = true;
+        } else if (sentCount === 1 && daysSinceEntry >= 7) {
+          // Day 7: 転職ガイド情報
+          messageText = "看護師の転職で\n一番大事なのは「タイミング」。\n\n年度替わりは求人が増える時期です。\n気になる求人だけでも\nチェックしておきませんか？";
+          shouldSend = true;
+        } else if (sentCount === 2 && daysSinceEntry >= 14) {
+          // Day 14: チェックイン
+          messageText = "お久しぶりです！\n神奈川ナース転職です。\n\n転職のこと、\nまだ気になっていますか？\nいつでもお手伝いできますよ。";
+          shouldSend = true;
+        } else if (sentCount >= 3 && daysSinceEntry >= 30) {
+          // Day 30+: nurture_coldに移行（KVキー削除）
+          await env.LINE_SESSIONS.delete(key.name);
+          continue;
+        }
+
+        if (shouldSend && data.nurtureSubscribed !== false) {
+          const qr = sentCount < 2 ? {
+            type: "text",
+            text: messageText,
+            quickReply: {
+              items: [
+                { type: "action", action: { type: "postback", label: "求人を見てみる", data: "welcome=see_jobs", displayText: "求人を見てみる" } },
+                { type: "action", action: { type: "postback", label: "まだいいかな", data: "nurture=no", displayText: "まだいいかな" } },
+              ],
+            },
+          } : {
+            type: "text",
+            text: messageText,
+          };
+
+          const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({ to: userId, messages: [qr] }),
+          });
+
+          if (pushRes.ok) {
+            data.sentCount = sentCount + 1;
+            data.lastSentAt = now;
+            await env.LINE_SESSIONS.put(key.name, JSON.stringify(data), { expirationTtl: 2592000 });
+            nurtureCount++;
+          } else {
+            console.error(`[Cron] Nurture push failed for ${userId.slice(0, 8)}: ${pushRes.status}`);
+          }
+        }
+      } catch (e) {
+        console.error(`[Cron] Nurture error for ${key.name}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    console.error(`[Cron] Nurture list error: ${e.message}`);
+  }
+
+  // ----- ハンドオフBot補助（2時間後フォローアップ） -----
+  try {
+    const handoffList = await env.LINE_SESSIONS.list({ prefix: "handoff:" });
+    for (const key of handoffList.keys) {
+      try {
+        const raw = await env.LINE_SESSIONS.get(key.name);
+        if (!raw) continue;
+        const data = JSON.parse(raw);
+        const userId = data.userId;
+        if (!userId || data.followUpSent) continue;
+
+        const hoursSinceHandoff = (now - data.handoffAt) / 3600000;
+
+        if (hoursSinceHandoff >= 2 && !data.followUpSent) {
+          // 2時間後: フォローアップメッセージ
+          const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({
+              to: userId,
+              messages: [{
+                type: "text",
+                text: "担当者に再度連絡しました。\nもう少々お待ちくださいね。\n\n何か気になることがあれば\nいつでもメッセージください。",
+              }],
+            }),
+          });
+
+          if (pushRes.ok) {
+            data.followUpSent = true;
+            await env.LINE_SESSIONS.put(key.name, JSON.stringify(data), { expirationTtl: 604800 });
+            handoffCount++;
+
+            // Slack再通知
+            if (env.SLACK_BOT_TOKEN) {
+              fetch("https://slack.com/api/chat.postMessage", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({
+                  channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                  text: `⏰ *ハンドオフ2時間経過 — 未対応*\nユーザー: \`${userId.slice(0, 8)}...\`\n引継ぎ時刻: ${new Date(data.handoffAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}\n\n💬 返信: \`!reply ${userId} メッセージ\``,
+                }),
+              }).catch(() => {});
+            }
+          }
+        }
+      } catch (e) {
+        console.error(`[Cron] Handoff error for ${key.name}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    console.error(`[Cron] Handoff list error: ${e.message}`);
+  }
+
+  console.log(`[Cron] Completed: nurture=${nurtureCount}, handoff=${handoffCount}`);
 }
 
 // JSON レスポンス生成

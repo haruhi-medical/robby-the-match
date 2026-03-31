@@ -21,6 +21,10 @@ id = "c523fb0833e2482cbfc58eef8824c7b0"
 # wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
 # wrangler secret put ALLOWED_ORIGIN
 
+# ナーチャリング・ハンドオフBot補助用 Cron Trigger（毎日10:00 JST = 01:00 UTC）
+[triggers]
+crons = ["0 1 * * *"]
+
 [vars]
 # 非機密の環境変数はここに記載可能
 # ALLOWED_ORIGIN = "https://your-domain.com"
