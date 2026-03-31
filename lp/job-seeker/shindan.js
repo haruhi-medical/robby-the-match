@@ -523,7 +523,7 @@
 
     r.appendChild(cta);
 
-    /* 引き継ぎコード生成 → oaMessage URLで自動引き継ぎ */
+    /* 引き継ぎコード生成 → 友だち追加URL+dm_textで自動引き継ぎ */
     fetch('https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/web-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -539,9 +539,8 @@
     }).then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.code) {
-        // CTAのリンクをoaMessage URL（コード事前入力）に書き換え
-        var oaURL = 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?text=' + encodeURIComponent(data.code);
-        cta.setAttribute('href', oaURL);
+        var dmURL = 'https://line.me/R/ti/p/' + LINE_OA_ID + '?dm_text=' + encodeURIComponent(data.code);
+        cta.setAttribute('href', dmURL);
       }
     }).catch(function() {
       // API失敗時はfallback（通常のlin.ee URL）のまま

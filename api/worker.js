@@ -3392,7 +3392,7 @@ async function sendHandoffNotification(userId, entry, env) {
   let matchingText = "（未実施）";
   if (entry.matchingResults?.length > 0) {
     matchingText = entry.matchingResults.slice(0, 5).map(r =>
-      `${r.matchScore}pt: ${r.name}（${r.salary} / ${r.access || ""}）`
+      `${r.adjustedScore || r.s || "?"}pt: ${r.n || r.name || "不明"}（${r.sal || r.salary || ""} / ${r.sta || r.access || ""}）`
     ).join("\n");
   }
 
@@ -3957,7 +3957,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             const changeLabel = POSTBACK_LABELS[`q2_${entry.change}`] || "不明";
             const urgLabel = POSTBACK_LABELS[`q1_${entry.urgency}`] || "不明";
             const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
-              `  ${r.matchScore}pt: ${r.name}（${r.salary || ""}）`
+              `  ${r.adjustedScore || r.s || "?"}pt: ${r.n || r.name || "不明"}（${r.sal || r.salary || ""}）`
             ).join("\n") || "（なし）";
             fetch("https://slack.com/api/chat.postMessage", {
               method: "POST",
@@ -3983,7 +3983,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             const changeLabel = POSTBACK_LABELS[`q2_${entry.change}`] || "不明";
             const urgLabel = POSTBACK_LABELS[`q1_${entry.urgency}`] || "不明";
             const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
-              `  ${r.matchScore}pt: ${r.name}（${r.salary || ""}）`
+              `  ${r.adjustedScore || r.s || "?"}pt: ${r.n || r.name || "不明"}（${r.sal || r.salary || ""}）`
             ).join("\n") || "（なし）";
             fetch("https://slack.com/api/chat.postMessage", {
               method: "POST",

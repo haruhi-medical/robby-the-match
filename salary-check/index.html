@@ -1023,10 +1023,10 @@ footer .footer-links a:hover{color:var(--primary)}
     }).then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.code) {
-        // LINE CTAのリンクをoaMessage URL（コード事前入力）に書き換え
-        var oaURL = 'https://line.me/R/oaMessage/@174cxnev/?text=' + encodeURIComponent(data.code);
+        // LINE CTAのリンクを友だち追加URL+dm_textに書き換え
+        var dmURL = 'https://line.me/R/ti/p/@174cxnev?dm_text=' + encodeURIComponent(data.code);
         var ctaLine = document.getElementById('ctaLine');
-        if (ctaLine) ctaLine.setAttribute('href', oaURL);
+        if (ctaLine) ctaLine.setAttribute('href', dmURL);
       }
     }).catch(function() {
       // API失敗時は通常のlin.ee URLのまま（フォールバック）
