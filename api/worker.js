@@ -2325,6 +2325,22 @@ const PHASE_FLOW_SHORT = {
   handoff:          null,
 };
 
+const PHASE_FLOW_LIGHT = {
+  il_area:           "il_workstyle",
+  il_workstyle:      "il_urgency",
+  il_urgency:        "matching_preview",
+  matching_preview:  "matching_browse",
+  matching_browse:   "matching",
+  matching:          "ai_consultation",
+  ai_consultation:   "apply_info",
+  apply_info:        "apply_consent",
+  apply_consent:     "career_sheet",
+  career_sheet:      "apply_confirm",
+  apply_confirm:     "interview_prep",
+  interview_prep:    "handoff",
+  handoff:           null,
+};
+
 // 後方互換: PHASE_FLOW はデフォルトのフルフロー
 const PHASE_FLOW = PHASE_FLOW_FULL;
 
@@ -2439,6 +2455,24 @@ const AREA_ZONE_MAP = {
   q3_odawara_seisho:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
   q3_sagamihara_kenoh:   ["相模原", "厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
   q3_yokosuka_miura_web: ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
+  // intake_light用（il_area postback → AREA_ZONE_MAPで展開）
+  q3_yokohama_kawasaki_il:  ["横浜", "川崎"],
+  q3_shonan_kamakura_il:    ["藤沢", "茅ヶ崎", "鎌倉", "寒川", "逗子", "葉山"],
+  q3_sagamihara_kenoh_il:   ["相模原", "厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
+  q3_yokosuka_miura_il:     ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
+  q3_odawara_kensei_il:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
+  q3_tokyo_included_il:     ["横浜", "川崎"],  // 東京は対象外だが横浜・川崎をカバー
+  q3_undecided_il:          [],
+};
+
+const IL_AREA_LABELS = {
+  yokohama_kawasaki: "横浜・川崎",
+  shonan_kamakura: "湘南・鎌倉",
+  sagamihara_kenoh: "相模原・県央",
+  yokosuka_miura: "横須賀・三浦",
+  odawara_kensei: "小田原・県西",
+  tokyo_included: "東京含む",
+  undecided: "未定",
 };
 
 // PC用テキスト→postbackキーマッピング
@@ -2751,6 +2785,8 @@ function createLineEntry() {
     resumeDraft: null,
     matchingResults: null,
     interestedFacility: null,
+    browsedJobIds: [],          // matching_browse用: 表示済み求人名リスト
+    nurtureSubscribed: false,   // nurture_warm: 新着通知購読フラグ
     // 同意・相談
     consentAt: null,
     consultMessages: [],
@@ -3123,6 +3159,153 @@ function buildPhaseMessage(phase, entry) {
             qrItem("認定看護師", "q10=cn"),
             qrItem("専門看護師", "q10=cns"),
             qrItem("理学療法士", "q10=pt"),
+          ],
+        },
+      }];
+
+    // ===== intake_light フロー =====
+    case "il_area":
+      return [{
+        type: "text",
+        text: "どのエリアで働きたいですか？",
+        quickReply: {
+          items: [
+            qrItem("横浜・川崎", "il_area=yokohama_kawasaki"),
+            qrItem("湘南・鎌倉", "il_area=shonan_kamakura"),
+            qrItem("相模原・県央", "il_area=sagamihara_kenoh"),
+            qrItem("横須賀・三浦", "il_area=yokosuka_miura"),
+            qrItem("小田原・県西", "il_area=odawara_kensei"),
+            qrItem("東京も含めて検討", "il_area=tokyo_included"),
+            qrItem("まだ決めてない", "il_area=undecided"),
+          ],
+        },
+      }];
+
+    case "il_workstyle": {
+      const areaLabel = entry.areaLabel || entry.area || "";
+      return [{
+        type: "text",
+        text: `${areaLabel}ですね！\n\n希望の働き方は？`,
+        quickReply: {
+          items: [
+            qrItem("日勤のみ", "il_ws=day"),
+            qrItem("夜勤ありOK", "il_ws=twoshift"),
+            qrItem("パート・非常勤", "il_ws=part"),
+            qrItem("夜勤専従", "il_ws=night"),
+          ],
+        },
+      }];
+    }
+
+    case "il_urgency":
+      return [{
+        type: "text",
+        text: "最後に、転職の温度感を教えてください。",
+        quickReply: {
+          items: [
+            qrItem("すぐにでも転職したい", "il_urg=urgent"),
+            qrItem("いい求人があれば", "il_urg=good"),
+            qrItem("まずは情報収集", "il_urg=info"),
+          ],
+        },
+      }];
+
+    case "matching_preview": {
+      if (!entry.matchingResults || entry.matchingResults.length === 0) {
+        return [{
+          type: "text",
+          text: "お伝えいただいた条件だと、今はぴったりの求人が見つかりませんでした。\n条件を少し広げてみませんか？",
+          quickReply: {
+            items: [
+              qrItem("条件を変えて探す", "matching_preview=deep"),
+              qrItem("新着を待つ", "matching_preview=later"),
+            ],
+          },
+        }];
+      }
+
+      const previewResults = entry.matchingResults.slice(0, 3);
+      const previewAreaLabel = entry.areaLabel || "お選びのエリア";
+      const wsLabels = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
+      const wsLabel = wsLabels[entry.workStyle] || "";
+
+      let previewText = `${previewAreaLabel} × ${wsLabel} で${previewResults.length}件見つかりました！\n\n`;
+      previewResults.forEach((r, i) => {
+        previewText += `━━━━━━━━━━\n`;
+        previewText += `${i + 1}. ${r.n || r.name || "求人"}\n`;
+        previewText += `💰 ${r.sal || r.salary || ""}\n`;
+        if (r.hol) previewText += `🗓 年間休日${r.hol}日\n`;
+        if (r.loc) previewText += `📍 ${r.loc}\n`;
+        previewText += `\n`;
+      });
+      previewText += `気になる求人はありますか？`;
+
+      return [{
+        type: "text",
+        text: previewText,
+        quickReply: {
+          items: [
+            qrItem("もっと詳しく条件を教える", "matching_preview=deep"),
+            qrItem("他の求人も見たい", "matching_preview=more"),
+            qrItem("この中で気になる", "matching_preview=detail"),
+            qrItem("まだ早いかも", "matching_preview=later"),
+          ],
+        },
+      }];
+    }
+
+    case "matching_browse": {
+      if (!entry.matchingResults || entry.matchingResults.length === 0) {
+        return [{
+          type: "text",
+          text: "今ある求人は全てお見せしました。\n条件を変えて探すか、新着が出たらお知らせしますね。",
+          quickReply: {
+            items: [
+              qrItem("条件を変えて探す", "matching_browse=change"),
+              qrItem("新着を待つ", "matching_browse=done"),
+            ],
+          },
+        }];
+      }
+
+      const browseResults = entry.matchingResults.slice(0, 3);
+      const browseAreaLabel = entry.areaLabel || "お選びのエリア";
+      const browseWsLabels = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
+      const browseWsLabel = browseWsLabels[entry.workStyle] || "";
+
+      let browseText = `${browseAreaLabel} × ${browseWsLabel} で他にもこんな求人があります！\n\n`;
+      browseResults.forEach((r, i) => {
+        browseText += `━━━━━━━━━━\n`;
+        browseText += `${i + 1}. ${r.n || r.name || "求人"}\n`;
+        browseText += `💰 ${r.sal || r.salary || ""}\n`;
+        if (r.hol) browseText += `🗓 年間休日${r.hol}日\n`;
+        if (r.loc) browseText += `📍 ${r.loc}\n`;
+        browseText += `\n`;
+      });
+      browseText += `気になる求人はありますか？`;
+
+      return [{
+        type: "text",
+        text: browseText,
+        quickReply: {
+          items: [
+            qrItem("もっと見る", "matching_browse=more"),
+            qrItem("条件を変えて探す", "matching_browse=change"),
+            qrItem("気になるのがある", "matching_browse=detail"),
+            qrItem("今日はここまで", "matching_browse=done"),
+          ],
+        },
+      }];
+    }
+
+    case "nurture_warm":
+      return [{
+        type: "text",
+        text: "了解です！\n必要な時にいつでも話しかけてくださいね。\n\n新着求人が出たらお知らせすることもできます。",
+        quickReply: {
+          items: [
+            qrItem("新着をお知らせして", "nurture=subscribe"),
+            qrItem("大丈夫です", "nurture=no"),
           ],
         },
       }];
@@ -3672,8 +3855,67 @@ function handleLinePostback(dataStr, entry) {
   const params = new URLSearchParams(dataStr);
   let nextPhase = null;
 
+  // intake_light: エリア
+  if (params.has("il_area")) {
+    const val = params.get("il_area");
+    entry.area = val + "_il"; // AREA_ZONE_MAPでq3_{val}_ilとして展開
+    entry.areaLabel = IL_AREA_LABELS[val] || val;
+    entry.unexpectedTextCount = 0;
+    nextPhase = "il_workstyle";
+  }
+  // intake_light: 働き方
+  else if (params.has("il_ws")) {
+    entry.workStyle = params.get("il_ws");
+    entry.unexpectedTextCount = 0;
+    nextPhase = "il_urgency";
+  }
+  // intake_light: 温度感
+  else if (params.has("il_urg")) {
+    entry.urgency = params.get("il_urg");
+    entry.unexpectedTextCount = 0;
+    nextPhase = "matching_preview";
+  }
+  // matching_preview選択
+  else if (params.has("matching_preview")) {
+    const val = params.get("matching_preview");
+    entry.unexpectedTextCount = 0;
+    if (val === "more") {
+      nextPhase = "matching_browse";
+    } else if (val === "detail") {
+      nextPhase = "matching"; // 既存の詳細マッチングフロー
+    } else if (val === "deep") {
+      nextPhase = "q2_change"; // 詳細ヒアリングフローQ2から開始
+    } else if (val === "later") {
+      nextPhase = "nurture_warm";
+    }
+  }
+  // matching_browse選択
+  else if (params.has("matching_browse")) {
+    const val = params.get("matching_browse");
+    entry.unexpectedTextCount = 0;
+    if (val === "more") {
+      nextPhase = "matching_browse"; // 次の3件
+    } else if (val === "change") {
+      nextPhase = "il_area"; // intake_lightやり直し
+    } else if (val === "detail") {
+      nextPhase = "matching"; // 既存詳細フロー
+    } else if (val === "done") {
+      nextPhase = "nurture_warm";
+    }
+  }
+  // nurture選択
+  else if (params.has("nurture")) {
+    const val = params.get("nurture");
+    entry.unexpectedTextCount = 0;
+    if (val === "subscribe") {
+      entry.nurtureSubscribed = true;
+      nextPhase = "nurture_subscribed";
+    } else if (val === "no") {
+      nextPhase = "nurture_stay";
+    }
+  }
   // Q1
-  if (params.has("q1")) {
+  else if (params.has("q1")) {
     entry.urgency = params.get("q1");
     entry.unexpectedTextCount = 0;
     nextPhase = getFlowForEntry(entry).q1_urgency;  // urgency設定後に呼ぶ
@@ -3791,8 +4033,23 @@ function handleLinePostback(dataStr, entry) {
   else if (params.has("welcome")) {
     const val = params.get("welcome");
     entry.unexpectedTextCount = 0;
-    if (val === "start") {
-      nextPhase = "q1_urgency";
+    if (val === "see_jobs") {
+      nextPhase = "il_area"; // intake_light開始
+    } else if (val === "check_salary") {
+      nextPhase = "ai_consultation_waiting"; // 年収相談
+    } else if (val === "consult") {
+      nextPhase = "ai_consultation_waiting"; // 一般相談
+    } else if (val === "browse") {
+      nextPhase = "nurture_warm"; // 低温度
+    } else if (val === "start") {
+      nextPhase = "il_area"; // 後方互換: 新フローにリダイレクト
+    } else if (val === "start_with_session") {
+      // 診断引き継ぎ: area+workStyle+urgencyが揃っていれば即matching_preview
+      if (entry.area && entry.workStyle && entry.urgency) {
+        nextPhase = "matching_preview";
+      } else {
+        nextPhase = "il_area";
+      }
     }
   }
   // 同意取得
@@ -4003,6 +4260,13 @@ function handleFreeTextInput(text, entry) {
     return null;
   }
 
+  // intake_light / matching_preview / matching_browse / nurture_warm中の自由テキスト → Quick Reply再表示
+  if (phase === "il_area" || phase === "il_workstyle" || phase === "il_urgency" ||
+      phase === "matching_preview" || phase === "matching_browse" || phase === "nurture_warm") {
+    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+    return null;
+  }
+
   // PC対応: テキストからpostbackデータを推定（フェーズ対応版）
   // ※ Q9/resume_edit/resume_confirm/handoff/matchingは上で処理済み
   // 現在のフェーズに対応するキーワードのみマッチさせる（誤ジャンプ防止）
@@ -4174,7 +4438,70 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // フェーズに応じたメッセージ送信
         let replyMessages = null;
 
-        if (nextPhase === "resume_confirm" && !entry.workHistoryText) {
+        // ===== intake_light → matching_preview =====
+        if (nextPhase === "matching_preview") {
+          // Generate matching if not already done
+          if (!entry.matchingResults) {
+            generateLineMatching(entry);
+          }
+          entry.phase = "matching_preview";
+          // Track shown job IDs
+          if (entry.matchingResults && entry.matchingResults.length > 0) {
+            if (!entry.browsedJobIds) entry.browsedJobIds = [];
+            const shownIds = entry.matchingResults.slice(0, 3).map(r => r.n || r.name);
+            entry.browsedJobIds.push(...shownIds);
+          }
+          replyMessages = buildPhaseMessage("matching_preview", entry);
+          // Slack notification for intake completion
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🔍 *intake_light完了 → matching_preview*\nエリア: ${entry.areaLabel || entry.area || "不明"}\n働き方: ${entry.workStyle || "不明"}\n温度感: ${entry.urgency || "不明"}\nマッチ件数: ${(entry.matchingResults || []).length}\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}` }),
+            }).catch(() => {});
+          }
+        }
+        // ===== matching_browse: 次の3件表示 =====
+        else if (nextPhase === "matching_browse") {
+          // Re-run matching and filter out already-browsed jobs
+          generateLineMatching(entry);
+          if (entry.matchingResults && entry.browsedJobIds && entry.browsedJobIds.length > 0) {
+            entry.matchingResults = entry.matchingResults.filter(r =>
+              !entry.browsedJobIds.includes(r.n || r.name)
+            );
+          }
+          entry.phase = "matching_browse";
+          // Track newly shown job IDs
+          if (entry.matchingResults && entry.matchingResults.length > 0) {
+            if (!entry.browsedJobIds) entry.browsedJobIds = [];
+            const shownIds = entry.matchingResults.slice(0, 3).map(r => r.n || r.name);
+            entry.browsedJobIds.push(...shownIds);
+          }
+          replyMessages = buildPhaseMessage("matching_browse", entry);
+        }
+        // ===== nurture_warm =====
+        else if (nextPhase === "nurture_warm") {
+          entry.phase = "nurture_warm";
+          replyMessages = buildPhaseMessage("nurture_warm", entry);
+        }
+        // ===== nurture_subscribed =====
+        else if (nextPhase === "nurture_subscribed") {
+          entry.phase = "nurture_warm";
+          replyMessages = [{
+            type: "text",
+            text: "ありがとうございます！\n新着求人が入り次第お知らせしますね。\n\nいつでも話しかけてください 😊",
+          }];
+        }
+        // ===== nurture_stay =====
+        else if (nextPhase === "nurture_stay") {
+          entry.phase = "nurture_warm";
+          replyMessages = [{
+            type: "text",
+            text: "わかりました！\nいつでも気軽にメッセージくださいね。",
+          }];
+        }
+        else if (nextPhase === "resume_confirm" && !entry.workHistoryText) {
           // 経歴スキップ → 経歴書生成を飛ばしてマッチングへ直行
           entry.phase = "matching";
           generateLineMatching(entry);
