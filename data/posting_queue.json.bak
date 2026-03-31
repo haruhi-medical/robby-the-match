@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-31T06:10:43.767534",
+  "updated": "2026-03-31T13:05:12.874709",
   "posts": [
     {
       "id": 1,
@@ -2884,9 +2884,9 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-31T12:10:04.790920",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2910,7 +2910,8 @@
         "suggestion": "フックを25文字以内に修正し、看護師の共感度を高めることで更に効果的な投稿になる可能性がある"
       },
       "scheduled_for": "2026-03-27 21:00",
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_dir": "html_ai_転職_0325_03"
     },
     {
       "id": 157,
@@ -2927,11 +2928,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0325_04_20260331.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -2971,9 +2972,9 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-31T12:41:26.017915",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -2997,7 +2998,8 @@
         "suggestion": "スライド1の質問を短くして、より直接的に看護師の関心を引くようにする"
       },
       "scheduled_for": "2026-03-29 12:00",
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_dir": "html_ai_業界_0325_05"
     },
     {
       "id": 159,
@@ -3014,11 +3016,11 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0325_06_20260331.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -3102,7 +3104,7 @@
       ],
       "cta_type": "hard",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3127,7 +3129,8 @@
           "キャプションが200文字を超えている"
         ],
         "suggestion": "看護師の痛み点を具体的に描写したフックを作成し、キャプションを200文字以内に収める"
-      }
+      },
+      "scheduled_for": "2026-03-31 17:30"
     },
     {
       "id": 162,
@@ -3144,7 +3147,7 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3169,7 +3172,8 @@
           "ロビーの性格が不明瞭"
         ],
         "suggestion": "フックを強化し、ロビーの性格を明確に表現することで看護師の共感を高める"
-      }
+      },
+      "scheduled_for": "2026-04-01 12:00"
     },
     {
       "id": 163,
@@ -3186,7 +3190,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3210,7 +3214,8 @@
           "看護師の市場価値に関する具体的なデータや解説が不足している"
         ],
         "suggestion": "看護師の市場価値に関する具体的なデータや解説を追加し、より具体的なアクションプランを提供することで、投稿の説得力を高めることができる"
-      }
+      },
+      "scheduled_for": "2026-04-02 21:00"
     },
     {
       "id": 164,
@@ -3227,7 +3232,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3251,7 +3256,8 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを25文字以内に短縮し、より具体的な数字や状況を含めることで、看護師の共感度を高めることができる"
-      }
+      },
+      "scheduled_for": "2026-04-03 17:30"
     },
     {
       "id": 165,
@@ -3268,7 +3274,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3292,7 +3298,8 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
-      }
+      },
+      "scheduled_for": "2026-04-04 12:00"
     },
     {
       "id": 166,
@@ -3309,7 +3316,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3334,7 +3341,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "ロビーの名前を適切に導入し、ハッシュタグの数を調整することで、投稿の品質をさらに向上させることができる"
-      }
+      },
+      "scheduled_for": "2026-04-05 21:00"
     },
     {
       "id": 167,
@@ -3351,7 +3359,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3376,7 +3384,8 @@
           "キャプションが200文字以内ではない"
         ],
         "suggestion": "フックを短くし、キャプションを簡潔にすることで、看護師の注意をより効果的に引くことができる"
-      }
+      },
+      "scheduled_for": "2026-04-06 17:30"
     }
   ],
   "archive": [

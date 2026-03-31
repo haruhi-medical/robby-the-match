@@ -586,5 +586,25 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_ai_転職_0325_03",
+    "timestamp": "2026-03-31T12:10:04.784426",
+    "status": "success",
+    "media_id": "3864686191808040672_45884164083",
+    "code": "DWiH52PE07g",
+    "url": "https://www.instagram.com/p/DWiH52PE07g/",
+    "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "html_ai_業界_0325_05",
+    "timestamp": "2026-03-31T12:41:26.012483",
+    "status": "success",
+    "media_id": "3864702063213796292_45884164083",
+    "code": "DWiLgzok9vE",
+    "url": "https://www.instagram.com/p/DWiLgzok9vE/",
+    "format": "carousel"
   }
 ]

@@ -36,11 +36,11 @@
       "last_alert_ts": "2026-03-04T20:00:01.170412"
     },
     "sns_post": {
-      "date": "2026-03-28",
-      "retries": 1,
-      "status": "recovered",
+      "date": "2026-03-31",
+      "retries": 0,
+      "status": "ok",
       "last_error": "",
-      "last_alert_ts": ""
+      "last_alert_ts": "2026-03-31T13:00:00.649360"
     },
     "instagram_engage": {
       "date": "2026-03-27",

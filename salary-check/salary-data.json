@@ -1,26 +1,26 @@
 {
-  "generated_at": "2026-03-28T14:59:30.510473",
+  "generated_at": "2026-03-31T15:05:10.279760",
   "source": "ハローワーク求人API（神奈川県看護師）",
-  "source_fetched_at": "2026-03-28T06:34:19.771702",
-  "total_analyzed": 600,
+  "source_fetched_at": "2026-03-31T06:39:35.840413",
+  "total_analyzed": 603,
   "areas": {
     "yokohama_kawasaki": {
       "name": "横浜市・川崎市",
-      "total_count": 354,
+      "total_count": 355,
       "workstyles": {
         "with_night": {
           "count": 72,
           "unit": "月給",
           "min": 128400,
           "max": 380000,
-          "median": 202350,
-          "avg": 213327,
+          "median": 203000,
+          "avg": 213395,
           "percentiles": {
             "p10": 149.0,
             "p20": 171.4,
             "p30": 180.0,
             "p40": 200.0,
-            "p50": 202.3,
+            "p50": 203.0,
             "p60": 211.2,
             "p70": 223.5,
             "p80": 240.0,
@@ -34,16 +34,16 @@
               "work_hours": "交替制（シフト制）"
             },
             {
-              "employer": "株式会社ＬＩＦＥＬＩＢ",
-              "salary_range": "320,000円～450,000円",
-              "employment_type": "正社員",
-              "work_hours": "交替制（シフト制）"
-            },
-            {
               "employer": "医療法人社団　かもめ成人疾病予防会　介護老人保健施設　シオンよこはま",
               "salary_range": "380,000円～380,000円",
               "employment_type": "正社員",
               "work_hours": "変形労働時間制（1か月単位）"
+            },
+            {
+              "employer": "特定非営利活動法人　元気福祉就労支援ボランティア　放課後等デイサービス　ふれあい広場",
+              "salary_range": "350,000円～350,000円",
+              "employment_type": "正社員",
+              "work_hours": "交替制（シフト制）"
             }
           ]
         },
@@ -87,14 +87,14 @@
           ]
         },
         "part_time": {
-          "count": 265,
+          "count": 266,
           "unit": "時給",
           "min": 1225,
           "max": 4000,
           "median": 1800,
-          "avg": 1780,
+          "avg": 1784,
           "percentiles": {
-            "p10": 1485,
+            "p10": 1500,
             "p20": 1600,
             "p30": 1670,
             "p40": 1700,
@@ -102,7 +102,7 @@
             "p60": 1800,
             "p70": 1900,
             "p80": 2000,
-            "p90": 2006
+            "p90": 2000
           },
           "sample_jobs": [
             {
@@ -129,7 +129,7 @@
     },
     "shonan": {
       "name": "湘南エリア",
-      "total_count": 59,
+      "total_count": 60,
       "workstyles": {
         "with_night": {
           "count": 16,
@@ -157,14 +157,14 @@
               "work_hours": "変形労働時間制（1か月単位）"
             },
             {
-              "employer": "医療法人社団　健育会　湘南慶育病院",
-              "salary_range": "250,000円～380,000円",
+              "employer": "医療法人社団大樹会　介護老人保健施設　ふれあいの桜",
+              "salary_range": "205,000円～358,900円",
               "employment_type": "正社員",
               "work_hours": "変形労働時間制（1か月単位）"
             },
             {
-              "employer": "医療法人社団大樹会　介護老人保健施設　ふれあいの桜",
-              "salary_range": "205,000円～358,900円",
+              "employer": "医療法人　研水会　平塚病院",
+              "salary_range": "170,000円～325,000円",
               "employment_type": "正社員",
               "work_hours": "変形労働時間制（1か月単位）"
             }
@@ -175,21 +175,21 @@
           "insufficient_data": true
         },
         "part_time": {
-          "count": 43,
+          "count": 44,
           "unit": "時給",
           "min": 1400,
           "max": 2500,
           "median": 1750,
-          "avg": 1745,
+          "avg": 1746,
           "percentiles": {
             "p10": 1500,
-            "p20": 1520,
+            "p20": 1530,
             "p30": 1600,
             "p40": 1700,
             "p50": 1750,
             "p60": 1800,
             "p70": 1800,
-            "p80": 1960,
+            "p80": 1940,
             "p90": 2000
           },
           "sample_jobs": [
@@ -200,16 +200,16 @@
               "work_hours": ""
             },
             {
-              "employer": "株式会社　昌英",
-              "salary_range": "2,500円～2,500円",
+              "employer": "さかい内科・胃腸科クリニック",
+              "salary_range": "1,800円～2,500円",
               "employment_type": "パート労働者",
               "work_hours": ""
             },
             {
-              "employer": "社会福祉法人　富士白苑",
-              "salary_range": "1,500円～2,500円",
+              "employer": "株式会社　昌英",
+              "salary_range": "2,500円～2,500円",
               "employment_type": "パート労働者",
-              "work_hours": "変形労働時間制（1か月単位）"
+              "work_hours": ""
             }
           ]
         }
@@ -301,9 +301,9 @@
           "count": 73,
           "unit": "時給",
           "min": 1225,
-          "max": 2010,
+          "max": 2050,
           "median": 1698,
-          "avg": 1674,
+          "avg": 1675,
           "percentiles": {
             "p10": 1400,
             "p20": 1500,
@@ -447,7 +447,7 @@
     },
     "kensai": {
       "name": "県西エリア",
-      "total_count": 27,
+      "total_count": 28,
       "workstyles": {
         "with_night": {
           "count": 6,
@@ -512,21 +512,21 @@
           ]
         },
         "part_time": {
-          "count": 19,
+          "count": 20,
           "unit": "時給",
           "min": 1350,
           "max": 2100,
-          "median": 1650,
-          "avg": 1639,
+          "median": 1675,
+          "avg": 1647,
           "percentiles": {
             "p10": 1400,
             "p20": 1500,
-            "p30": 1540,
-            "p40": 1610,
-            "p50": 1650,
+            "p30": 1570,
+            "p40": 1630,
+            "p50": 1675,
             "p60": 1700,
             "p70": 1700,
-            "p80": 1740,
+            "p80": 1800,
             "p90": 1800
           },
           "sample_jobs": [

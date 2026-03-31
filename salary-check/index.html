@@ -90,36 +90,46 @@ body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans"
 /* ========== Hero ========== */
 .hero{
   position:relative;overflow:hidden;
-  padding:52px 24px 44px;text-align:center;
-  min-height:70vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:0;text-align:center;
+  width:100%;aspect-ratio:9/16;
 }
 .hero-video{
   position:absolute;top:0;left:0;width:100%;height:100%;
-  object-fit:cover;z-index:0;pointer-events:none;
+  object-fit:cover;z-index:0;
 }
-.hero-overlay{
-  position:absolute;top:0;left:0;width:100%;height:100%;
-  background:rgba(255,255,255,0.55);z-index:1;pointer-events:none;
+.hero-start-btn{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:2;
+  width:calc(100% - 40px);text-align:center;
 }
-.hero>*:not(.hero-video):not(.hero-overlay){position:relative;z-index:2;}
-.hero-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--bg-card);border:1px solid rgba(61,143,191,0.15);
-  padding:6px 14px;border-radius:var(--radius-full);
-  font-size:.78rem;font-weight:500;color:var(--primary-dark);
-  margin-bottom:16px;box-shadow:var(--shadow-sm);
+.hero-start-hint{
+  font-size:0.82rem;color:#fff;margin-bottom:10px;
+  text-shadow:0 1px 6px rgba(0,0,0,0.5);font-weight:600;
+  letter-spacing:0.03em;
 }
-.hero-badge svg{width:16px;height:16px;fill:var(--primary)}
-.hero h1{
-  font-size:1.75rem;font-weight:800;line-height:1.45;
-  margin-bottom:14px;color:var(--text-primary);
-  letter-spacing:-0.02em;
+.hero-start-btn button{
+  width:100%;padding:20px 24px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,#FF6B35,#FF4500);color:#fff;
+  font-size:1.2rem;font-weight:800;letter-spacing:0.03em;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 6px 24px rgba(255,69,0,0.5), 0 2px 8px rgba(0,0,0,0.15);
+  animation:btnPulse 1.8s ease-in-out infinite;
+  position:relative;overflow:hidden;
 }
-.hero-sub{
-  font-size:.88rem;font-weight:400;color:var(--text-secondary);
-  line-height:1.6;
+.hero-start-btn button::after{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+  animation:btnShimmer 2.5s ease-in-out infinite;
 }
-.hero-sub strong{font-weight:600;color:var(--text-primary)}
+.hero-start-btn button:active{transform:scale(0.96);animation:none}
+@keyframes btnPulse{
+  0%,100%{transform:scale(1);box-shadow:0 6px 24px rgba(255,69,0,0.5)}
+  50%{transform:scale(1.03);box-shadow:0 8px 32px rgba(255,69,0,0.65)}
+}
+@keyframes btnShimmer{
+  0%{left:-100%}
+  50%,100%{left:100%}
+}
+/* hero text styles removed — text is baked into video */
 .hero-social{
   margin-top:16px;font-size:.78rem;color:var(--text-muted);font-weight:400;
 }
@@ -286,12 +296,12 @@ body{font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans"
 .result-hbar-track{position:relative;width:100%;height:8px;background:#E8EDF2;border-radius:4px;margin:32px 0 36px}
 .result-hbar-fill{position:absolute;top:0;left:0;height:8px;border-radius:4px;background:var(--primary);transition:width .8s var(--ease-out)}
 .result-hbar-marker{position:absolute;transform:translateX(-50%);font-size:11px;font-weight:700;white-space:nowrap;line-height:1}
-.result-hbar-marker.marker-median{color:var(--text-muted);top:-24px}
-.result-hbar-marker.marker-median .marker-label{margin-bottom:2px}
-.result-hbar-marker.marker-you{color:#EF8B7F;top:12px}
-.result-hbar-marker.marker-you .marker-label{margin-top:2px}
-.result-hbar-marker .marker-triangle{display:block;text-align:center;font-size:10px}
-.result-hbar-marker .marker-label{display:block;text-align:center;font-size:10px}
+.result-hbar-marker.marker-median{color:var(--text-muted);top:-28px}
+.result-hbar-marker.marker-median .marker-label{margin-bottom:3px;font-size:11px;background:var(--bg-subtle);padding:2px 6px;border-radius:4px}
+.result-hbar-marker.marker-you{color:#EF8B7F;top:14px}
+.result-hbar-marker.marker-you .marker-label{margin-top:3px;font-size:11px;background:rgba(239,139,127,0.1);padding:2px 6px;border-radius:4px}
+.result-hbar-marker .marker-triangle{display:block;text-align:center;font-size:12px}
+.result-hbar-marker .marker-label{display:block;text-align:center}
 .result-hbar-labels{display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted);font-weight:400;margin-top:-24px}
 
 .result-body{max-width:480px;margin:0 auto;padding:28px 24px 40px}
@@ -424,16 +434,15 @@ footer .footer-links a:hover{color:var(--primary)}
 <!-- Hero -->
 <section class="hero">
   <video class="hero-video" autoplay muted loop playsinline>
-    <source src="hero-bg.mp4" type="video/mp4">
+    <source src="hero-new.mp4" type="video/mp4">
   </video>
-  <div class="hero-overlay"></div>
-  <div class="hero-badge">
-    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-    給与診断
+  <div class="hero-start-btn">
+    <div class="hero-start-hint">30秒で完了・登録不要</div>
+    <button type="button" id="heroStartBtn">
+      あなたの給料をチェック
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
   </div>
-  <h1>あなたの給与、<br>神奈川で何位？</h1>
-  <div class="hero-sub"><strong>30秒</strong>・3問だけ・登録不要</div>
-  <div class="hero-social" id="heroSocial">神奈川県の看護師求人データに基づく診断</div>
 </section>
 
 <!-- Stepper -->
@@ -960,9 +969,9 @@ footer .footer-links a:hover{color:var(--primary)}
     // CTA text based on level
     var ctaTextEl = document.getElementById('ctaLineText');
     if(level.isHigh){
-      ctaTextEl.textContent = 'この水準を活かせる求人を見る';
+      ctaTextEl.textContent = '好条件の求人をLINEで見る';
     } else {
-      ctaTextEl.textContent = 'あなたの経験なら、もっと上を狙えるかも';
+      ctaTextEl.textContent = '高収入求人をLINEで見る';
     }
 
     // Sample jobs
@@ -981,7 +990,7 @@ footer .footer-links a:hover{color:var(--primary)}
           '<div class="job-type">' + escHtml(job.employment_type) + (job.work_hours ? ' / ' + escHtml(job.work_hours) : '') + '</div>';
         var overlay = document.createElement('div');
         overlay.className = 'blur-overlay';
-        overlay.innerHTML = '<span>LINE登録であと' + Math.max(remainingCount,1) + '件を表示</span>';
+        overlay.innerHTML = '<span>他にも' + Math.max(remainingCount,1) + '件の求人あり</span>';
         wrap.appendChild(div);
         wrap.appendChild(overlay);
         jobsList.appendChild(wrap);
@@ -997,7 +1006,8 @@ footer .footer-links a:hover{color:var(--primary)}
 
     if(samples.length === 0) document.getElementById('jobsCard').style.display = 'none';
 
-    // Show result, hide quiz
+    // Show result, hide quiz + hero
+    document.querySelector('.hero').style.display = 'none';
     document.getElementById('quizSection').style.display = 'none';
     document.getElementById('stepperWrap').style.display = 'none';
     document.getElementById('navBtns').style.display = 'none';
@@ -1034,6 +1044,7 @@ footer .footer-links a:hover{color:var(--primary)}
   }
 
   function showInsufficient(){
+    document.querySelector('.hero').style.display = 'none';
     document.getElementById('quizSection').style.display = 'none';
     document.getElementById('stepperWrap').style.display = 'none';
     document.getElementById('navBtns').style.display = 'none';
@@ -1047,6 +1058,7 @@ footer .footer-links a:hover{color:var(--primary)}
     isPartTime = false;
     document.querySelectorAll('.opt-btn').forEach(function(b){b.classList.remove('selected')});
     setupSlider();
+    document.querySelector('.hero').style.display = '';
     document.getElementById('quizSection').style.display = '';
     document.getElementById('stepperWrap').style.display = '';
     document.getElementById('navBtns').style.display = 'flex';
@@ -1066,6 +1078,12 @@ footer .footer-links a:hover{color:var(--primary)}
 
   document.getElementById('retryBtn').addEventListener('click', resetQuiz);
   document.getElementById('retryBtn2').addEventListener('click', resetQuiz);
+
+  // Hero start button
+  document.getElementById('heroStartBtn').addEventListener('click', function(){
+    document.getElementById('quizSection').scrollIntoView({behavior:'smooth'});
+    gaEvent('salary_check_start');
+  });
 
   // LINE CTA tracking
   document.getElementById('ctaLine').addEventListener('click',function(){

@@ -243,13 +243,20 @@ def get_sample_jobs(jobs_with_salary, n=3):
         reverse=True
     )
     samples = []
-    for job, (sal_low, sal_high) in sorted_jobs[:n]:
+    seen_employers = set()
+    for job, (sal_low, sal_high) in sorted_jobs:
+        employer = job.get("employer", "").strip()
+        if employer in seen_employers:
+            continue  # 同一雇用主の重複を排除
+        seen_employers.add(employer)
         samples.append({
-            "employer": job.get("employer", ""),
+            "employer": employer,
             "salary_range": f"{sal_low:,}円～{sal_high:,}円",
             "employment_type": job.get("employment_type", ""),
             "work_hours": job.get("work_hours", ""),
         })
+        if len(samples) >= n:
+            break
     return samples
 
 

@@ -2962,3 +2962,10 @@ AI Marketing PDCA:
 ### sns_post（12:00:01）
 SNS自動投稿: IG済33件 / 未投稿41件 (IG=0, TK=0)
 
+### content（15:00:00）
+コンテンツ生成:   id=175, content_id=ai_業界_0331_08, batch=ai_batch_20260331_1500, cta=soft
+  id=176, content_id=ai_転職_0331_09, batch=ai_batch_20260331_1500, cta=soft
+  id=177, content_id=ai_転職_0331_10, batch=ai_batch_20260331_1500, cta=soft
+
+[NOTE] available (18) >= threshold (7) -- --auto では生成スキップ
+
