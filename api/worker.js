@@ -2719,10 +2719,12 @@ async function sendApplyNotification(userId, entry, env) {
 function buildPhaseMessage(phase, entry) {
   switch (phase) {
     case "welcome":
+      // oaMessage経由でコードが自動送信されるため、手動案内は不要
+      // フォールバック: ボタンを再表示
       return [
         {
           type: "text",
-          text: "HPの診断結果画面に表示された6文字のコードを送ってください😊\n\nコードがない方は下のボタンをタップ👇",
+          text: "下のボタンをタップしてください👇",
           quickReply: { items: [qrItem("求人を見る", "welcome=start")] },
         },
       ];
@@ -3575,10 +3577,6 @@ function handleLinePostback(dataStr, entry) {
     entry.unexpectedTextCount = 0;
     if (val === "start") {
       nextPhase = "q1_urgency";
-    } else if (val === "code") {
-      // コード入力待ち: phaseをwelcomeのままにしてコード入力を促す
-      // (welcomeフェーズで6文字テキストが来たらハンドオフコードとして処理される)
-      nextPhase = "welcome";
     }
   }
   // 同意取得
@@ -3880,7 +3878,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           quickReply: {
             items: [
               qrItem("求人を見る", "welcome=start"),
-              qrItem("コードを入力", "welcome=code"),
             ],
           },
         }];
