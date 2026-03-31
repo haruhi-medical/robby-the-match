@@ -1,72 +1,65 @@
 {
-  "created": "2026-03-25T06:00:17.371555",
-  "updated": "2026-03-25T06:07:31.415130",
-  "week_of": "2026-03-25",
+  "created": "2026-03-31T06:00:15.946000",
+  "updated": "2026-03-31T06:09:24.205120",
+  "week_of": "2026-03-31",
   "total": 7,
   "queue_pending_at_creation": 0,
   "plans": [
     {
       "day": 1,
-      "category": "あるある",
+      "category": "地域ネタ",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_ある_0325_01",
-      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
-      "hook_idea": "看護師5年目、報告書書いて朝"
+      "content_id": "ai_地域_0331_01",
+      "hint": "秦野の病院、夜勤の日だけ駐車場が満車。始発じゃ間に合わないから全員車通勤"
     },
     {
       "day": 2,
-      "category": "あるある",
+      "category": "トレンド",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0325_02",
-      "hint": "有給申請したら師長に「みんな我慢してるのに」って言われた。それ法律違反では？",
-      "hook_idea": "有給申請したら『みんな我慢してる』"
+      "content_id": "ai_トレ_0331_02",
+      "hint": "彼氏が「夜勤って暇でしょ」と言った夜、急変2件。翌朝の「おはよう」が出なかった"
     },
     {
       "day": 3,
-      "category": "転職",
+      "category": "あるある",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_転職_0325_03",
-      "hint": "「3年は続けなさい」。それ、誰のための3年？病院の離職率のための3年だった",
-      "hook_idea": "看護師3年続けなさいって誰のため"
+      "content_id": "ai_ある_0331_03",
+      "hint": "プリセプターやれって言われた。自分がまだプリセプティーの気持ちなのに"
     },
     {
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0325_04",
-      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
-      "hook_idea": "看護師向いてないかもと思う日"
+      "content_id": "ai_ある_0331_04",
+      "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？"
     },
     {
       "day": 5,
-      "category": "業界裏側",
-      "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_業界_0325_05",
-      "hint": "紹介手数料を10%にしたら病院は90万浮く。その90万で看護師2人分の夜勤手当が上がる",
-      "hook_idea": "紹介手数料10%にしたら90万浮く"
-    },
-    {
-      "day": 6,
       "category": "給与",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_給与_0325_06",
-      "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？",
-      "hook_idea": "夜勤専従で手取り35万"
+      "content_id": "ai_給与_0331_05",
+      "hint": "応援ナースの時給3,000円。同じ病棟で常勤の自分は時給換算1,800円。同じ仕事なのになぜ？"
+    },
+    {
+      "day": 6,
+      "category": "あるある",
+      "cta_type": "soft",
+      "status": "generated",
+      "content_id": "ai_ある_0331_06",
+      "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？"
     },
     {
       "day": 7,
-      "category": "地域ネタ",
+      "category": "業界裏側",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_地域_0325_07",
-      "hint": "県西部の病院は紹介会社に135万払えない。だから看護師が来ない。この悪循環",
-      "hook_idea": "県西部は看護師来ない"
+      "content_id": "ai_業界_0331_07",
+      "hint": "大手紹介会社の利益率40%。看護師の転職1件で営業マンに50万のインセンティブ"
     }
   ]
 }
