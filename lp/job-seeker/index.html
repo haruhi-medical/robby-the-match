@@ -1405,9 +1405,9 @@
         </div>
         <!-- CTAオーバーレイ -->
         <div class="hero-cta-overlay">
-            <a href="https://lin.ee/oUgDB3x?utm_source=lp&utm_medium=hero_cta" class="cta-line-hero" target="_blank" rel="noopener">
+            <a href="https://lin.ee/oUgDB3x" class="cta-line-hero" target="_blank" rel="noopener">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
-                LINEで求人を見る
+                まず求人だけ見てみる
             </a>
             <a href="#shindan" class="cta-secondary-hero" onclick="if(typeof shindanSkip==='function'){event.preventDefault();shindanSkip();}">
                 今すぐ求人をチェック &rsaquo;
@@ -1415,6 +1415,11 @@
             <p class="hero-note">※完全無料・電話なし・1分で完了</p>
         </div>
     </section>
+
+    <!-- 安心バー（Hero直下） -->
+    <div style="background:var(--primary-light);text-align:center;padding:14px 16px;font-size:0.82rem;color:var(--text-secondary);letter-spacing:0.04em;line-height:1.6;">
+        <span style="font-weight:600;">完全無料</span> ・ <span style="font-weight:600;">電話なし</span> ・ 個人情報不要で開始 ・ <span style="color:var(--primary);font-weight:600;">許可番号 23-ユ-302928</span>
+    </div>
 
     <!-- 3 Features -->
     <section class="features">
@@ -1622,7 +1627,7 @@
         <div class="reveal reveal-delay-1">
             <a href="#shindan" class="cta-primary">30秒で診断スタート &#9654;</a>
             <p class="final-cta-or">または直接相談する</p>
-            <a href="https://lin.ee/oUgDB3x?utm_source=lp&utm_medium=bottom_cta" class="cta-line" target="_blank" rel="noopener">LINEで無料相談</a>
+            <a href="https://lin.ee/oUgDB3x" class="cta-line" target="_blank" rel="noopener">LINEで無料相談</a>
             <p class="hero-note" style="margin-top:12px;">※完全無料・電話なし・1分で完了</p>
         </div>
     </section>
@@ -1689,9 +1694,9 @@
 
     <!-- Mobile Sticky CTA -->
     <div class="mobile-sticky-cta" id="mobile-sticky-cta">
-        <a href="https://lin.ee/oUgDB3x?utm_source=lp&utm_medium=mobile_sticky" target="_blank" rel="noopener" class="mobile-sticky-line">
+        <a href="https://lin.ee/oUgDB3x" target="_blank" rel="noopener" class="mobile-sticky-line">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" style="vertical-align:middle;margin-right:4px;"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
-            LINEで求人を見る
+            求人を見てみる
         </a>
     </div>
 
@@ -1784,10 +1789,49 @@
     })();
     </script>
 
+    <!-- 共通LINE送客EP: session_id生成 + CTA href書き換え -->
+    <script>
+    (function() {
+      'use strict';
+      // UUID v4 生成
+      function uuid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+      }
+      var sid = uuid();
+      window.__lineSessionId = sid;
+      var EP = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/line-start';
+
+      // CTA href書き換え
+      function lineUrl(source, intent) {
+        return EP + '?session_id=' + sid + '&source=' + source + '&intent=' + intent + '&page_type=paid_lp';
+      }
+
+      // Hero CTA
+      var heroCta = document.querySelector('.cta-line-hero');
+      if (heroCta) heroCta.href = lineUrl('hero', 'see_jobs');
+
+      // Mobile Sticky CTA
+      var stickyCta = document.querySelector('.mobile-sticky-line');
+      if (stickyCta) stickyCta.href = lineUrl('sticky', 'see_jobs');
+
+      // Bottom CTA (LINEで無料相談)
+      var bottomLine = document.querySelector('.final-cta .cta-line');
+      if (bottomLine) bottomLine.href = lineUrl('bottom', 'consult');
+
+      // session_idをGA4に連携
+      if (typeof gtag === 'function') {
+        gtag('set', { 'user_id': sid });
+      }
+    })();
+    </script>
+
     <!-- Shindan -->
-    <script src="shindan.js?v=7.1"></script>
+    <script src="shindan.js?v=7.2"></script>
     <!-- Analytics (line_click自動追跡+UTM取得+スクロール計測) -->
-    <script src="../analytics.js?v=1.1"></script>
+    <script src="../analytics.js?v=1.2"></script>
     <!-- Chat Widget (低摩擦CTA) -->
     <script src="../../chat.js?v=5.1"></script>
     <link rel="stylesheet" href="../../chat.css?v=5.1">

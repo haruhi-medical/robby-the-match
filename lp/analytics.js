@@ -115,22 +115,25 @@
     var utm = getSavedUTM();
     var source = detectLineSource(element);
 
-    // GA4: line_click with source
-    gtag('event', 'line_click', {
-      event_category: 'engagement',
-      event_label: source,
+    // GA4: click_cta (unified event)
+    var intentMap = {
+      hero_cta: 'see_jobs',
+      mobile_sticky: 'see_jobs',
+      bottom_cta: 'consult',
+      cta_line: 'consult',
+      other: 'consult'
+    };
+
+    gtag('event', 'click_cta', {
       source: source,
+      intent: intentMap[source] || 'consult',
+      page_type: 'paid_lp',
+      session_id: window.__lineSessionId || '',
       page_location: window.location.href,
-      page_title: document.title,
       utm_source: utm.utm_source || 'direct',
       utm_medium: utm.utm_medium || '',
       utm_campaign: utm.utm_campaign || '',
     });
-
-    // Meta Pixel: Lead
-    if (typeof fbq === 'function') {
-      fbq('track', 'Lead');
-    }
   }
 
   function bindLineButtons() {

@@ -517,8 +517,7 @@
       '<span>' + ctaText + '</span>';
 
     cta.addEventListener('click', function () {
-      ga('shindan_line_click', { area: A.a, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
-      if (typeof fbq === 'function') fbq('track', 'Lead');
+      ga('click_cta', { source: 'shindan', intent: 'diagnose', page_type: 'paid_lp', session_id: window.__lineSessionId || '', area: A.a, age: A.age, exp: A.exp, shikaku: A.s, workstyle: A.w, concern: A.c, timing: A.t });
     });
 
     r.appendChild(cta);

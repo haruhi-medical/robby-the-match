@@ -950,6 +950,13 @@ export default {
       return handleGetAnalytics(request, env);
     }
 
+    // ========== 共通LINE送客エンドポイント ==========
+    // 全CTAからここを経由してLINEへ。session_id + source + intent をKVに保存し、
+    // dm_text付きでLINE友だち追加URLへ302リダイレクト
+    if (url.pathname === "/api/line-start" && request.method === "GET") {
+      return handleLineStart(url, env);
+    }
+
     // ヘルスチェック
     if (url.pathname === "/api/health" && request.method === "GET") {
       return jsonResponse({ status: "ok", timestamp: new Date().toISOString() });
@@ -2194,6 +2201,66 @@ async function handleWebSession(request, env) {
   }
 }
 
+// ========== 共通LINE送客エンドポイント ==========
+// LP/area/blog/salary-check等の全CTAから呼ばれる。
+// session context をKVに保存し、LINE友だち追加URLへ302リダイレクト。
+// LINE Bot側はfollow/messageイベントでsession_idを検出してwelcome分岐する。
+const LINE_START_OA_URL = 'https://line.me/R/ti/p/@174cxnev';
+const LINE_START_FALLBACK = 'https://lin.ee/oUgDB3x';
+
+async function handleLineStart(url, env) {
+  try {
+    const sessionId = url.searchParams.get('session_id') || '';
+    const source = url.searchParams.get('source') || 'none';
+    const intent = url.searchParams.get('intent') || 'see_jobs';
+    const pageType = url.searchParams.get('page_type') || '';
+    const area = url.searchParams.get('area') || '';
+    // shindan 3問の回答（LP内ミニ診断から来た場合）
+    const answers = url.searchParams.get('answers') || '';
+
+    if (!sessionId) {
+      // session_idなしの場合はフォールバックURLへ
+      return new Response(null, { status: 302, headers: { 'Location': LINE_START_FALLBACK } });
+    }
+
+    // KVにセッション情報を保存（24h TTL）
+    const sessionData = {
+      sessionId,
+      source,
+      intent,
+      pageType,
+      area: area || null,
+      answers: answers || null,
+      createdAt: Date.now(),
+    };
+
+    if (env?.LINE_SESSIONS) {
+      try {
+        await env.LINE_SESSIONS.put(`session:${sessionId}`, JSON.stringify(sessionData), { expirationTtl: 86400 });
+      } catch (e) {
+        console.error('[LineStart] KV put error:', e.message);
+      }
+    }
+    // インメモリフォールバック
+    webSessionMap.set(`session:${sessionId}`, sessionData);
+
+    // dm_text にsession_idを埋め込んでLINE友だち追加URLへリダイレクト
+    const dmText = encodeURIComponent(sessionId);
+    const redirectUrl = `${LINE_START_OA_URL}?dm_text=${dmText}`;
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': redirectUrl,
+        'Cache-Control': 'no-cache, no-store',
+      },
+    });
+  } catch (err) {
+    console.error('[LineStart] Error:', err);
+    return new Response(null, { status: 302, headers: { 'Location': LINE_START_FALLBACK } });
+  }
+}
+
 // ========== LINE BOT v2: Quick Reply + 職務経歴書生成 ==========
 
 // LINE会話履歴ストア（インメモリ、userId → 拡張エントリ）
@@ -2453,6 +2520,147 @@ const TEXT_TO_POSTBACK = {
 };
 
 // ---------- ヘルパー関数 ----------
+// ========== 共通EP経由 welcome分岐 ==========
+// source/intentに応じた経路別welcomeメッセージを生成
+function buildSessionWelcome(sessionCtx, entry) {
+  const source = sessionCtx.source || 'none';
+  const intent = sessionCtx.intent || 'see_jobs';
+  const area = sessionCtx.area || '';
+
+  const AREA_LABELS = {
+    yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
+    odawara_kensei: '小田原・県西', sagamihara_kenoh: '相模原・県央',
+    yokosuka_miura: '横須賀・三浦', yokohama: '横浜市', kawasaki: '川崎市',
+    sagamihara: '相模原市', fujisawa: '藤沢市', odawara: '小田原市',
+    atsugi: '厚木市', yokosuka: '横須賀市', hiratsuka: '平塚市',
+    hadano: '秦野市', yamato: '大和市', ebina: '海老名市',
+    chigasaki: '茅ヶ崎市', kamakura: '鎌倉市',
+  };
+
+  // 診断引き継ぎ（LP内3問回答済み → intake_lightスキップ → 即matching）
+  if (source === 'shindan' && entry.area && entry.workStyle && entry.urgency) {
+    const areaLabel = entry.areaLabel || AREA_LABELS[entry.area] || entry.area;
+    return {
+      nextPhase: 'welcome', // matching生成はpostbackハンドラ側で行う
+      messages: [{
+        type: 'text',
+        text: `診断結果を引き継ぎました✨\n\n${areaLabel}エリアで\n求人を探しますね。\n\nちょっとお待ちください…`,
+        quickReply: {
+          items: [
+            qrItem('求人を見る', 'welcome=start_with_session'),
+          ],
+        },
+      }],
+    };
+  }
+
+  // 地域ページ経由（エリア確定済み → Q2から開始）
+  if (source === 'area_page' && area) {
+    const areaLabel = AREA_LABELS[area] || area;
+    return {
+      nextPhase: 'welcome',
+      messages: [{
+        type: 'text',
+        text: `こんにちは！神奈川ナース転職です。\n\n${areaLabel}の看護師求人を\nお探しですね。\n\nあと2つだけ教えてください👇`,
+        quickReply: {
+          items: [
+            qrItem('日勤のみ', 'welcome=see_jobs'),
+            qrItem('夜勤ありOK', 'welcome=see_jobs'),
+            qrItem('パート・非常勤', 'welcome=see_jobs'),
+            qrItem('夜勤専従', 'welcome=see_jobs'),
+          ],
+        },
+      }],
+    };
+  }
+
+  // salary-check経由
+  if (source === 'salary_check') {
+    return {
+      nextPhase: 'welcome',
+      messages: [{
+        type: 'text',
+        text: 'ようこそ！神奈川ナース転職です。\n\n年収診断からいらっしゃったんですね。\nもう少し詳しい年収情報と、\nあなたの条件に合う求人を\nお見せできます。\n\n3つだけ教えてくださいね。',
+        quickReply: {
+          items: [
+            qrItem('さっそく始める', 'welcome=see_jobs'),
+            qrItem('年収だけ知りたい', 'welcome=check_salary'),
+          ],
+        },
+      }],
+    };
+  }
+
+  // ブログ/ガイド経由
+  if (source === 'blog') {
+    return {
+      nextPhase: 'welcome',
+      messages: [{
+        type: 'text',
+        text: '記事を読んでくださって\nありがとうございます📖\n\nよかったら、あなたに合う\n神奈川の求人も見てみませんか？\n3つだけ質問させてください。',
+        quickReply: {
+          items: [
+            qrItem('求人を見てみる', 'welcome=see_jobs'),
+            qrItem('まだ情報収集中', 'welcome=browse'),
+          ],
+        },
+      }],
+    };
+  }
+
+  // Hero / Sticky / Bottom CTA経由（intent=see_jobs/consult）
+  if (source === 'hero' || source === 'sticky' || source === 'bottom') {
+    if (intent === 'consult') {
+      return {
+        nextPhase: 'welcome',
+        messages: [{
+          type: 'text',
+          text: 'ようこそ！神奈川ナース転職です🏥\n\n転職のご相談ですね。\nまず簡単に条件を教えていただければ、\nあなたに合う求人をお見せしながら\nお話しできます。\n\n3つだけ教えてくださいね。',
+          quickReply: {
+            items: [
+              qrItem('さっそく始める', 'welcome=see_jobs'),
+              qrItem('まず相談したい', 'welcome=consult'),
+            ],
+          },
+        }],
+      };
+    }
+
+    // デフォルト: 求人を見たい
+    return {
+      nextPhase: 'welcome',
+      messages: [{
+        type: 'text',
+        text: 'ようこそ！神奈川ナース転職です🏥\n\n求人をお探しなんですね。\n3つだけ教えてください。\nすぐにあなたに合う求人をお見せします。\n\n※名前や電話番号は不要です',
+        quickReply: {
+          items: [
+            qrItem('さっそく始める', 'welcome=see_jobs'),
+            qrItem('ちょっと相談したい', 'welcome=consult'),
+            qrItem('まだ見てるだけ', 'welcome=browse'),
+          ],
+        },
+      }],
+    };
+  }
+
+  // デフォルト（sourceなし or 未知のsource）
+  return {
+    nextPhase: 'welcome',
+    messages: [{
+      type: 'text',
+      text: 'はじめまして！\n神奈川ナース転職です🏥\n\n神奈川県の看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？',
+      quickReply: {
+        items: [
+          qrItem('求人を探したい', 'welcome=see_jobs'),
+          qrItem('年収を知りたい', 'welcome=check_salary'),
+          qrItem('転職の相談をしたい', 'welcome=consult'),
+          qrItem('まだ見てるだけ', 'welcome=browse'),
+        ],
+      },
+    }],
+  };
+}
+
 function qrItem(label, data) {
   return { type: "action", action: { type: "postback", label: label.slice(0, 20), data, displayText: label } };
 }
@@ -2557,6 +2765,8 @@ function createLineEntry() {
     status: null,    // "registered" | "applied" | "interview" | "offered" | "employed"
     // メタ
     webSessionData: null,
+    welcomeSource: null,    // 共通EP経由のsource（hero/sticky/bottom/shindan/salary_check/area_page/blog/none）
+    welcomeIntent: null,    // 共通EP経由のintent（see_jobs/diagnose/consult/check_salary）
     messageCount: 0,
     unexpectedTextCount: 0, // 想定外テキスト連続カウント
     updatedAt: Date.now(),
@@ -3616,6 +3826,22 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "ai_consultation_extend"; // FIX-08: ターン延長
     }
   }
+  // 想定外テキスト用フォールバック選択肢
+  else if (params.has("fallback")) {
+    const val = params.get("fallback");
+    entry.unexpectedTextCount = 0;
+    if (val === "restart") {
+      // 最初からやり直し
+      entry.phase = "consent";
+      entry.answers = {};
+      entry.consultMessages = [];
+      nextPhase = "consent";
+    } else if (val === "jobs") {
+      nextPhase = "matching"; // 求人表示
+    } else if (val === "handoff") {
+      nextPhase = "handoff"; // 担当者引き継ぎ
+    }
+  }
   // 応募同意
   else if (params.has("apply")) {
     const val = params.get("apply");
@@ -3879,14 +4105,23 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.phase = "welcome";
           entry.updatedAt = Date.now();
         }
+        // session_id は follow 直後のテキストメッセージ（dm_text）で届くため、
+        // ここでは source=none のデフォルトwelcome を送る。
+        // dm_text が届いた場合はテキストメッセージハンドラでsession検出→welcome再送する。
+        // ただし follow イベント時点では dm_text の内容は分からないので、
+        // 汎用的なwelcomeを送り、session検出時に上書きする設計。
+        entry.welcomeSource = 'none';
         await saveLineEntry(userId, entry, env);
 
         const msgs = [{
           type: "text",
-          text: "友だち追加ありがとうございます！\n神奈川ナース転職のAIアドバイザー、ロビーです😊\n\n3つの質問に答えるだけで、あなたに合った求人をご紹介します。\n\n下のボタンをタップしてください👇",
+          text: "はじめまして！\n神奈川ナース転職です\n\n神奈川県の看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？",
           quickReply: {
             items: [
-              qrItem("求人を見る", "welcome=start"),
+              qrItem("求人を探したい", "welcome=see_jobs"),
+              qrItem("年収を知りたい", "welcome=check_salary"),
+              qrItem("転職の相談をしたい", "welcome=consult"),
+              qrItem("まだ見てるだけ", "welcome=browse"),
             ],
           },
         }];
@@ -3911,7 +4146,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           console.warn("[LINE] SLACK_BOT_TOKEN not set, skipping notification");
         }
 
-        console.log(`[LINE] Follow event, user ${userId.slice(0, 8)}, sent consent`);
+        console.log(`[LINE] Follow event, user ${userId.slice(0, 8)}, sent welcome`);
         continue;
       }
 
@@ -4130,7 +4365,73 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
 
-        // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはwelcome/consent/q1）
+        // ===== session_id検出（共通LINE送客EP /api/line-start 経由、UUID形式） =====
+        // dm_text方式で「text=UUID」として届く場合があるのでプレフィックス除去
+        let sessionCandidate = userText;
+        if (/^text=/i.test(sessionCandidate)) {
+          sessionCandidate = sessionCandidate.replace(/^text=/i, '');
+        }
+        // UUID v4パターン: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionCandidate);
+        if (isUUID && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
+          // KVからセッション情報を取得
+          let sessionCtx = null;
+          if (env?.LINE_SESSIONS) {
+            try {
+              const raw = await env.LINE_SESSIONS.get(`session:${sessionCandidate}`);
+              if (raw) sessionCtx = JSON.parse(raw);
+            } catch (e) { console.error("[LineStart] KV get error:", e.message); }
+          }
+          if (!sessionCtx) {
+            const memKey = `session:${sessionCandidate}`;
+            sessionCtx = webSessionMap.get(memKey);
+          }
+
+          if (sessionCtx) {
+            entry.webSessionData = sessionCtx;
+            entry.welcomeSource = sessionCtx.source || 'none';
+            entry.welcomeIntent = sessionCtx.intent || 'see_jobs';
+
+            // LP内ミニ診断の回答を引き継ぐ場合
+            if (sessionCtx.answers) {
+              try {
+                const ans = JSON.parse(sessionCtx.answers);
+                if (ans.area) { entry.area = ans.area; entry.areaLabel = ans.areaLabel || ans.area; }
+                if (ans.workstyle) entry.workStyle = ans.workstyle;
+                if (ans.urgency) entry.urgency = ans.urgency;
+              } catch (e) { /* answers parse error, ignore */ }
+            }
+
+            // 地域ページからのエリア情報を引き継ぐ
+            if (sessionCtx.area && !entry.area) {
+              entry.area = sessionCtx.area;
+            }
+
+            // source別welcome分岐
+            const welcomeMsgs = buildSessionWelcome(sessionCtx, entry);
+            entry.phase = welcomeMsgs.nextPhase;
+            entry.messageCount++;
+            entry.updatedAt = Date.now();
+            await saveLineEntry(userId, entry, env);
+
+            await lineReply(event.replyToken, welcomeMsgs.messages.slice(0, 5), channelAccessToken);
+
+            // Slack通知
+            if (env.SLACK_BOT_TOKEN) {
+              const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+              fetch("https://slack.com/api/chat.postMessage", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `💬 *LINE新規会話（共通EP経由）*\nsource: ${sessionCtx.source}\nintent: ${sessionCtx.intent}\nエリア: ${sessionCtx.area || "未指定"}\n日時: ${nowJST}\nユーザー: \`${userId.slice(0, 8)}...\`` }),
+              }).catch(() => {});
+            }
+
+            console.log(`[LINE] Session linked: ${sessionCandidate.slice(0, 8)}, source=${sessionCtx.source}, intent=${sessionCtx.intent}`);
+            continue;
+          }
+        }
+
+        // ===== 旧引き継ぎコード検出（6文字英数字大文字、7問診断経由） =====
         // dm_text方式で「text=CODE」として届く場合があるのでプレフィックス除去
         let codeCandidate = userText;
         if (/^text=/i.test(codeCandidate)) {
@@ -4386,25 +4687,38 @@ ${userText}`;
           ].slice(0, 5);
         } else if (nextPhase === null) {
           if (entry.unexpectedTextCount >= 3) {
-            // FIX-09: 閾値を2→3に変更
+            // Stage 3: 3回以上 → 担当者引き継ぎ
             entry.phase = "handoff";
             replyMessages = [{
               type: "text",
               text: "うまくお答えできずすみません。\n担当者が引き継いで、このLINEでご対応しますね。\n翌営業日までにご連絡いたします。電話はしません。",
             }];
             await sendHandoffNotification(userId, entry, env);
+          } else if (entry.unexpectedTextCount === 2) {
+            // Stage 2: 2回目 → フォールバック選択肢を提示
+            replyMessages = [{
+              type: "text",
+              text: "うまくいかないですよね、すみません。\nこちらからお選びください👇",
+              quickReply: {
+                items: [
+                  qrItem("最初からやり直す", "fallback=restart"),
+                  qrItem("求人を見せてほしい", "fallback=jobs"),
+                  qrItem("人に相談したい", "fallback=handoff"),
+                ],
+              },
+            }];
           } else {
-            // FIX-09: count 1-2ではガイドメッセージ + 現フェーズ再送
+            // Stage 1: 1回目 → 現フェーズのQuick Reply再表示
             const currentPhaseMsg = buildPhaseMessage(entry.phase, entry);
             if (currentPhaseMsg) {
               replyMessages = [
-                { type: "text", text: "下のボタンをタップして選んでくださいね👇" },
+                { type: "text", text: "すみません、うまく読み取れませんでした。\n下のボタンからお選びいただけますか？" },
                 ...currentPhaseMsg,
               ].slice(0, 5);
             } else {
               replyMessages = [{
                 type: "text",
-                text: "下のボタンをタップして選んでくださいね👇",
+                text: "すみません、うまく読み取れませんでした。\n下のボタンからお選びいただけますか？",
               }];
             }
           }
@@ -4470,19 +4784,19 @@ async function handleLineAIConsultation(userText, entry, env) {
   if (!entry.consultMessages) entry.consultMessages = [];
   entry.consultMessages.push({ role: "user", content: userText });
 
-  // FIX-08: ターン数制限
+  // FIX-08: ターン数制限（5ターンで一旦確認、延長で+3）
   const userTurns = entry.consultMessages.filter(m => m.role === 'user').length;
-  const MAX_TURNS = 10;
-  const EXTENDED_MAX = 15;
+  const MAX_TURNS = 5;
+  const EXTENDED_MAX = 8;
   const limit = entry.consultExtended ? EXTENDED_MAX : MAX_TURNS;
   if (userTurns >= limit) {
     return [{
       type: "text",
-      text: "たくさんお話しいただきありがとうございます！\nより詳しいご相談は、担当者が直接お答えしますね。",
+      text: "ここまでの相談をまとめますね。\n\nもう少しAIと話しますか？\nそれとも担当者に相談しますか？",
       quickReply: {
         items: [
-          qrItem("担当者と話す", "consult=handoff"),
-          qrItem("もう少し聞きたい", "consult=extend"),
+          qrItem("もう少し話す", "consult=extend"),
+          qrItem("担当者に相談する", "consult=handoff"),
         ],
       },
     }];
@@ -4559,14 +4873,18 @@ ${MARKET_DATA}
   }
 
   if (!aiResponse) {
-    // AIが間に合わなかった場合のテンプレート返信
-    const templates = [
-      "ご質問ありがとうございます！\n詳しい情報は担当者がお答えしますね。24時間以内にこのLINEでご連絡します。",
-      "気になりますよね！\n具体的な条件は担当者が詳しくお伝えできます。このLINEでご連絡しますね。",
-      "大事なポイントですね！\n担当者が詳しい情報をお伝えしますので、少しお待ちください。",
-    ];
-    aiResponse = templates[Math.floor(Math.random() * templates.length)];
-    console.log("[AI] Using template fallback");
+    // AIが間に合わなかった場合 → 日本語フォールバック + Quick Reply
+    console.log("[AI] Using template fallback (all AI calls failed)");
+    return [{
+      type: "text",
+      text: "申し訳ありません、回答の生成に時間がかかっています。\n少しお待ちいただくか、担当者にお繋ぎしましょうか？",
+      quickReply: {
+        items: [
+          qrItem("もう一度試す", "consult=continue"),
+          qrItem("担当者に相談する", "consult=handoff"),
+        ],
+      },
+    }];
   }
 
   entry.consultMessages.push({ role: "assistant", content: aiResponse });

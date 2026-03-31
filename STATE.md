@@ -1,5 +1,5 @@
 # 神奈川ナース転職 状態ファイル
-# 最終更新: 2026-03-31 10:00 by 競合分析
+# 最終更新: 2026-03-31 by LP・LINE全体設計改善
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -9,7 +9,7 @@
 ## 現在のフェーズ
 - マイルストーン: **Week 5**（2026-03-17〜）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: **シン・AI転職 Phase1 LP リビルド完了 + ブランドシステム統合 + 転職診断UI v4.0**
+- 状態: **LP・LINE全体設計改善 Phase1実装中**（共通LINE送客EP + welcome分岐 + 安心バー + CTA改善）
 
 ## KPI
 | 指標 | 目標 | 現在 | 状態 |
@@ -49,6 +49,26 @@
 - **ブランドシステム統合設定**: brand-system.md / design-tokens.css / content-rules.md / templates/base.html
 - **転職診断UI v4.0**: 7問構成（エリア→年代→看護師歴→職種→働き方→重視点→時期）
 - **Playwright画像生成オプション追加**: generate_carousel.py --renderer playwright
+- **LP・LINE全体設計改善 Phase1**（2026-03-31 実装中）:
+  - 共通LINE送客EP `/api/line-start` 実装（Worker: session_id+source+intent→KV保存→302リダイレクト）
+  - LP全CTA（Hero/Sticky/Bottom）を共通EP経由に変更（session_id自動付与、CTA文言改善）
+  - Worker welcome分岐実装（6パターン: hero/sticky/bottom/shindan/area_page/blog/salary_check/none）
+  - Hero直下に安心バー追加（完全無料・電話なし・個人情報不要・許可番号）
+  - Meta Lead二重計測修正（CTAクリックからfbq Lead削除）
+  - GA4イベント名統一（5種のline_click系→click_cta）
+  - Worker誤入力処理3段階化（再入力→フォールバック→HO）
+  - Worker AI相談ターン上限5設定
+  - Worker OpenAI失敗時日本語フォールバック
+
+## 次にやること（Phase1短期: 2-4週間）
+- [ ] LP診断7問→3問に短縮（エリア・働き方・温度感）
+- [ ] Worker intake_lightフロー実装（3問→即matching_preview）
+- [ ] Worker matching_browse実装（「他の求人も見たい」）
+- [ ] Worker nurture_warm/cold state実装
+- [ ] Worker ハンドオフ後Bot補助メッセージ
+- [ ] Worker Meta Conversion API連携（follow時にLead 1回だけ発火）
+- [ ] LP ページ構成変更（安心バー→診断→Features→自分向け感→比較→Flow→FAQ→CTA）
+- [ ] リッチメニュー4状態切り替え実装
 
 ## SNS状態
 - **TikTok**: @nurse_robby — 7本投稿済み、キュー22件ready

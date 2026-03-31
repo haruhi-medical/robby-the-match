@@ -1279,12 +1279,13 @@
     (function() {
         'use strict';
 
-        // === Lead tracking (CTA別計測) ===
+        // === CTA tracking (unified click_cta event) ===
         window.trackLead = function(el, pos) {
-            if (typeof fbq === 'function') fbq('track', 'Lead');
-            if (typeof gtag === 'function') gtag('event', 'lead_click', {
-                cta_position: pos || 'unknown',
-                page: 'ad-lp',
+            if (typeof gtag === 'function') gtag('event', 'click_cta', {
+                source: pos || 'unknown',
+                intent: 'see_jobs',
+                page_type: 'paid_lp',
+                session_id: window.__lineSessionId || '',
                 transport_type: 'beacon'
             });
         };

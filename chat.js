@@ -770,7 +770,7 @@
 
   function handleTeaserChoice(choice) {
     if (choice === "line") {
-      trackEvent("chat_line_click", { phase: "teaser", area: chatState.area, concern: chatState.concern });
+      trackEvent("click_cta", { source: "chat_widget", intent: "consult", page_type: "paid_lp", session_id: window.__lineSessionId || "", phase: "teaser", area: chatState.area, concern: chatState.concern });
       showTyping();
       setTimeout(function () {
         hideTyping();
@@ -936,9 +936,8 @@
     var btn = document.getElementById("chatLineMainBtn");
     if (btn) {
       btn.addEventListener("click", function () {
-        trackEvent("chat_line_card_click", { phase: chatState.phase });
+        trackEvent("click_cta", { source: "chat_widget", intent: "consult", page_type: "paid_lp", session_id: window.__lineSessionId || "", phase: chatState.phase });
         if (window.__nrTrack) window.__nrTrack("line_click");
-        if (typeof fbq !== "undefined") fbq("track", "Lead", {content_name: "LINE友だち追加", content_category: "看護師転職", value: 1, currency: "JPY"});
       });
     }
   }
