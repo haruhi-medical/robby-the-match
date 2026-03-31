@@ -2,6 +2,9 @@ name = "robby-the-match-api"
 main = "worker.js"
 compatibility_date = "2024-12-01"
 
+# アセット読み込みを無効化（親ディレクトリの94000+ファイルが含まれる問題を防ぐ）
+# assets は GitHub Pages で配信するため、Worker側では不要
+
 # Cloudflare Workers AI バインディング（無料・キー不要）
 [ai]
 binding = "AI"
