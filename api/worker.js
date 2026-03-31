@@ -4131,16 +4131,21 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         // 引き継ぎコード検出（6文字英数字大文字、followフェーズまたはwelcome/consent/q1）
-        if (/^[A-Z0-9]{6}$/.test(userText) && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
+        // dm_text方式で「text=CODE」として届く場合があるのでプレフィックス除去
+        let codeCandidate = userText;
+        if (/^text=/i.test(codeCandidate)) {
+          codeCandidate = codeCandidate.replace(/^text=/i, '');
+        }
+        if (/^[A-Z0-9]{6}$/.test(codeCandidate) && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
           // KVから取得（優先）→ インメモリフォールバック
           let webSession = null;
           if (env?.LINE_SESSIONS) {
             try {
-              const raw = await env.LINE_SESSIONS.get(`web:${userText}`);
+              const raw = await env.LINE_SESSIONS.get(`web:${codeCandidate}`);
               if (raw) webSession = JSON.parse(raw);
             } catch (e) { console.error("[WebSession] KV get error:", e.message); }
           }
-          if (!webSession) webSession = webSessionMap.get(userText);
+          if (!webSession) webSession = webSessionMap.get(codeCandidate);
           if (webSession && (Date.now() - webSession.createdAt < WEB_SESSION_TTL)) {
             entry.webSessionData = webSession;
             // 診断7問のデータを全てentryにマッピング
@@ -4193,11 +4198,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               await fetch("https://slack.com/api/chat.postMessage", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-                body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `💬 *LINE新規会話（HP引き継ぎ）*\nコード: ${userText}\nエリア: ${webSession.area || "不明"}\n日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}` }),
+                body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `💬 *LINE新規会話（HP引き継ぎ）*\nコード: ${codeCandidate}\nエリア: ${webSession.area || "不明"}\n日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}` }),
               }).catch(() => {});
             }
 
-            console.log(`[LINE] Handoff code ${userText} accepted, user ${userId.slice(0, 8)}`);
+            console.log(`[LINE] Handoff code ${codeCandidate} accepted, user ${userId.slice(0, 8)}`);
             continue;
           } else {
             entry.phase = "q1_urgency";
