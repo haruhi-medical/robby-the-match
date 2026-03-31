@@ -47,7 +47,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-X4G2BYW13B', { page_title: 'job-seeker-lp' });
       // 内部トラフィック除外（開発者アクセス）
       fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
         if(d.ip==='210.139.65.172'){gtag('set',{'traffic_type':'internal'});}
@@ -1406,7 +1405,7 @@
         </div>
         <!-- CTAオーバーレイ -->
         <div class="hero-cta-overlay">
-            <a href="https://lin.ee/oUgDB3x" class="cta-line-hero" target="_blank" rel="noopener" onclick="typeof fbq==='function'&&fbq('track','Lead');typeof gtag==='function'&&gtag('event','lead_click',{link:this.href});if(navigator.sendBeacon)navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');">
+            <a href="https://lin.ee/oUgDB3x?utm_source=lp&utm_medium=hero_cta" class="cta-line-hero" target="_blank" rel="noopener">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
                 LINEで求人を見る
             </a>
@@ -1621,9 +1620,9 @@
             <h2 class="section-title">まずは30秒、<br>試してみませんか？</h2>
         </div>
         <div class="reveal reveal-delay-1">
-            <a href="#shindan" class="cta-primary" onclick="typeof fbq==='function'&&fbq('track','Lead');typeof gtag==='function'&&gtag('event','lead_click',{link:this.href});if(navigator.sendBeacon)navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');">30秒で診断スタート &#9654;</a>
+            <a href="#shindan" class="cta-primary">30秒で診断スタート &#9654;</a>
             <p class="final-cta-or">または直接相談する</p>
-            <a href="https://lin.ee/oUgDB3x" class="cta-line" target="_blank" rel="noopener" onclick="typeof fbq==='function'&&fbq('track','Lead');typeof gtag==='function'&&gtag('event','lead_click',{link:this.href});if(navigator.sendBeacon)navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');">LINEで無料相談</a>
+            <a href="https://lin.ee/oUgDB3x?utm_source=lp&utm_medium=bottom_cta" class="cta-line" target="_blank" rel="noopener">LINEで無料相談</a>
             <p class="hero-note" style="margin-top:12px;">※完全無料・電話なし・1分で完了</p>
         </div>
     </section>
@@ -1690,7 +1689,7 @@
 
     <!-- Mobile Sticky CTA -->
     <div class="mobile-sticky-cta" id="mobile-sticky-cta">
-        <a href="https://lin.ee/oUgDB3x" target="_blank" rel="noopener" class="mobile-sticky-line" onclick="typeof fbq==='function'&&fbq('track','Lead');typeof gtag==='function'&&gtag('event','lead_click',{link:this.href});if(navigator.sendBeacon)navigator.sendBeacon('https://www.facebook.com/tr/?id=2326210157891886&ev=Lead&noscript=1');">
+        <a href="https://lin.ee/oUgDB3x?utm_source=lp&utm_medium=mobile_sticky" target="_blank" rel="noopener" class="mobile-sticky-line">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" style="vertical-align:middle;margin-right:4px;"><path d="M12 2C6.48 2 2 5.93 2 10.74c0 3.68 2.95 6.8 7.04 7.87-.1.37-.63 2.27-.66 2.42 0 0-.01.09.04.12.06.04.12.02.12.02.17-.02 1.93-1.27 2.76-1.87.87.13 1.79.2 2.7.2 5.52 0 10-3.93 10-8.76S17.52 2 12 2z"/></svg>
             LINEで求人を見る
         </a>

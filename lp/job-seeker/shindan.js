@@ -494,8 +494,15 @@
 
     /* CTA */
     var ctaText = A.t === 'info' ? 'まずは情報だけ受け取る' : 'LINEで求人を受け取る';
-    var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.age + '_' + A.exp + '_' + A.w + '_' + A.c + '_' + A.t);
-    var ctaURL = LINE_URL + '?utm_source=lp&utm_medium=shindan&utm_content=' + utmContent;
+    var skipped = window._shindanSkipped;
+    window._shindanSkipped = false;
+    var ctaURL;
+    if (skipped) {
+      ctaURL = LINE_URL + '?utm_source=lp&utm_medium=shindan_skip';
+    } else {
+      var utmContent = encodeURIComponent(A.s + '_' + A.a + '_' + A.age + '_' + A.exp + '_' + A.w + '_' + A.c + '_' + A.t);
+      ctaURL = LINE_URL + '?utm_source=lp&utm_medium=shindan_result&utm_content=' + utmContent;
+    }
 
     var cta = el('a', 'shindan-cta', '', {
       href: ctaURL,
@@ -597,6 +604,7 @@
     C = document.getElementById('shindan-container');
     if (!C) return;
     A = { a: 'yokohama_kawasaki', age: '30s', exp: '3to5', s: 'kango', w: 'day_only', c: 'salary', t: 'info' };
+    window._shindanSkipped = true;
     ga('shindan_skip');
     if (!D) {
       showSkeleton();

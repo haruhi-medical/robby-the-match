@@ -96,11 +96,30 @@
   // ===================================================================
   // LINE登録ボタンクリックトラッキング
   // ===================================================================
+  /**
+   * LINE CTA のソースを判定する
+   */
+  function detectLineSource(element) {
+    if (element.classList.contains('cta-line-hero')) return 'hero_cta';
+    if (element.classList.contains('mobile-sticky-line')) return 'mobile_sticky';
+    // .cta-line inside .final-cta section
+    if (element.classList.contains('cta-line')) {
+      var parent = element.closest('.final-cta');
+      if (parent) return 'bottom_cta';
+      return 'cta_line';
+    }
+    return 'other';
+  }
+
   function trackLineClick(element) {
     var utm = getSavedUTM();
+    var source = detectLineSource(element);
+
+    // GA4: line_click with source
     gtag('event', 'line_click', {
       event_category: 'engagement',
-      event_label: 'LINE登録ボタン',
+      event_label: source,
+      source: source,
       page_location: window.location.href,
       page_title: document.title,
       utm_source: utm.utm_source || 'direct',
@@ -108,18 +127,10 @@
       utm_campaign: utm.utm_campaign || '',
     });
 
-    // TikTok→LINE conversion tracking with full UTM context
-    gtag('event', 'line_registration_intent', {
-      event_category: 'conversion',
-      event_label: 'LINE登録意向',
-      page_location: window.location.href,
-      page_title: document.title,
-      utm_source: utm.utm_source || 'direct',
-      utm_medium: utm.utm_medium || '',
-      utm_campaign: utm.utm_campaign || '',
-      utm_term: utm.utm_term || '',
-      utm_content: utm.utm_content || '',
-    });
+    // Meta Pixel: Lead
+    if (typeof fbq === 'function') {
+      fbq('track', 'Lead');
+    }
   }
 
   function bindLineButtons() {
@@ -250,7 +261,10 @@
       if (link.dataset.robbyTracked) return;
 
       try {
-        var linkHost = new URL(link.href).hostname;
+        var linkUrl = new URL(link.href);
+        var linkHost = linkUrl.hostname;
+        // Skip lin.ee/line.me links — tracked by bindLineButtons
+        if (linkHost === 'lin.ee' || linkHost === 'line.me') return;
         if (linkHost !== currentHost) {
           link.dataset.robbyTracked = 'true';
           link.addEventListener('click', function () {

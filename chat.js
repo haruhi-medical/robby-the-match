@@ -923,7 +923,7 @@
     var card = document.createElement("div");
     card.className = "chat-line-card";
     card.innerHTML =
-      '<a href="https://lin.ee/oUgDB3x" target="_blank" rel="noopener" class="chat-line-card-btn" id="chatLineMainBtn">' +
+      '<a href="https://lin.ee/oUgDB3x?utm_source=lp&utm_medium=chat_widget" target="_blank" rel="noopener" class="chat-line-card-btn" id="chatLineMainBtn">' +
         'LINEでAIマッチングを受ける' +
       '</a>' +
       '<div class="chat-line-card-trust">' +
