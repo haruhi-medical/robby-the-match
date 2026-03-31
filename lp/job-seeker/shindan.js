@@ -10,6 +10,7 @@
 
   /* ── Constants ── */
   var LINE_URL = 'https://lin.ee/oUgDB3x';
+  var LINE_OA_ID = '@174cxnev';
   var D = null;
   var A = { a: '', age: '', exp: '', s: '', w: '', c: '', t: '' };
   var C; // container element
@@ -515,12 +516,7 @@
 
     r.appendChild(cta);
 
-    /* 引き継ぎコード生成 */
-    var codeEl = el('div', 'shindan-handoff-code');
-    codeEl.innerHTML = '引き継ぎコード生成中...';
-    codeEl.style.cssText = 'text-align:center;padding:12px;margin-top:12px;background:#f0f8ff;border-radius:8px;font-size:0.95em;color:#333;';
-    r.appendChild(codeEl);
-
+    /* 引き継ぎコード生成 → oaMessage URLで自動引き継ぎ */
     fetch('https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/web-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -535,35 +531,13 @@
       })
     }).then(function(res) { return res.json(); })
     .then(function(data) {
-      if (data.code && codeEl) {
-        var code = data.code;
-        codeEl.innerHTML = '<div style="margin-bottom:6px;font-size:0.85em;color:#666;">LINE登録後、このコードを送ってください</div>' +
-          '<button id="copy-code-btn" style="display:inline-flex;align-items:center;gap:8px;background:#1a7f64;color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:1.1em;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.2s;">' +
-          code + ' <span style="font-size:0.75em;font-weight:400;">タップでコピー</span></button>' +
-          '<div id="copy-feedback" style="font-size:0.8em;color:#1a7f64;margin-top:6px;min-height:1.2em;"></div>';
-        var btn = document.getElementById('copy-code-btn');
-        if (btn) {
-          btn.addEventListener('click', function() {
-            if (navigator.clipboard) {
-              navigator.clipboard.writeText(code).then(function() {
-                document.getElementById('copy-feedback').textContent = 'コピーしました！LINEに貼り付けてください';
-              });
-            } else {
-              var ta = document.createElement('textarea');
-              ta.value = code;
-              ta.style.position = 'fixed';
-              ta.style.opacity = '0';
-              document.body.appendChild(ta);
-              ta.select();
-              document.execCommand('copy');
-              document.body.removeChild(ta);
-              document.getElementById('copy-feedback').textContent = 'コピーしました！LINEに貼り付けてください';
-            }
-          });
-        }
+      if (data.code) {
+        // CTAのリンクをoaMessage URL（コード事前入力）に書き換え
+        var oaURL = 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?text=' + encodeURIComponent(data.code);
+        cta.setAttribute('href', oaURL);
       }
     }).catch(function() {
-      if (codeEl) codeEl.innerHTML = '';
+      // API失敗時はfallback（通常のlin.ee URL）のまま
     });
 
     C.appendChild(r);
