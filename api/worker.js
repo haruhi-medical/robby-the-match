@@ -5674,7 +5674,26 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               console.log(`[LINE] AI consultation done: "${aiUserText.slice(0, 30)}", User: ${aiUserId.slice(0, 8)}`);
             } catch (e) {
               console.error(`[LINE] AI background error: ${e.message}`);
-              // 全失敗時Slack通知
+              // 3. 全失敗時の安全メッセージ — ユーザーに無応答を防ぐ
+              try {
+                await fetch("https://api.line.me/v2/bot/message/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${aiToken}` },
+                  body: JSON.stringify({ to: aiUserId, messages: [{
+                    type: "text",
+                    text: "いま回答の生成が不安定なため、少々お待ちください。\n担当者につなぐこともできます。",
+                    quickReply: {
+                      items: [
+                        qrItem("担当者に相談する", "consult=handoff"),
+                        qrItem("もう一度試す", "consult=retry"),
+                      ],
+                    },
+                  }] }),
+                });
+              } catch (pushErr) {
+                console.error(`[LINE] Safety push also failed: ${pushErr.message}`);
+              }
+              // Slack通知（手動フォロー用）
               if (env.SLACK_BOT_TOKEN) {
                 fetch("https://slack.com/api/chat.postMessage", {
                   method: "POST",
