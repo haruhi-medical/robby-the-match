@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-03-31T15:10:36.380952",
+  "updated": "2026-04-01T06:00:06.010757",
   "posts": [
     {
       "id": 1,
@@ -3060,9 +3060,9 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-03-31T21:17:51.886697",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -3087,7 +3087,9 @@
         "suggestion": "看護師の共感を深めるために、より具体的な数字や状況を盛り込むと良いでしょう"
       },
       "scheduled_for": "2026-03-31 17:30",
-      "quality_checked": true
+      "quality_checked": true,
+      "instagram_posted": true,
+      "instagram_posted_at": "2026-03-31T21:17:51.886661"
     },
     {
       "id": 161,
@@ -3116,7 +3118,7 @@
         "comments": null
       },
       "ai_score": 6,
-      "quality_score": 8,
+      "quality_score": 8.47,
       "ai_review": {
         "score": 6,
         "persona_fit": 8,
@@ -3130,7 +3132,8 @@
         ],
         "suggestion": "看護師の痛み点を具体的に描写したフックを作成し、キャプションを200文字以内に収める"
       },
-      "scheduled_for": "2026-03-31 17:30"
+      "scheduled_for": "2026-03-31 17:30",
+      "quality_checked": true
     },
     {
       "id": 162,
@@ -3159,7 +3162,7 @@
         "comments": null
       },
       "ai_score": 6,
-      "quality_score": 8,
+      "quality_score": 8.38,
       "ai_review": {
         "score": 6,
         "persona_fit": 8,
@@ -3173,7 +3176,8 @@
         ],
         "suggestion": "フックを強化し、ロビーの性格を明確に表現することで看護師の共感を高める"
       },
-      "scheduled_for": "2026-04-01 12:00"
+      "scheduled_for": "2026-04-01 12:00",
+      "quality_checked": true
     },
     {
       "id": 163,
@@ -3202,7 +3206,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.71,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3215,7 +3219,8 @@
         ],
         "suggestion": "看護師の市場価値に関する具体的なデータや解説を追加し、より具体的なアクションプランを提供することで、投稿の説得力を高めることができる"
       },
-      "scheduled_for": "2026-04-02 21:00"
+      "scheduled_for": "2026-04-02 21:00",
+      "quality_checked": true
     },
     {
       "id": 164,
@@ -3244,7 +3249,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.89,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3257,7 +3262,8 @@
         ],
         "suggestion": "フックを25文字以内に短縮し、より具体的な数字や状況を含めることで、看護師の共感度を高めることができる"
       },
-      "scheduled_for": "2026-04-03 17:30"
+      "scheduled_for": "2026-04-03 17:30",
+      "quality_checked": true
     },
     {
       "id": 165,
@@ -3286,7 +3292,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.6,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3299,7 +3305,8 @@
         ],
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
       },
-      "scheduled_for": "2026-04-04 12:00"
+      "scheduled_for": "2026-04-04 12:00",
+      "quality_checked": true
     },
     {
       "id": 166,
@@ -3402,11 +3409,11 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,

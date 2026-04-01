@@ -2969,3 +2969,13 @@ SNS自動投稿: IG済33件 / 未投稿41件 (IG=0, TK=0)
 
 [NOTE] available (18) >= threshold (7) -- --auto では生成スキップ
 
+
+## 2026-04-01
+
+### pdca_ai_marketing（06:00:01）
+AI Marketing PDCA:
+  Queue: pending=17 ready=7 posted=45 failed=13
+  Generated today: 0
+  Quality issues: 17
+  Status: Healthy
+
