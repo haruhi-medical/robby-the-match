@@ -2441,7 +2441,7 @@ const AREA_ZONE_MAP = {
   q3_shonan_west:    ["平塚", "秦野", "伊勢原", "大磯", "二宮"],
   q3_kenoh:          ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
   q3_kensei:         ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原"],
-  q3_undecided:      [],
+  q3_undecided:      ["横浜", "川崎", "相模原", "横須賀", "藤沢", "茅ヶ崎", "平塚", "厚木", "小田原"],
   // 診断用（5エリア→複数エリアに展開）
   q3_yokohama_kawasaki:  ["横浜", "川崎"],
   q3_shonan_kamakura:    ["藤沢", "茅ヶ崎", "鎌倉", "寒川", "逗子", "葉山"],
@@ -2455,7 +2455,7 @@ const AREA_ZONE_MAP = {
   q3_yokosuka_miura_il:     ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
   q3_odawara_kensei_il:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
   q3_tokyo_included_il:     ["横浜", "川崎"],  // 東京は対象外だが横浜・川崎をカバー
-  q3_undecided_il:          [],
+  q3_undecided_il:          ["横浜", "川崎", "相模原", "横須賀", "藤沢", "茅ヶ崎", "平塚", "厚木", "小田原"],  // 未定→主要エリア全て
 };
 
 const IL_AREA_LABELS = {
@@ -2810,14 +2810,25 @@ async function saveLineEntry(userId, entry, env) {
   lineConversationMap.set(userId, entry); // インメモリ更新
   if (env?.LINE_SESSIONS) {
     try {
-      // matchingResults は大きくなりがちなので名前のみ保存
+      // matchingResults は大きくなりがちなので主要フィールドのみ保存
       const toSave = { ...entry };
       if (toSave.matchingResults) {
         toSave.matchingResults = toSave.matchingResults.map(r => ({
-          name: r.name, matchScore: r.matchScore, salary: r.salary,
-          access: r.access, type: r.type, beds: r.beds,
-          salaryMin: r.salaryMin, salaryMax: r.salaryMax,
-          nightShiftType: r.nightShiftType, annualHolidays: r.annualHolidays,
+          // EXTERNAL_JOBS（ハローワーク求人）のフィールド
+          n: r.n || r.name || null,
+          sal: r.sal || r.salary || null,
+          hol: r.hol || r.annualHolidays || null,
+          loc: r.loc || null,
+          r: r.r || null,
+          s: r.s || null,
+          adjustedScore: r.adjustedScore || null,
+          t: r.t || null,
+          sta: r.sta || r.access || null,
+          bon: r.bon || null,
+          emp: r.emp || null,
+          // 旧自社DB互換
+          name: r.n || r.name || null,
+          salary: r.sal || r.salary || null,
         }));
       }
       // messages は直近10件のみ保存（KVサイズ制限考慮）
@@ -3225,16 +3236,23 @@ function buildPhaseMessage(phase, entry) {
       const wsLabels = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
       const wsLabel = wsLabels[entry.workStyle] || "";
 
-      let previewText = `${previewAreaLabel} × ${wsLabel} で${previewResults.length}件見つかりました！\n\n`;
+      let previewText = `${previewAreaLabel} × ${wsLabel} で${previewResults.length}件見つかりました！\n`;
       previewResults.forEach((r, i) => {
-        previewText += `━━━━━━━━━━\n`;
-        previewText += `${i + 1}. ${r.n || r.name || "求人"}\n`;
-        previewText += `💰 ${r.sal || r.salary || ""}\n`;
-        if (r.hol) previewText += `🗓 年間休日${r.hol}日\n`;
-        if (r.loc) previewText += `📍 ${r.loc}\n`;
-        previewText += `\n`;
+        const jobName = r.n || r.name || "求人";
+        const jobSal = r.sal || r.salary || "";
+        const jobHol = r.hol || "";
+        const jobLoc = r.loc || "";
+        previewText += `\n━━━━━━━━━━\n`;
+        previewText += `${i + 1}. ${jobName.slice(0, 30)}\n`;
+        if (jobSal) previewText += `💰 ${jobSal}\n`;
+        if (jobHol) previewText += `🗓 年間休日${jobHol}日\n`;
+        if (jobLoc) previewText += `📍 ${jobLoc}\n`;
       });
-      previewText += `気になる求人はありますか？`;
+      previewText += `\n気になる求人はありますか？`;
+      // LINE Text上限5000文字ガード
+      if (previewText.length > 4900) {
+        previewText = previewText.slice(0, 4900) + "\n…";
+      }
 
       return [{
         type: "text",
@@ -4462,6 +4480,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           if (!entry.matchingResults) {
             generateLineMatching(entry);
           }
+          console.log(`[LINE] matching_preview: area=${entry.area}, workStyle=${entry.workStyle}, results=${(entry.matchingResults||[]).length}, first=${JSON.stringify((entry.matchingResults||[])[0]||{}).slice(0,100)}`);
           entry.phase = "matching_preview";
           // Track shown job IDs
           if (entry.matchingResults && entry.matchingResults.length > 0) {
