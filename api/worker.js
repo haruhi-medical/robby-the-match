@@ -4610,7 +4610,7 @@ function handleLinePostback(dataStr, entry) {
         nextPhase = "consult_handoff_choice";
       }
     } else if (val === "back_to_matching") {
-      nextPhase = "il_area"; // 求人検索に戻る
+      nextPhase = "matching"; // 求人一覧に戻る（matchingResults再表示）
     } else if (val === "done") {
       nextPhase = "nurture_warm"; // ナーチャリングへ
     } else if (val === "retry") {
