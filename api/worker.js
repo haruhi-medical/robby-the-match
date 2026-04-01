@@ -113,6 +113,72 @@ async function sendGA4Event(env, eventName, userId, data) {
   }
 }
 
+// ---------- LINE Bot state正式定義（16種） ----------
+// ユーザーのファネル位置を正確に追跡するためのカテゴリ分類
+const STATE_CATEGORIES = {
+  // 1. 初期接触
+  ONBOARDING:    ["follow", "welcome", "consent", "consent_check"],
+  // 2. ヒアリング（intake_light 3問）
+  INTAKE:        ["il_area", "il_workstyle", "il_urgency"],
+  // 3. 詳細ヒアリング（FULL/MEDIUM 10問）
+  HEARING:       ["q1_urgency", "q2_change", "q3_area", "q4_experience", "q5_workstyle",
+                  "q6_workplace", "q7_strengths", "q8_concerns", "q9_work_history", "q10_qualification"],
+  // 4. AI相談
+  AI_CONSULT:    ["ai_consultation", "ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"],
+  // 5. マッチング
+  MATCHING:      ["matching_preview", "matching_browse", "matching_more", "matching"],
+  // 6. 求人詳細・逆指名
+  JOB_ACTION:    ["reverse_nomination", "reverse_nomination_confirm"],
+  // 7. 応募フロー
+  APPLY:         ["apply_info", "apply_info_birth", "apply_info_phone", "apply_info_workplace",
+                  "apply_consent", "apply_confirm", "apply_cancelled"],
+  // 8. 経歴書
+  RESUME:        ["resume_confirm", "resume_edit", "resume_apply_edit", "career_sheet", "career_sheet_edit", "career_sheet_apply_edit"],
+  // 9. 面接準備
+  INTERVIEW:     ["interview_prep"],
+  // 10. ハンドオフ（人間対応）
+  HANDOFF:       ["handoff", "handoff_silent"],
+  // 11. ナーチャリング
+  NURTURE:       ["nurture_warm", "nurture_subscribed", "nurture_stay"],
+  // 12. FAQ
+  FAQ:           ["faq_free", "faq_no_phone"],
+};
+
+function getStateCategory(phase) {
+  for (const [category, phases] of Object.entries(STATE_CATEGORIES)) {
+    if (phases.includes(phase)) return category;
+  }
+  return "UNKNOWN";
+}
+
+// ---------- 条件緩和提案（マッチング結果が少ない場合） ----------
+function suggestRelaxation(entry, matchCount) {
+  if (matchCount >= 3) return null; // 3件以上なら提案不要
+
+  const suggestions = [];
+
+  // エリアを広げる提案
+  if (entry.area) {
+    suggestions.push("エリアを広げると、もっと多くの求人が見つかるかもしれません");
+  }
+
+  // 働き方の緩和
+  if (entry.workStyle === "day") {
+    suggestions.push("「日勤のみ」→「こだわらない」にすると選択肢が増えます");
+  }
+
+  // 施設タイプの緩和
+  if (entry.workplace && entry.workplace !== "any") {
+    suggestions.push("施設タイプを「こだわらない」にすると幅が広がります");
+  }
+
+  if (suggestions.length === 0) {
+    suggestions.push("条件を変えて再検索すると、新しい求人が見つかるかもしれません");
+  }
+
+  return suggestions[0]; // 最も効果的な1つだけ返す
+}
+
 // ---------- Haversine距離計算（km） ----------
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371; // 地球の半径(km)
@@ -4771,6 +4837,15 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             entry.browsedJobIds.push(...shownIds);
           }
           replyMessages = buildPhaseMessage("matching_preview", entry);
+          // 条件緩和提案（結果が少ない場合）
+          const relaxSuggestion = suggestRelaxation(entry, (entry.matchingResults || []).length);
+          if (relaxSuggestion && replyMessages && replyMessages.length < 5) {
+            // 最後のメッセージのquickReplyに「条件を変えて探す」を追加
+            const lastMsg = replyMessages[replyMessages.length - 1];
+            if (lastMsg && lastMsg.quickReply && lastMsg.quickReply.items) {
+              lastMsg.quickReply.items.push(qrItem("条件を変えて探す", "matching_preview=deep"));
+            }
+          }
           // Slack notification for intake completion
           if (env.SLACK_BOT_TOKEN) {
             const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
