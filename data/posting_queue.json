@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-01T15:01:56.452324",
+  "updated": "2026-04-01T15:19:27.096726",
   "posts": [
     {
       "id": 1,
@@ -1996,36 +1996,6 @@
       "quality_checked": true
     },
     {
-      "id": 126,
-      "content_id": "ai_給与_0305_03",
-      "batch": "ai_batch_20260305_1343",
-      "slide_dir": "content/generated/ai_batch_20260305_1056/carousel_20260320_ai_給与_0305_03",
-      "json_path": "content/generated/ai_batch_20260305_1343/ai_給与_0305_03.json",
-      "caption": "神奈川の看護師\n\n夜勤手当は全部使い切れない。\n\nこの表、保存しといて損ないよ",
-      "hashtags": [
-        "#神奈川",
-        "#看護師",
-        "#夜勤手当",
-        "#神奈川ナース転職"
-      ],
-      "cta_type": "soft",
-      "content_type": "salary",
-      "status": "failed",
-      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0305_03_20260323.mp4",
-      "posted_at": null,
-      "tiktok_url": null,
-      "error": "all_upload_methods_failed",
-      "performance": {
-        "views": null,
-        "likes": null,
-        "saves": null,
-        "comments": null
-      },
-      "ai_score": null,
-      "quality_score": 8.63,
-      "quality_checked": true
-    },
-    {
       "id": 127,
       "content_id": "ai_給与_0305_04",
       "batch": "ai_batch_20260305_1343",
@@ -2151,7 +2121,7 @@
     },
     {
       "id": 133,
-      "content_id": "ai_ある_0305_01",
+      "content_id": "ai_ある_0305_01_v2",
       "batch": "ai_batch_20260305_1351",
       "slide_dir": "content/generated/ai_batch_20260305_0944/carousel_20260320_ai_ある_0305_01",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_01.json",
@@ -2181,7 +2151,7 @@
     },
     {
       "id": 134,
-      "content_id": "ai_ある_0305_02",
+      "content_id": "ai_ある_0305_02_v3",
       "batch": "ai_batch_20260305_1351",
       "slide_dir": "content/generated/ai_batch_20260305_1351/carousel_20260305_ai_ある_0305_02",
       "json_path": "content/generated/ai_batch_20260305_1351/ai_ある_0305_02.json",
@@ -3454,96 +3424,6 @@
       "scheduled_for": "2026-04-01 17:30"
     },
     {
-      "id": 170,
-      "content_id": "ai_ある_0331_03",
-      "batch": "ai_batch_20260331_1500",
-      "slide_dir": "content/generated/ai_batch_20260331_1500/ai_ある_0331_03",
-      "json_path": "content/generated/ai_batch_20260331_1500/ai_ある_0331_03.json",
-      "caption": "看護師5年目、有給休暇取れなかったら...\n\nロビーが調べた有給取得率は?\n\n同じ状況の看護師さん、コメントで教えて",
-      "hashtags": [
-        "#看護師",
-        "#神奈川",
-        "#有給休暇",
-        "#ナース転職"
-      ],
-      "cta_type": "soft",
-      "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
-      "posted_at": null,
-      "tiktok_url": null,
-      "error": null,
-      "performance": {
-        "views": null,
-        "likes": null,
-        "saves": null,
-        "comments": null
-      },
-      "ai_score": 7,
-      "quality_score": 8,
-      "scheduled_for": "2026-04-02 12:00"
-    },
-    {
-      "id": 171,
-      "content_id": "ai_ある_0331_04",
-      "batch": "ai_batch_20260331_1500",
-      "slide_dir": "content/generated/ai_batch_20260331_1500/ai_ある_0331_04",
-      "json_path": "content/generated/ai_batch_20260331_1500/ai_ある_0331_04.json",
-      "caption": "看護師5年目、夜勤月8回で手取り24万って...\n\n神奈川県の看護師平均年収は546万円\n\nこの情報を保存しておくと、看護師の転職活動に役立つよ",
-      "hashtags": [
-        "#神奈川県",
-        "#看護師転職",
-        "#夜勤",
-        "#看護師不足"
-      ],
-      "cta_type": "soft",
-      "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
-      "posted_at": null,
-      "tiktok_url": null,
-      "error": null,
-      "performance": {
-        "views": null,
-        "likes": null,
-        "saves": null,
-        "comments": null
-      },
-      "ai_score": 7,
-      "quality_score": 8,
-      "scheduled_for": "2026-04-03 21:00"
-    },
-    {
-      "id": 172,
-      "content_id": "ai_給与_0331_05",
-      "batch": "ai_batch_20260331_1500",
-      "slide_dir": "content/generated/ai_batch_20260331_1500/ai_給与_0331_05",
-      "json_path": "content/generated/ai_batch_20260331_1500/ai_給与_0331_05.json",
-      "caption": "夜勤専従の手取り、コンビニバイトと同じ?\n\n看護師の価値を高めてみて\n\nこの情報をシェアして、看護師の労働環境を改善しよう",
-      "hashtags": [
-        "#看護師",
-        "#夜勤専従",
-        "#コンビニバイト",
-        "#給与"
-      ],
-      "cta_type": "soft",
-      "content_type": "salary",
-      "status": "ready",
-      "video_path": null,
-      "posted_at": null,
-      "tiktok_url": null,
-      "error": null,
-      "performance": {
-        "views": null,
-        "likes": null,
-        "saves": null,
-        "comments": null
-      },
-      "ai_score": 7,
-      "quality_score": 8,
-      "scheduled_for": "2026-04-04 17:30"
-    },
-    {
       "id": 173,
       "content_id": "ai_給与_0331_06",
       "batch": "ai_batch_20260331_1500",
@@ -3648,7 +3528,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3677,7 +3557,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
