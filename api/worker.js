@@ -4614,7 +4614,8 @@ function handleLinePostback(dataStr, entry) {
     } else if (val === "done") {
       nextPhase = "nurture_warm"; // ナーチャリングへ
     } else if (val === "retry") {
-      nextPhase = "ai_consultation_waiting"; // 再試行
+      // phase を ai_consultation に戻してテキスト入力待ちにする
+      nextPhase = "ai_consultation_retry";
     }
   }
   // 追加ヒアリング: 資格
@@ -5233,6 +5234,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               text: "どうぞ、何でも聞いてください！\n転職の不安やキャリアのことなど、お気軽にどうぞ。",
             }];
           }
+        } else if (nextPhase === "ai_consultation_retry") {
+          // AI全失敗後の再試行: phaseをai_consultationに戻してテキスト入力待ち
+          entry.phase = "ai_consultation";
+          replyMessages = [{
+            type: "text",
+            text: "もう一度メッセージを送ってみてください！",
+          }];
         } else if (nextPhase === "ai_consultation_extend") {
           // FIX-08: ターン延長（+5回）
           entry.phase = "ai_consultation";
