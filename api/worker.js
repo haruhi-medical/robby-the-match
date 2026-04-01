@@ -4075,8 +4075,31 @@ async function sendHandoffNotification(userId, entry, env) {
   // 興味のある施設
   const interestedText = entry.interestedFacility || "（未選択）";
 
+  // ハンドオフ理由判定（5条件）
+  const handoffReasons = [];
+  if (entry.urgency === "urgent") handoffReasons.push("温度感A（すぐ転職したい）");
+  if (entry.interestedFacility) handoffReasons.push(`求人詳細タップ（${entry.interestedFacility.slice(0, 20)}）`);
+  if (entry.reverseNominationHospital) handoffReasons.push(`逆指名（${entry.reverseNominationHospital.slice(0, 20)}）`);
+  if (entry.handoffRequestedByUser) handoffReasons.push("本人から「相談したい」");
+  if ((entry.messageCount || 0) >= 5) handoffReasons.push(`会話${entry.messageCount}ターン（高エンゲージメント）`);
+  if (handoffReasons.length === 0) handoffReasons.push("自動判定");
+  const handoffReasonsText = handoffReasons.map(r => `• ${r}`).join("\n");
+
+  // 直近会話（最新5件）
+  let recentMessages = "（記録なし）";
+  if (entry.messages && entry.messages.length > 0) {
+    recentMessages = entry.messages.slice(-5).map(m => {
+      const role = m.role === "user" ? "👤" : "🤖";
+      const text = (m.content || "").slice(0, 80);
+      return `${role} ${text}`;
+    }).join("\n");
+  }
+
   const slackText = `🎯 *LINE相談 → 人間対応リクエスト*
 温度感: ${tempEmoji} ${temperature} / 緊急度: ${urgLabel}
+
+🔥 *ハンドオフ理由*
+${handoffReasonsText}
 
 📋 *求職者サマリ*
 資格: ${qualLabel} / 経験年数: ${expLabel}
@@ -4087,6 +4110,9 @@ async function sendHandoffNotification(userId, entry, env) {
 🏥 *希望条件*
 エリア: ${areaLabel} / 働き方: ${workStyleLabel}
 得意なこと: ${strengthLabels}
+
+💬 *直近の会話*
+${recentMessages}
 
 📄 *職歴*
 ${entry.workHistoryText || "（未入力）"}
@@ -4356,10 +4382,12 @@ function handleLinePostback(dataStr, entry) {
     const val = params.get("consult");
     entry.unexpectedTextCount = 0;
     if (val === "handoff") {
+      entry.handoffRequestedByUser = true;
       nextPhase = "consult_handoff_choice"; // 応募 or 担当者直接引き継ぎを選択
     } else if (val === "apply") {
       nextPhase = "apply_info"; // 応募フローへ
     } else if (val === "direct_handoff") {
+      entry.handoffRequestedByUser = true;
       nextPhase = "handoff"; // 応募せず直接引き継ぎ
     } else if (val === "start") {
       nextPhase = "ai_consultation_waiting"; // テキスト入力待ち
