@@ -453,8 +453,10 @@ footer .footer-links a:hover{color:var(--primary)}
     <div class="stepper-step" data-step="2"><span>2</span></div>
     <div class="stepper-line" data-line="2"></div>
     <div class="stepper-step" data-step="3"><span>3</span></div>
+    <div class="stepper-line" data-line="3"></div>
+    <div class="stepper-step" data-step="4"><span>4</span></div>
   </div>
-  <div class="stepper-label" id="stepperLabel">3問中 1問目</div>
+  <div class="stepper-label" id="stepperLabel">4問中 1問目</div>
 </div>
 
 <!-- Quiz -->
@@ -517,10 +519,43 @@ footer .footer-links a:hover{color:var(--primary)}
       </div>
     </div>
 
-    <!-- Q3: Salary slider -->
+    <!-- Q3: Facility type -->
     <div class="question" id="q3">
       <div class="q-label">Q3</div>
-      <div class="q-title" id="q3Title">現在の月収は？</div>
+      <div class="q-title">施設タイプは？</div>
+      <div class="options">
+        <button type="button" class="opt-btn" data-facility="hospital">
+          <div class="opt-icon"><i data-lucide="building-2"></i></div>
+          <span>病院</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button type="button" class="opt-btn" data-facility="clinic">
+          <div class="opt-icon"><i data-lucide="stethoscope"></i></div>
+          <span>クリニック・診療所</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button type="button" class="opt-btn" data-facility="visiting_nurse">
+          <div class="opt-icon"><i data-lucide="home"></i></div>
+          <span>訪問看護</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button type="button" class="opt-btn" data-facility="care_facility">
+          <div class="opt-icon"><i data-lucide="heart-handshake"></i></div>
+          <span>介護・福祉施設</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+        <button type="button" class="opt-btn" data-facility="all">
+          <div class="opt-icon"><i data-lucide="list"></i></div>
+          <span>こだわらない</span>
+          <div class="opt-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q4: Salary slider -->
+    <div class="question" id="q4">
+      <div class="q-label">Q4</div>
+      <div class="q-title" id="q4Title">現在の月収は？</div>
       <div class="slider-wrap">
         <div class="slider-value" id="sliderValue">25万円</div>
         <div class="slider-unit" id="sliderUnit">夜勤手当込み・税引前の額面。だいたいでOK</div>
@@ -577,11 +612,11 @@ footer .footer-links a:hover{color:var(--primary)}
   <div class="result-body">
     <!-- Comparison -->
     <div class="compare-card">
-      <h3>このエリアの相場との比較</h3>
+      <h3 id="compareTitle">このエリアの相場との比較</h3>
       <div class="compare-visual">
         <div class="compare-bar-group">
           <div class="compare-bar-label">
-            <span>このエリアの相場</span>
+            <span id="compareLabel">このエリアの相場</span>
             <span class="bar-value" id="resultMedian">20.2万円</span>
           </div>
           <div class="compare-bar-track">
@@ -630,6 +665,7 @@ footer .footer-links a:hover{color:var(--primary)}
       <button type="button" class="retry-btn" id="retryBtn">もう一度診断する</button>
     </div>
 
+    <p class="source-note" id="fallbackNote" style="display:none;color:#D4706A;"></p>
     <p class="source-note">※ ハローワーク公開求人（神奈川県・2026年3月時点）のデータに基づく参考値です</p>
   </div>
 </section>
@@ -670,14 +706,23 @@ footer .footer-links a:hover{color:var(--primary)}
 
 <script>
 (function(){
+  // Facility type display names
+  var FACILITY_NAMES = {
+    "hospital": "病院",
+    "clinic": "クリニック・診療所",
+    "visiting_nurse": "訪問看護",
+    "care_facility": "介護・福祉施設",
+    "all": "全施設"
+  };
+
   // State
   let currentQ = 1;
-  let answers = { area: null, workstyle: null, salary: null };
+  let answers = { area: null, workstyle: null, facility: null, salary: null };
   let salaryData = null;
   let isPartTime = false;
 
   // Elements
-  const questions = [null, document.getElementById('q1'), document.getElementById('q2'), document.getElementById('q3')];
+  const questions = [null, document.getElementById('q1'), document.getElementById('q2'), document.getElementById('q3'), document.getElementById('q4')];
   const btnNext = document.getElementById('btnNext');
   const btnBack = document.getElementById('btnBack');
   const stepperSteps = document.querySelectorAll('.stepper-step');
@@ -688,12 +733,11 @@ footer .footer-links a:hover{color:var(--primary)}
   const sliderUnit = document.getElementById('sliderUnit');
   const sliderMin = document.getElementById('sliderMin');
   const sliderMax = document.getElementById('sliderMax');
-  const q4Title = document.getElementById('q3Title');
+  const q4Title = document.getElementById('q4Title');
 
   // Fetch data
   fetch('/salary-check/salary-data.json').then(r=>r.json()).then(d=>{
     salaryData=d;
-    // Update hero social proof with actual count
     var total = d.total_analyzed || 600;
     document.getElementById('heroSocial').textContent = '神奈川県の看護師求人データに基づく診断';
   }).catch(()=>{
@@ -735,6 +779,18 @@ footer .footer-links a:hover{color:var(--primary)}
       setupSlider();
       btnNext.disabled = false;
       gaEvent('salary_check_q2',{workstyle:answers.workstyle});
+      setTimeout(function(){goNext()},350);
+    });
+  });
+
+  // Q3: Facility type
+  document.querySelectorAll('#q3 .opt-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#q3 .opt-btn').forEach(function(b){b.classList.remove('selected')});
+      this.classList.add('selected');
+      answers.facility = this.dataset.facility;
+      btnNext.disabled = false;
+      gaEvent('salary_check_q3',{facility:answers.facility});
       setTimeout(function(){goNext()},350);
     });
   });
@@ -785,10 +841,10 @@ footer .footer-links a:hover{color:var(--primary)}
       l.classList.remove('done');
       if(i < currentQ - 1) l.classList.add('done');
     });
-    stepperLabel.textContent = '3問中 ' + currentQ + '問目';
+    stepperLabel.textContent = '4問中 ' + currentQ + '問目';
     btnBack.style.display = currentQ > 1 ? 'block' : 'none';
 
-    if(currentQ === 3){
+    if(currentQ === 4){
       btnNext.textContent = '診断結果を見る';
       btnNext.disabled = false;
     } else {
@@ -801,15 +857,16 @@ footer .footer-links a:hover{color:var(--primary)}
     if(questions[n]) questions[n].classList.add('active');
     currentQ = n;
     updateStepper();
-    if(n===3) updateSliderTrack();
+    if(n===4) updateSliderTrack();
 
     if(n===1) btnNext.disabled = !answers.area;
     else if(n===2) btnNext.disabled = !answers.workstyle;
-    else if(n===3) btnNext.disabled = false;
+    else if(n===3) btnNext.disabled = !answers.facility;
+    else if(n===4) btnNext.disabled = false;
   }
 
   function goNext(){
-    if(currentQ < 3){
+    if(currentQ < 4){
       showQuestion(currentQ + 1);
     } else {
       if(answers.salary === null){
@@ -864,30 +921,74 @@ footer .footer-links a:hover{color:var(--primary)}
     var areaData = salaryData.areas[answers.area];
     if(!areaData){showInsufficient();return;}
 
+    // 3段階フォールバック:
+    // 1. 選択した働き方×施設タイプ
+    // 2. 選択した働き方×全施設
+    // 3. 全働き方から最もN数が多いものを探す
     var wsData = areaData.workstyles[answers.workstyle];
-    if(!wsData || wsData.insufficient_data || wsData.count < 5){
+    var ftData = null;
+    var facilityLabel = '';
+    var fallbackNote = '';
+
+    if(wsData && wsData.facility_types){
+      // Step 1: 選択した施設タイプ
+      ftData = wsData.facility_types[answers.facility];
+      facilityLabel = FACILITY_NAMES[answers.facility] || '';
+
+      // Step 2: 全施設にフォールバック
+      if(!ftData || ftData.insufficient_data || ftData.count < 5){
+        ftData = wsData.facility_types['all'];
+        facilityLabel = '全施設';
+        fallbackNote = '※ 選択した施設タイプのデータが少ないため、全施設で比較しています';
+      }
+    }
+
+    // Step 3: 働き方もフォールバック（同じ給与形態のみ。月収↔時給の混在を防ぐ）
+    if(!ftData || ftData.insufficient_data || ftData.count < 5){
+      var bestWs = null, bestFt = null, bestCount = 0;
+      // パートなら他のパートは探さない（パートは1種類）。常勤なら常勤系のみ探す
+      var wsKeys = isPartTime ? [] : ['with_night','day_only'];
+      for(var wi=0; wi<wsKeys.length; wi++){
+        if(wsKeys[wi] === answers.workstyle) continue; // 自分自身はスキップ
+        var ws = areaData.workstyles[wsKeys[wi]];
+        if(ws && ws.facility_types && ws.facility_types['all']){
+          var ft = ws.facility_types['all'];
+          if(ft && !ft.insufficient_data && ft.count >= 5 && ft.count > bestCount){
+            bestWs = wsKeys[wi]; bestFt = ft; bestCount = ft.count;
+          }
+        }
+      }
+      if(bestFt){
+        ftData = bestFt;
+        facilityLabel = '全施設';
+        var wsName = bestWs === 'with_night' ? '夜勤あり常勤' : '日勤のみ常勤';
+        fallbackNote = '※ 選択した条件のデータが少ないため、' + wsName + '・全施設で比較しています';
+      }
+    }
+
+    if(!ftData || ftData.insufficient_data || ftData.count < 5){
       showInsufficient();
       return;
     }
 
-    var p = wsData.percentiles;
+    var p = ftData.percentiles;
     var userVal = answers.salary;
-    var count = wsData.count;
+    var count = ftData.count;
 
     // Calculate diff and percentile (for GA4)
     var userCompare, diff, userSalaryText, medianText, youText, salaryTypeText, diffText;
     var medianNum, youNum, minVal, maxVal;
     if(isPartTime){
       userCompare = userVal;
-      diff = userVal - wsData.median;
+      diff = userVal - ftData.median;
       userSalaryText = Number(userVal).toLocaleString() + '円';
-      medianText = Number(wsData.median).toLocaleString() + '円';
+      medianText = Number(ftData.median).toLocaleString() + '円';
       youText = Number(userVal).toLocaleString() + '円';
       salaryTypeText = '時給';
-      medianNum = wsData.median;
+      medianNum = ftData.median;
       youNum = userVal;
-      minVal = wsData.min || 1000;
-      maxVal = wsData.max || 3000;
+      minVal = ftData.min || 1000;
+      maxVal = ftData.max || 3000;
       if(diff >= 0){
         diffText = '+' + Number(diff).toLocaleString() + '円';
       } else {
@@ -896,16 +997,16 @@ footer .footer-links a:hover{color:var(--primary)}
     } else {
       // userVal is in 万円, median is raw yen
       var userYen = userVal * 10000;
-      diff = userYen - wsData.median;
+      diff = userYen - ftData.median;
       userSalaryText = Number(userYen).toLocaleString() + '円';
-      var medianMan = (wsData.median / 10000).toFixed(1);
+      var medianMan = (ftData.median / 10000).toFixed(1);
       medianText = medianMan + '万円';
       youText = userVal + '万円';
       salaryTypeText = '月収';
-      medianNum = wsData.median;
+      medianNum = ftData.median;
       youNum = userYen;
-      minVal = wsData.min || 150000;
-      maxVal = wsData.max || 500000;
+      minVal = ftData.min || 150000;
+      maxVal = ftData.max || 500000;
       if(diff >= 0){
         diffText = '+' + Number(diff).toLocaleString() + '円';
       } else {
@@ -937,10 +1038,11 @@ footer .footer-links a:hover{color:var(--primary)}
 
     // Diff display
     var diffContainer = document.getElementById('resultDiff');
+    var areaFacilityLabel = areaData.name + '・' + facilityLabel;
     if(diff >= 0){
-      diffContainer.innerHTML = 'このエリアの相場より <span class="diff-amount positive" id="diffAmount">' + diffText + '</span> 高い';
+      diffContainer.innerHTML = areaFacilityLabel + 'の相場より <span class="diff-amount positive" id="diffAmount">' + diffText + '</span> 高い';
     } else {
-      diffContainer.innerHTML = 'このエリアの相場より <span class="diff-amount negative" id="diffAmount">' + Number(Math.abs(diff)).toLocaleString() + '円</span> 低い';
+      diffContainer.innerHTML = areaFacilityLabel + 'の相場より <span class="diff-amount negative" id="diffAmount">' + Number(Math.abs(diff)).toLocaleString() + '円</span> 低い';
     }
 
     // Horizontal bar
@@ -954,7 +1056,10 @@ footer .footer-links a:hover{color:var(--primary)}
       document.getElementById('hbarYou').style.left = youPct + '%';
     }, 200);
 
-    // Comparison card
+    // Comparison card — 施設タイプ名を反映
+    var compareAreaLabel = areaData.name + '・' + facilityLabel;
+    document.getElementById('compareTitle').textContent = compareAreaLabel + 'の相場との比較';
+    document.getElementById('compareLabel').textContent = compareAreaLabel + 'の相場';
     document.getElementById('resultMedian').textContent = medianText;
     document.getElementById('resultYou').textContent = youText;
     document.getElementById('resultHigher').textContent = (count - rank) + '件';
@@ -977,7 +1082,7 @@ footer .footer-links a:hover{color:var(--primary)}
     // Sample jobs
     var jobsList = document.getElementById('jobsList');
     jobsList.innerHTML = '';
-    var samples = wsData.sample_jobs || [];
+    var samples = ftData.sample_jobs || [];
     var remainingCount = count - 2;
     samples.forEach(function(job,i){
       if(i >= 2){
@@ -1015,7 +1120,16 @@ footer .footer-links a:hover{color:var(--primary)}
     document.getElementById('insufficientSection').classList.remove('active');
     window.scrollTo({top:0, behavior:'smooth'});
 
-    gaEvent('salary_check_result',{percentile:percentileRank, area:answers.area, workstyle:answers.workstyle, stars:level.stars});
+    // Fallback note
+    var fnEl = document.getElementById('fallbackNote');
+    if(fallbackNote){
+      fnEl.textContent = fallbackNote;
+      fnEl.style.display = '';
+    } else {
+      fnEl.style.display = 'none';
+    }
+
+    gaEvent('salary_check_result',{percentile:percentileRank, area:answers.area, workstyle:answers.workstyle, facility:answers.facility, stars:level.stars});
     if(typeof fbq==='function') fbq('track','Lead');
 
     // Generate handoff code → oaMessage URLで自動引き継ぎ
@@ -1054,7 +1168,7 @@ footer .footer-links a:hover{color:var(--primary)}
   }
 
   function resetQuiz(){
-    answers = {area:null, workstyle:null, salary:null};
+    answers = {area:null, workstyle:null, facility:null, salary:null};
     isPartTime = false;
     document.querySelectorAll('.opt-btn').forEach(function(b){b.classList.remove('selected')});
     setupSlider();

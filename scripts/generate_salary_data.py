@@ -3,7 +3,7 @@
 神奈川ナース転職 — 年収診断用統計データ生成スクリプト
 hellowork_nurse_jobs.json → salary-check/salary-data.json
 
-エリア x 働き方 のクロス集計を行う。
+エリア x 働き方 x 施設タイプ のクロス集計を行う。
 """
 
 import json
@@ -41,6 +41,15 @@ AREA_NAMES = {
     "sagamihara_kenoh": "相模原・県央エリア",
     "yokosuka_miura": "横須賀・三浦エリア",
     "kensai": "県西エリア",
+}
+
+# 施設タイプ分類
+FACILITY_NAMES = {
+    "hospital": "病院",
+    "clinic": "クリニック・診療所",
+    "visiting_nurse": "訪問看護",
+    "care_facility": "介護・福祉施設",
+    "all": "全施設",
 }
 
 # 夜勤判定キーワード
@@ -140,6 +149,43 @@ def classify_workstyle(job):
             return None
 
     return None
+
+
+def classify_facility(job):
+    """
+    施設タイプを判定:
+    - hospital: 病院
+    - clinic: 一般診療所 or job_title/employerに「クリニック」「診療所」を含む
+    - visiting_nurse: 助産・看護業 or job_title/employerに「訪問看護」を含む
+    - care_facility: 老人福祉・介護事業 / 障害者福祉事業 / 児童福祉事業
+    - other: 上記以外
+    """
+    industry = job.get("industry", "")
+    job_title = job.get("job_title", "")
+    employer = job.get("employer", "")
+    text = job_title + " " + employer
+
+    # hospital
+    if industry == "病院":
+        return "hospital"
+
+    # clinic
+    if industry == "一般診療所":
+        return "clinic"
+    if "クリニック" in text or "診療所" in text:
+        return "clinic"
+
+    # visiting_nurse
+    if industry == "助産・看護業":
+        return "visiting_nurse"
+    if "訪問看護" in text:
+        return "visiting_nurse"
+
+    # care_facility
+    if industry in ("老人福祉・介護事業", "障害者福祉事業", "児童福祉事業"):
+        return "care_facility"
+
+    return "other"
 
 
 def get_salary_value(job, workstyle):
@@ -265,10 +311,11 @@ def main():
     print(f"[INFO] 読み込み求人数: {len(jobs)}")
     print(f"[INFO] データ取得日: {fetched_at}")
 
-    # 分類集計
-    classified = {}  # (area, workstyle) → [(job, (sal_low, sal_high)), ...]
+    # 分類集計: (area, workstyle, facility) → [(job, (sal_low, sal_high)), ...]
+    classified = {}
     area_counts = {}
     workstyle_counts = {}
+    facility_counts = {}
     skipped_area = 0
     skipped_workstyle = 0
     skipped_salary = 0
@@ -289,13 +336,19 @@ def main():
             skipped_salary += 1
             continue
 
-        key = (area, workstyle)
+        facility = classify_facility(job)
+
+        key = (area, workstyle, facility)
         if key not in classified:
             classified[key] = []
         classified[key].append((job, (sal_low, sal_high)))
 
         area_counts[area] = area_counts.get(area, 0) + 1
         workstyle_counts[workstyle] = workstyle_counts.get(workstyle, 0) + 1
+        facility_counts[facility] = facility_counts.get(facility, 0) + 1
+
+    # 施設タイプ一覧（other含む全タイプ）
+    facility_types = ["hospital", "clinic", "visiting_nurse", "care_facility", "other"]
 
     # 統計データ生成
     output = {
@@ -303,6 +356,7 @@ def main():
         "source": "ハローワーク求人API（神奈川県看護師）",
         "source_fetched_at": fetched_at,
         "total_analyzed": sum(len(v) for v in classified.values()),
+        "facility_names": FACILITY_NAMES,
         "areas": {},
     }
 
@@ -317,23 +371,48 @@ def main():
         }
 
         for ws in ["with_night", "day_only", "part_time"]:
-            key = (area_key, ws)
-            job_list = classified.get(key, [])
             is_pt = (ws == "part_time")
+            ws_data = {"facility_types": {}}
 
-            salaries = [s[0] for _, s in job_list]  # salary_low
-            stats = compute_stats(salaries, is_part_time=is_pt)
+            # 各施設タイプ別の統計
+            for ft in facility_types:
+                key = (area_key, ws, ft)
+                job_list = classified.get(key, [])
+                salaries = [s[0] for _, s in job_list]
+                stats = compute_stats(salaries, is_part_time=is_pt)
 
-            if stats is None:
-                area_data["workstyles"][ws] = {"count": 0, "insufficient_data": True}
+                if stats is None:
+                    ws_data["facility_types"][ft] = {"count": 0, "insufficient_data": True}
+                    insufficient_cells += 1
+                else:
+                    stats["sample_jobs"] = get_sample_jobs(job_list)
+                    ws_data["facility_types"][ft] = stats
+                    if stats.get("insufficient_data"):
+                        insufficient_cells += 1
+
+                total_cells += 1
+
+            # "all"（全施設合計）
+            all_jobs = []
+            for ft in facility_types:
+                key = (area_key, ws, ft)
+                all_jobs.extend(classified.get(key, []))
+
+            all_salaries = [s[0] for _, s in all_jobs]
+            all_stats = compute_stats(all_salaries, is_part_time=is_pt)
+
+            if all_stats is None:
+                ws_data["facility_types"]["all"] = {"count": 0, "insufficient_data": True}
                 insufficient_cells += 1
             else:
-                stats["sample_jobs"] = get_sample_jobs(job_list)
-                area_data["workstyles"][ws] = stats
-                if stats.get("insufficient_data"):
+                all_stats["sample_jobs"] = get_sample_jobs(all_jobs)
+                ws_data["facility_types"]["all"] = all_stats
+                if all_stats.get("insufficient_data"):
                     insufficient_cells += 1
 
             total_cells += 1
+
+            area_data["workstyles"][ws] = ws_data
 
         output["areas"][area_key] = area_data
 
@@ -367,6 +446,12 @@ def main():
         count = workstyle_counts.get(ws_key, 0)
         print(f"   {ws_name}: {count}件")
     print(f"")
+    print(f" 施設タイプ別集計:")
+    for ft_key in facility_types:
+        ft_name = FACILITY_NAMES.get(ft_key, ft_key)
+        count = facility_counts.get(ft_key, 0)
+        print(f"   {ft_name}: {count}件")
+    print(f"")
     print(f" クロス集計セル: {total_cells}セル（うちN<5: {insufficient_cells}セル）")
     print(f"")
 
@@ -377,18 +462,21 @@ def main():
         print(f"  ■ {AREA_NAMES[area_key]}")
         for ws_key, ws_name in ws_names.items():
             ws_data = area_data["workstyles"].get(ws_key, {})
-            n = ws_data.get("count", 0)
-            if n == 0:
-                print(f"    {ws_name}: 0件")
-            elif ws_data.get("insufficient_data"):
-                print(f"    {ws_name}: {n}件 (N<5, パーセンタイル非算出)")
-            else:
-                unit = ws_data.get("unit", "月給")
-                med = ws_data.get("median", 0)
-                if unit == "時給":
-                    print(f"    {ws_name}: {n}件 | 中央値 {med:,}円/時")
+            for ft_key in facility_types + ["all"]:
+                ft_name = FACILITY_NAMES.get(ft_key, ft_key)
+                ft_data = ws_data.get("facility_types", {}).get(ft_key, {})
+                n = ft_data.get("count", 0)
+                if n == 0:
+                    print(f"    {ws_name} / {ft_name}: 0件")
+                elif ft_data.get("insufficient_data"):
+                    print(f"    {ws_name} / {ft_name}: {n}件 (N<5)")
                 else:
-                    print(f"    {ws_name}: {n}件 | 中央値 {med:,}円/月")
+                    unit = ft_data.get("unit", "月給")
+                    med = ft_data.get("median", 0)
+                    if unit == "時給":
+                        print(f"    {ws_name} / {ft_name}: {n}件 | 中央値 {med:,}円/時")
+                    else:
+                        print(f"    {ws_name} / {ft_name}: {n}件 | 中央値 {med:,}円/月")
     print(f"\n{'='*60}")
 
 
