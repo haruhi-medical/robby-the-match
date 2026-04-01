@@ -4517,23 +4517,56 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
         // ===== matching（matching_preview/browseから「気になる」選択時） =====
         else if (nextPhase === "matching") {
-          // 既存matchingフローのFlex Message表示
           generateLineMatching(entry);
           entry.phase = "matching";
+          const matchResults = entry.matchingResults || [];
+
+          // Flex Messageではなくテキストで詳細表示（Flex APIエラー回避）
+          let detailText = "求人の詳細をお見せしますね！\n";
+          matchResults.slice(0, 3).forEach((r, i) => {
+            const jn = (r.n || r.name || "求人").slice(0, 30);
+            const jt = r.t || "";
+            const js = r.sal || r.salary || "";
+            const jh = r.hol || "";
+            const jb = r.bon || "";
+            const jl = r.loc || "";
+            const jst = r.sta || "";
+            const je = r.emp || "";
+            detailText += `\n━━━━━━━━━━\n`;
+            detailText += `${i + 1}. ${jn}\n`;
+            if (jt) detailText += `📋 ${jt.slice(0, 40)}\n`;
+            if (js) detailText += `💰 ${js}\n`;
+            if (jb) detailText += `🎁 賞与 ${jb}\n`;
+            if (jh) detailText += `🗓 年間休日${jh}日\n`;
+            if (jl) detailText += `📍 ${jl}\n`;
+            if (jst) detailText += `🚃 ${jst.slice(0, 30)}\n`;
+            if (je) detailText += `👔 ${je}\n`;
+          });
+          if (detailText.length > 4900) detailText = detailText.slice(0, 4900) + "\n…";
+
           replyMessages = [
-            { type: "text", text: "求人の詳細をお見せしますね！\n気になる求人があれば「応募したい」「相談したい」とメッセージください。" },
-            ...buildMatchingMessages(entry),
-          ].slice(0, 5);
+            { type: "text", text: detailText },
+            { type: "text", text: "気になる求人はありますか？\n「応募したい」「相談したい」とメッセージいただくか、下のボタンからお選びください。\n\n💡 ここにない病院でも「逆指名」で直接売り込めます！",
+              quickReply: {
+                items: [
+                  qrItem("応募したい", "consult=apply"),
+                  qrItem("相談したい", "consult=start"),
+                  qrItem("逆指名したい", "match=reverse"),
+                  qrItem("他の求人も見たい", "matching_preview=more"),
+                ],
+              },
+            },
+          ];
           // Slack通知
           if (env.SLACK_BOT_TOKEN) {
             const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-            const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
-              `  ${r.adjustedScore || r.s || "?"}pt: ${r.n || r.name || "不明"}（${r.sal || r.salary || ""}）`
+            const matchingText = matchResults.slice(0, 3).map(r =>
+              `  ${r.n || r.name || "不明"}（${r.sal || r.salary || ""}）`
             ).join("\n") || "（なし）";
             fetch("https://slack.com/api/chat.postMessage", {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人詳細表示*\nエリア: ${entry.areaLabel || entry.area || "不明"}\n働き方: ${entry.workStyle || "不明"}\n\n🏆 *表示した施設*\n${matchingText}\n\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n\n💬 返信: \`!reply ${userId} メッセージ\`` }),
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人詳細表示*\n${matchingText}\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n💬 返信: \`!reply ${userId} メッセージ\`` }),
             }).catch(() => {});
           }
         }
