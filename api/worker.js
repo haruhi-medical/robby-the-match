@@ -4253,7 +4253,7 @@ function handleLinePostback(dataStr, entry) {
     } else if (val === "detail") {
       nextPhase = "matching"; // 既存の詳細マッチングフロー
     } else if (val === "deep") {
-      nextPhase = "q2_change"; // 詳細ヒアリングフローQ2から開始
+      nextPhase = "il_area"; // 条件変更 → intake_lightやり直し（SHORTフロー非互換を修正）
     } else if (val === "later") {
       nextPhase = "nurture_warm";
     }
@@ -4829,7 +4829,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // 常に再生成（KV復元後の旧形式データを上書き）
           generateLineMatching(entry);
           console.log(`[LINE] matching_preview: area=${entry.area}, workStyle=${entry.workStyle}, results=${(entry.matchingResults||[]).length}, first=${JSON.stringify((entry.matchingResults||[])[0]||{}).slice(0,100)}`);
-          entry.phase = "matching_preview";
           // Track shown job IDs
           if (entry.matchingResults && entry.matchingResults.length > 0) {
             if (!entry.browsedJobIds) entry.browsedJobIds = [];
@@ -4865,7 +4864,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               !entry.browsedJobIds.includes(r.n || r.name)
             );
           }
-          entry.phase = "matching_browse";
           // Track newly shown job IDs
           if (entry.matchingResults && entry.matchingResults.length > 0) {
             if (!entry.browsedJobIds) entry.browsedJobIds = [];
@@ -4877,7 +4875,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // ===== matching（matching_preview/browseから「気になる」選択時） =====
         else if (nextPhase === "matching") {
           generateLineMatching(entry);
-          entry.phase = "matching";
           const matchResults = entry.matchingResults || [];
 
           // Flex Messageではなくテキストで詳細表示（Flex APIエラー回避）
@@ -4931,7 +4928,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
         // ===== nurture_warm =====
         else if (nextPhase === "nurture_warm") {
-          entry.phase = "nurture_warm";
           entry.nurtureEnteredAt = entry.nurtureEnteredAt || Date.now();
           entry.nurtureSentCount = entry.nurtureSentCount || 0;
           replyMessages = buildPhaseMessage("nurture_warm", entry);
@@ -5000,30 +4996,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
         } else if (nextPhase === "resume_confirm") {
           replyMessages = await buildResumeConfirmMessages(entry, env);
-        } else if (nextPhase === "matching") {
-          generateLineMatching(entry);
-          replyMessages = [
-            { type: "text", text: "あなたの条件に近い施設の情報をお探ししますね。\n※現時点での参考情報です。実際の求人状況は変動しますので、詳しくは担当者が確認いたします。" },
-            ...buildMatchingMessages(entry),
-          ].slice(0, 5);
-          // Slack通知: 求人提案完了 + ヒアリングサマリ
-          if (env.SLACK_BOT_TOKEN) {
-            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-            const qualLabel = POSTBACK_LABELS[`q10_${entry.qualification}`] || "不明";
-            const expLabel = POSTBACK_LABELS[`q4_${entry.experience}`] || "不明";
-            const areaLabel = entry.areaLabel || POSTBACK_LABELS[`q3_${entry.area}`] || "不明";
-            const workStyleLabel = POSTBACK_LABELS[`q5_${entry.workStyle}`] || "不明";
-            const changeLabel = POSTBACK_LABELS[`q2_${entry.change}`] || "不明";
-            const urgLabel = POSTBACK_LABELS[`q1_${entry.urgency}`] || "不明";
-            const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
-              `  ${r.adjustedScore || r.s || "?"}pt: ${r.n || r.name || "不明"}（${r.sal || r.salary || ""}）`
-            ).join("\n") || "（なし）";
-            fetch("https://slack.com/api/chat.postMessage", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人提案完了*\n\n📋 *ヒアリング内容*\n資格: ${qualLabel} / 経験: ${expLabel}\n緊急度: ${urgLabel}\n変えたいこと: ${changeLabel}\nエリア: ${areaLabel} / 働き方: ${workStyleLabel}\n\n🏆 *提案した施設*\n${matchingText}\n\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n\n💬 返信: \`!reply ${userId} メッセージ\`` }),
-            }).catch(() => {});
-          }
         } else if (nextPhase === "matching_more") {
           // FIX-10: 次の5件を表示（最大offset=15で3ページ）
           const currentOffset = entry.matchingOffset || 0;
@@ -5156,6 +5128,18 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }];
         } else if (nextPhase) {
           replyMessages = buildPhaseMessage(nextPhase, entry);
+        }
+
+        // フォールバック: nextPhaseが未定義 or replyMessagesが空の場合、現フェーズを再表示
+        if (!replyMessages || replyMessages.length === 0) {
+          const fallbackMsg = buildPhaseMessage(entry.phase, entry);
+          if (fallbackMsg) {
+            replyMessages = [
+              { type: "text", text: "もう一度お選びください👇" },
+              ...fallbackMsg,
+            ].slice(0, 5);
+          }
+          console.warn(`[LINE] Postback fallback: nextPhase=${nextPhase}, phase=${entry.phase}, data=${dataStr}`);
         }
 
         // KV保存（Reply送信前に保存してワーカー終了に備える）
