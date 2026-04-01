@@ -2869,7 +2869,8 @@ function getMenuStateForPhase(phase) {
   if (phase === "handoff") return RICH_MENU_STATES.handoff;
   if (["matching_preview", "matching_browse", "matching", "matching_more",
        "resume_confirm", "resume_apply_edit", "reverse_nomination", "reverse_nomination_confirm",
-       "apply_info", "apply_info_birth", "apply_info_phone", "apply_consent"].includes(phase)) {
+       "apply_info", "apply_info_birth", "apply_info_phone", "apply_consent",
+       "career_sheet", "career_sheet_edit", "apply_confirm"].includes(phase)) {
     return RICH_MENU_STATES.matched;
   }
   if (["il_area", "il_workstyle", "il_urgency",
@@ -3097,50 +3098,44 @@ function addLineMessage(userId, role, content) {
   return entry;
 }
 
-// ---------- キャリアシート生成 ----------
-function generateCareerSheet(entry) {
-  const name = entry.fullName || "（未入力）";
-  const birth = entry.birthDate || "（未入力）";
-  const phone = entry.phone || "（未入力）";
-  const qualification = POSTBACK_LABELS[`q10_${entry.qualification}`] || entry.qualification || "（未入力）";
-  const experience = POSTBACK_LABELS[`q4_${entry.experience}`] || entry.experience || "（未入力）";
-  const area = entry.areaLabel || "（未入力）";
-  const workStyle = POSTBACK_LABELS[`q5_${entry.workStyle}`] || entry.workStyle || "（未入力）";
-  const currentWorkplace = entry.currentWorkplace || "（未入力）";
-  const workHistory = entry.workHistoryText || "（未入力）";
-  const change = POSTBACK_LABELS[`q2_${entry.change}`] || entry.change || "（未入力）";
-  const strengths = (entry.strengths || []).map(s => POSTBACK_LABELS[`q7_${s}`] || s).join("、") || "（未入力）";
+// ---------- 匿名プロフィール生成（病院打診用） ----------
+// 氏名・生年月日・電話番号・勤務先は含めない。担当者が匿名で病院に打診する用。
+function generateAnonymousProfile(entry) {
+  const qualification = POSTBACK_LABELS[`q10_${entry.qualification}`] || entry.qualification || "（未回答）";
+  const experience = POSTBACK_LABELS[`q4_${entry.experience}`] || entry.experience || "（未回答）";
+  const area = entry.areaLabel || "（未回答）";
+  const workStyle = POSTBACK_LABELS[`q5_${entry.workStyle}`] || entry.workStyle || "（未回答）";
+  const change = POSTBACK_LABELS[`q2_${entry.change}`] || entry.change || "（未回答）";
+  const strengths = (entry.strengths || []).map(s => POSTBACK_LABELS[`q7_${s}`] || s).join("、") || "（未回答）";
   const concern = POSTBACK_LABELS[`q8_${entry.concern}`] || entry.concern || "なし";
+  const workHistory = entry.workHistoryText || null;
 
   const reasonMap = {
-    salary: "給与アップを希望しており、これまでの経験を活かしてより好条件の職場を探しています。",
-    rest: "ワークライフバランスを重視し、休日や勤務時間に余裕のある環境を希望しています。",
-    human: "より良い人間関係の職場環境を求めて、新たなチャレンジを検討しています。",
-    night: "夜勤の負担を軽減したいと考え、日勤中心の勤務体制を希望しています。",
-    commute: "通勤の負担を減らし、より近距離の職場を希望しています。",
-    career: "キャリアアップを目指し、専門性を高められる環境を探しています。",
+    salary: "給与アップを希望",
+    rest: "ワークライフバランス重視",
+    human: "職場環境の改善を希望",
+    night: "夜勤負担の軽減を希望",
+    commute: "通勤負担の軽減を希望",
+    career: "スキルアップ・キャリアアップを希望",
   };
-  const reason = reasonMap[entry.change] || "より良い環境での看護を目指して転職を検討しています。";
+  const reason = reasonMap[entry.change] || "より良い環境を希望";
 
-  return `━━━━━━━━━━━━━━━━━━
-📋 キャリアシート
+  let sheet = `━━━━━━━━━━━━━━━━━━
+📋 匿名プロフィール（病院打診用）
 ━━━━━━━━━━━━━━━━━━
 
-■ 基本情報
-氏名: ${name}
-生年月日: ${birth}
-電話番号: ${phone}
+■ 資格・経験
 資格: ${qualification}
 経験年数: ${experience}
 
-■ 現在の勤務状況
-勤務先: ${currentWorkplace}
-
-■ 職務経歴
-${workHistory}
-
 ■ 得意分野・スキル
-${strengths}
+${strengths}`;
+
+  if (workHistory) {
+    sheet += `\n\n■ 職務経歴（概要）\n${workHistory}`;
+  }
+
+  sheet += `
 
 ■ 転職理由
 ${reason}
@@ -3154,32 +3149,40 @@ ${reason}
 ${concern === "なし" ? "特になし" : concern}
 
 ━━━━━━━━━━━━━━━━━━
+※ 氏名・連絡先は開示していません
 神奈川ナース転職（23-ユ-302928）
 ━━━━━━━━━━━━━━━━━━`;
+  return sheet;
 }
 
-// ---------- 応募Slack通知 ----------
+// 後方互換
+function generateCareerSheet(entry) {
+  return generateAnonymousProfile(entry);
+}
+
+// ---------- 紹介候補Slack通知 ----------
+// 個人情報は社内管理用。病院には匿名プロフィールで打診する。
 async function sendApplyNotification(userId, entry, env) {
   if (!env.SLACK_BOT_TOKEN) return;
   const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
   const facilities = (entry.matchingResults || []).slice(0, 3);
-  const facilityNames = facilities.map(f => f.name).join("、");
+  const facilityNames = facilities.map(f => f.n || f.name || "不明").join("、");
+  const anonProfile = entry.careerSheet || generateAnonymousProfile(entry);
 
-  const text = `🎯 *応募受付*\n\n` +
-    `👤 ${entry.fullName || "不明"}（${entry.birthDate || ""}）\n` +
-    `📞 ${entry.phone || "不明"}\n` +
-    `🏥 現職: ${entry.currentWorkplace || "不明"}\n` +
-    `📋 資格: ${POSTBACK_LABELS[`q10_${entry.qualification}`] || entry.qualification || "不明"}\n` +
-    `📊 経験: ${POSTBACK_LABELS[`q4_${entry.experience}`] || entry.experience || "不明"}\n` +
-    `🎯 応募先: ${facilityNames || "不明"}\n\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `${entry.careerSheet || "キャリアシート未生成"}\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
+  const text = `🎯 *紹介候補（匿名打診依頼）*\n\n` +
+    `【社内管理用 — 病院には開示しない】\n` +
+    `👤 ${entry.fullName || "未取得"}（${entry.birthDate || ""}）\n` +
+    `📞 ${entry.phone || "未取得"}\n` +
+    `🏥 現職: ${entry.currentWorkplace || "未取得"}\n\n` +
+    `【打診先】${facilityNames || "未選択"}\n\n` +
+    `【病院打診用 匿名プロフィール】\n` +
+    `${anonProfile}\n\n` +
     `⏰ ${nowJST}\n` +
     `ユーザーID: \`${userId}\`\n\n` +
     `✅ *次のアクション*\n` +
-    `☐ 病院にキャリアシート送付\n` +
-    `☐ 3営業日以内に書類選考結果をLINEで連絡\n\n` +
+    `☐ 上記の匿名プロフィールで病院に打診\n` +
+    `☐ 病院が興味を示したらユーザーに連絡\n` +
+    `☐ 双方合意後に個人情報を開示して面談調整\n\n` +
     `💬 返信: \`!reply ${userId} ここにメッセージ\``;
 
   await fetch("https://slack.com/api/chat.postMessage", {
@@ -3587,13 +3590,13 @@ function buildPhaseMessage(phase, entry) {
     case "reverse_nomination":
       return [{
         type: "text",
-        text: "🎯 逆指名ですね！\n\n「この病院で働きたい」という希望があれば、私たちがあなたのキャリアシートを持って直接病院に提案します。\n\n手数料10%という強みがあるので、病院側も前向きに検討してくれることが多いです。\n\n希望の病院名を教えてください！\n（例: 横浜市立大学附属病院、小田原市立病院 など）",
+        text: "🎯 逆指名ですね！\n\n「この病院で働きたい」という希望があれば、担当者が匿名プロフィールで直接病院に打診します。\n\n手数料10%という強みがあるので、病院側も前向きに検討してくれることが多いです。\n\n希望の病院名を教えてください！\n（例: 横浜市立大学附属病院、小田原市立病院 など）",
       }];
 
     case "reverse_nomination_confirm":
       return [{
         type: "text",
-        text: `「${entry.reverseNominationHospital || ""}」ですね！\n\n承知しました。あなたの経歴をもとに、この病院に直接アプローチします。\n\n次のステップに進むために、お名前などの情報をお預かりしてもよろしいですか？`,
+        text: `「${entry.reverseNominationHospital || ""}」ですね！\n\n承知しました。匿名プロフィールでこの病院に打診します。\n\n打診の準備のために、いくつかお聞きしてもよろしいですか？\n※お名前等は社内管理用で、病院には開示しません。`,
         quickReply: {
           items: [
             qrItem("はい、進めてください", "reverse=proceed"),
@@ -3605,28 +3608,28 @@ function buildPhaseMessage(phase, entry) {
     case "apply_info":
       return [{
         type: "text",
-        text: "応募に進みましょう！\n\nまず、お名前（フルネーム）を教えてください。\n（例: 山田 花子）",
+        text: "ありがとうございます！\n担当者が病院に打診するための準備をしますね。\n\n📝 お名前を教えてください。\n※病院には匿名で打診します。お名前は社内管理用です。\n（例: 山田 花子）",
       }];
 
     case "apply_info_birth":
-      return [{ type: "text", text: "ありがとうございます、" + (entry.fullName || "") + "さん！\n\n生年月日を教えてください。\n（例: 1998年5月15日）" }];
+      return [{ type: "text", text: "ありがとうございます、" + (entry.fullName || "") + "さん！\n\n生年月日を教えてください。\n※社内管理用です。病院には開示しません。\n（例: 1998年5月15日）" }];
 
     case "apply_info_phone":
-      return [{ type: "text", text: "電話番号を教えてください。\n（例: 090-1234-5678）\n\n※面接日程の連絡に使用します。LINEで連絡が取れない場合のみ使用します。" }];
+      return [{ type: "text", text: "電話番号を教えてください。\n（例: 090-1234-5678）\n\n※担当者からのご連絡に使用します。病院には開示しません。" }];
 
     case "apply_info_workplace":
-      return [{ type: "text", text: "現在の勤務先名を教えてください。\n（在職中でない場合は「離職中」とお伝えください）\n\n⚠️ あなたの同意なしに現在の勤務先に連絡することは絶対にありません。" }];
+      return [{ type: "text", text: "現在の勤務先名を教えてください。\n（在職中でない場合は「離職中」とお伝えください）\n\n⚠️ 病院には開示しません。現在の勤務先に連絡することも絶対にありません。" }];
 
     case "apply_consent": {
       const facilities = (entry.matchingResults || []).slice(0, 3);
-      const facilityList = facilities.map((f, i) => `${i + 1}. ${f.name}（${f.salary || "給与要確認"}）`).join("\n");
+      const facilityList = facilities.map((f, i) => `${i + 1}. ${f.n || f.name || "求人"}（${f.sal || f.salary || "給与要確認"}）`).join("\n");
 
       return [{
         type: "text",
-        text: `以下の施設にあなたの情報をお送りします。\n\n${facilityList || "（マッチング結果を確認中）"}\n\n📋 お送りする情報:\n・氏名、年齢、資格\n・経験年数、スキル\n・希望条件\n\n⚠️ 現在の勤務先には連絡しません。\n⚠️ 応募を取り消すことも可能です。\n\nこの内容で応募してよろしいですか？`,
+        text: `以下の施設に、担当者が匿名プロフィールで打診します。\n\n${facilityList || "（マッチング結果を確認中）"}\n\n📋 病院に伝える情報（匿名）:\n・資格、経験年数、スキル\n・希望条件、転職理由\n\n🔒 伝えない情報:\n・お名前、電話番号、生年月日\n・現在の勤務先\n\n※ 病院が興味を示した場合に、改めてご相談します。\n\nこの内容で打診してよろしいですか？`,
         quickReply: {
           items: [
-            qrItem("✅ 同意して応募する", "apply=agree"),
+            qrItem("✅ お願いします", "apply=agree"),
             qrItem("施設を選び直す", "apply=reselect"),
             qrItem("やめておく", "apply=cancel"),
           ],
@@ -3635,17 +3638,17 @@ function buildPhaseMessage(phase, entry) {
     }
 
     case "career_sheet": {
-      const sheet = generateCareerSheet(entry);
+      const sheet = generateAnonymousProfile(entry);
       entry.careerSheet = sheet;
 
       return [
         {
           type: "text",
-          text: "📄 キャリアシートを作成しました！\n内容を確認してください。\n\n" + sheet,
+          text: "📄 病院に打診する匿名プロフィールを作成しました！\n内容を確認してください。\n\n" + sheet,
         },
         {
           type: "text",
-          text: "この内容で病院にお送りしてよろしいですか？",
+          text: "この内容で担当者が病院に打診します。\nよろしいですか？",
           quickReply: {
             items: [
               qrItem("✅ これでOK", "sheet=ok"),
@@ -3659,7 +3662,7 @@ function buildPhaseMessage(phase, entry) {
     case "apply_confirm":
       return [{
         type: "text",
-        text: "✅ 応募を受け付けました！\n\nキャリアシートを病院にお送りします。\n書類選考の結果は3営業日以内にお知らせします。\n\n📞 進捗はこのLINEでお知らせします。\n質問があればいつでもメッセージください。",
+        text: "✅ 担当者が匿名プロフィールで病院に打診します！\n\n🔒 あなたのお名前や連絡先は、病院が興味を示すまで開示しません。\n\n病院からの反応があり次第、このLINEでご連絡します。\n質問があればいつでもメッセージください。",
         quickReply: {
           items: [
             qrItem("面接対策を見る", "prep=start"),
@@ -4902,10 +4905,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
           replyMessages = [
             { type: "text", text: detailText },
-            { type: "text", text: "気になる求人はありますか？\n「応募したい」「相談したい」とメッセージいただくか、下のボタンからお選びください。\n\n💡 ここにない病院でも「逆指名」で直接売り込めます！",
+            { type: "text", text: "気になる求人はありますか？\n\n気になる求人があれば、担当者が匿名であなたのプロフィールを病院に打診します。\n💡 ここにない病院でも「逆指名」で直接打診できます！",
               quickReply: {
                 items: [
-                  qrItem("応募したい", "consult=apply"),
+                  qrItem("この求人が気になる", "consult=apply"),
                   qrItem("相談したい", "consult=start"),
                   qrItem("逆指名したい", "match=reverse"),
                   qrItem("他の求人も見たい", "matching_preview=more"),
@@ -5507,17 +5510,15 @@ ${userText}`;
           entry.phase = "apply_consent";
           replyMessages = buildPhaseMessage("apply_consent", entry);
         } else if (nextPhase === "career_sheet_apply_edit") {
-          // キャリアシート修正適用
-          // 簡易実装: 修正指示をもとにキャリアシートを再生成
-          // 修正指示に基づく部分更新（簡易: 全体再生成）
+          // 匿名プロフィール修正適用（再生成）
           entry.phase = "career_sheet";
-          const sheet = generateCareerSheet(entry);
+          const sheet = generateAnonymousProfile(entry);
           entry.careerSheet = sheet;
           replyMessages = [
             { type: "text", text: "修正しました！確認してください。\n\n" + sheet },
             {
               type: "text",
-              text: "この内容で病院にお送りしてよろしいですか？",
+              text: "この内容で担当者が病院に打診します。\nよろしいですか？",
               quickReply: {
                 items: [
                   qrItem("✅ これでOK", "sheet=ok"),
