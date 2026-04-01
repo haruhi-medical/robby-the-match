@@ -1,14 +1,14 @@
 {
   "jobs": {
     "seo_batch": {
-      "date": "2026-03-04",
-      "retries": 0,
-      "status": "config_error",
-      "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
-      "last_alert_ts": "2026-03-04T21:30:00.684780"
+      "date": "2026-04-01",
+      "retries": 3,
+      "status": "retry_exhausted",
+      "last_error": "exit_code=1",
+      "last_alert_ts": "2026-04-01T04:30:19.211260"
     },
     "healthcheck": {
-      "date": "2026-03-31",
+      "date": "2026-04-01",
       "retries": 1,
       "status": "recovered",
       "last_error": "",
@@ -22,11 +22,11 @@
       "last_alert_ts": "2026-03-13T08:30:48.764844"
     },
     "competitor": {
-      "date": "2026-03-27",
-      "retries": 1,
-      "status": "recovered",
-      "last_error": "",
-      "last_alert_ts": ""
+      "date": "2026-04-01",
+      "retries": 3,
+      "status": "retry_exhausted",
+      "last_error": "exit_code=1",
+      "last_alert_ts": "2026-04-01T10:30:19.439578"
     },
     "content": {
       "date": "2026-03-04",

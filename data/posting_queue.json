@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-01T06:00:06.010757",
+  "updated": "2026-04-01T15:01:56.452324",
   "posts": [
     {
       "id": 1,
@@ -3438,7 +3438,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3449,8 +3449,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-01 17:30"
     },
     {
       "id": 170,
@@ -3467,7 +3468,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3478,8 +3479,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-02 12:00"
     },
     {
       "id": 171,
@@ -3496,7 +3498,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3507,8 +3509,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-03 21:00"
     },
     {
       "id": 172,
@@ -3525,7 +3528,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3536,8 +3539,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-04 17:30"
     },
     {
       "id": 173,
@@ -3554,7 +3558,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3565,8 +3569,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-05 12:00"
     },
     {
       "id": 174,
@@ -3583,7 +3588,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3594,8 +3599,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-06 21:00"
     },
     {
       "id": 175,
@@ -3612,7 +3618,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3623,8 +3629,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-07 17:30"
     },
     {
       "id": 176,
@@ -3652,7 +3659,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -3681,7 +3688,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     }
   ],

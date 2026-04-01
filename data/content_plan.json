@@ -1,65 +1,65 @@
 {
-  "created": "2026-03-31T06:00:15.946000",
-  "updated": "2026-03-31T15:10:36.389330",
-  "week_of": "2026-03-31",
+  "created": "2026-04-01T15:00:13.619636",
+  "updated": "2026-04-01T15:00:13.619728",
+  "week_of": "2026-04-01",
   "total": 7,
-  "queue_pending_at_creation": 0,
+  "queue_pending_at_creation": 9,
   "plans": [
     {
       "day": 1,
-      "category": "地域ネタ",
+      "category": "転職",
       "cta_type": "hard",
-      "status": "generated",
-      "content_id": "ai_地域_0331_01",
-      "hint": "秦野の病院、夜勤の日だけ駐車場が満車。始発じゃ間に合わないから全員車通勤"
+      "status": "planned",
+      "content_id": null,
+      "hint": "退職届を出したら急に「待遇改善する」と言われた。3年間の不満を無視してたくせに"
     },
     {
       "day": 2,
-      "category": "トレンド",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_トレ_0331_02",
-      "hint": "彼氏が「夜勤って暇でしょ」と言った夜、急変2件。翌朝の「おはよう」が出なかった"
+      "status": "planned",
+      "content_id": null,
+      "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた"
     },
     {
       "day": 3,
-      "category": "あるある",
+      "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0331_03",
-      "hint": "プリセプターやれって言われた。自分がまだプリセプティーの気持ちなのに"
+      "status": "planned",
+      "content_id": null,
+      "hint": "県西部の病院は紹介会社に135万払えない。だから看護師が来ない。この悪循環"
     },
     {
       "day": 4,
-      "category": "あるある",
+      "category": "業界裏側",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0331_04",
-      "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布"
     },
     {
       "day": 5,
       "category": "給与",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_給与_0331_05",
-      "hint": "応援ナースの時給3,000円。同じ病棟で常勤の自分は時給換算1,800円。同じ仕事なのになぜ？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？"
     },
     {
       "day": 6,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0331_06",
+      "status": "planned",
+      "content_id": null,
       "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？"
     },
     {
       "day": 7,
-      "category": "業界裏側",
+      "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_業界_0331_07",
-      "hint": "大手紹介会社の利益率40%。看護師の転職1件で営業マンに50万のインセンティブ"
+      "status": "planned",
+      "content_id": null,
+      "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い"
     }
   ]
 }

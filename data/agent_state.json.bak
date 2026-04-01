@@ -1,0 +1,114 @@
+{
+  "lastRun": {
+    "seo_optimizer": "2026-04-01T05:30:01",
+    "health_monitor": "2026-03-31T08:30:18",
+    "competitor_analyst": "2026-03-31T10:00:11",
+    "content_creator": "2026-03-31T15:10:37",
+    "daily_reviewer": "2026-03-31T23:00:01",
+    "weekly_strategist": "2026-03-29T06:01:02",
+    "sns_poster": "2026-03-31T12:39:21",
+    "ai_marketing_orchestrator": "2026-04-01T06:00:01",
+    "weekly_content_planner": "2026-03-29T05:00:02"
+  },
+  "status": {
+    "seo_optimizer": "running",
+    "health_monitor": "completed",
+    "competitor_analyst": "completed",
+    "content_creator": "completed",
+    "daily_reviewer": "running",
+    "weekly_strategist": "completed",
+    "sns_poster": "running",
+    "ai_marketing_orchestrator": "running",
+    "weekly_content_planner": "pending"
+  },
+  "pendingTasks": {
+    "content_creator": [
+      {
+        "from": "health_monitor",
+        "type": "emergency_generate",
+        "details": "キュー残り0件。緊急コンテンツ生成必要。",
+        "created": "2026-03-30T07:00:17.044798",
+        "status": "processing"
+      },
+      {
+        "from": "health_monitor",
+        "type": "emergency_generate",
+        "details": "キュー残り0件。緊急コンテンツ生成必要。",
+        "created": "2026-03-31T07:00:16.976822",
+        "status": "processing"
+      }
+    ]
+  },
+  "sharedContext": {
+    "topPerformingTags": [],
+    "contentMixThisWeek": {
+      "あるある": 0,
+      "転職": 0,
+      "給与": 0,
+      "サービス紹介": 0,
+      "トレンド": 0
+    },
+    "totalPostsThisWeek": 42,
+    "lastDeployTimestamp": null,
+    "knownIssues": [],
+    "lastAnalysis": "2026-03-30T23:00:22",
+    "recommendations": [
+      "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
+      "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
+    ],
+    "queueRemaining": 0,
+    "lastMarketingPDCA": "2026-03-31 06:00:01",
+    "queuePending": 12,
+    "dailyGeneratedCount": 7,
+    "weeklyContentPlan": "Week09: generated=0, approved=3, rejected=0",
+    "lastWeeklyContentRun": "2026-03-01"
+  },
+  "agentMemory": {
+    "content_creator": {
+      "highPerformingPatterns": [],
+      "failedPatterns": [],
+      "contentIdCounter": 0,
+      "lastAnalysisDate": "2026-03-31",
+      "bestHookPatterns": [],
+      "avgMetrics": {
+        "views": 0,
+        "likes": 0,
+        "saves": 0,
+        "saveRate": 0,
+        "likeRate": 0
+      },
+      "bestCTATypes": {},
+      "contentMixActual": {
+        "あるある": 100,
+        "転職": 0,
+        "給与": 0,
+        "紹介": 0,
+        "トレンド": 0
+      }
+    },
+    "seo_optimizer": {
+      "lastSitemapUpdate": null,
+      "pagesOptimized": 0,
+      "pendingKeywords": []
+    },
+    "competitor_analyst": {
+      "trackedAccounts": [],
+      "trendingTopics": []
+    },
+    "sns_poster": {
+      "totalPosted": 45,
+      "lastPostedContentId": null,
+      "postingMethod": "tiktok-uploader",
+      "authStatus": "cookie_required",
+      "queueFile": "data/posting_queue.json",
+      "averageViews": 0,
+      "lastAnalysisDate": "2026-03-31"
+    },
+    "weekly_content_planner": {
+      "lastWeeklyRun": "2026-03-01",
+      "lastGeneratedCount": 0,
+      "lastApprovedCount": 3
+    }
+  }
+}
+}

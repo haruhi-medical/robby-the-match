@@ -3004,3 +3004,10 @@ AI Marketing PDCA:
 **設計書との差分監査実施** → Step 1〜7の実装順序確定
 - 次回: Step 1 LP構成変更（ブロック順序入替+自分向け感ブロック新設）から再開
 
+### content（15:00:00）
+コンテンツ生成: [PENDING] 直近のpending (2件):
+  id=176, content_id=ai_転職_0331_09, batch=ai_batch_20260331_1500, cta=soft
+  id=177, content_id=ai_転職_0331_10, batch=ai_batch_20260331_1500, cta=soft
+
+[NOTE] available (16) >= threshold (7) -- --auto では生成スキップ
+
