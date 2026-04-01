@@ -51,7 +51,7 @@ async function trackFunnelEvent(eventName, userId, entry, env, ctx) {
     const dateKey = new Date().toISOString().slice(0, 10);
     const kvKey = `event:${dateKey}:${eventName}`;
     try {
-      const current = await env.LINE_SESSIONS.get(kvKey);
+      const current = await env.LINE_SESSIONS.get(kvKey, { cacheTtl: 60 });
       const count = current ? parseInt(current, 10) + 1 : 1;
       await env.LINE_SESSIONS.put(kvKey, String(count), { expirationTtl: 604800 });
     } catch (e) {
@@ -2928,26 +2928,58 @@ function getAreaKeysFromZone(zoneKey) {
 // ---------- エントリ（KV永続化対応） ----------
 
 // KVからエントリを取得（async）。インメモリをキャッシュとして併用
+// ※ Workers KVはエッジキャッシュ（最低60秒）があるため、
+//    異なるWorkerインスタンスから読むと古いデータが返る場合がある。
+//    対策: インメモリキャッシュのupdatedAtとKVのupdatedAtを比較し、
+//    KVが古い場合はインメモリを優先する。
 async function getLineEntryAsync(userId, env) {
   // 1. インメモリキャッシュ確認
   const cached = lineConversationMap.get(userId);
-  if (cached && Date.now() - cached.updatedAt < LINE_SESSION_TTL) {
-    return cached;
-  }
-  // 2. KVから取得
+  const cachedValid = cached && Date.now() - cached.updatedAt < LINE_SESSION_TTL;
+
+  // 2. KVから取得（エッジキャッシュ最小60秒）
   if (env?.LINE_SESSIONS) {
     try {
-      const raw = await env.LINE_SESSIONS.get(`line:${userId}`);
-      if (raw) {
-        const entry = JSON.parse(raw);
-        // KV保存時にmessagesは削除されるので復元
+      // メインKV + バージョンキーを並列取得
+      const [mainRaw, verRaw] = await Promise.all([
+        env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 60 }),
+        env.LINE_SESSIONS.get(`ver:${userId}`, { cacheTtl: 60 }),
+      ]);
+      if (mainRaw) {
+        const entry = JSON.parse(mainRaw);
         if (!entry.messages) entry.messages = [];
         if (!entry.strengths) entry.strengths = [];
+
+        // エッジキャッシュの鮮度チェック
+        // バージョンキーの方が新しい場合、メインKVはキャッシュが古い
+        let stale = false;
+        if (verRaw) {
+          try {
+            const ver = JSON.parse(verRaw);
+            if (ver.updatedAt > entry.updatedAt) {
+              console.log(`[LINE] KV stale! main phase=${entry.phase}(${entry.updatedAt}) < ver phase=${ver.phase}(${ver.updatedAt})`);
+              stale = true;
+              // バージョンキーの情報でphaseだけ上書き（最低限の整合性確保）
+              entry.phase = ver.phase;
+              entry.updatedAt = ver.updatedAt;
+            }
+          } catch (_) { /* verパース失敗は無視 */ }
+        }
+
+        // インメモリの方が新しければインメモリを優先
+        if (cachedValid && cached.updatedAt > entry.updatedAt) {
+          console.log(`[LINE] mem newer: mem phase=${cached.phase}(${cached.updatedAt}) > KV phase=${entry.phase}(${entry.updatedAt})`);
+          return cached;
+        }
+
+        if (stale) {
+          console.log(`[LINE] Using ver-corrected entry: phase=${entry.phase}`);
+        }
+
         if (Date.now() - entry.updatedAt < LINE_SESSION_TTL) {
-          lineConversationMap.set(userId, entry); // キャッシュ更新
+          lineConversationMap.set(userId, entry);
           return entry;
         }
-        // 期限切れ → KV削除
         await env.LINE_SESSIONS.delete(`line:${userId}`).catch(() => {});
       }
     } catch (e) {
@@ -3055,26 +3087,14 @@ async function saveLineEntry(userId, entry, env) {
       const kvKey = `line:${userId}`;
       const kvData = JSON.stringify(toSave);
       console.log(`[LINE] KV put start: ${kvKey.slice(0, 15)}, phase: ${toSave.phase}, size: ${kvData.length}`);
-      await env.LINE_SESSIONS.put(kvKey, kvData, {
-        expirationTtl: 604800, // 7日間で自動期限切れ
-      });
+      // メインデータ保存 + バージョンキー保存（エッジキャッシュ対策）
+      // バージョンキーは軽量（phase+updatedAt）で、get時に鮮度チェックに使う
+      const versionData = JSON.stringify({ phase: toSave.phase, updatedAt: toSave.updatedAt });
+      await Promise.all([
+        env.LINE_SESSIONS.put(kvKey, kvData, { expirationTtl: 604800 }),
+        env.LINE_SESSIONS.put(`ver:${userId}`, versionData, { expirationTtl: 604800 }),
+      ]);
       console.log(`[LINE] KV put OK: ${kvKey.slice(0, 15)}, phase: ${toSave.phase}`);
-      // 検証読み返し（デバッグ用: 書き込みが本当に永続化されたか確認）
-      try {
-        const verify = await env.LINE_SESSIONS.get(kvKey);
-        if (verify) {
-          const vObj = JSON.parse(verify);
-          if (vObj.phase === toSave.phase) {
-            console.log(`[LINE] KV verify OK: phase=${vObj.phase}`);
-          } else {
-            console.error(`[LINE] KV verify MISMATCH! wrote=${toSave.phase} read=${vObj.phase}`);
-          }
-        } else {
-          console.error(`[LINE] KV verify FAIL: read returned null after put!`);
-        }
-      } catch (ve) {
-        console.error(`[LINE] KV verify error: ${ve.message}`);
-      }
     } catch (e) {
       console.error(`[LINE] KV put FAILED: ${e.name}: ${e.message}`, e.stack);
     }
@@ -5222,7 +5242,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           let sessionCtx = null;
           if (env?.LINE_SESSIONS) {
             try {
-              const raw = await env.LINE_SESSIONS.get(`session:${sessionCandidate}`);
+              const raw = await env.LINE_SESSIONS.get(`session:${sessionCandidate}`, { cacheTtl: 60 });
               if (raw) sessionCtx = JSON.parse(raw);
             } catch (e) { console.error("[LineStart] KV get error:", e.message); }
           }
@@ -5286,7 +5306,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           let webSession = null;
           if (env?.LINE_SESSIONS) {
             try {
-              const raw = await env.LINE_SESSIONS.get(`web:${codeCandidate}`);
+              const raw = await env.LINE_SESSIONS.get(`web:${codeCandidate}`, { cacheTtl: 60 });
               if (raw) webSession = JSON.parse(raw);
             } catch (e) { console.error("[WebSession] KV get error:", e.message); }
           }
