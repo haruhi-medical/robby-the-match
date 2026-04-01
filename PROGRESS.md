@@ -2979,3 +2979,28 @@ AI Marketing PDCA:
   Quality issues: 17
   Status: Healthy
 
+### LP・LINE全体設計改善（03/31-04/01 手動セッション）
+
+**Phase 1 完了（即時施策9件）**
+- /api/line-start 共通EP実装（Worker: session→KV→302リダイレクト）
+- LP全CTA（Hero/Sticky/Bottom）を共通EP経由に変更
+- Worker welcome分岐6パターン（hero/shindan/area_page/salary_check/blog/none）
+- Hero直下 安心バー追加
+- Meta Lead二重計測修正 / GA4イベント click_cta統一
+- 誤入力3段階化 / AI相談ターン上限5 / OpenAI失敗日本語FB
+
+**Phase 2 完了（短期施策5件）**
+- Worker intake_light 3問フロー（il_area→il_workstyle→il_urgency→matching）
+- Worker matching_browse（他の求人も見たい）
+- LP shindan.js v5.0（7問→3問化、共通EP経由LINE CTA）
+- ナーチャリングCron（Day3/7/14自動配信、Day30 cold移行）
+- ハンドオフBot補助（引継ぎ直後FAQ、2h後フォロー）
+
+**バグ修正3件**
+- matching_preview求人表示: KV保存時フィールド名互換修正
+- matching_preview常に再生成（旧KVデータで空表示バグ）
+- 「この中で気になる」無応答: Flex→テキスト詳細に変更
+
+**設計書との差分監査実施** → Step 1〜7の実装順序確定
+- 次回: Step 1 LP構成変更（ブロック順序入替+自分向け感ブロック新設）から再開
+
