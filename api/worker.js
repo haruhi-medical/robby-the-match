@@ -2788,6 +2788,58 @@ function qrItem(label, data) {
   return { type: "action", action: { type: "postback", label: label.slice(0, 20), data, displayText: label } };
 }
 
+// ---------- リッチメニュー4状態切り替え ----------
+// メニューIDはenv変数で設定（LINE Official Account Managerで作成後に登録）
+// RICH_MENU_DEFAULT / RICH_MENU_HEARING / RICH_MENU_MATCHED / RICH_MENU_HANDOFF
+const RICH_MENU_STATES = {
+  default:  "default",   // 初回: 求人探す/年収チェック/転職相談/FAQ
+  hearing:  "hearing",   // ヒアリング中: 条件変更/求人を見る/担当者相談/FAQ
+  matched:  "matched",   // マッチング済: 求人を見る/逆指名/経歴書/担当者相談
+  handoff:  "handoff",   // 担当者対応中: 求人を見る/経歴書/FAQ/自由入力
+};
+
+function getMenuStateForPhase(phase) {
+  if (!phase) return RICH_MENU_STATES.default;
+  if (phase === "handoff") return RICH_MENU_STATES.handoff;
+  if (["matching_preview", "matching_browse", "matching", "matching_more",
+       "resume_confirm", "resume_apply_edit", "reverse_nomination", "reverse_nomination_confirm",
+       "apply_info", "apply_info_birth", "apply_info_phone", "apply_consent"].includes(phase)) {
+    return RICH_MENU_STATES.matched;
+  }
+  if (["il_area", "il_workstyle", "il_urgency",
+       "q1_urgency", "q2_change", "q3_area", "q4_experience", "q5_workstyle",
+       "q6_workplace", "q7_strengths", "q8_concerns", "q9_timing", "q10_qualification",
+       "ai_consultation"].includes(phase)) {
+    return RICH_MENU_STATES.hearing;
+  }
+  return RICH_MENU_STATES.default;
+}
+
+async function switchRichMenu(userId, menuState, env) {
+  const menuIdMap = {
+    default: env.RICH_MENU_DEFAULT,
+    hearing: env.RICH_MENU_HEARING,
+    matched: env.RICH_MENU_MATCHED,
+    handoff: env.RICH_MENU_HANDOFF,
+  };
+  const menuId = menuIdMap[menuState];
+  if (!menuId || !env.LINE_CHANNEL_ACCESS_TOKEN) return;
+
+  try {
+    const res = await fetch(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}` },
+    });
+    if (!res.ok) {
+      console.error(`[RichMenu] Switch failed: ${res.status} ${await res.text()}`);
+    } else {
+      console.log(`[RichMenu] Switched to ${menuState} for ${userId.slice(0, 8)}`);
+    }
+  } catch (e) {
+    console.error(`[RichMenu] Error: ${e.message}`);
+  }
+}
+
 function splitText(text, maxLen = 500) {
   if (text.length <= maxLen) return [text];
   const msgs = [];
@@ -4628,6 +4680,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         // ファネルイベント: LINE友達追加
         ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.LINE_FOLLOW, userId, entry, env, ctx));
+        // リッチメニュー: デフォルト設定
+        ctx.waitUntil(switchRichMenu(userId, RICH_MENU_STATES.default, env));
 
         // Slack通知
         if (env.SLACK_BOT_TOKEN) {
@@ -5035,6 +5089,15 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // ナーチャリングから復帰（welcome=see_jobs等のpostback）
           if (prevPhase && prevPhase.startsWith("nurture_") && !entry.phase.startsWith("nurture_")) {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.NURTURE_REACTIVATE, userId, entry, env, ctx));
+          }
+        }
+
+        // リッチメニュー切り替え（フェーズ変更時）
+        if (prevPhase !== entry.phase) {
+          const prevMenu = getMenuStateForPhase(prevPhase);
+          const newMenu = getMenuStateForPhase(entry.phase);
+          if (prevMenu !== newMenu) {
+            ctx.waitUntil(switchRichMenu(userId, newMenu, env));
           }
         }
 
@@ -5474,6 +5537,15 @@ ${userText}`;
         // handoff遷移時のSlack通知
         if (entry.phase === "handoff" && prevPhase !== "handoff" && nextPhase !== null) {
           await sendHandoffNotification(userId, entry, env);
+        }
+
+        // リッチメニュー切り替え（フェーズ変更時）
+        if (prevPhase !== entry.phase) {
+          const prevMenu = getMenuStateForPhase(prevPhase);
+          const newMenu = getMenuStateForPhase(entry.phase);
+          if (prevMenu !== newMenu) {
+            ctx.waitUntil(switchRichMenu(userId, newMenu, env));
+          }
         }
 
         console.log(`[LINE] Text: "${userText.slice(0, 30)}", Phase: ${prevPhase} → ${entry.phase}, User: ${userId.slice(0, 8)}`);
