@@ -4515,6 +4515,28 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
           replyMessages = buildPhaseMessage("matching_browse", entry);
         }
+        // ===== matching（matching_preview/browseから「気になる」選択時） =====
+        else if (nextPhase === "matching") {
+          // 既存matchingフローのFlex Message表示
+          generateLineMatching(entry);
+          entry.phase = "matching";
+          replyMessages = [
+            { type: "text", text: "求人の詳細をお見せしますね！\n気になる求人があれば「応募したい」「相談したい」とメッセージください。" },
+            ...buildMatchingMessages(entry),
+          ].slice(0, 5);
+          // Slack通知
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
+              `  ${r.adjustedScore || r.s || "?"}pt: ${r.n || r.name || "不明"}（${r.sal || r.salary || ""}）`
+            ).join("\n") || "（なし）";
+            fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人詳細表示*\nエリア: ${entry.areaLabel || entry.area || "不明"}\n働き方: ${entry.workStyle || "不明"}\n\n🏆 *表示した施設*\n${matchingText}\n\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n\n💬 返信: \`!reply ${userId} メッセージ\`` }),
+            }).catch(() => {});
+          }
+        }
         // ===== nurture_warm =====
         else if (nextPhase === "nurture_warm") {
           entry.phase = "nurture_warm";
