@@ -606,5 +606,19 @@
     "code": "DWiLgzok9vE",
     "url": "https://www.instagram.com/p/DWiLgzok9vE/",
     "format": "carousel"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260303_ai_給与_0303_01",
+    "timestamp": "2026-04-01T21:20:42.919448",
+    "status": "error",
+    "error": "No slides found and generation failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260304_ai_ある_0301_03",
+    "timestamp": "2026-04-01T21:49:07.562661",
+    "status": "error",
+    "error": "No slides found and generation failed"
   }
 ]

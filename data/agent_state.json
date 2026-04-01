@@ -3,15 +3,55 @@
     "ai_marketing_orchestrator": "2026-04-01T06:00:07",
     "health_monitor": "2026-04-01T08:30:18",
     "competitor_analyst": "2026-04-01T12:00:01",
-    "content_creator": "2026-04-01T15:01:57"
+    "content_creator": "2026-04-01T15:01:57",
+    "sns_poster": "2026-04-01T21:49:07",
+    "daily_reviewer": "2026-04-01T23:00:00"
   },
   "status": {
     "ai_marketing_orchestrator": "completed",
     "health_monitor": "completed",
     "competitor_analyst": "running",
-    "content_creator": "completed"
+    "content_creator": "completed",
+    "sns_poster": "running",
+    "daily_reviewer": "running"
   },
   "pendingTasks": {},
-  "sharedContext": {},
-  "agentMemory": {}
+  "sharedContext": {
+    "lastAnalysis": "2026-04-01T23:00:10",
+    "recommendations": [
+      "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
+      "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
+    ],
+    "topPerformingTags": [],
+    "queueRemaining": 0,
+    "totalPostsThisWeek": 45
+  },
+  "agentMemory": {
+    "content_creator": {
+      "highPerformingPatterns": [],
+      "bestHookPatterns": [],
+      "failedPatterns": [],
+      "avgMetrics": {
+        "views": 0,
+        "likes": 0,
+        "saves": 0,
+        "saveRate": 0,
+        "likeRate": 0
+      },
+      "bestCTATypes": {},
+      "contentMixActual": {
+        "あるある": 100,
+        "転職": 0,
+        "給与": 0,
+        "紹介": 0,
+        "トレンド": 0
+      },
+      "lastAnalysisDate": "2026-04-01"
+    },
+    "sns_poster": {
+      "totalPosted": 45,
+      "averageViews": 0,
+      "lastAnalysisDate": "2026-04-01"
+    }
+  }
 }
