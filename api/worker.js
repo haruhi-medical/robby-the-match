@@ -4610,7 +4610,8 @@ function handleLinePostback(dataStr, entry) {
         nextPhase = "consult_handoff_choice";
       }
     } else if (val === "back_to_matching") {
-      nextPhase = "matching"; // 求人一覧に戻る（matchingResults再表示）
+      // matchingResultsが残っていれば再表示、なければintake_lightからやり直し
+      nextPhase = (entry.matchingResults && entry.matchingResults.length > 0) ? "matching_preview" : "il_area";
     } else if (val === "done") {
       nextPhase = "nurture_warm"; // ナーチャリングへ
     } else if (val === "retry") {
