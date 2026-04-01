@@ -5675,8 +5675,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             } catch (e) {
               console.error(`[LINE] AI background error: ${e.message}`);
               // 3. 全失敗時の安全メッセージ — ユーザーに無応答を防ぐ
+              let safetyPushOk = false;
               try {
-                await fetch("https://api.line.me/v2/bot/message/push", {
+                const safetyRes = await fetch("https://api.line.me/v2/bot/message/push", {
                   method: "POST",
                   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${aiToken}` },
                   body: JSON.stringify({ to: aiUserId, messages: [{
@@ -5690,15 +5691,18 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                     },
                   }] }),
                 });
+                safetyPushOk = safetyRes.ok;
+                if (!safetyRes.ok) console.error(`[LINE] Safety push failed: ${safetyRes.status}`);
               } catch (pushErr) {
-                console.error(`[LINE] Safety push also failed: ${pushErr.message}`);
+                console.error(`[LINE] Safety push error: ${pushErr.message}`);
               }
-              // Slack通知（手動フォロー用）
+              // ★ 安全Pushも失敗した場合、Slackに通知して手動フォロー対象にする
               if (env.SLACK_BOT_TOKEN) {
+                const urgency = safetyPushOk ? "" : "\n⚠️ *安全メッセージのPush送信も失敗 — ユーザーは完全無応答状態*";
                 fetch("https://slack.com/api/chat.postMessage", {
                   method: "POST",
                   headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-                  body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🚨 *AI相談 全応答失敗*\nユーザー: \`${aiUserId.slice(0, 8)}...\`\nメッセージ: ${aiUserText.slice(0, 50)}\nエラー: ${e.message}\n→ 手動フォローが必要です\n💬 \`!reply ${aiUserId} メッセージ\`` }),
+                  body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🚨 *AI相談 全応答失敗*\nユーザー: \`${aiUserId.slice(0, 8)}...\`\nメッセージ: ${aiUserText.slice(0, 50)}\nエラー: ${e.message}${urgency}\n→ 手動フォローが必要です\n💬 \`!reply ${aiUserId} メッセージ\`` }),
                 }).catch(() => {});
               }
             }
