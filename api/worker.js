@@ -4476,10 +4476,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         // ===== intake_light → matching_preview =====
         if (nextPhase === "matching_preview") {
-          // Generate matching if not already done
-          if (!entry.matchingResults) {
-            generateLineMatching(entry);
-          }
+          // 常に再生成（KV復元後の旧形式データを上書き）
+          generateLineMatching(entry);
           console.log(`[LINE] matching_preview: area=${entry.area}, workStyle=${entry.workStyle}, results=${(entry.matchingResults||[]).length}, first=${JSON.stringify((entry.matchingResults||[])[0]||{}).slice(0,100)}`);
           entry.phase = "matching_preview";
           // Track shown job IDs
