@@ -1,7 +1,6 @@
 # LINE Bot 全体フロー & 課題一覧
 
 > 2026-04-01 worker.js コード実態ベース
-
 ---
 
 ## 1. 入口（followイベント → welcome）
