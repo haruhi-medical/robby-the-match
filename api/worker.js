@@ -17,6 +17,102 @@ let globalSessionCount = { count: 0, windowStart: 0 }; // global hourly limit
 const webSessionMap = new Map();
 const WEB_SESSION_TTL = 86400000; // 24時間
 
+// ---------- ファネルイベントトラッキング（12イベント） ----------
+// GA4 Measurement Protocol + Meta Conversion API対応（トークン設定後に有効化）
+const FUNNEL_EVENTS = {
+  LINE_FOLLOW:           "line_follow",           // LINE友達追加
+  INTAKE_START:          "intake_start",           // intake_light開始（Q1回答）
+  INTAKE_COMPLETE:       "intake_complete",        // intake_light 3問完了
+  MATCHING_VIEW:         "matching_view",          // matching_preview表示
+  MATCHING_BROWSE:       "matching_browse",        // 「他の求人も見たい」
+  JOB_DETAIL:            "job_detail",             // 「この求人が気になる」
+  CONSULTATION_START:    "consultation_start",     // 詳細ヒアリング開始
+  CONSULTATION_COMPLETE: "consultation_complete",  // ヒアリング完了
+  RESUME_GENERATE:       "resume_generate",        // 経歴書ドラフト生成
+  HANDOFF:               "handoff",                // 担当者引き継ぎ
+  REVERSE_NOMINATION:    "reverse_nomination",     // 逆指名リクエスト
+  NURTURE_REACTIVATE:    "nurture_reactivate",     // ナーチャリングから復帰
+};
+
+async function trackFunnelEvent(eventName, userId, entry, env, ctx) {
+  const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+  const eventData = {
+    event: eventName,
+    userId: userId ? userId.slice(0, 12) + "..." : "unknown",
+    phase: entry?.phase || null,
+    area: entry?.area || null,
+    workStyle: entry?.workStyle || null,
+    timestamp: nowJST,
+  };
+  console.log(`[Track] ${eventName}`, JSON.stringify(eventData));
+
+  // KVにイベントログ保存（日次集計用）
+  if (env?.LINE_SESSIONS) {
+    const dateKey = new Date().toISOString().slice(0, 10);
+    const kvKey = `event:${dateKey}:${eventName}`;
+    try {
+      const current = await env.LINE_SESSIONS.get(kvKey);
+      const count = current ? parseInt(current, 10) + 1 : 1;
+      await env.LINE_SESSIONS.put(kvKey, String(count), { expirationTtl: 604800 });
+    } catch (e) {
+      console.error(`[Track] KV error: ${e.message}`);
+    }
+  }
+
+  // Meta Conversion API（トークン設定時のみ発火）
+  if (env?.META_ACCESS_TOKEN && env?.META_PIXEL_ID) {
+    const metaEvents = ["line_follow", "intake_complete", "handoff"];
+    if (metaEvents.includes(eventName)) {
+      const metaEventName = eventName === "intake_complete" ? "CompleteRegistration"
+        : eventName === "handoff" ? "Lead" : "Lead";
+      if (ctx) {
+        ctx.waitUntil(sendMetaConversionEvent(env, metaEventName, userId, eventData));
+      }
+    }
+  }
+
+  // GA4 Measurement Protocol（設定時のみ発火）
+  if (env?.GA4_API_SECRET && env?.GA4_MEASUREMENT_ID) {
+    if (ctx) {
+      ctx.waitUntil(sendGA4Event(env, eventName, userId, eventData));
+    }
+  }
+}
+
+async function sendMetaConversionEvent(env, eventName, userId, data) {
+  try {
+    const url = `https://graph.facebook.com/v19.0/${env.META_PIXEL_ID}/events?access_token=${env.META_ACCESS_TOKEN}`;
+    const payload = {
+      data: [{
+        event_name: eventName,
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: "system_generated",
+        user_data: { external_id: userId ? [userId] : [] },
+        custom_data: { area: data.area, work_style: data.workStyle },
+      }],
+    };
+    await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  } catch (e) {
+    console.error(`[Meta CAPI] ${e.message}`);
+  }
+}
+
+async function sendGA4Event(env, eventName, userId, data) {
+  try {
+    const url = `https://www.google-analytics.com/mp/collect?measurement_id=${env.GA4_MEASUREMENT_ID}&api_secret=${env.GA4_API_SECRET}`;
+    const payload = {
+      client_id: userId || "server",
+      events: [{
+        name: eventName,
+        params: { area: data.area || "", work_style: data.workStyle || "", phase: data.phase || "" },
+      }],
+    };
+    await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  } catch (e) {
+    console.error(`[GA4 MP] ${e.message}`);
+  }
+}
+
 // ---------- Haversine距離計算（km） ----------
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371; // 地球の半径(km)
@@ -4530,6 +4626,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }];
         await lineReply(event.replyToken, msgs, channelAccessToken);
 
+        // ファネルイベント: LINE友達追加
+        ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.LINE_FOLLOW, userId, entry, env, ctx));
+
         // Slack通知
         if (env.SLACK_BOT_TOKEN) {
           const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
@@ -4907,6 +5006,36 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         if (replyMessages && replyMessages.length > 0) {
           await lineReply(event.replyToken, replyMessages.slice(0, 5), channelAccessToken);
+        }
+
+        // ファネルイベントトラッキング（Postback遷移）
+        if (nextPhase && prevPhase !== entry.phase) {
+          const pbParams = new URLSearchParams(dataStr);
+          // match=detail → JOB_DETAIL
+          if (pbParams.get("match") === "detail") {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.JOB_DETAIL, userId, entry, env, ctx));
+          }
+          // match=reverse → REVERSE_NOMINATION
+          if (pbParams.get("match") === "reverse" || entry.phase === "reverse_nomination") {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.REVERSE_NOMINATION, userId, entry, env, ctx));
+          }
+          // intake完了 → matching_preview
+          if (entry.phase === "matching_preview" && prevPhase !== "matching_preview") {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.INTAKE_COMPLETE, userId, entry, env, ctx));
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.MATCHING_VIEW, userId, entry, env, ctx));
+          }
+          // matching_browse
+          if (entry.phase === "matching_browse") {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.MATCHING_BROWSE, userId, entry, env, ctx));
+          }
+          // handoff
+          if (entry.phase === "handoff" && prevPhase !== "handoff") {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
+          }
+          // ナーチャリングから復帰（welcome=see_jobs等のpostback）
+          if (prevPhase && prevPhase.startsWith("nurture_") && !entry.phase.startsWith("nurture_")) {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.NURTURE_REACTIVATE, userId, entry, env, ctx));
+          }
         }
 
         console.log(`[LINE] Postback: ${dataStr}, Phase: ${prevPhase} → ${entry.phase}, User: ${userId.slice(0, 8)}`);
@@ -5319,6 +5448,27 @@ ${userText}`;
 
         if (replyMessages && replyMessages.length > 0) {
           await lineReply(event.replyToken, replyMessages.slice(0, 5), channelAccessToken);
+        }
+
+        // ファネルイベントトラッキング（フェーズ遷移に基づく）
+        if (nextPhase && prevPhase !== nextPhase) {
+          const phaseEventMap = {
+            il_workstyle:      FUNNEL_EVENTS.INTAKE_START,       // intake Q1回答後
+            matching_preview:  FUNNEL_EVENTS.INTAKE_COMPLETE,    // intake 3問完了→matching
+            matching_browse:   FUNNEL_EVENTS.MATCHING_BROWSE,    // 他の求人も見たい
+            q2_change:         FUNNEL_EVENTS.CONSULTATION_START, // 詳細ヒアリング開始
+            matching:          FUNNEL_EVENTS.CONSULTATION_COMPLETE, // ヒアリング完了→matching
+            resume_confirm:    FUNNEL_EVENTS.RESUME_GENERATE,    // 経歴書生成
+            handoff:           FUNNEL_EVENTS.HANDOFF,            // 担当者引き継ぎ
+          };
+          const eventName = phaseEventMap[entry.phase];
+          if (eventName) {
+            ctx.waitUntil(trackFunnelEvent(eventName, userId, entry, env, ctx));
+          }
+        }
+        // matching_preview表示時
+        if (entry.phase === "matching_preview" && prevPhase !== "matching_preview") {
+          ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.MATCHING_VIEW, userId, entry, env, ctx));
         }
 
         // handoff遷移時のSlack通知
