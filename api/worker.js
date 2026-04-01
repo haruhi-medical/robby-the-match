@@ -3783,7 +3783,7 @@ function buildFacilityFlexBubble(job, index) {
       { type: "text", text: "雇用形態", size: "xs", color: "#999999", flex: 3 },
       { type: "text", text: emp, size: "xs", color: "#333333", flex: 4 },
     ]},
-  ];
+  );
 
   // 勤務時間があれば追加
   if (shift) {
