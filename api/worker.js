@@ -132,7 +132,7 @@ const STATE_CATEGORIES = {
   // 7-b. 追加ヒアリング（匿名プロフィール補完）
   PROFILE_SUPPLEMENT: ["ps_qualification", "ps_experience", "ps_strengths", "ps_change"],
   // 7. 応募フロー
-  APPLY:         ["apply_info", "apply_info_birth", "apply_info_phone", "apply_info_workplace",
+  APPLY:         ["apply_consent_privacy", "apply_info", "apply_info_birth", "apply_info_phone", "apply_info_workplace",
                   "apply_consent", "apply_confirm", "apply_cancelled"],
   // 8. 経歴書
   RESUME:        ["resume_confirm", "resume_edit", "resume_apply_edit", "career_sheet", "career_sheet_edit", "career_sheet_apply_edit"],
@@ -1124,6 +1124,11 @@ export default {
 
     // デバッグ: AI相談テスト
     if (url.pathname === "/api/debug-ai" && request.method === "POST") {
+      // 認証チェック（LINE_PUSH_SECRETで保護）
+      const authHeader = request.headers.get("x-debug-secret");
+      if (!authHeader || authHeader !== env.LINE_PUSH_SECRET) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403, headers: { "Content-Type": "application/json" } });
+      }
       try {
         const body = await request.json();
         const msg = body.message || "テスト";
@@ -2523,7 +2528,11 @@ function getMissingProfileFields(entry) {
 
 function getNextProfileSupplementPhase(entry) {
   const missing = getMissingProfileFields(entry);
-  if (missing.length === 0) return 'apply_info';
+  if (missing.length === 0) {
+    // 全プロフィール項目が揃った → 個人情報収集前にconsent確認
+    if (!entry.privacyConsented) return 'apply_consent_privacy';
+    return 'apply_info';
+  }
   const phaseMap = {
     qualification: 'ps_qualification',
     experience: 'ps_experience',
@@ -2910,18 +2919,19 @@ const RICH_MENU_STATES = {
 
 function getMenuStateForPhase(phase) {
   if (!phase) return RICH_MENU_STATES.default;
-  if (phase === "handoff") return RICH_MENU_STATES.handoff;
+  if (phase === "handoff" || phase === "handoff_silent") return RICH_MENU_STATES.handoff;
   if (["matching_preview", "matching_browse", "matching", "matching_more",
        "resume_confirm", "resume_apply_edit", "reverse_nomination", "reverse_nomination_confirm",
-       "apply_info", "apply_info_birth", "apply_info_phone", "apply_consent",
-       "career_sheet", "career_sheet_edit", "apply_confirm",
+       "apply_consent_privacy", "apply_info", "apply_info_birth", "apply_info_phone", "apply_info_workplace", "apply_consent",
+       "career_sheet", "career_sheet_edit", "career_sheet_apply_edit", "apply_confirm",
+       "resume_edit", "interview_prep",
        "ps_qualification", "ps_experience", "ps_strengths", "ps_change"].includes(phase)) {
     return RICH_MENU_STATES.matched;
   }
   if (["il_area", "il_workstyle", "il_urgency",
        "q1_urgency", "q2_change", "q3_area", "q4_experience", "q5_workstyle",
        "q6_workplace", "q7_strengths", "q8_concerns", "q9_work_history", "q10_qualification",
-       "ai_consultation"].includes(phase)) {
+       "ai_consultation", "ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"].includes(phase)) {
     return RICH_MENU_STATES.hearing;
   }
   return RICH_MENU_STATES.default;
@@ -3094,6 +3104,8 @@ function createLineEntry() {
     handoffAt: null,            // handoff: 引継ぎ日時
     handoffRequestedByUser: false, // ユーザーからの引き継ぎ要求フラグ
     // 同意・相談
+    privacyConsented: false,
+    privacyConsentedAt: null,
     consentAt: null,
     consultMessages: [],
     consultExtended: false,          // AI相談ターン延長フラグ
@@ -3638,9 +3650,7 @@ function buildPhaseMessage(phase, entry) {
         text: "はい、求職者の方は完全無料です。\n費用は採用する病院側が負担します。\n\n有料職業紹介事業の許可番号:\n23-ユ-302928",
         quickReply: {
           items: [
-            qrItem("求人を探す", "welcome=see_jobs"),
-            qrItem("相談する", "consult=start"),
-            qrItem("担当者と話す", "consult=handoff"),
+            qrItem("電話は来ない？", "faq=no_phone"),
           ],
         },
       }];
@@ -3651,9 +3661,7 @@ function buildPhaseMessage(phase, entry) {
         text: "一切ありません。\n連絡はすべてLINEです。\n\nあなたのペースで\n転職活動できます。",
         quickReply: {
           items: [
-            qrItem("求人を探す", "welcome=see_jobs"),
-            qrItem("相談する", "consult=start"),
-            qrItem("担当者と話す", "consult=handoff"),
+            qrItem("本当に無料？", "faq=free"),
           ],
         },
       }];
@@ -3848,6 +3856,18 @@ function buildPhaseMessage(phase, entry) {
             qrItem("夜勤を減らしたい", "ps_chg=night"),
             qrItem("通勤をラクにしたい", "ps_chg=commute"),
             qrItem("スキルアップしたい", "ps_chg=career"),
+          ],
+        },
+      }];
+
+    case "apply_consent_privacy":
+      return [{
+        type: "text",
+        text: "ここから先は、担当者がご連絡するためにお名前等をお聞きします。\n\n📋 お聞きする情報:\n・お名前、生年月日、電話番号、現在の勤務先\n\n🔒 利用目的:\n・職業紹介サービスの提供（求人マッチング・ご連絡）\n・病院への匿名打診時には開示しません\n\n許可番号: 23-ユ-302928\n\nよろしいですか？",
+        quickReply: {
+          items: [
+            qrItem("✅ 同意して進む", "privacy=agree"),
+            qrItem("やめておく", "privacy=cancel"),
           ],
         },
       }];
@@ -4734,6 +4754,18 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "career_sheet_edit"; // 修正モード
     }
   }
+  // プライバシー同意
+  else if (params.has("privacy")) {
+    const val = params.get("privacy");
+    entry.unexpectedTextCount = 0;
+    if (val === "agree") {
+      entry.privacyConsented = true;
+      entry.privacyConsentedAt = new Date().toISOString();
+      nextPhase = "apply_info";
+    } else if (val === "cancel") {
+      nextPhase = "nurture_warm"; // やめる → ナーチャリングへ
+    }
+  }
   // 面接対策
   else if (params.has("prep")) {
     const val = params.get("prep");
@@ -4831,6 +4863,12 @@ function handleFreeTextInput(text, entry) {
     entry.careerSheetEditRequest = text;
     entry.unexpectedTextCount = 0;
     return "career_sheet_apply_edit";
+  }
+
+  // apply_consent_privacy中の自由テキスト → Quick Reply再表示
+  if (phase === "apply_consent_privacy") {
+    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+    return null;
   }
 
   // apply_consent中の自由テキスト → Quick Reply再表示
@@ -6277,6 +6315,20 @@ async function handleGetAnalytics(request, env) {
   }
 }
 
+// KV list() の全件取得（ページネーション対応）
+async function kvListAll(kvNamespace, prefix) {
+  const allKeys = [];
+  let cursor = null;
+  do {
+    const opts = { prefix };
+    if (cursor) opts.cursor = cursor;
+    const result = await kvNamespace.list(opts);
+    allKeys.push(...result.keys);
+    cursor = result.list_complete ? null : result.cursor;
+  } while (cursor);
+  return allKeys;
+}
+
 // ========== Cron Trigger: ナーチャリング配信 + ハンドオフBot補助 ==========
 async function handleScheduledNurture(env) {
   if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN) {
@@ -6291,8 +6343,8 @@ async function handleScheduledNurture(env) {
 
   // ----- ナーチャリング配信 -----
   try {
-    const nurtureList = await env.LINE_SESSIONS.list({ prefix: "nurture:" });
-    for (const key of nurtureList.keys) {
+    const nurtureKeys = await kvListAll(env.LINE_SESSIONS, "nurture:");
+    for (const key of nurtureKeys) {
       try {
         const raw = await env.LINE_SESSIONS.get(key.name);
         if (!raw) continue;
@@ -6367,8 +6419,8 @@ async function handleScheduledNurture(env) {
 
   // ----- ハンドオフBot補助（2時間後フォローアップ） -----
   try {
-    const handoffList = await env.LINE_SESSIONS.list({ prefix: "handoff:" });
-    for (const key of handoffList.keys) {
+    const handoffKeys = await kvListAll(env.LINE_SESSIONS, "handoff:");
+    for (const key of handoffKeys) {
       try {
         const raw = await env.LINE_SESSIONS.get(key.name);
         if (!raw) continue;
