@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-01T22:12:22.946357",
+  "updated": "2026-04-02T17:08:10.361219",
   "posts": [
     {
       "id": 1,
@@ -3164,8 +3164,8 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0331_03_20260402.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -3515,8 +3515,9 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
-      "scheduled_for": "2026-04-07 17:30"
+      "quality_score": 8.68,
+      "scheduled_for": "2026-04-07 17:30",
+      "quality_checked": true
     },
     {
       "id": 176,
@@ -3545,7 +3546,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 7.97,
+      "quality_checked": true
     },
     {
       "id": 177,
@@ -3574,6 +3576,212 @@
         "comments": null
       },
       "ai_score": 7,
+      "quality_score": 8.18,
+      "quality_checked": true
+    },
+    {
+      "id": 178,
+      "content_id": "ai_転職_0402_01",
+      "batch": "ai_batch_20260402_1500",
+      "slide_dir": "content/generated/ai_batch_20260402_1500/ai_転職_0402_01",
+      "json_path": "content/generated/ai_batch_20260402_1500/ai_転職_0402_01.json",
+      "caption": "看護師5年目で退職届け出たら...\n\n待遇改善ではなく、自分で変えられるものだった\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#転職サポート"
+      ],
+      "cta_type": "hard",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8.14,
+      "quality_checked": true
+    },
+    {
+      "id": 179,
+      "content_id": "ai_ある_0402_02",
+      "batch": "ai_batch_20260402_1500",
+      "slide_dir": "content/generated/ai_batch_20260402_1500/ai_ある_0402_02",
+      "json_path": "content/generated/ai_batch_20260402_1500/ai_ある_0402_02.json",
+      "caption": "神奈川で看護師やってると、時給2千円未満って本当?\n\n看護師の実態は?\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナースコミュニティ",
+        "#看護師支援"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8.4,
+      "quality_checked": true
+    },
+    {
+      "id": 180,
+      "content_id": "ai_地域_0402_03",
+      "batch": "ai_batch_20260402_1500",
+      "slide_dir": "content/generated/ai_batch_20260402_1500/ai_地域_0402_03",
+      "json_path": "content/generated/ai_batch_20260402_1500/ai_地域_0402_03.json",
+      "caption": "神奈川の看護師、年収20万差って本当?\n\n県西部と横浜で年収20-50万の差が出ることがあるんだ\n\nこの情報、知らなかった人いる?",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#地域ネタ",
+        "#ナースジョブ"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 181,
+      "content_id": "ai_業界_0402_04",
+      "batch": "ai_batch_20260402_1500",
+      "slide_dir": "content/generated/ai_batch_20260402_1500/ai_業界_0402_04",
+      "json_path": "content/generated/ai_batch_20260402_1500/ai_業界_0402_04.json",
+      "caption": "看護師5年目、時給2千円未満って?\n\n看護師不足の神奈川県で紹介会社が看護師に寄り添うと言ってるのに、手数料は年収の30%も取ることがある\n\n看護師の人生が、紹介会社の手数料で決まることになるのか?\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師不足",
+        "#紹介会社",
+        "#手数料"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 182,
+      "content_id": "ai_給与_0402_05",
+      "batch": "ai_batch_20260402_1500",
+      "slide_dir": "content/generated/ai_batch_20260402_1500/ai_給与_0402_05",
+      "json_path": "content/generated/ai_batch_20260402_1500/ai_給与_0402_05.json",
+      "caption": "夜勤看護師の時給、コンビニと同じ？\n\n看護師不足の原因は...\n\n同じ状況の看護師さん、コメントで教えて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護师不足",
+        "#夜勤看護師",
+        "#看護師転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 183,
+      "content_id": "ai_ある_0402_06",
+      "batch": "ai_batch_20260402_1500",
+      "slide_dir": "content/generated/ai_batch_20260402_1500/ai_ある_0402_06",
+      "json_path": "content/generated/ai_batch_20260402_1500/ai_ある_0402_06.json",
+      "caption": "看護師5年目で時給2千円未満って本当?\n\n看護師のネットカフェでは「退職する」と書くのが流行ってた\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#夜勤 苦労",
+        "#看護師不足"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 184,
+      "content_id": "ai_地域_0402_07",
+      "batch": "ai_batch_20260402_1500",
+      "slide_dir": "content/generated/ai_batch_20260402_1500/ai_地域_0402_07",
+      "json_path": "content/generated/ai_batch_20260402_1500/ai_地域_0402_07.json",
+      "caption": "神奈川の看護師5年目、手取り24万って地元で働いたら低い？\n\n地元で働く看護師の実態とは？\n\nこの情報、知らなかった人いたら教えてあげて。",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#地域ネタ",
+        "#ナースジョブ"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
       "quality_score": 8
     }
   ],

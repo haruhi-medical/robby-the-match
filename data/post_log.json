@@ -620,5 +620,12 @@
     "timestamp": "2026-04-01T21:49:07.562661",
     "status": "error",
     "error": "No slides found and generation failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "20260304_ai_ある_0301_03",
+    "timestamp": "2026-04-02T17:05:04.038740",
+    "status": "error",
+    "error": "No slides found and generation failed"
   }
 ]
