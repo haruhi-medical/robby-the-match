@@ -58,6 +58,12 @@ def api_get(endpoint, params=None):
         except Exception:
             msg = error_body
         print(f"❌ API Error ({e.code}): {msg}", file=sys.stderr)
+        # Slack通知（API障害時に担当者が気づけるようにする）
+        try:
+            from slack_utils import send_message, SLACK_CHANNEL_REPORT
+            send_message(SLACK_CHANNEL_REPORT, f"🚨 Meta広告レポート API失敗: {e.code} {msg[:100]}")
+        except Exception:
+            pass
         sys.exit(1)
 
 

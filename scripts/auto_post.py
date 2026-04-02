@@ -213,7 +213,14 @@ def get_next_from_queue(platform: str) -> Optional[Path]:
             continue
         pngs = sorted(slide_dir.glob("*.png"))
         if not pngs:
-            continue
+            # フォールバック: carousel_接頭辞ディレクトリを検索（画像生成が別ディレクトリに出力される場合）
+            parent = slide_dir.parent
+            carousel_candidates = sorted(parent.glob(f"carousel_*{slide_dir.name}*"))
+            if carousel_candidates:
+                slide_dir = carousel_candidates[0]
+                pngs = sorted(slide_dir.glob("*.png"))
+            if not pngs:
+                continue
         # Check if any slide has actual content (>20KB = has text)
         if not any(p.stat().st_size > 20000 for p in pngs):
             continue

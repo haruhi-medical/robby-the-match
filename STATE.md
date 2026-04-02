@@ -132,33 +132,36 @@
 - **⚠️ Meta API**: アクセストークン+App IDが無効化。Developerダッシュボード確認必要
 - **広告自体**: Ads Managerで手動確認可能（APIとは別）
 
-## cron状態（実稼働中 — 2026-03-17 crontab -l と同期済み）
+## cron状態（実稼働中 — 2026-04-03 crontab -l と同期済み）
 ```
 # 日次（月〜土）
 0  4 * * 1-6  pdca_seo_batch.sh           # SEO改善
 0  6 * * 1-6  pdca_ai_marketing.sh        # AI日次PDCA
 0  7 * * 1-6  pdca_healthcheck.sh         # 障害監視
+30 7 * * 1-6  cron_carousel_render.sh     # カルーセル画像生成（Playwright）
 0 10 * * 1-6  pdca_competitor.sh          # 競合分析
 0 12 * * 1-6  instagram_engage.py --daily # IG エンゲージメント（ランダム遅延付き）
-0 12,17,18,20,21 * * 1-6 pdca_sns_post.sh # SNS投稿（5回/日）
+0 12,17,18,20,21 * * 1-6 pdca_sns_post.sh # SNS投稿（スケジュール連動）
 0 15 * * 1-6  pdca_content.sh             # コンテンツ生成
-0 16 * * 1-6  post_preview.py             # 投稿プレビュー送信（SNS投稿1.5h前）
-30 16 * * 1-6 slack_reply_check.py        # Slackリプライチェック①
-0  17 * * 1-6 slack_reply_check.py        # Slackリプライチェック②
-15 17 * * 1-6 slack_reply_check.py        # Slackリプライチェック③
-30 17 * * 1-6 auto_post.py --instagram    # Instagram自動投稿（ランダム遅延付き）
+0 16 * * 1-6  pdca_quality_gate.sh        # 品質ゲート（投稿キュー検査）
+0 19 * * 1-6  post_preview.py             # 投稿プレビュー送信（21:00投稿の2h前）
+30 19 * * 1-6 slack_reply_check.py        # Slackリプライチェック①
+0  20 * * 1-6 slack_reply_check.py        # Slackリプライチェック②
+30 20 * * 1-6 slack_reply_check.py        # Slackリプライチェック③
+0 21 * * 1-6  cron_ig_post.sh             # Instagram投稿（Meta Business Suite + CDP）
 0 23 * * 1-6  pdca_review.sh              # 日次レビュー
 # 週次（日曜）
-0  5 * * 0    pdca_weekly_content.sh      # 週次バッチ生成
+0  5 * * 0    pdca_weekly_content.sh      # 週次バッチ生成 ⚠️ exit_code:78（Claude CLI認証エラー）
 0  6 * * 0    pdca_weekly.sh              # 週次総括
 # 毎日
+0  2 * * *    autoresearch（Claude CLI）   # SNSスクリプト自動改善
+0  3 * * *    log_rotate.sh               # ログローテーション
 30 6 * * *    pdca_hellowork.sh           # ハローワーク求人全自動パイプライン
 0  8 * * *    meta_ads_report.py --cron   # Meta広告日次レポート
 5  8 * * *    ga4_report.py               # GA4/SC日次レポート
 # 常時
-*/30 * * * *  watchdog.py                 # システム監視（4hデdup + daily reset）
+*/30 * * * *  watchdog.py                 # システム監視（Worker健全性+ハートビート+自己修復）
 ```
-※ pdca_quality_gate.sh は DISABLED（Claude Code対話セッションで実行）
 ※ slack_commander.py は現在crontabに未登録（Slack監視はslack_bridge.py手動実行で代替）
 
 ## 解決済みの問題
@@ -166,11 +169,11 @@
 - Cloudflare token認証エラー → load_dotenv() 追加で解消
 - healthcheck false CRITICAL → upload_verification方式に変更で解消
 - watchdog Slackスパム → 4時間デdup + daily resetで解消
-- TikTok投稿失敗（Python 3.9非互換） → Cookie認証 + venv環境で解消
+- TikTok投稿失敗 → **手動運用に移行**（全自動方式は未解決。healthcheckのTikTok誤検知は抑制済み）
 - ANTHROPIC_API_KEY未設定 → Cloudflare Workers AI（Llama 3.3 70B）で代替
 
 ## デプロイ状態
-- **Netlify**: ✅ 公開中（quads-nurse.com）
+- **GitHub Pages**: ✅ 公開中（quads-nurse.com）※Netlifyは帯域超過で停止、GitHub Pagesに移行済み
 - **SSL**: ✅ Let's Encrypt自動発行
 - **Cloudflare Worker**: ✅ robby-the-match-api デプロイ済み（LINE Bot + AIチャット）
   - シークレット7件設定済み（LINE×3 + Slack×2 + OpenAI + ChatSecret）

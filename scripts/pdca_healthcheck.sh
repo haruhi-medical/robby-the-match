@@ -90,10 +90,12 @@ except Exception as e:
     sys.exit(0)
 " >> "$LOG" 2>&1 && UV_EXIT=0 || UV_EXIT=$?
 if [ "$UV_EXIT" -eq 1 ] && [ "$TIKTOK_ALERT_SENT" = "false" ]; then
-  ISSUES="${ISSUES}\n⚠️ TikTokアップロード失敗が連続中（手動投稿に切替推奨）"
+  # TikTokは手動運用移行済み → ISSUESには加算しない（exit_code:1の原因にしない）
+  # ただしSlackアラートは初回のみ送信
+  echo "[INFO] TikTok失敗検出（手動運用移行済み。ISSUESには加算しない）" >> "$LOG"
   date +%Y-%m-%d > "$TIKTOK_ALERT_FLAG"
 elif [ "$UV_EXIT" -eq 1 ]; then
-  echo "[INFO] TikTok失敗は既知。アラート抑制中。" >> "$LOG"
+  echo "[INFO] TikTok失敗は既知。手動運用移行済み。" >> "$LOG"
 fi
 
 # Step 2: ハートビート（Cookie有効期限、venv、キュー状態など）

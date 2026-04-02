@@ -87,23 +87,13 @@ fi
 log "Step 5: Cloudflare Worker デプロイ中..."
 cd "$PROJECT_DIR"
 
-# _redirectsが邪魔するので一時退避
-REDIRECTS_BACKUP=""
-if [ -f "_redirects" ]; then
-    mv _redirects _redirects.bak
-    REDIRECTS_BACKUP="1"
-fi
-
-if cd api && $NPX wrangler deploy >> "$LOG_FILE" 2>&1; then
+# Worker デプロイ（--config wrangler.toml 必須。省略するとルートのwrangler.jsoncが優先され間違ったWorkerにデプロイされる）
+cd "$PROJECT_DIR/api"
+unset CLOUDFLARE_API_TOKEN
+if $NPX wrangler deploy --config wrangler.toml >> "$LOG_FILE" 2>&1; then
     log "✅ Cloudflare Worker デプロイ完了"
 else
     log "⚠️ Cloudflare Worker デプロイ失敗（求人データは更新済み）"
-fi
-
-cd "$PROJECT_DIR"
-# _redirects復元
-if [ -n "$REDIRECTS_BACKUP" ] && [ -f "_redirects.bak" ]; then
-    mv _redirects.bak _redirects
 fi
 
 # Step 6: Slack通知

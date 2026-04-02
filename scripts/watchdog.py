@@ -58,6 +58,8 @@ FIXED_SCHEDULE_JOBS = {
 LOG_BASED_JOBS = {
     "ai_marketing": "pdca_ai_marketing",
     "hellowork":    "pdca_hellowork",
+    "ga4_report":   "ga4_report",
+    "meta_report":  "meta_report",
 }
 
 # sns_postは動的スケジュール（posting_schedule.json依存）なので別扱い
@@ -746,6 +748,34 @@ def run_watchdog():
     recovered = []
     info = []
 
+    # ─── 0. Workerヘルスチェック ───
+    try:
+        import urllib.request
+        worker_url = "https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/health"
+        req = urllib.request.Request(worker_url, method="GET")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status == 200:
+                info.append("Worker: OK")
+            else:
+                issues.append(f"Worker: HTTP {resp.status}")
+    except Exception as e:
+        # 連続失敗カウント（data/heartbeats/worker_health.json）
+        wh_path = PROJECT_DIR / "data" / "heartbeats" / "worker_health.json"
+        fail_count = 1
+        try:
+            if wh_path.exists():
+                import json as _json
+                wh = _json.loads(wh_path.read_text())
+                if wh.get("date") == now.strftime("%Y-%m-%d"):
+                    fail_count = wh.get("fail_count", 0) + 1
+            wh_path.write_text(_json.dumps({"date": now.strftime("%Y-%m-%d"), "fail_count": fail_count, "last_error": str(e)[:100]}))
+        except Exception:
+            pass
+        if fail_count >= 3:
+            issues.append(f"🚨 Worker 3連続失敗: {e}")
+        else:
+            suppressed.append(f"Worker: {e} ({fail_count}/3)")
+
     # ─── 1. 固定スケジュールジョブの監視 ───
     for job_name, (hour, minute, max_dur, script, safe) in FIXED_SCHEDULE_JOBS.items():
         status = check_heartbeat(job_name, hour, minute, max_dur)
@@ -818,13 +848,38 @@ def run_watchdog():
 
     # ─── 1b. ログベース代替監視（ハートビート未実装ジョブ） ───
     today_str = now.strftime("%Y-%m-%d")
+    # 累積型ログの場合は今日の日付がファイル内にあるかチェック
+    CUMULATIVE_LOGS = {"hellowork": "hellowork_fetch.log"}
+    # 日付形式がYYYYMMDD（ハイフンなし）のジョブ
+    YYYYMMDD_LOGS = {"ga4_report": "ga4_report", "meta_report": "meta_report"}
     for job_name, log_prefix in LOG_BASED_JOBS.items():
-        log_pattern = LOG_DIR / f"{log_prefix}_{today_str}.log"
-        if log_pattern.exists():
-            info.append(f"{job_name}: ログ確認OK（{log_prefix}_{today_str}.log）")
+        found = False
+        if job_name in CUMULATIVE_LOGS:
+            # 累積型: ファイル内に今日の日付があるか
+            cumul_path = LOG_DIR / CUMULATIVE_LOGS[job_name]
+            if cumul_path.exists():
+                try:
+                    content = cumul_path.read_text(errors="ignore")
+                    if today_str in content:
+                        found = True
+                except Exception:
+                    pass
+        elif job_name in YYYYMMDD_LOGS:
+            # YYYYMMDD型: ハイフンなし日付
+            yyyymmdd = now.strftime("%Y%m%d")
+            log_pattern = LOG_DIR / f"{YYYYMMDD_LOGS[job_name]}_{yyyymmdd}.log"
+            if log_pattern.exists():
+                found = True
+        else:
+            # 日付型: ファイル存在チェック
+            log_pattern = LOG_DIR / f"{log_prefix}_{today_str}.log"
+            if log_pattern.exists():
+                found = True
+        if found:
+            info.append(f"{job_name}: ログ確認OK")
         else:
             # 実行時刻前ならスキップ（ai_marketing=06:00, hellowork=06:30）
-            expected_hours = {"ai_marketing": 8, "hellowork": 7}  # 完了見込み時刻
+            expected_hours = {"ai_marketing": 8, "hellowork": 7, "ga4_report": 9, "meta_report": 9}  # 完了見込み時刻
             if now.hour < expected_hours.get(job_name, 8):
                 continue
             info.append(f"{job_name}: 本日のログなし（{log_prefix}_{today_str}.log）")
