@@ -1022,9 +1022,14 @@ ${MARKET_DATA}
 }
 
 export default {
-  // ===== Cron Trigger: ナーチャリング配信 + ハンドオフBot補助 =====
+  // ===== Cron Trigger: ナーチャリング配信（1日1回）+ ハンドオフフォロー（2時間おき） =====
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(handleScheduledNurture(env));
+    // ナーチャリング配信は1日1回のcronのみ（01:00 UTC = 10:00 JST）
+    if (event.cron === "0 1 * * *") {
+      ctx.waitUntil(handleScheduledNurture(env));
+    }
+    // ハンドオフフォローは全cronで実行（2時間おき）
+    ctx.waitUntil(handleScheduledHandoffFollowup(env));
   },
 
   async fetch(request, env, ctx) {
@@ -6446,7 +6451,16 @@ async function handleScheduledNurture(env) {
     console.error(`[Cron] Nurture list error: ${e.message}`);
   }
 
-  // ----- ハンドオフBot補助（2時間後フォローアップ） -----
+  console.log(`[Cron] Nurture completed: sent=${nurtureCount}`);
+}
+
+// ========== Cron Trigger: ハンドオフBot補助（2時間おき） ==========
+async function handleScheduledHandoffFollowup(env) {
+  if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN) return;
+  const token = env.LINE_CHANNEL_ACCESS_TOKEN;
+  const now = Date.now();
+  let handoffCount = 0;
+
   try {
     const handoffKeys = await kvListAll(env.LINE_SESSIONS, "handoff:");
     for (const key of handoffKeys) {
@@ -6459,8 +6473,7 @@ async function handleScheduledNurture(env) {
 
         const hoursSinceHandoff = (now - data.handoffAt) / 3600000;
 
-        if (hoursSinceHandoff >= 2 && !data.followUpSent) {
-          // 2時間後: フォローアップメッセージ
+        if (hoursSinceHandoff >= 2) {
           const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -6478,7 +6491,6 @@ async function handleScheduledNurture(env) {
             await env.LINE_SESSIONS.put(key.name, JSON.stringify(data), { expirationTtl: 604800 });
             handoffCount++;
 
-            // Slack再通知
             if (env.SLACK_BOT_TOKEN) {
               fetch("https://slack.com/api/chat.postMessage", {
                 method: "POST",
@@ -6499,7 +6511,7 @@ async function handleScheduledNurture(env) {
     console.error(`[Cron] Handoff list error: ${e.message}`);
   }
 
-  console.log(`[Cron] Completed: nurture=${nurtureCount}, handoff=${handoffCount}`);
+  console.log(`[Cron] Handoff followup completed: sent=${handoffCount}`);
 }
 
 // JSON レスポンス生成
