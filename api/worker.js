@@ -2607,7 +2607,24 @@ const POSTBACK_LABELS = {
   match_other:  "他の施設も見たい",
   // 引き継ぎ
   handoff_ok:   "お願いします！",
-  // Phase 2: 応募フロー
+  // 追加ヒアリング（ps_*）: qualification
+  ps_qual_nurse:     "看護師",
+  ps_qual_lpn:       "准看護師",
+  ps_qual_hokenshi:  "保健師",
+  ps_qual_josanshi:  "助産師",
+  // 追加ヒアリング（ps_*）: qualification → q10互換エイリアス
+  q10_nurse:     "看護師",
+  q10_hokenshi:  "保健師",
+  q10_josanshi:  "助産師",
+  // 追加ヒアリング（ps_*）: strengths
+  q7_internal:   "内科系",
+  q7_surgical:   "外科系",
+  q7_pediatric:  "小児・産婦人科",
+  q7_psychiatric:"精神科",
+  q7_home_visit: "訪問看護",
+  q7_care:       "介護施設",
+  q7_other:      "その他",
+  // Phase 2: 打診フロー
   apply_agree:   "匿名打診を依頼する",
   apply_reselect:"施設を選び直す",
   apply_cancel:  "やめておく",
@@ -2903,7 +2920,7 @@ function getMenuStateForPhase(phase) {
   }
   if (["il_area", "il_workstyle", "il_urgency",
        "q1_urgency", "q2_change", "q3_area", "q4_experience", "q5_workstyle",
-       "q6_workplace", "q7_strengths", "q8_concerns", "q9_timing", "q10_qualification",
+       "q6_workplace", "q7_strengths", "q8_concerns", "q9_work_history", "q10_qualification",
        "ai_consultation"].includes(phase)) {
     return RICH_MENU_STATES.hearing;
   }
@@ -2985,9 +3002,24 @@ async function getLineEntryAsync(userId, env) {
           try {
             const ver = JSON.parse(verRaw);
             if (ver.updatedAt > entry.updatedAt) {
-              console.log(`[LINE] KV stale! main phase=${entry.phase}(${entry.updatedAt}) < ver phase=${ver.phase}(${ver.updatedAt})`);
+              console.log(`[LINE] KV stale! main phase=${entry.phase}(${entry.updatedAt}) < ver phase=${ver.phase}(${ver.updatedAt}), retrying...`);
+              // stale検出: メインKVを再取得（キャッシュが更新されている可能性）
+              try {
+                const retryRaw = await env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 60 });
+                if (retryRaw) {
+                  const retryEntry = JSON.parse(retryRaw);
+                  if (retryEntry.updatedAt >= ver.updatedAt) {
+                    // 再取得で最新データを取得できた
+                    if (!retryEntry.messages) retryEntry.messages = [];
+                    if (!retryEntry.strengths) retryEntry.strengths = [];
+                    console.log(`[LINE] KV retry OK: phase=${retryEntry.phase}`);
+                    lineConversationMap.set(userId, retryEntry);
+                    return retryEntry;
+                  }
+                }
+              } catch (_) { /* retry失敗は無視 */ }
+              // 再取得でも古い場合: phaseだけ上書き（最低限の整合性確保）
               stale = true;
-              // バージョンキーの情報でphaseだけ上書き（最低限の整合性確保）
               entry.phase = ver.phase;
               entry.updatedAt = ver.updatedAt;
             }
@@ -3742,8 +3774,8 @@ function buildPhaseMessage(phase, entry) {
         text: "✅ 担当者が匿名プロフィールで病院に打診します！\n\n🔒 あなたのお名前や連絡先は、病院が興味を示すまで開示しません。\n\n病院からの反応があり次第、このLINEでご連絡します。\n質問があればいつでもメッセージください。",
         quickReply: {
           items: [
-            qrItem("面接対策を見る", "prep=start"),
             qrItem("わかりました", "prep=skip"),
+            qrItem("転職の相談をする", "consult=start"),
           ],
         },
       }];
@@ -5131,7 +5163,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               areaLabel: entry.areaLabel || null,
               workStyle: entry.workStyle || null,
               urgency: entry.urgency || null,
-              nurtureSubscribed: entry.nurtureSubscribed || false,
+              nurtureSubscribed: entry.nurtureSubscribed === true ? true : null, // null=未回答, true=購読, false=拒否
               enteredAt: entry.nurtureEnteredAt,
               sentCount: entry.nurtureSentCount,
               lastSentAt: null,
@@ -5150,10 +5182,18 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // ===== nurture_stay =====
         else if (nextPhase === "nurture_stay") {
           entry.phase = "nurture_warm";
+          entry.nurtureSubscribed = false; // 明示的に拒否
           replyMessages = [{
             type: "text",
             text: "わかりました！\nいつでも気軽にメッセージくださいね。",
           }];
+          // nurture KVのnurtureSubscribedをfalseに更新（Cron配信停止用）
+          if (env?.LINE_SESSIONS) {
+            env.LINE_SESSIONS.put(`nurture:${userId}`, JSON.stringify({
+              userId, nurtureSubscribed: false,
+              enteredAt: entry.nurtureEnteredAt, sentCount: entry.nurtureSentCount, lastSentAt: null,
+            }), { expirationTtl: 2592000 }).catch(() => {});
+          }
         }
         // ===== FAQ回答 =====
         else if (nextPhase === "faq_free" || nextPhase === "faq_no_phone") {
@@ -5296,6 +5336,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           replyMessages = [{
             type: "text",
             text: "承知しました。いつでもお気軽にご相談ください。\n\n担当者がこのLINEでサポートしますので、気になることがあればメッセージくださいね。",
+            quickReply: {
+              items: [
+                qrItem("本当に無料？", "faq=free"),
+                qrItem("電話は来ない？", "faq=no_phone"),
+                qrItem("求人を探す", "welcome=see_jobs"),
+              ],
+            },
           }];
           await sendHandoffNotification(userId, entry, env);
         } else if (nextPhase === "career_sheet_edit") {
@@ -5630,6 +5677,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         if (nextPhase === "ai_consultation_reply") {
           // AI呼び出しはctx.waitUntilでバックグラウンド実行
           // Webhookには即座に200を返し、AI応答はPush APIで後送する
+          // ★ waitUntil前にKV保存（高速連続送信時のKV競合防止）
+          await saveLineEntry(userId, entry, env);
           const aiUserId = userId;
           const aiUserText = userText;
           const aiEntry = entry;
@@ -5755,23 +5804,33 @@ ${userText}`;
           entry.phase = "apply_consent";
           replyMessages = buildPhaseMessage("apply_consent", entry);
         } else if (nextPhase === "career_sheet_apply_edit") {
-          // 匿名プロフィール修正適用（再生成）
+          // 匿名プロフィール修正: ユーザーの修正指示を担当者に引き継ぐ
+          // （entry値の自動変更はせず、修正リクエストをSlackに転送して担当者が対応）
           entry.phase = "career_sheet";
+          const editReq = entry.careerSheetEditRequest || "";
           const sheet = generateAnonymousProfile(entry);
           entry.careerSheet = sheet;
           replyMessages = [
-            { type: "text", text: "修正しました！確認してください。\n\n" + sheet },
+            { type: "text", text: `ご要望「${editReq}」を担当者に伝えますね。\n\n現在のプロフィール内容はこちらです:\n\n${sheet}` },
             {
               type: "text",
-              text: "この内容で担当者が病院に打診します。\nよろしいですか？",
+              text: "修正は担当者が対応します。\nこの内容で一旦打診を進めてよろしいですか？",
               quickReply: {
                 items: [
-                  qrItem("✅ これでOK", "sheet=ok"),
-                  qrItem("修正したい", "sheet=edit"),
+                  qrItem("✅ これで進めて", "sheet=ok"),
+                  qrItem("やっぱりやめる", "apply=cancel"),
                 ],
               },
             },
           ].slice(0, 5);
+          // Slack通知: 修正リクエスト
+          if (env.SLACK_BOT_TOKEN) {
+            fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📝 *匿名プロフィール修正リクエスト*\nユーザー: \`${userId.slice(0, 8)}...\`\n修正内容: ${editReq}\n💬 \`!reply ${userId} メッセージ\`` }),
+            }).catch(() => {});
+          }
         } else if (nextPhase === null) {
           if (entry.unexpectedTextCount >= 3) {
             // Stage 3: 3回以上 → 担当者引き継ぎ
@@ -6235,6 +6294,7 @@ async function handleScheduledNurture(env) {
           continue;
         }
 
+        // null(未回答)=配信する, true(購読)=配信する, false(明示拒否)=配信しない
         if (shouldSend && data.nurtureSubscribed !== false) {
           const qr = sentCount < 2 ? {
             type: "text",
