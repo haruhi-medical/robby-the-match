@@ -1,6 +1,6 @@
 {
   "created": "2026-04-01T15:00:13.619636",
-  "updated": "2026-04-01T15:00:13.619728",
+  "updated": "2026-04-02T15:04:49.716962",
   "week_of": "2026-04-01",
   "total": 7,
   "queue_pending_at_creation": 9,
@@ -9,56 +9,56 @@
       "day": 1,
       "category": "転職",
       "cta_type": "hard",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_転職_0402_01",
       "hint": "退職届を出したら急に「待遇改善する」と言われた。3年間の不満を無視してたくせに"
     },
     {
       "day": 2,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0402_02",
       "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた"
     },
     {
       "day": 3,
       "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_地域_0402_03",
       "hint": "県西部の病院は紹介会社に135万払えない。だから看護師が来ない。この悪循環"
     },
     {
       "day": 4,
       "category": "業界裏側",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_業界_0402_04",
       "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布"
     },
     {
       "day": 5,
       "category": "給与",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_給与_0402_05",
       "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？"
     },
     {
       "day": 6,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0402_06",
       "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？"
     },
     {
       "day": 7,
       "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_地域_0402_07",
       "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い"
     }
   ]
