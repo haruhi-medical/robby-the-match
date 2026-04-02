@@ -5286,11 +5286,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             text: "もう一度メッセージを送ってみてください！",
           }];
         } else if (nextPhase === "ai_consultation_extend") {
-          // FIX-08: ターン延長（+5回）
+          // FIX-08: ターン延長（+3回: MAX_TURNS=5 → EXTENDED_MAX=8）
           entry.phase = "ai_consultation";
           replyMessages = [{
             type: "text",
-            text: "あと5回まで聞けます！どうぞ😊",
+            text: "あと3回まで聞けます！どうぞ😊",
           }];
         } else if (nextPhase === "consult_handoff_choice") {
           // 応募に進むか担当者と話すかの選択
@@ -5502,6 +5502,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             // 地域ページからのエリア情報を引き継ぐ
             if (sessionCtx.area && !entry.area) {
               entry.area = sessionCtx.area;
+              entry.areaLabel = IL_AREA_LABELS[sessionCtx.area] || POSTBACK_LABELS[`q3_${sessionCtx.area}`] || sessionCtx.area;
             }
 
             // source別welcome分岐
