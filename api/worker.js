@@ -146,13 +146,6 @@ const STATE_CATEGORIES = {
   FAQ:           ["faq_free", "faq_no_phone"],
 };
 
-function getStateCategory(phase) {
-  for (const [category, phases] of Object.entries(STATE_CATEGORIES)) {
-    if (phases.includes(phase)) return category;
-  }
-  return "UNKNOWN";
-}
-
 // ---------- 条件緩和提案（マッチング結果が少ない場合） ----------
 function suggestRelaxation(entry, matchCount) {
   if (matchCount >= 3) return null; // 3件以上なら提案不要
@@ -2275,7 +2268,17 @@ async function verifyLineSignature(body, signature, channelSecret) {
     new TextEncoder().encode(body)
   );
   const expected = btoa(String.fromCharCode(...new Uint8Array(sig)));
-  return expected === signature;
+  return timingSafeEqual(expected, signature);
+}
+
+function timingSafeEqual(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const len = Math.max(a.length, b.length);
+  let mismatch = a.length !== b.length ? 1 : 0;
+  for (let i = 0; i < len; i++) {
+    mismatch |= (a.charCodeAt(i % a.length) ^ b.charCodeAt(i % b.length));
+  }
+  return mismatch === 0;
 }
 
 // LINE Reply API呼び出し
@@ -2431,7 +2434,7 @@ async function handleLineStart(url, env) {
 // LINE会話履歴ストア（インメモリ、userId → 拡張エントリ）
 const lineConversationMap = new Map();
 const LINE_MAX_HISTORY = 40;
-const LINE_SESSION_TTL = 604800000; // 7日間（handoff後の人間対応期間を考慮）
+const LINE_SESSION_TTL = 2592000000; // 30日間
 
 // ---------- 定数: フェーズフロー ----------
 // フロー分岐: urgencyに応じてルートが変わる
@@ -2505,9 +2508,6 @@ const PHASE_FLOW_LIGHT = {
   interview_prep:    "handoff",
   handoff:           null,
 };
-
-// 後方互換: PHASE_FLOW はデフォルトのフルフロー
-const PHASE_FLOW = PHASE_FLOW_FULL;
 
 // ユーザーのurgencyに応じたフローを取得
 function getFlowForEntry(entry) {
@@ -2634,7 +2634,7 @@ const POSTBACK_LABELS = {
   q7_care:       "介護施設",
   q7_other:      "その他",
   // Phase 2: 打診フロー
-  apply_agree:   "匿名打診を依頼する",
+  apply_agree:   "名前を伏せて確認を依頼",
   apply_reselect:"施設を選び直す",
   apply_cancel:  "やめておく",
   sheet_ok:      "これでOK",
@@ -2746,7 +2746,7 @@ const TEXT_TO_POSTBACK = {
   "お願い": "handoff=ok",
   "スキップ": "q9=skip", "あとで": "q9=skip",
   // Phase 2: 応募フロー
-  "匿名打診を依頼": "apply=agree", "打診を依頼する": "apply=agree",
+  "確認を依頼": "apply=agree", "確認を依頼する": "apply=agree",
   "選び直す": "apply=reselect",
   "やめておく": "apply=cancel", "やめる": "apply=cancel",
   "これでOK": "sheet=ok", "OKです": "sheet=ok",
@@ -3050,7 +3050,7 @@ async function getLineEntryAsync(userId, env) {
           lineConversationMap.set(userId, entry);
           return entry;
         }
-        await env.LINE_SESSIONS.delete(`line:${userId}`).catch(() => {});
+        await env.LINE_SESSIONS.delete(`line:${userId}`).catch((e) => { console.error(`[KV] delete failed: ${e.message}`); });
       }
     } catch (e) {
       console.error("[LINE] KV get error:", e.message);
@@ -3172,8 +3172,8 @@ async function saveLineEntry(userId, entry, env) {
       // バージョンキーは軽量（phase+updatedAt）で、get時に鮮度チェックに使う
       const versionData = JSON.stringify({ phase: toSave.phase, updatedAt: toSave.updatedAt });
       await Promise.all([
-        env.LINE_SESSIONS.put(kvKey, kvData, { expirationTtl: 604800 }),
-        env.LINE_SESSIONS.put(`ver:${userId}`, versionData, { expirationTtl: 604800 }),
+        env.LINE_SESSIONS.put(kvKey, kvData, { expirationTtl: 2592000 }),
+        env.LINE_SESSIONS.put(`ver:${userId}`, versionData, { expirationTtl: 2592000 }),
       ]);
       console.log(`[LINE] KV put OK: ${kvKey.slice(0, 15)}, phase: ${toSave.phase}`);
     } catch (e) {
@@ -3222,7 +3222,7 @@ function generateAnonymousProfile(entry) {
   const reason = reasonMap[entry.change] || "より良い環境を希望";
 
   let sheet = `━━━━━━━━━━━━━━━━━━
-📋 匿名プロフィール（病院打診用）
+📋 プロフィール（病院確認用）
 ━━━━━━━━━━━━━━━━━━
 
 ■ 資格・経験
@@ -3290,7 +3290,7 @@ async function sendApplyNotification(userId, entry, env) {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
     body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text }),
-  }).catch(() => {});
+  }).catch((e) => { console.error(`[CRITICAL] Apply notification failed: ${e.message}`); });
 }
 
 // ---------- フェーズ別メッセージ+Quick Reply生成 ----------
@@ -3701,13 +3701,13 @@ function buildPhaseMessage(phase, entry) {
     case "reverse_nomination":
       return [{
         type: "text",
-        text: "🎯 逆指名ですね！\n\n「この病院で働きたい」という希望があれば、担当者が匿名プロフィールで直接病院に打診します。\n\n手数料10%という強みがあるので、病院側も前向きに検討してくれることが多いです。\n\n希望の病院名を教えてください！\n（例: 横浜市立大学附属病院、小田原市立病院 など）",
+        text: "🎯 行きたい病院があるんですね！\n\n「この病院で働きたい」という希望があれば、担当者が名前を伏せて直接病院に確認します。\n\n手数料10%という強みがあるので、病院側も前向きに検討してくれることが多いです。\n\n希望の病院名を教えてください！\n（例: 横浜市立大学附属病院、小田原市立病院 など）",
       }];
 
     case "reverse_nomination_confirm":
       return [{
         type: "text",
-        text: `「${entry.reverseNominationHospital || ""}」ですね！\n\n承知しました。匿名プロフィールでこの病院に打診します。\n\n打診の準備のために、いくつかお聞きしてもよろしいですか？\n※お名前等は社内管理用で、病院には開示しません。`,
+        text: `「${entry.reverseNominationHospital || ""}」ですね！\n\n承知しました。名前を伏せてこの病院に確認します。\n\n確認の準備のために、いくつかお聞きしてもよろしいですか？\n※お名前等は社内管理用で、病院には開示しません。`,
         quickReply: {
           items: [
             qrItem("はい、進めてください", "reverse=proceed"),
@@ -3719,7 +3719,7 @@ function buildPhaseMessage(phase, entry) {
     case "apply_info":
       return [{
         type: "text",
-        text: "ありがとうございます！\n担当者が病院に打診するための準備をしますね。\n\n📝 お名前を教えてください。\n※病院には匿名で打診します。お名前は社内管理用です。\n（例: 山田 花子）",
+        text: "ありがとうございます！\n担当者が病院に確認するための準備をしますね。\n\n📝 お名前を教えてください。\n※名前を伏せて病院に確認します。お名前は社内管理用です。\n（例: 山田 花子）",
       }];
 
     case "apply_info_birth":
@@ -3729,7 +3729,7 @@ function buildPhaseMessage(phase, entry) {
       return [{ type: "text", text: "電話番号を教えてください。\n（例: 090-1234-5678）\n\n※担当者からのご連絡に使用します。病院には開示しません。" }];
 
     case "apply_info_workplace":
-      return [{ type: "text", text: "現在の勤務先名を教えてください。\n（在職中でない場合は「離職中」とお伝えください）\n\n⚠️ 病院には開示しません。現在の勤務先に連絡することも絶対にありません。" }];
+      return [{ type: "text", text: "現在の勤務先名を教えてください。\n（在職中でない場合は「離職中」とお伝えください）\n\n💡 同じ病院への二重紹介を防ぐために確認しています。\n⚠️ 病院には伝えません。勤務先に連絡することも絶対にありません。" }];
 
     case "apply_consent": {
       let facilityList;
@@ -3746,13 +3746,15 @@ function buildPhaseMessage(phase, entry) {
       if (entry.experience) profileItems.push('経験年数');
       if (entry.strengths && entry.strengths.length > 0) profileItems.push('得意分野');
       if (entry.change) profileItems.push('転職理由');
+      if (entry.concern) profileItems.push('気になること');
+      if (entry.workHistoryText) profileItems.push('職務経歴（概要）');
       if (entry.area || entry.areaLabel) profileItems.push('希望エリア');
       if (entry.workStyle) profileItems.push('働き方');
       const profileText = profileItems.length > 0 ? profileItems.join('、') : '希望条件の概要';
 
       return [{
         type: "text",
-        text: `以下の施設に、担当者が匿名プロフィールで打診します。\n\n${facilityList || "（マッチング結果を確認中）"}\n\n📋 病院に伝える情報（匿名）:\n・${profileText}\n\n🔒 伝えない情報:\n・お名前、電話番号、生年月日\n・現在の勤務先\n\n※ 病院が興味を示した場合に、改めてご相談します。\n\nこの内容で打診してよろしいですか？`,
+        text: `以下の施設に、担当者が名前を伏せて確認します。\n\n${facilityList || "（マッチング結果を確認中）"}\n\n📋 病院に伝える情報（名前なし）:\n・${profileText}\n\n🔒 伝えない情報:\n・お名前、電話番号、生年月日\n・現在の勤務先\n\n※ 病院が興味を持った場合に、改めてご相談します。\n\nこの内容で確認してよろしいですか？`,
         quickReply: {
           items: [
             qrItem("✅ お願いします", "apply=agree"),
@@ -3770,11 +3772,11 @@ function buildPhaseMessage(phase, entry) {
       return [
         {
           type: "text",
-          text: "📄 病院に打診する匿名プロフィールを作成しました！\n内容を確認してください。\n\n" + sheet,
+          text: "📄 病院に確認するためのプロフィールを作成しました！\n内容を確認してください。\n\n" + sheet,
         },
         {
           type: "text",
-          text: "この内容で担当者が病院に打診します。\nよろしいですか？",
+          text: "この内容で担当者が病院に確認します。\nよろしいですか？",
           quickReply: {
             items: [
               qrItem("✅ これでOK", "sheet=ok"),
@@ -3788,7 +3790,7 @@ function buildPhaseMessage(phase, entry) {
     case "apply_confirm":
       return [{
         type: "text",
-        text: "✅ 担当者が匿名プロフィールで病院に打診します！\n\n🔒 あなたのお名前や連絡先は、病院が興味を示すまで開示しません。\n\n病院からの反応があり次第、このLINEでご連絡します。\n質問があればいつでもメッセージください。",
+        text: "✅ 担当者が名前を伏せて病院に確認します！\n\n🔒 お名前や連絡先は、病院が興味を持つまでお伝えしません。\n\n病院からの反応があり次第、このLINEでご連絡します。\n質問があればいつでもメッセージください。",
         quickReply: {
           items: [
             qrItem("わかりました", "prep=skip"),
@@ -3798,10 +3800,11 @@ function buildPhaseMessage(phase, entry) {
       }];
 
     // ===== 追加ヒアリング（intake_light補完） =====
-    case "ps_qualification":
+    case "ps_qualification": {
+      const remaining = getMissingProfileFields(entry).length;
       return [{
         type: "text",
-        text: "匿名プロフィール作成のため、あと少しだけ教えてください！\n\nお持ちの資格はどれですか？",
+        text: remaining <= 1 ? "最後の質問です！\n\nお持ちの資格はどれですか？" : `病院に確認するための情報です。あと${remaining}問で完了します！\n\nお持ちの資格はどれですか？`,
         quickReply: {
           items: [
             qrItem("看護師", "ps_qual=nurse"),
@@ -3811,11 +3814,13 @@ function buildPhaseMessage(phase, entry) {
           ],
         },
       }];
+    }
 
-    case "ps_experience":
+    case "ps_experience": {
+      const remaining = getMissingProfileFields(entry).length;
       return [{
         type: "text",
-        text: "看護師としての経験年数を教えてください！",
+        text: remaining <= 1 ? "最後の質問です！\n\n看護師としての経験年数を教えてください！" : `あと${remaining}問で完了します！\n\n看護師としての経験年数を教えてください！`,
         quickReply: {
           items: [
             qrItem("1年未満", "ps_exp=under1"),
@@ -3826,11 +3831,13 @@ function buildPhaseMessage(phase, entry) {
           ],
         },
       }];
+    }
 
-    case "ps_strengths":
+    case "ps_strengths": {
+      const remaining = getMissingProfileFields(entry).length;
       return [{
         type: "text",
-        text: "得意な分野や経験のある科を教えてください！",
+        text: remaining <= 1 ? "最後の質問です！\n\n得意な分野や経験のある科を教えてください！" : `あと${remaining}問で完了します！\n\n得意な分野や経験のある科を教えてください！`,
         quickReply: {
           items: [
             qrItem("内科系", "ps_str=internal"),
@@ -3843,11 +3850,13 @@ function buildPhaseMessage(phase, entry) {
           ],
         },
       }];
+    }
 
-    case "ps_change":
+    case "ps_change": {
+      const remaining = getMissingProfileFields(entry).length;
       return [{
         type: "text",
-        text: "転職で一番変えたいことは何ですか？",
+        text: remaining <= 1 ? "最後の質問です！\n\n転職で一番変えたいことは何ですか？" : `あと${remaining}問で完了します！\n\n転職で一番変えたいことは何ですか？`,
         quickReply: {
           items: [
             qrItem("お給料を上げたい", "ps_chg=salary"),
@@ -3859,11 +3868,12 @@ function buildPhaseMessage(phase, entry) {
           ],
         },
       }];
+    }
 
     case "apply_consent_privacy":
       return [{
         type: "text",
-        text: "ここから先は、担当者がご連絡するためにお名前等をお聞きします。\n\n📋 お聞きする情報:\n・お名前、生年月日、電話番号、現在の勤務先\n\n🔒 利用目的:\n・職業紹介サービスの提供（求人マッチング・ご連絡）\n・病院への匿名打診時には開示しません\n\n許可番号: 23-ユ-302928\n\nよろしいですか？",
+        text: "ここから先は、担当者がご連絡するためにお名前等をお聞きします。\n\n📋 お聞きする情報:\n・お名前、生年月日、電話番号、現在の勤務先\n\n🔒 利用目的:\n・職業紹介サービスの提供（求人マッチング・ご連絡）\n・病院への確認時にはお伝えしません\n\n許可番号: 23-ユ-302928\n\nよろしいですか？",
         quickReply: {
           items: [
             qrItem("✅ 同意して進む", "privacy=agree"),
@@ -3906,7 +3916,7 @@ function buildPhaseMessage(phase, entry) {
       if (entry.appliedAt) {
         return [{
           type: "text",
-          text: "✅ 担当者が匿名プロフィールで施設に確認を進めます。\n\n🔒 お名前や連絡先は、先方が関心を示すまで開示しません。\n回答があり次第ご連絡しますね。\n\n質問があればいつでもメッセージください。\n（担当者が確認してお返事します）",
+          text: "✅ 担当者が名前を伏せて施設に確認します。\n\n🔒 お名前や連絡先は、先方が関心を示すまで開示しません。\n回答があり次第ご連絡しますね。\n\n質問があればいつでもメッセージください。\n（担当者が確認してお返事します）",
         }];
       }
       return [{
@@ -4286,7 +4296,7 @@ function buildMatchingMessages(entry) {
   });
 
   // 補足テキスト + 逆指名案内
-  let supplementText = "気になる求人はありますか？\n「この求人が気になる」を押していただければ、担当者が最新の募集状況を確認します。\n\n💡 *ここにない病院でも大丈夫！*\n「あの病院で働きたい」という希望があれば、あなたを直接売り込む「逆指名」も可能です。手数料10%の強みを活かして、病院に直接提案します。";
+  let supplementText = "気になる求人はありますか？\n「この求人が気になる」を押していただければ、担当者が最新の募集状況を確認します。\n\n💡 *ここにない病院でも大丈夫！*\n「あの病院で働きたい」という希望があれば、名前を伏せて直接確認できます。手数料10%の強みを活かして、病院に直接提案します。";
 
   messages.push({
     type: "text",
@@ -4294,7 +4304,7 @@ function buildMatchingMessages(entry) {
     quickReply: {
       items: [
         qrItem("気になる求人がある", "match=detail"),
-        qrItem("逆指名したい病院がある", "match=reverse"),
+        qrItem("他の病院に聞いてほしい", "match=reverse"),
         qrItem("他の求人も見たい", "match=other"),
       ],
     },
@@ -5006,7 +5016,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           method: "POST",
           headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
           body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📩 *LINE受信*\nユーザー: \`${userId.slice(0, 8)}...\`\nメッセージ: ${event.message.text.slice(0, 200)}\n時刻: ${nowJST}` }),
-        }).catch(() => {});
+        }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
       }
 
       // --- followイベント（友だち追加 / 再フォロー） ---
@@ -5140,7 +5150,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🔍 *intake_light完了 → matching_preview*\nエリア: ${entry.areaLabel || entry.area || "不明"}\n働き方: ${entry.workStyle || "不明"}\n温度感: ${entry.urgency || "不明"}\nマッチ件数: ${(entry.matchingResults || []).length}\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}` }),
-            }).catch(() => {});
+            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
         }
         // ===== matching_browse: 次の3件表示 =====
@@ -5162,7 +5172,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
         // ===== matching（matching_preview/browseから「気になる」選択時） =====
         else if (nextPhase === "matching") {
-          generateLineMatching(entry);
+          if (!entry.matchingResults || entry.matchingResults.length === 0) {
+            generateLineMatching(entry);
+          }
           const matchResults = entry.matchingResults || [];
 
           // Flex Messageではなくテキストで詳細表示（Flex APIエラー回避）
@@ -5190,12 +5202,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
           replyMessages = [
             { type: "text", text: detailText },
-            { type: "text", text: "気になる求人はありますか？\n\n気になる求人があれば、担当者が匿名であなたのプロフィールを病院に打診します。\n💡 ここにない病院でも「逆指名」で直接打診できます！",
+            { type: "text", text: "気になる求人はありますか？\n\n気になる求人があれば、名前を伏せて病院に確認します。\n💡 ここにない病院にも確認できます！",
               quickReply: {
                 items: [
                   qrItem("この求人が気になる", "consult=apply"),
                   qrItem("相談したい", "consult=start"),
-                  qrItem("逆指名したい", "match=reverse"),
+                  qrItem("他の病院に聞きたい", "match=reverse"),
                   qrItem("他の求人も見たい", "matching_preview=more"),
                 ],
               },
@@ -5211,7 +5223,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人詳細表示*\n${matchingText}\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n💬 返信: \`!reply ${userId} メッセージ\`` }),
-            }).catch(() => {});
+            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
         }
         // ===== nurture_warm =====
@@ -5232,7 +5244,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               sentCount: entry.nurtureSentCount,
               lastSentAt: null,
             });
-            env.LINE_SESSIONS.put(`nurture:${userId}`, nurtureData, { expirationTtl: 2592000 }).catch(() => {}); // 30日TTL
+            env.LINE_SESSIONS.put(`nurture:${userId}`, nurtureData, { expirationTtl: 2592000 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); }); // 30日TTL
           }
         }
         // ===== nurture_subscribed =====
@@ -5256,7 +5268,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             env.LINE_SESSIONS.put(`nurture:${userId}`, JSON.stringify({
               userId, nurtureSubscribed: false,
               enteredAt: entry.nurtureEnteredAt, sentCount: entry.nurtureSentCount, lastSentAt: null,
-            }), { expirationTtl: 2592000 }).catch(() => {});
+            }), { expirationTtl: 2592000 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); });
           }
         }
         // ===== FAQ回答 =====
@@ -5288,7 +5300,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人提案完了*\n\n📋 *ヒアリング内容*\n資格: ${qualLabel} / 経験: ${expLabel}\n緊急度: ${urgLabel}\n変えたいこと: ${changeLabel}\nエリア: ${areaLabel} / 働き方: ${workStyleLabel}\n\n🏆 *提案した施設*\n${matchingText}\n\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n\n💬 返信: \`!reply ${userId} メッセージ\`` }),
-            }).catch(() => {});
+            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
         } else if (nextPhase === "resume_confirm") {
           replyMessages = await buildResumeConfirmMessages(entry, env);
@@ -5361,10 +5373,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.phase = "ai_consultation"; // phaseはai_consultationのまま
           replyMessages = [{
             type: "text",
-            text: "匿名打診に進みますか？それとも担当者と話しますか？",
+            text: "名前を伏せて病院に聞いてみますか？それとも担当者と話しますか？",
             quickReply: {
               items: [
-                qrItem("匿名打診に進む", "consult=apply"),
+                qrItem("病院に聞いてみる", "consult=apply"),
                 qrItem("担当者と話したい", "consult=direct_handoff"),
               ],
             },
@@ -5377,7 +5389,15 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           replyMessages = buildPhaseMessage("reverse_nomination_confirm", entry);
         } else if (nextPhase && nextPhase.startsWith("ps_")) {
           entry.phase = nextPhase;
-          replyMessages = buildPhaseMessage(nextPhase, entry);
+          // consult=apply等からの初回遷移時のみブリッジメッセージ
+          if (prevPhase !== "ps_qualification" && prevPhase !== "ps_experience" &&
+              prevPhase !== "ps_strengths" && prevPhase !== "ps_change") {
+            const bridgeMsg = { type: "text", text: "この求人に興味を伝えるために、もう少しだけ情報が必要です💡" };
+            const phaseMessages = buildPhaseMessage(nextPhase, entry);
+            replyMessages = phaseMessages ? [bridgeMsg, ...phaseMessages] : [bridgeMsg];
+          } else {
+            replyMessages = buildPhaseMessage(nextPhase, entry);
+          }
         } else if (nextPhase === "apply_info") {
           entry.phase = "apply_info";
           entry.applyStep = "name";
@@ -5438,7 +5458,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               userId,
               handoffAt: entry.handoffAt,
               followUpSent: false,
-            }), { expirationTtl: 604800 }).catch(() => {}); // 7日TTL
+            }), { expirationTtl: 604800 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); }); // 7日TTL
           }
         } else if (nextPhase === "resume_edit") {
           replyMessages = [{
@@ -5491,6 +5511,14 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // handoff
           if (entry.phase === "handoff" && prevPhase !== "handoff") {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
+          }
+          // CONSULTATION_START（詳細ヒアリング開始）
+          if (entry.phase === "q2_change" && prevPhase !== "q2_change") {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.CONSULTATION_START, userId, entry, env, ctx));
+          }
+          // CONSULTATION_COMPLETE（ヒアリング完了→matching）
+          if (entry.phase === "matching" && prevPhase !== "matching") {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.CONSULTATION_COMPLETE, userId, entry, env, ctx));
           }
           // ナーチャリングから復帰（welcome=see_jobs等のpostback）
           if (prevPhase && prevPhase.startsWith("nurture_") && !entry.phase.startsWith("nurture_")) {
@@ -5584,7 +5612,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
                 body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `💬 *LINE新規会話（共通EP経由）*\nsource: ${sessionCtx.source}\nintent: ${sessionCtx.intent}\nエリア: ${sessionCtx.area || "未指定"}\n日時: ${nowJST}\nユーザー: \`${userId.slice(0, 8)}...\`` }),
-              }).catch(() => {});
+              }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
             }
 
             console.log(`[LINE] Session linked: ${sessionCandidate.slice(0, 8)}, source=${sessionCtx.source}, intent=${sessionCtx.intent}`);
@@ -5661,7 +5689,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
                 body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `💬 *LINE新規会話（HP引き継ぎ）*\nコード: ${codeCandidate}\nエリア: ${webSession.area || "不明"}\n日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}` }),
-              }).catch(() => {});
+              }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
             }
 
             console.log(`[LINE] Handoff code ${codeCandidate} accepted, user ${userId.slice(0, 8)}`);
@@ -5700,7 +5728,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                 channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
                 text: `💬 *LINE受信（引き継ぎ済み・要返信）*\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
               }),
-            }).catch(() => {});
+            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
           await saveLineEntry(userId, entry, env);
           continue; // LINE応答は絶対に送らない
@@ -5732,7 +5760,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                 channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
                 text: `💬 *LINE受信（引き継ぎ済み・要返信）*\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
               }),
-            }).catch(() => {});
+            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
           await saveLineEntry(userId, entry, env);
           continue; // LINE応答は送らない
@@ -5781,7 +5809,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                       method: "POST",
                       headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
                       body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🚨 *AI相談 Push送信失敗*\nユーザー: \`${aiUserId.slice(0, 8)}...\`\nメッセージ: ${aiUserText.slice(0, 50)}\nエラー: ${pushRes.status}\n→ 手動フォローが必要です\n💬 \`!reply ${aiUserId} メッセージ\`` }),
-                    }).catch(() => {});
+                    }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
                   }
                 } else {
                   console.log(`[LINE] Push OK for AI consultation`);
@@ -5824,7 +5852,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                   method: "POST",
                   headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
                   body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🚨 *AI相談 全応答失敗*\nユーザー: \`${aiUserId.slice(0, 8)}...\`\nメッセージ: ${aiUserText.slice(0, 50)}\nエラー: ${e.message}${urgency}\n→ 手動フォローが必要です\n💬 \`!reply ${aiUserId} メッセージ\`` }),
-                }).catch(() => {});
+                }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
               }
             }
           })());
@@ -5883,7 +5911,7 @@ ${userText}`;
             { type: "text", text: `ご要望「${editReq}」を担当者に伝えますね。\n\n現在のプロフィール内容はこちらです:\n\n${sheet}` },
             {
               type: "text",
-              text: "修正は担当者が対応します。\nこの内容で一旦打診を進めてよろしいですか？",
+              text: "修正は担当者が対応します。\nこの内容で一旦病院への確認を進めてよろしいですか？",
               quickReply: {
                 items: [
                   qrItem("✅ これで進めて", "sheet=ok"),
@@ -5897,8 +5925,8 @@ ${userText}`;
             fetch("https://slack.com/api/chat.postMessage", {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📝 *匿名プロフィール修正リクエスト*\nユーザー: \`${userId.slice(0, 8)}...\`\n修正内容: ${editReq}\n💬 \`!reply ${userId} メッセージ\`` }),
-            }).catch(() => {});
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📝 *プロフィール修正リクエスト*\nユーザー: \`${userId.slice(0, 8)}...\`\n修正内容: ${editReq}\n\n📋 現在のプロフィール:\n${sheet}\n\n💬 \`!reply ${userId} メッセージ\`` }),
+            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
         } else if (nextPhase === null) {
           if (entry.unexpectedTextCount >= 3) {
@@ -6144,6 +6172,7 @@ ${MARKET_DATA}
   const qrItems = consultCount >= 3
     ? [
         qrItem("もっと聞きたい", "consult=continue"),
+        qrItem("求人を見る", "consult=back_to_matching"),
         qrItem("担当者と話したい", "consult=handoff"),
       ]
     : [
@@ -6261,7 +6290,7 @@ async function handleTrackPageView(request, env, ctx) {
       // ユニークIP（プライバシー配慮: ハッシュ化）
       const ip = request.headers.get("CF-Connecting-IP") || "unknown";
       const ipHash = ip.split(".").map((v,i) => i < 2 ? v : "x").join(".");
-      if (!existing.unique_ips.includes(ipHash)) {
+      if (!existing.unique_ips.includes(ipHash) && existing.unique_ips.length < 10000) {
         existing.unique_ips.push(ipHash);
       }
 
@@ -6346,7 +6375,7 @@ async function handleScheduledNurture(env) {
     const nurtureKeys = await kvListAll(env.LINE_SESSIONS, "nurture:");
     for (const key of nurtureKeys) {
       try {
-        const raw = await env.LINE_SESSIONS.get(key.name);
+        const raw = await env.LINE_SESSIONS.get(key.name, { cacheTtl: 60 });
         if (!raw) continue;
         const data = JSON.parse(raw);
         const userId = data.userId;
@@ -6422,7 +6451,7 @@ async function handleScheduledNurture(env) {
     const handoffKeys = await kvListAll(env.LINE_SESSIONS, "handoff:");
     for (const key of handoffKeys) {
       try {
-        const raw = await env.LINE_SESSIONS.get(key.name);
+        const raw = await env.LINE_SESSIONS.get(key.name, { cacheTtl: 60 });
         if (!raw) continue;
         const data = JSON.parse(raw);
         const userId = data.userId;
@@ -6458,7 +6487,7 @@ async function handleScheduledNurture(env) {
                   channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
                   text: `⏰ *ハンドオフ2時間経過 — 未対応*\nユーザー: \`${userId.slice(0, 8)}...\`\n引継ぎ時刻: ${new Date(data.handoffAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}\n\n💬 返信: \`!reply ${userId} メッセージ\``,
                 }),
-              }).catch(() => {});
+              }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
             }
           }
         }
