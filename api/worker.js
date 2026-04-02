@@ -2278,6 +2278,7 @@ async function verifyLineSignature(body, signature, channelSecret) {
 
 function timingSafeEqual(a, b) {
   if (typeof a !== "string" || typeof b !== "string") return false;
+  if (a.length === 0 || b.length === 0) return false;
   const len = Math.max(a.length, b.length);
   let mismatch = a.length !== b.length ? 1 : 0;
   for (let i = 0; i < len; i++) {
@@ -3291,11 +3292,18 @@ async function sendApplyNotification(userId, entry, env) {
     `☐ 双方合意後に個人情報を開示して面談調整\n\n` +
     `💬 返信: \`!reply ${userId} ここにメッセージ\``;
 
-  await fetch("https://slack.com/api/chat.postMessage", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-    body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text }),
-  }).catch((e) => { console.error(`[CRITICAL] Apply notification failed: ${e.message}`); });
+  try {
+    const res = await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text }),
+    });
+    if (!res.ok) {
+      console.error(`[CRITICAL] sendApplyNotification Slack HTTP ${res.status} for ${userId.slice(0, 8)}`);
+    }
+  } catch (e) {
+    console.error(`[CRITICAL] sendApplyNotification failed: ${e.message} for ${userId.slice(0, 8)}`);
+  }
 }
 
 // ---------- フェーズ別メッセージ+Quick Reply生成 ----------
@@ -3731,7 +3739,7 @@ function buildPhaseMessage(phase, entry) {
       return [{ type: "text", text: "ありがとうございます、" + (entry.fullName || "") + "さん！\n\n生年月日を教えてください。\n※社内管理用です。病院には開示しません。\n（例: 1998年5月15日）" }];
 
     case "apply_info_phone":
-      return [{ type: "text", text: "電話番号を教えてください。\n（例: 090-1234-5678）\n\n※担当者からのご連絡に使用します。病院には開示しません。" }];
+      return [{ type: "text", text: "電話番号を教えてください。\n（例: 090-1234-5678）\n\n※緊急時の連絡先として保管します。普段のやりとりはすべてLINEです。病院にはお伝えしません。" }];
 
     case "apply_info_workplace":
       return [{ type: "text", text: "現在の勤務先名を教えてください。\n（在職中でない場合は「離職中」とお伝えください）\n\n💡 同じ病院への二重紹介を防ぐために確認しています。\n⚠️ 病院には伝えません。勤務先に連絡することも絶対にありません。" }];
@@ -4264,7 +4272,7 @@ function buildFacilityFlexBubble(job, index) {
       layout: "vertical",
       contents: [{
         type: "button",
-        action: { type: "postback", label: "この求人が気になる", data: `match=detail&facility=${encodeURIComponent(name)}`, displayText: `${name}について詳しく聞きたい` },
+        action: { type: "postback", label: "この求人が気になる", data: `match=detail&idx=${index}`, displayText: `${name}について詳しく聞きたい` },
         style: "primary",
         color: headerColor,
         height: "md",
@@ -4601,8 +4609,13 @@ function handleLinePostback(dataStr, entry) {
     const val = params.get("match");
     entry.unexpectedTextCount = 0;
     if (val === "detail") {
+      const idx = parseInt(params.get("idx"), 10);
+      if (!isNaN(idx) && entry.matchingResults && entry.matchingResults[idx]) {
+        entry.interestedFacility = entry.matchingResults[idx].n || entry.matchingResults[idx].name || null;
+      }
+      // 後方互換: 旧facility形式もサポート
       const facilityName = params.get("facility");
-      if (facilityName) {
+      if (facilityName && !entry.interestedFacility) {
         entry.interestedFacility = decodeURIComponent(facilityName);
       }
       nextPhase = getFlowForEntry(entry).matching; // → ai_consultation
@@ -5086,6 +5099,26 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         continue;
       }
 
+      // --- unfollowイベント（友だち解除 / ブロック） ---
+      if (event.type === "unfollow") {
+        console.log(`[LINE] Unfollow: ${userId.slice(0, 8)}`);
+        // ナーチャリングKVを削除（Cron配信停止）
+        if (env?.LINE_SESSIONS) {
+          env.LINE_SESSIONS.delete(`nurture:${userId}`).catch((e) => { console.error(`[KV] nurture delete failed: ${e.message}`); });
+          env.LINE_SESSIONS.delete(`handoff:${userId}`).catch((e) => { console.error(`[KV] handoff delete failed: ${e.message}`); });
+        }
+        // Slack通知
+        if (env.SLACK_BOT_TOKEN) {
+          const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+          fetch("https://slack.com/api/chat.postMessage", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `👋 *LINE友だち解除*\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}` }),
+          }).catch((e) => { console.error(`[Slack] unfollow notification failed: ${e.message}`); });
+        }
+        continue;
+      }
+
       // --- postbackイベント（Quick Reply タップ） ---
       if (event.type === "postback") {
         let entry = await getLineEntryAsync(userId, env);
@@ -5102,7 +5135,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // handoff中のpostbackはFAQ以外を無視（Bot再起動防止）
         if (entry.phase === "handoff") {
           const pbParams = new URLSearchParams(dataStr);
-          if (!pbParams.has("faq")) {
+          if (!pbParams.has("faq") && !pbParams.has("welcome")) {
             console.log(`[LINE] Handoff guard: blocked postback "${dataStr}" for ${userId.slice(0, 8)}`);
             // FAQでないpostbackは無視し、handoff状態を維持
             await saveLineEntry(userId, entry, env);
@@ -6285,8 +6318,12 @@ async function handleTrackPageView(request, env, ctx) {
       existing.pages[page] = (existing.pages[page] || 0) + 1;
 
       if (referrer && referrer !== "" && !referrer.includes("quads-nurse.com")) {
-        const ref = new URL(referrer).hostname.replace("www.", "");
-        existing.referrers[ref] = (existing.referrers[ref] || 0) + 1;
+        let refUrl;
+        try { refUrl = new URL(referrer); } catch (_) { refUrl = null; }
+        if (refUrl) {
+          const ref = refUrl.hostname.replace("www.", "");
+          existing.referrers[ref] = (existing.referrers[ref] || 0) + 1;
+        }
       }
 
       if (event === "chat_open") existing.chat_opens++;
