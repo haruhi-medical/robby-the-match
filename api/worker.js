@@ -3085,14 +3085,18 @@ function createLineEntry() {
     resumeDraft: null,
     matchingResults: null,
     interestedFacility: null,
+    reverseNominationHospital: null, // 逆指名の病院名
     browsedJobIds: [],          // matching_browse用: 表示済み求人名リスト
-    nurtureSubscribed: false,   // nurture_warm: 新着通知購読フラグ
+    matchingOffset: 0,               // マッチング結果ページング用オフセット
+    nurtureSubscribed: null,    // nurture_warm: 新着通知購読フラグ（null=未回答, true=購読, false=拒否）
     nurtureEnteredAt: null,     // nurture_warm: 入った日時
     nurtureSentCount: 0,        // nurture_warm: 送信済みメッセージ数
     handoffAt: null,            // handoff: 引継ぎ日時
+    handoffRequestedByUser: false, // ユーザーからの引き継ぎ要求フラグ
     // 同意・相談
     consentAt: null,
     consultMessages: [],
+    consultExtended: false,          // AI相談ターン延長フラグ
     // Phase 2: 応募フロー
     fullName: null,
     birthDate: null,
@@ -3100,6 +3104,7 @@ function createLineEntry() {
     currentWorkplace: null,
     applyStep: null,
     careerSheet: null,
+    careerSheetEditRequest: null,    // 匿名プロフィール修正リクエスト
     appliedAt: null,
     status: null,    // "registered" | "applied" | "interview" | "offered" | "employed"
     // メタ
@@ -3143,6 +3148,10 @@ async function saveLineEntry(userId, entry, env) {
       // messages は直近10件のみ保存（KVサイズ制限考慮）
       if (toSave.messages && toSave.messages.length > 10) {
         toSave.messages = toSave.messages.slice(-10);
+      }
+      // consultMessages も直近16件（8ターン分）のみ保存
+      if (toSave.consultMessages && toSave.consultMessages.length > 16) {
+        toSave.consultMessages = toSave.consultMessages.slice(-16);
       }
       const kvKey = `line:${userId}`;
       const kvData = JSON.stringify(toSave);
@@ -5036,6 +5045,18 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         const dataStr = event.postback.data;
+
+        // handoff中のpostbackはFAQ以外を無視（Bot再起動防止）
+        if (entry.phase === "handoff") {
+          const pbParams = new URLSearchParams(dataStr);
+          if (!pbParams.has("faq")) {
+            console.log(`[LINE] Handoff guard: blocked postback "${dataStr}" for ${userId.slice(0, 8)}`);
+            // FAQでないpostbackは無視し、handoff状態を維持
+            await saveLineEntry(userId, entry, env);
+            continue;
+          }
+        }
+
         const prevPhase = entry.phase;
         const nextPhase = handleLinePostback(dataStr, entry);
         entry.messageCount++;
@@ -5066,7 +5087,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             // 最後のメッセージのquickReplyに「条件を変えて探す」を追加
             const lastMsg = replyMessages[replyMessages.length - 1];
             if (lastMsg && lastMsg.quickReply && lastMsg.quickReply.items) {
-              lastMsg.quickReply.items.push(qrItem("条件を変えて探す", "matching_preview=deep"));
+              const alreadyHasDeep = lastMsg.quickReply.items.some(
+                item => item.action && item.action.data === "matching_preview=deep"
+              );
+              if (!alreadyHasDeep) {
+                lastMsg.quickReply.items.push(qrItem("条件を変えて探す", "matching_preview=deep"));
+              }
             }
           }
           // Slack notification for intake completion
@@ -5163,7 +5189,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               areaLabel: entry.areaLabel || null,
               workStyle: entry.workStyle || null,
               urgency: entry.urgency || null,
-              nurtureSubscribed: entry.nurtureSubscribed === true ? true : null, // null=未回答, true=購読, false=拒否
+              nurtureSubscribed: entry.nurtureSubscribed, // null=未回答, true=購読, false=拒否
               enteredAt: entry.nurtureEnteredAt,
               sentCount: entry.nurtureSentCount,
               lastSentAt: null,
@@ -5363,7 +5389,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                 items: [
                   qrItem("本当に無料？", "faq=free"),
                   qrItem("電話は来ない？", "faq=no_phone"),
-                  qrItem("他の求人も見たい", "matching_preview=more"),
                 ],
               },
             },
@@ -5696,7 +5721,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                   text: "すみません、少し混み合っています。\n担当者におつなぎしましょうか？",
                   quickReply: {
                     items: [
-                      qrItem("もう一度聞く", "consult=continue"),
+                      qrItem("もう一度試す", "consult=retry"),
                       qrItem("担当者と話したい", "consult=handoff"),
                     ],
                   },
@@ -5727,6 +5752,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               console.log(`[LINE] AI consultation done: "${aiUserText.slice(0, 30)}", User: ${aiUserId.slice(0, 8)}`);
             } catch (e) {
               console.error(`[LINE] AI background error: ${e.message}`);
+              // AI失敗: userメッセージを取り消してターンカウントずれを防止
+              if (aiEntry.consultMessages && aiEntry.consultMessages.length > 0) {
+                const last = aiEntry.consultMessages[aiEntry.consultMessages.length - 1];
+                if (last && last.role === 'user') aiEntry.consultMessages.pop();
+              }
               // 3. 全失敗時の安全メッセージ — ユーザーに無応答を防ぐ
               let safetyPushOk = false;
               try {
@@ -6040,6 +6070,7 @@ ${MARKET_DATA}
   if (!aiResponse) {
     // AIが間に合わなかった場合 → 日本語フォールバック + Quick Reply
     console.log("[AI] Using template fallback (all AI calls failed)");
+    entry.consultMessages.pop(); // AI失敗: userメッセージを取り消してターンカウントずれを防止
     return [{
       type: "text",
       text: "申し訳ありません、回答の生成に時間がかかっています。\n少しお待ちいただくか、担当者にお繋ぎしましょうか？",
