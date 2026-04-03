@@ -4582,6 +4582,13 @@ function handleLinePostback(dataStr, entry) {
     const pref = params.get("il_pref");
     entry.prefecture = pref;
     entry.unexpectedTextCount = 0;
+    // intake_lightフィールドをリセット（前回の回答を引きずらない）
+    delete entry.area;
+    delete entry.areaLabel;
+    delete entry.workStyle;
+    delete entry.urgency;
+    delete entry.facilityType;
+    delete entry.matchingResults;
     // 千葉・埼玉・その他はサブエリアなし→areaも設定
     const PREF_AREA_MAP = { chiba: 'chiba_all', saitama: 'saitama_all', other: 'undecided' };
     const PREF_LABEL_MAP = { chiba: '千葉県', saitama: '埼玉県', other: '全エリア', kanagawa: '神奈川県', tokyo: '東京都' };
@@ -4705,6 +4712,14 @@ function handleLinePostback(dataStr, entry) {
     const val = params.get("welcome");
     entry.unexpectedTextCount = 0;
     if (val === "see_jobs") {
+      // intake_lightフィールドをリセット
+      delete entry.prefecture;
+      delete entry.area;
+      delete entry.areaLabel;
+      delete entry.workStyle;
+      delete entry.urgency;
+      delete entry.facilityType;
+      delete entry.matchingResults;
       nextPhase = "il_area"; // intake_light開始
     } else if (val === "check_salary") {
       entry.welcomeIntent = "check_salary";
