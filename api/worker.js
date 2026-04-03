@@ -3523,7 +3523,7 @@ async function buildPhaseMessage(phase, entry, env) {
         text: `${prefLabel}ですね！\n\n${countLine}\n\nどんな職場が気になりますか？`,
         quickReply: {
           items: [
-            qrItem("病院（入院あり）", "il_ft=hospital"),
+            qrItem("病院", "il_ft=hospital"),
             qrItem("クリニック", "il_ft=clinic"),
             qrItem("訪問看護", "il_ft=visiting"),
             qrItem("介護施設", "il_ft=care"),
@@ -3555,7 +3555,7 @@ async function buildPhaseMessage(phase, entry, env) {
       if (entry._clinicSkip) delete entry._clinicSkip;
       return [{
         type: "text",
-        text: "転職の温度感を教えてください。",
+        text: "今の転職への気持ちは？",
         quickReply: {
           items: [
             qrItem("すぐにでも転職したい", "il_urg=urgent"),
@@ -3574,7 +3574,7 @@ async function buildPhaseMessage(phase, entry, env) {
         text: `${areaLabelFT}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nどんな職場が気になりますか？`,
         quickReply: {
           items: [
-            qrItem("病院（入院あり）", "il_ft=hospital"),
+            qrItem("病院", "il_ft=hospital"),
             qrItem("クリニック", "il_ft=clinic"),
             qrItem("訪問看護", "il_ft=visiting"),
             qrItem("介護施設", "il_ft=care"),
@@ -3684,7 +3684,13 @@ async function buildPhaseMessage(phase, entry, env) {
       function buildFallbackBubble(fac) {
         const name = (fac.n || '病院').slice(0, 25);
         const subType = fac.t || '';
-        const loc = fac.loc ? fac.loc.replace(/^神奈川県|^東京都|^埼玉県|^千葉県/, '').slice(0, 15) : '';
+        // 市区町村名まで必ず保持する住所短縮
+        let loc = '';
+        if (fac.loc) {
+          const addr = fac.loc.replace(/^(神奈川県|東京都|埼玉県|千葉県)/, '');
+          const cityMatch = addr.match(/^(.+?[市区町村])/);
+          loc = cityMatch ? cityMatch[1] : addr.slice(0, 10);
+        }
         const bedLabel = fac.bed_count ? (fac.bed_count >= 300 ? '大規模' : fac.bed_count >= 100 ? '中規模' : '小規模') + `（${fac.bed_count}床）` : '';
         const stationText = fac.nearest_station ? `📍 ${fac.nearest_station}${fac.station_minutes ? ' 徒歩' + fac.station_minutes + '分' : ''}` : '';
         const nurseText = fac.nurse_fulltime ? `👩‍⚕️ 看護師${fac.nurse_fulltime}名` : '';
