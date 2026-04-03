@@ -3534,11 +3534,10 @@ async function buildPhaseMessage(phase, entry, env) {
 
     case "il_workstyle": {
       const areaLabel = entry.areaLabel || entry.area || "";
-      const prevCount = await countCandidatesD1({}, env);
       const nowCount = await countCandidatesD1(entry, env);
       return [{
         type: "text",
-        text: `${areaLabel}ですね！\n\n${candidateText(prevCount, nowCount)}\n\n希望の働き方は？`,
+        text: `${areaLabel}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(nowCount.facilities + nowCount.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\n希望の働き方は？`,
         quickReply: {
           items: [
             qrItem("日勤のみ", "il_ws=day"),
@@ -3551,11 +3550,10 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "il_urgency": {
-      const prevCountU = await countCandidatesD1({ area: entry.area }, env);
-      const nowCountU = await countCandidatesD1(entry, env);
+      const currentCountU = await countCandidatesD1(entry, env);
       return [{
         type: "text",
-        text: `${candidateText(prevCountU, nowCountU)}\n\nかなり絞れてきました！\n転職の温度感を教えてください。`,
+        text: `━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountU.facilities + currentCountU.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nかなり絞れてきました！\n転職の温度感を教えてください。`,
         quickReply: {
           items: [
             qrItem("すぐにでも転職したい", "il_urg=urgent"),
@@ -3567,11 +3565,10 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "il_facility_type": {
-      const prevCountF = await countCandidatesD1({ area: entry.area, workStyle: entry.workStyle }, env);
-      const nowCountF = await countCandidatesD1(entry, env);
+      const currentCountF = await countCandidatesD1(entry, env);
       return [{
         type: "text",
-        text: `${candidateText(prevCountF, nowCountF)}\n\nあと1つだけ！\nどんな職場が気になりますか？`,
+        text: `━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nあと1つだけ！\nどんな職場が気になりますか？`,
         quickReply: {
           items: [
             qrItem("病院（入院あり）", "il_ft=hospital"),
