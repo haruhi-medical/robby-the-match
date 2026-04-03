@@ -133,7 +133,7 @@ const STATE_CATEGORIES = {
   // 8. ナーチャリング
   NURTURE:       ["nurture_warm", "nurture_subscribed", "nurture_stay"],
   // 9. FAQ
-  FAQ:           ["faq_free"],
+  FAQ:           ["faq_salary", "faq_nightshift", "faq_timing", "faq_stealth", "faq_holiday"],
 };
 
 // ---------- 条件緩和提案（マッチング結果が少ない場合） ----------
@@ -3858,24 +3858,70 @@ async function buildPhaseMessage(phase, entry, env) {
         text: "了解しました！\n\nまた気になった時に\nいつでも話しかけてくださいね。\nお待ちしています。",
       }];
 
+    // ===== 転職アドバイスFAQ（5問） =====
     case "faq_free":
+    case "faq_salary":
       return [{
         type: "text",
-        text: "はい、求職者の方は完全無料です。\n費用は採用する病院側が負担します。\n\n有料職業紹介事業の許可番号:\n23-ユ-302928",
+        text: "神奈川県の看護師の平均年収は約540万円（厚労省データより）。ただし病院の規模や夜勤回数で100万円以上の差が出ることも。経験年数に合った相場を知っておくだけで、転職先選びの基準がクリアになりますよ。\nあなたの経験だといくらが妥当か、気になったらLINEで気軽に聞いてくださいね！",
         quickReply: {
           items: [
-            qrItem("電話は来ない？", "faq=no_phone"),
+            qrItem("夜勤と年収の関係", "faq=nightshift"),
+            qrItem("転職に有利な時期", "faq=timing"),
+            qrItem("LINEで相談する", "handoff=ok"),
           ],
         },
       }];
 
     case "faq_no_phone":
+    case "faq_nightshift":
       return [{
         type: "text",
-        text: "一切ありません。\n連絡はすべてLINEです。\n\nあなたのペースで\n転職活動できます。",
+        text: "夜勤手当は1回あたり8,000〜12,000円が相場。月8回→4回に減らすと、単純計算で年間40〜60万円ほど変わります。ただし基本給が高い病院を選べば、夜勤を減らしても同じ年収を維持できるケースもあります。\n夜勤と年収のバランス、一緒に整理してみませんか？",
         quickReply: {
           items: [
-            qrItem("本当に無料？", "faq=free"),
+            qrItem("年収の相場は？", "faq=salary"),
+            qrItem("有利な時期は？", "faq=timing"),
+            qrItem("LINEで相談する", "handoff=ok"),
+          ],
+        },
+      }];
+
+    case "faq_timing":
+      return [{
+        type: "text",
+        text: "求人が最も増えるのは1〜3月（4月入職向け）と7〜9月（10月入職向け）。逆に言えば、その2〜3ヶ月前から動き始めるのがベストです。「辞めてから探す」より在職中に始めた方が焦らず選べるので、心の余裕が全然違います。\nいつ動き出すか迷ったら、LINEで気軽に聞いてくださいね！",
+        quickReply: {
+          items: [
+            qrItem("バレずに活動できる？", "faq=stealth"),
+            qrItem("有給取れる病院は？", "faq=holiday"),
+            qrItem("LINEで相談する", "handoff=ok"),
+          ],
+        },
+      }];
+
+    case "faq_stealth":
+      return [{
+        type: "text",
+        text: "できます。実は転職した看護師の約8割が在職中に活動しています。面接は平日の午前や夕方に設定してくれる病院が多く、シフト休の日を使えばOK。職場に連絡がいくことも一切ありません。\n「忙しくて動けない…」という方ほど、LINEでサクッと相談するのがおすすめです！",
+        quickReply: {
+          items: [
+            qrItem("年収の相場は？", "faq=salary"),
+            qrItem("有給取れる病院は？", "faq=holiday"),
+            qrItem("LINEで相談する", "handoff=ok"),
+          ],
+        },
+      }];
+
+    case "faq_holiday":
+      return [{
+        type: "text",
+        text: "看護師の有給消化率は全国平均で約65％。ただし病院ごとの差が大きく、90%以上の職場もあれば40%台のところも。見分けるコツは「年間休日数」と「平均勤続年数」をセットで見ること。勤続年数が長い病院は働きやすい証拠です。\n気になる病院の実情、LINEで聞いてもらえれば調べますよ！",
+        quickReply: {
+          items: [
+            qrItem("夜勤と年収の関係", "faq=nightshift"),
+            qrItem("転職に有利な時期", "faq=timing"),
+            qrItem("LINEで相談する", "handoff=ok"),
           ],
         },
       }];
@@ -4751,11 +4797,12 @@ function handleLinePostback(dataStr, entry) {
   else if (params.has("faq")) {
     const val = params.get("faq");
     entry.unexpectedTextCount = 0;
-    if (val === "free") {
-      nextPhase = "faq_free";
-    } else if (val === "no_phone") {
-      nextPhase = "faq_no_phone";
-    }
+    const faqPhaseMap = {
+      free: "faq_salary", salary: "faq_salary", no_phone: "faq_nightshift",
+      nightshift: "faq_nightshift", timing: "faq_timing",
+      stealth: "faq_stealth", holiday: "faq_holiday",
+    };
+    nextPhase = faqPhaseMap[val] || "faq_salary";
   }
   // マッチング
   else if (params.has("match")) {
