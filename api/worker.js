@@ -3762,10 +3762,16 @@ async function buildPhaseMessage(phase, entry, env) {
           type: "flex",
           altText: altText.slice(0, 400),
           contents: { type: "carousel", contents: bubbles },
+        });
+        // カルーセル後のフォローメッセージ（Quick Reply付き）
+        messages.push({
+          type: "text",
+          text: "ロビーは病院側の負担が少ない分、内定につながりやすいよ。\n気になる施設があったら気軽に聞いてね😊",
           quickReply: {
             items: [
               qrItem("他の求人も見る", "matching_preview=more"),
               qrItem("条件を変える", "welcome=see_jobs"),
+              qrItem("直接相談する", "handoff=ok"),
               qrItem("あとで見る", "matching_preview=later"),
             ],
           },
