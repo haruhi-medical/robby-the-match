@@ -140,62 +140,82 @@ body {
     return;
   }
 
+  // ========== ステータス表示 ==========
+  var statusEl = document.querySelector('#state-loading .status');
+  function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  // 10秒タイムアウト: どこかで詰まったらフォールバック表示
+  var fallbackTimer = setTimeout(function() {
+    showError('接続に時間がかかっています');
+  }, 10000);
+
+  function done() { clearTimeout(fallbackTimer); }
+
   // ========== LIFF 初期化 ==========
+  setStatus('LIFF初期化中...');
   liff.init({ liffId: LIFF_ID })
     .then(function() {
-      // ログインチェック
+      setStatus('ログイン確認中...');
       if (!liff.isLoggedIn()) {
         liff.login({ redirectUri: window.location.href });
-        return;
+        return Promise.reject('LOGIN_REDIRECT');
       }
 
-      // プロフィール取得
+      setStatus('プロフィール取得中...');
       return liff.getProfile();
     })
     .then(function(profile) {
-      if (!profile) return; // login redirect中
+      if (!profile) return Promise.reject('NO_PROFILE');
 
       var userId = profile.userId;
+      setStatus('友だち状況を確認中...');
 
-      // まず友だち追加状況をチェック
+      // 友だち追加状況チェック
       return liff.getFriendship()
-      .then(function(data) {
-        var isFriend = data.friendFlag;
+        .catch(function() { return { friendFlag: false }; }) // getFriendship失敗時はfalse扱い
+        .then(function(data) {
+          var isFriend = !!(data && data.friendFlag);
+          setStatus(isFriend ? 'セッションを連携中...' : '友だち追加画面を準備中...');
 
-        // セッション紐付けAPI呼び出し（友だち済みフラグ付き）
-        return fetch(API_BASE + '/api/link-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            session_id: sessionId || ('liff_' + Date.now()),
-            user_id: userId,
-            already_friend: isFriend,
-          }),
-        })
-        .then(function(res) { return res.json(); })
-        .then(function() {
-          if (isFriend) {
-            // 既に友だち → Worker側でPush送信済み → LINEアプリに戻す
-            showState(stateAlreadyFriend);
-            setTimeout(function() {
-              // LINEアプリ内ブラウザなら閉じる、外部ブラウザならLINEを開く
-              if (liff.isInClient()) {
-                liff.closeWindow();
-              } else {
-                window.location.href = 'https://line.me/R/ti/p/@174cxnev';
-              }
-            }, 1500);
-          } else {
-            // 友だち未追加 → 追加画面を表示
-            addFriendBtn.href = LINE_ADD_URL;
-            showState(stateAddFriend);
-          }
+          // セッション紐付けAPI
+          return fetch(API_BASE + '/api/link-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId || ('liff_' + Date.now()),
+              user_id: userId,
+              already_friend: isFriend,
+            }),
+          })
+          .then(function(res) {
+            if (!res.ok) throw new Error('API error: ' + res.status);
+            return res.json();
+          })
+          .then(function() {
+            done();
+            if (isFriend) {
+              // 既に友だち → Worker側でPush送信済み → LINEに戻す
+              showState(stateAlreadyFriend);
+              setTimeout(function() {
+                if (liff.isInClient()) {
+                  liff.closeWindow();
+                } else {
+                  window.location.href = 'line://ti/p/@174cxnev';
+                }
+              }, 1500);
+            } else {
+              // 友だち未追加 → 追加画面を表示
+              addFriendBtn.href = LINE_ADD_URL;
+              showState(stateAddFriend);
+            }
+          });
         });
-      });
     })
     .catch(function(err) {
+      done();
+      if (err === 'LOGIN_REDIRECT' || err === 'NO_PROFILE') return;
       console.error('LIFF error:', err);
-      showError('接続エラーが発生しました');
+      showError('エラー: ' + (err.message || err));
     });
 })();
 </script>
