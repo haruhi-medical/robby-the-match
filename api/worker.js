@@ -113,37 +113,27 @@ async function sendGA4Event(env, eventName, userId, data) {
   }
 }
 
-// ---------- LINE Bot state正式定義（16種） ----------
+// ---------- LINE Bot state正式定義（~20種） ----------
 // ユーザーのファネル位置を正確に追跡するためのカテゴリ分類
 const STATE_CATEGORIES = {
   // 1. 初期接触
-  ONBOARDING:    ["follow", "welcome", "consent", "consent_check"],
+  ONBOARDING:    ["welcome"],
   // 2. ヒアリング（intake_light 3問）
   INTAKE:        ["il_area", "il_workstyle", "il_urgency"],
-  // 3. 詳細ヒアリング（FULL/MEDIUM 10問）
-  HEARING:       ["q1_urgency", "q2_change", "q3_area", "q4_experience", "q5_workstyle",
-                  "q6_workplace", "q7_strengths", "q8_concerns", "q9_work_history", "q10_qualification"],
+  // 3. マッチング
+  MATCHING:      ["matching_preview", "matching_browse", "matching"],
   // 4. AI相談
-  AI_CONSULT:    ["ai_consultation", "ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"],
-  // 5. マッチング
-  MATCHING:      ["matching_preview", "matching_browse", "matching_more", "matching"],
-  // 6. 求人詳細・逆指名
-  JOB_ACTION:    ["reverse_nomination", "reverse_nomination_confirm"],
-  // 7-b. 追加ヒアリング（匿名プロフィール補完）
-  PROFILE_SUPPLEMENT: ["ps_qualification", "ps_experience", "ps_strengths", "ps_change"],
-  // 7. 応募フロー
-  APPLY:         ["apply_consent_privacy", "apply_info", "apply_info_birth", "apply_info_phone", "apply_info_workplace",
-                  "apply_consent", "apply_confirm", "apply_cancelled"],
-  // 8. 経歴書
-  RESUME:        ["resume_confirm", "resume_edit", "resume_apply_edit", "career_sheet", "career_sheet_edit", "career_sheet_apply_edit"],
-  // 9. 面接準備
+  AI_CONSULT:    ["ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"],
+  // 5. 応募フロー
+  APPLY:         ["apply_info", "apply_consent", "apply_confirm"],
+  // 6. 面接準備
   INTERVIEW:     ["interview_prep"],
-  // 10. ハンドオフ（人間対応）
+  // 7. ハンドオフ（人間対応）
   HANDOFF:       ["handoff", "handoff_silent"],
-  // 11. ナーチャリング
+  // 8. ナーチャリング
   NURTURE:       ["nurture_warm", "nurture_subscribed", "nurture_stay"],
-  // 12. FAQ
-  FAQ:           ["faq_free", "faq_no_phone"],
+  // 9. FAQ
+  FAQ:           ["faq_free"],
 };
 
 // ---------- 条件緩和提案（マッチング結果が少ない場合） ----------
@@ -2595,61 +2585,6 @@ const LINE_SESSION_TTL = 2592000000; // 30日間
 
 // ---------- 定数: フェーズフロー ----------
 // フロー分岐: urgencyに応じてルートが変わる
-const PHASE_FLOW_FULL = {
-  follow:           "q1_urgency",
-  q1_urgency:       "q2_change",
-  q2_change:        "q3_area",
-  q3_area:          "q4_experience",
-  q4_experience:    "q5_workstyle",
-  q5_workstyle:     "q6_workplace",
-  q6_workplace:     "q7_strengths",
-  q7_strengths:     "q8_concerns",
-  q8_concerns:      "q9_work_history",
-  q9_work_history:  "q10_qualification",
-  q10_qualification:"resume_confirm",
-  resume_confirm:   "matching",
-  matching:         "ai_consultation",
-  ai_consultation:  "apply_info",
-  apply_info:       "apply_consent",
-  apply_consent:    "career_sheet",
-  career_sheet:     "apply_confirm",
-  apply_confirm:    "interview_prep",
-  interview_prep:   "handoff",
-  handoff:          null,
-};
-
-const PHASE_FLOW_MEDIUM = {
-  follow:           "q1_urgency",
-  q1_urgency:       "q2_change",
-  q2_change:        "q3_area",
-  q3_area:          "q4_experience",
-  q4_experience:    "q5_workstyle",
-  q5_workstyle:     "matching",
-  matching:         "ai_consultation",
-  ai_consultation:  "apply_info",
-  apply_info:       "apply_consent",
-  apply_consent:    "career_sheet",
-  career_sheet:     "apply_confirm",
-  apply_confirm:    "interview_prep",
-  interview_prep:   "handoff",
-  handoff:          null,
-};
-
-const PHASE_FLOW_SHORT = {
-  follow:           "q1_urgency",
-  q1_urgency:       "q3_area",
-  q3_area:          "q4_experience",
-  q4_experience:    "matching",
-  matching:         "ai_consultation",
-  ai_consultation:  "apply_info",
-  apply_info:       "apply_consent",
-  apply_consent:    "career_sheet",
-  career_sheet:     "apply_confirm",
-  apply_confirm:    "interview_prep",
-  interview_prep:   "handoff",
-  handoff:          null,
-};
-
 const PHASE_FLOW_LIGHT = {
   il_area:           "il_workstyle",
   il_workstyle:      "il_urgency",
@@ -2666,11 +2601,9 @@ const PHASE_FLOW_LIGHT = {
   handoff:           null,
 };
 
-// ユーザーのurgencyに応じたフローを取得
+// フロー取得（intake_lightのみ）
 function getFlowForEntry(entry) {
-  if (entry.urgency === "info") return PHASE_FLOW_SHORT;
-  if (entry.urgency === "good") return PHASE_FLOW_MEDIUM;
-  return PHASE_FLOW_FULL;
+  return PHASE_FLOW_LIGHT;
 }
 
 // --- 匿名プロフィール必須項目チェック ---
@@ -2684,35 +2617,25 @@ function getMissingProfileFields(entry) {
 }
 
 function getNextProfileSupplementPhase(entry) {
-  const missing = getMissingProfileFields(entry);
-  if (missing.length === 0) {
-    // 全プロフィール項目が揃った → 個人情報収集前にconsent確認
-    if (!entry.privacyConsented) return 'apply_consent_privacy';
-    return 'apply_info';
-  }
-  const phaseMap = {
-    qualification: 'ps_qualification',
-    experience: 'ps_experience',
-    strengths: 'ps_strengths',
-    change: 'ps_change',
-  };
-  return phaseMap[missing[0]];
+  // Simplified: skip profile supplement, go directly to apply_info
+  return 'apply_info';
 }
 
 // ---------- 定数: Postback ラベル ----------
+// NOTE: q1-q10 labels kept as lookup table for legacy entry data and display functions
 const POSTBACK_LABELS = {
-  // Q1 お気持ち
+  // Q1 お気持ち（legacy lookup）
   q1_urgent:   "今すぐ転職したい",
   q1_good:     "いい求人があれば",
   q1_info:     "まずは情報収集",
-  // Q2 変えたいこと
+  // Q2 変えたいこと（legacy lookup）
   q2_salary:   "お給料を上げたい",
   q2_rest:     "休みを増やしたい",
   q2_human:    "人間関係を変えたい",
   q2_night:    "夜勤を減らしたい",
   q2_commute:  "通勤をラクにしたい",
   q2_career:   "スキルアップしたい",
-  // Q3 エリア（9エリア — chat.jsと統一）
+  // Q3 エリア（legacy lookup）
   q3_yokohama:       "横浜市",
   q3_kawasaki:       "川崎市",
   q3_sagamihara:     "相模原市",
@@ -2722,18 +2645,18 @@ const POSTBACK_LABELS = {
   q3_kenoh:          "厚木・海老名・大和",
   q3_kensei:         "小田原・南足柄・箱根",
   q3_undecided:      "まだ決めていない",
-  // Q4 経験年数
+  // Q4 経験年数（legacy lookup）
   q4_under1:  "1年未満",
   q4_1to3:    "1〜3年",
   q4_3to5:    "3〜5年",
   q4_5to10:   "5〜10年",
   q4_over10:  "10年以上",
-  // Q5 働き方
+  // Q5 働き方（legacy lookup）
   q5_day:     "日勤のみ",
   q5_twoshift:"夜勤あり（二交代）",
   q5_part:    "パート・非常勤",
   q5_night:   "夜勤専従",
-  // Q6 現在の職場
+  // Q6 現在の職場（legacy lookup）
   q6_acute:     "急性期病棟",
   q6_recovery:  "回復期リハ病棟",
   q6_chronic:   "療養型病棟",
@@ -2742,54 +2665,34 @@ const POSTBACK_LABELS = {
   q6_care:      "介護施設",
   q6_ope:       "手術室・ICU",
   q6_other:     "その他",
-  // Q7 得意なこと（複数選択対応）
+  // Q7 得意なこと（legacy lookup）
   q7_assess:    "アセスメント・観察",
   q7_acute_care:"急変対応",
   q7_comm:      "患者さんとの会話",
   q7_edu:       "後輩指導",
   q7_doc:       "記録・書類作成",
   q7_rehab:     "リハビリ・ADL支援",
-  q7_done:      "選び終わった！",
-  // Q8 転職の不安
+  // Q8 転職の不安（legacy lookup）
   q8_skill:     "スキルが通用するか不安",
   q8_relation:  "新しい人間関係が不安",
   q8_income:    "収入が下がらないか不安",
   q8_age:       "年齢が気になる",
   q8_blank:     "ブランクがある",
   q8_none:      "特に不安はない",
-  // Q9 職歴
-  q9_skip:      "あとで入力する",
-  // Q10 資格
+  // Q10 資格（legacy lookup）
   q10_rn:       "正看護師",
   q10_lpn:      "准看護師",
   q10_cn:       "認定看護師",
   q10_cns:      "専門看護師",
   q10_pt:       "理学療法士",
-  // 経歴書確認
-  resume_ok:    "OK！これでいい",
-  resume_edit:  "修正したい",
+  q10_nurse:     "看護師",
+  q10_hokenshi:  "保健師",
+  q10_josanshi:  "助産師",
   // マッチング
   match_detail: "詳しく聞きたい",
   match_other:  "他の施設も見たい",
   // 引き継ぎ
   handoff_ok:   "お願いします！",
-  // 追加ヒアリング（ps_*）: qualification
-  ps_qual_nurse:     "看護師",
-  ps_qual_lpn:       "准看護師",
-  ps_qual_hokenshi:  "保健師",
-  ps_qual_josanshi:  "助産師",
-  // 追加ヒアリング（ps_*）: qualification → q10互換エイリアス
-  q10_nurse:     "看護師",
-  q10_hokenshi:  "保健師",
-  q10_josanshi:  "助産師",
-  // 追加ヒアリング（ps_*）: strengths
-  q7_internal:   "内科系",
-  q7_surgical:   "外科系",
-  q7_pediatric:  "小児・産婦人科",
-  q7_psychiatric:"精神科",
-  q7_home_visit: "訪問看護",
-  q7_care:       "介護施設",
-  q7_other:      "その他",
   // Phase 2: 打診フロー
   apply_agree:   "名前を伏せて確認を依頼",
   apply_reselect:"施設を選び直す",
@@ -2814,12 +2717,6 @@ const AREA_ZONE_MAP = {
   q3_kenoh:          ["厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
   q3_kensei:         ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原"],
   q3_undecided:      ["横浜", "川崎", "相模原", "横須賀", "藤沢", "茅ヶ崎", "平塚", "厚木", "小田原"],
-  // 診断用（5エリア→複数エリアに展開）
-  q3_yokohama_kawasaki:  ["横浜", "川崎"],
-  q3_shonan_kamakura:    ["藤沢", "茅ヶ崎", "鎌倉", "寒川", "逗子", "葉山"],
-  q3_odawara_seisho:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
-  q3_sagamihara_kenoh:   ["相模原", "厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
-  q3_yokosuka_miura_web: ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
   // intake_light用（il_area postback → AREA_ZONE_MAPで展開）
   q3_yokohama_kawasaki_il:  ["横浜", "川崎"],
   q3_shonan_kamakura_il:    ["藤沢", "茅ヶ崎", "鎌倉", "寒川", "逗子", "葉山"],
@@ -2840,68 +2737,12 @@ const IL_AREA_LABELS = {
   undecided: "未定",
 };
 
-// PC用テキスト→postbackキーマッピング
+// PC用テキスト→postbackキーマッピング（intake_light + 共通操作のみ）
 const TEXT_TO_POSTBACK = {
-  // Q1
-  "今すぐ": "q1=urgent", "すぐ転職": "q1=urgent", "急ぎ": "q1=urgent",
-  "いい求人": "q1=good", "良い求人": "q1=good",
-  "情報収集": "q1=info", "まずは情報": "q1=info",
-  // Q2
-  "給料": "q2=salary", "給与": "q2=salary", "年収": "q2=salary",
-  "休み": "q2=rest", "休日": "q2=rest", "休暇": "q2=rest",
-  "人間関係": "q2=human",
-  "夜勤": "q2=night",
-  "通勤": "q2=commute",
-  "スキル": "q2=career", "キャリア": "q2=career",
-  // Q3
-  "横浜": "q3=yokohama",
-  "川崎": "q3=kawasaki",
-  "相模原": "q3=sagamihara",
-  "横須賀": "q3=yokosuka_miura", "鎌倉": "q3=yokosuka_miura", "三浦": "q3=yokosuka_miura", "逗子": "q3=yokosuka_miura",
-  "藤沢": "q3=shonan_east", "茅ヶ崎": "q3=shonan_east", "湘南": "q3=shonan_east",
-  "平塚": "q3=shonan_west", "秦野": "q3=shonan_west", "伊勢原": "q3=shonan_west", "大磯": "q3=shonan_west",
-  "厚木": "q3=kenoh", "海老名": "q3=kenoh", "大和": "q3=kenoh", "座間": "q3=kenoh",
-  "小田原": "q3=kensei", "南足柄": "q3=kensei", "箱根": "q3=kensei",
-  "まだ決めていない": "q3=undecided", "決めていない": "q3=undecided",
-  // Q4
-  "1年未満": "q4=under1", "新人": "q4=under1",
-  "1〜3年": "q4=1to3", "1-3年": "q4=1to3",
-  "3〜5年": "q4=3to5", "3-5年": "q4=3to5",
-  "5〜10年": "q4=5to10", "5-10年": "q4=5to10",
-  "10年以上": "q4=over10", "ベテラン": "q4=over10",
-  // Q5
-  "日勤のみ": "q5=day", "日勤だけ": "q5=day",
-  "二交代": "q5=twoshift", "夜勤あり": "q5=twoshift",
-  "パート": "q5=part", "非常勤": "q5=part",
-  "夜勤専従": "q5=night",
-  // Q6
-  "急性期": "q6=acute",
-  "回復期": "q6=recovery",
-  "療養": "q6=chronic", "慢性期": "q6=chronic",
-  "クリニック": "q6=clinic", "外来": "q6=clinic",
-  "訪問看護": "q6=visit",
-  "介護": "q6=care", "老健": "q6=care", "特養": "q6=care",
-  "手術室": "q6=ope", "ICU": "q6=ope", "オペ室": "q6=ope",
-  // Q8
-  "スキル不安": "q8=skill",
-  "人間関係不安": "q8=relation",
-  "収入不安": "q8=income",
-  "年齢": "q8=age",
-  "ブランク": "q8=blank",
-  "不安なし": "q8=none",
-  // Q10
-  "正看護師": "q10=rn", "看護師免許": "q10=rn",
-  "准看護師": "q10=lpn",
-  "認定看護師": "q10=cn",
-  "専門看護師": "q10=cns",
-  "理学療法士": "q10=pt", "PT": "q10=pt",
-  // 確認系
-  "OK": "resume=ok", "おっけー": "resume=ok", "これでいい": "resume=ok",
-  "修正": "resume=edit", "直したい": "resume=edit",
+  // マッチング操作
   "詳しく": "match=detail", "聞きたい": "match=detail",
   "他の施設": "match=other",
   "お願い": "handoff=ok",
-  "スキップ": "q9=skip", "あとで": "q9=skip",
   // Phase 2: 応募フロー
   "確認を依頼": "apply=agree", "確認を依頼する": "apply=agree",
   "選び直す": "apply=reselect",
@@ -2911,9 +2752,7 @@ const TEXT_TO_POSTBACK = {
   "わかりました": "prep=skip",
   "質問がある": "prep=question",
   "ありがとう": "prep=done",
-  // FIX-09: 追加マッピング
-  "転職したい": "q1=urgent",
-  "転職": "q1=urgent",
+  // 相談
   "相談": "consult=start",
   "相談したい": "consult=start",
 };
@@ -3078,16 +2917,12 @@ function getMenuStateForPhase(phase) {
   if (!phase) return RICH_MENU_STATES.default;
   if (phase === "handoff" || phase === "handoff_silent") return RICH_MENU_STATES.handoff;
   if (["matching_preview", "matching_browse", "matching", "matching_more",
-       "resume_confirm", "resume_apply_edit", "reverse_nomination", "reverse_nomination_confirm",
-       "apply_consent_privacy", "apply_info", "apply_info_birth", "apply_info_phone", "apply_info_workplace", "apply_consent",
-       "career_sheet", "career_sheet_edit", "career_sheet_apply_edit", "apply_confirm",
-       "resume_edit", "interview_prep",
-       "ps_qualification", "ps_experience", "ps_strengths", "ps_change"].includes(phase)) {
+       "apply_info", "apply_consent",
+       "career_sheet", "apply_confirm",
+       "interview_prep"].includes(phase)) {
     return RICH_MENU_STATES.matched;
   }
   if (["il_area", "il_workstyle", "il_urgency",
-       "q1_urgency", "q2_change", "q3_area", "q4_experience", "q5_workstyle",
-       "q6_workplace", "q7_strengths", "q8_concerns", "q9_work_history", "q10_qualification",
        "ai_consultation", "ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"].includes(phase)) {
     return RICH_MENU_STATES.hearing;
   }
@@ -3470,190 +3305,6 @@ function buildPhaseMessage(phase, entry) {
           quickReply: { items: [qrItem("求人を見る", "welcome=start")] },
         },
       ];
-    case "q1_urgency":
-      return [
-        {
-          type: "text",
-          text: "友だち追加ありがとうございます！\nナースロビーのAI転職アドバイザー「ロビー」です🤖\n\nシン・AI転職 — 早い × 簡単 × 24時間\n手数料10%だから、病院が採用しやすい＝あなたの内定率が上がります。\n\n📱 しつこい電話なし（LINEのみ）\n⚡ AIで最短3日マッチング\n📝 経歴書もAIが下書き\n\nまずは、あなたの転職の緊急度を教えてください！",
-        },
-        {
-          type: "text",
-          text: "まず教えてください、今のお気持ちはどれに近いですか？",
-          quickReply: {
-            items: [
-              qrItem("今すぐ転職したい", "q1=urgent"),
-              qrItem("いい求人があれば", "q1=good"),
-              qrItem("まずは情報収集", "q1=info"),
-            ],
-          },
-        },
-      ];
-
-    case "q2_change": {
-      const urgLabel = POSTBACK_LABELS[`q1_${entry.urgency}`] || "";
-      return [{
-        type: "text",
-        text: `「${urgLabel}」ですね、教えてくれてありがとうございます！\n\n今の職場で一番変えたいことはどれですか？`,
-        quickReply: {
-          items: [
-            qrItem("お給料を上げたい", "q2=salary"),
-            qrItem("休みを増やしたい", "q2=rest"),
-            qrItem("人間関係を変えたい", "q2=human"),
-            qrItem("夜勤を減らしたい", "q2=night"),
-            qrItem("通勤をラクにしたい", "q2=commute"),
-            qrItem("スキルアップしたい", "q2=career"),
-          ],
-        },
-      }];
-    }
-
-    case "q3_area":
-      return [{
-        type: "text",
-        text: "ありがとうございます！\n\n通える範囲はどのあたりですか？",
-        quickReply: {
-          items: [
-            qrItem("横浜市", "q3=yokohama"),
-            qrItem("川崎市", "q3=kawasaki"),
-            qrItem("相模原市", "q3=sagamihara"),
-            qrItem("横須賀・鎌倉・三浦", "q3=yokosuka_miura"),
-            qrItem("藤沢・茅ヶ崎", "q3=shonan_east"),
-            qrItem("平塚・秦野・伊勢原", "q3=shonan_west"),
-            qrItem("厚木・海老名・大和", "q3=kenoh"),
-            qrItem("小田原・南足柄・箱根", "q3=kensei"),
-            qrItem("まだ決めていない", "q3=undecided"),
-          ],
-        },
-      }];
-
-    case "q4_experience":
-      return [{
-        type: "text",
-        text: "看護師としての経験年数を教えてください！",
-        quickReply: {
-          items: [
-            qrItem("1年未満", "q4=under1"),
-            qrItem("1〜3年", "q4=1to3"),
-            qrItem("3〜5年", "q4=3to5"),
-            qrItem("5〜10年", "q4=5to10"),
-            qrItem("10年以上", "q4=over10"),
-          ],
-        },
-      }];
-
-    case "q5_workstyle":
-      return [{
-        type: "text",
-        text: "希望の働き方はどれですか？",
-        quickReply: {
-          items: [
-            qrItem("日勤のみ", "q5=day"),
-            qrItem("夜勤あり（二交代）", "q5=twoshift"),
-            qrItem("パート・非常勤", "q5=part"),
-            qrItem("夜勤専従", "q5=night"),
-          ],
-        },
-      }];
-
-    case "q6_workplace":
-      return [{
-        type: "text",
-        text: "今はどんな職場で働いていますか？\n（直近のものを教えてください）",
-        quickReply: {
-          items: [
-            qrItem("急性期病棟", "q6=acute"),
-            qrItem("回復期リハ病棟", "q6=recovery"),
-            qrItem("療養型病棟", "q6=chronic"),
-            qrItem("クリニック・外来", "q6=clinic"),
-            qrItem("訪問看護", "q6=visit"),
-            qrItem("介護施設", "q6=care"),
-            qrItem("手術室・ICU", "q6=ope"),
-            qrItem("その他", "q6=other"),
-          ],
-        },
-      }];
-
-    case "q7_strengths": {
-      const already = entry.strengths || [];
-      if (already.length > 0) {
-        const selectedLabels = already.map(s => POSTBACK_LABELS[`q7_${s}`] || s).join("、");
-        return [{
-          type: "text",
-          text: `${selectedLabels} ですね！\n他にもあれば選んでください（最大3つ）。\n選び終わったら「選び終わった！」を押してください。`,
-          quickReply: {
-            items: [
-              ...(already.length < 3 ? [
-                ...(!already.includes("assess") ? [qrItem("アセスメント・観察", "q7=assess")] : []),
-                ...(!already.includes("acute_care") ? [qrItem("急変対応", "q7=acute_care")] : []),
-                ...(!already.includes("comm") ? [qrItem("患者さんとの会話", "q7=comm")] : []),
-                ...(!already.includes("edu") ? [qrItem("後輩指導", "q7=edu")] : []),
-                ...(!already.includes("doc") ? [qrItem("記録・書類作成", "q7=doc")] : []),
-                ...(!already.includes("rehab") ? [qrItem("リハビリ・ADL支援", "q7=rehab")] : []),
-              ] : []),
-              qrItem("選び終わった！", "q7=done"),
-            ],
-          },
-        }];
-      }
-      return [{
-        type: "text",
-        text: "自分が得意だと思うことを選んでください！\n（最大3つまで選べます）",
-        quickReply: {
-          items: [
-            qrItem("アセスメント・観察", "q7=assess"),
-            qrItem("急変対応", "q7=acute_care"),
-            qrItem("患者さんとの会話", "q7=comm"),
-            qrItem("後輩指導", "q7=edu"),
-            qrItem("記録・書類作成", "q7=doc"),
-            qrItem("リハビリ・ADL支援", "q7=rehab"),
-            qrItem("選び終わった！", "q7=done"),
-          ],
-        },
-      }];
-    }
-
-    case "q8_concerns":
-      return [{
-        type: "text",
-        text: "転職で一番気になること・不安なことはありますか？",
-        quickReply: {
-          items: [
-            qrItem("スキルが通用するか", "q8=skill"),
-            qrItem("新しい人間関係", "q8=relation"),
-            qrItem("収入が下がらないか", "q8=income"),
-            qrItem("年齢が気になる", "q8=age"),
-            qrItem("ブランクがある", "q8=blank"),
-            qrItem("特に不安はない", "q8=none"),
-          ],
-        },
-      }];
-
-    case "q9_work_history":
-      return [{
-        type: "text",
-        text: "職務経歴書を作るために、これまでの職歴を教えてください！\n\n例：\n○○病院 外科病棟 3年\n△△クリニック 2年\n\nあとで入力したい場合は「あとで入力する」を押してください。",
-        quickReply: {
-          items: [
-            qrItem("あとで入力する", "q9=skip"),
-          ],
-        },
-      }];
-
-    case "q10_qualification":
-      return [{
-        type: "text",
-        text: "お持ちの資格を教えてください！",
-        quickReply: {
-          items: [
-            qrItem("正看護師", "q10=rn"),
-            qrItem("准看護師", "q10=lpn"),
-            qrItem("認定看護師", "q10=cn"),
-            qrItem("専門看護師", "q10=cns"),
-            qrItem("理学療法士", "q10=pt"),
-          ],
-        },
-      }];
-
     // ===== intake_light フロー =====
     case "il_area":
       return [{
@@ -3830,25 +3481,9 @@ function buildPhaseMessage(phase, entry) {
         },
       }];
 
-    case "resume_confirm":
-      // 経歴書は別途AI生成してからこの関数を呼ぶ
-      return null;
-
     case "matching":
       // マッチング結果はFlex Messageで別途生成
       return null;
-
-    case "consent":
-      return [{
-        type: "text",
-        text: "友だち追加ありがとうございます！\nナースロビーです。\n\n転職サポートのため、個人情報の取り扱いについてご確認をお願いします。\n\n📋 個人情報保護方針:\nhttps://quads-nurse.com/privacy.html\n📋 利用規約:\nhttps://quads-nurse.com/terms.html\n\n上記を確認の上、同意いただける場合は「同意する」をタップしてください。",
-        quickReply: {
-          items: [
-            qrItem("✅ 同意する", "consent=agree"),
-            qrItem("内容を確認する", "consent=check"),
-          ],
-        },
-      }];
 
     case "ai_consultation":
       return [{
@@ -3862,38 +3497,11 @@ function buildPhaseMessage(phase, entry) {
         },
       }];
 
-    case "reverse_nomination":
-      return [{
-        type: "text",
-        text: "🎯 行きたい病院があるんですね！\n\n「この病院で働きたい」という希望があれば、担当者が名前を伏せて直接病院に確認します。\n\n手数料10%という強みがあるので、病院側も前向きに検討してくれることが多いです。\n\n希望の病院名を教えてください！\n（例: 横浜市立大学附属病院、小田原市立病院 など）",
-      }];
-
-    case "reverse_nomination_confirm":
-      return [{
-        type: "text",
-        text: `「${entry.reverseNominationHospital || ""}」ですね！\n\n承知しました。名前を伏せてこの病院に確認します。\n\n確認の準備のために、いくつかお聞きしてもよろしいですか？\n※お名前等は社内管理用で、病院には開示しません。`,
-        quickReply: {
-          items: [
-            qrItem("はい、進めてください", "reverse=proceed"),
-            qrItem("他の病院も考えたい", "reverse=reconsider"),
-          ],
-        },
-      }];
-
     case "apply_info":
       return [{
         type: "text",
         text: "ありがとうございます！\n担当者が病院に確認するための準備をしますね。\n\n📝 お名前を教えてください。\n※名前を伏せて病院に確認します。お名前は社内管理用です。\n（例: 山田 花子）",
       }];
-
-    case "apply_info_birth":
-      return [{ type: "text", text: "ありがとうございます、" + (entry.fullName || "") + "さん！\n\n生年月日を教えてください。\n※社内管理用です。病院には開示しません。\n（例: 1998年5月15日）" }];
-
-    case "apply_info_phone":
-      return [{ type: "text", text: "電話番号を教えてください。\n（例: 090-1234-5678）\n\n※緊急時の連絡先として保管します。普段のやりとりはすべてLINEです。病院にはお伝えしません。" }];
-
-    case "apply_info_workplace":
-      return [{ type: "text", text: "現在の勤務先名を教えてください。\n（在職中でない場合は「離職中」とお伝えください）\n\n💡 同じ病院への二重紹介を防ぐために確認しています。\n⚠️ 病院には伝えません。勤務先に連絡することも絶対にありません。" }];
 
     case "apply_consent": {
       let facilityList;
@@ -3959,89 +3567,6 @@ function buildPhaseMessage(phase, entry) {
           items: [
             qrItem("わかりました", "prep=skip"),
             qrItem("転職の相談をする", "consult=start"),
-          ],
-        },
-      }];
-
-    // ===== 追加ヒアリング（intake_light補完） =====
-    case "ps_qualification": {
-      const remaining = getMissingProfileFields(entry).length;
-      return [{
-        type: "text",
-        text: remaining <= 1 ? "最後の質問です！\n\nお持ちの資格はどれですか？" : `病院に確認するための情報です。あと${remaining}問で完了します！\n\nお持ちの資格はどれですか？`,
-        quickReply: {
-          items: [
-            qrItem("看護師", "ps_qual=nurse"),
-            qrItem("准看護師", "ps_qual=lpn"),
-            qrItem("保健師", "ps_qual=hokenshi"),
-            qrItem("助産師", "ps_qual=josanshi"),
-          ],
-        },
-      }];
-    }
-
-    case "ps_experience": {
-      const remaining = getMissingProfileFields(entry).length;
-      return [{
-        type: "text",
-        text: remaining <= 1 ? "最後の質問です！\n\n看護師としての経験年数を教えてください！" : `あと${remaining}問で完了します！\n\n看護師としての経験年数を教えてください！`,
-        quickReply: {
-          items: [
-            qrItem("1年未満", "ps_exp=under1"),
-            qrItem("1〜3年", "ps_exp=1to3"),
-            qrItem("3〜5年", "ps_exp=3to5"),
-            qrItem("5〜10年", "ps_exp=5to10"),
-            qrItem("10年以上", "ps_exp=over10"),
-          ],
-        },
-      }];
-    }
-
-    case "ps_strengths": {
-      const remaining = getMissingProfileFields(entry).length;
-      return [{
-        type: "text",
-        text: remaining <= 1 ? "最後の質問です！\n\n得意な分野や経験のある科を教えてください！" : `あと${remaining}問で完了します！\n\n得意な分野や経験のある科を教えてください！`,
-        quickReply: {
-          items: [
-            qrItem("内科系", "ps_str=internal"),
-            qrItem("外科系", "ps_str=surgical"),
-            qrItem("小児・産婦人科", "ps_str=pediatric"),
-            qrItem("精神科", "ps_str=psychiatric"),
-            qrItem("訪問看護", "ps_str=home_visit"),
-            qrItem("介護施設", "ps_str=care"),
-            qrItem("その他", "ps_str=other"),
-          ],
-        },
-      }];
-    }
-
-    case "ps_change": {
-      const remaining = getMissingProfileFields(entry).length;
-      return [{
-        type: "text",
-        text: remaining <= 1 ? "最後の質問です！\n\n転職で一番変えたいことは何ですか？" : `あと${remaining}問で完了します！\n\n転職で一番変えたいことは何ですか？`,
-        quickReply: {
-          items: [
-            qrItem("お給料を上げたい", "ps_chg=salary"),
-            qrItem("休みを増やしたい", "ps_chg=rest"),
-            qrItem("人間関係を変えたい", "ps_chg=human"),
-            qrItem("夜勤を減らしたい", "ps_chg=night"),
-            qrItem("通勤をラクにしたい", "ps_chg=commute"),
-            qrItem("スキルアップしたい", "ps_chg=career"),
-          ],
-        },
-      }];
-    }
-
-    case "apply_consent_privacy":
-      return [{
-        type: "text",
-        text: "ここから先は、担当者がご連絡するためにお名前等をお聞きします。\n\n📋 お聞きする情報:\n・お名前、生年月日、電話番号、現在の勤務先\n\n🔒 利用目的:\n・職業紹介サービスの提供（求人マッチング・ご連絡）\n・病院への確認時にはお伝えしません\n\n許可番号: 23-ユ-302928\n\nよろしいですか？",
-        quickReply: {
-          items: [
-            qrItem("✅ 同意して進む", "privacy=agree"),
-            qrItem("やめておく", "privacy=cancel"),
           ],
         },
       }];
@@ -4671,90 +4196,6 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "faq_no_phone";
     }
   }
-  // Q1
-  else if (params.has("q1")) {
-    entry.urgency = params.get("q1");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q1_urgency;  // urgency設定後に呼ぶ
-  }
-  // Q2
-  else if (params.has("q2")) {
-    entry.change = params.get("q2");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q2_change;
-  }
-  // Q3
-  else if (params.has("q3")) {
-    const val = params.get("q3");
-    entry.area = val;
-    entry.areaLabel = POSTBACK_LABELS[`q3_${val}`] || val;
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q3_area;
-  }
-  // Q4
-  else if (params.has("q4")) {
-    entry.experience = params.get("q4");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q4_experience;
-  }
-  // Q5
-  else if (params.has("q5")) {
-    entry.workStyle = params.get("q5");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q5_workstyle;
-  }
-  // Q6
-  else if (params.has("q6")) {
-    entry.workplace = params.get("q6");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q6_workplace;
-  }
-  // Q7 (複数選択)
-  else if (params.has("q7")) {
-    const val = params.get("q7");
-    if (val === "done") {
-      entry.unexpectedTextCount = 0;
-      nextPhase = getFlowForEntry(entry).q7_strengths;
-    } else {
-      if (!entry.strengths) entry.strengths = [];
-      if (!entry.strengths.includes(val) && entry.strengths.length < 3) {
-        entry.strengths.push(val);
-      }
-      // まだ選択中 → q7_strengthsのまま
-      nextPhase = "q7_strengths";
-    }
-  }
-  // Q8
-  else if (params.has("q8")) {
-    entry.concern = params.get("q8");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q8_concerns;
-  }
-  // Q9
-  else if (params.has("q9")) {
-    if (params.get("q9") === "skip") {
-      entry.workHistoryText = null;
-    }
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q9_work_history;
-  }
-  // Q10
-  else if (params.has("q10")) {
-    entry.qualification = params.get("q10");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getFlowForEntry(entry).q10_qualification;
-  }
-  // 経歴書確認
-  else if (params.has("resume")) {
-    const val = params.get("resume");
-    entry.unexpectedTextCount = 0;
-    if (val === "ok") {
-      nextPhase = "matching";
-    } else if (val === "edit") {
-      // 修正モード: 自由テキスト待ち
-      nextPhase = "resume_edit";
-    }
-  }
   // マッチング
   else if (params.has("match")) {
     const val = params.get("match");
@@ -4772,18 +4213,6 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = getFlowForEntry(entry).matching; // → ai_consultation
     } else if (val === "other") {
       nextPhase = "matching_more";
-    } else if (val === "reverse") {
-      nextPhase = "reverse_nomination";
-    }
-  }
-  // 逆指名
-  else if (params.has("reverse")) {
-    const val = params.get("reverse");
-    entry.unexpectedTextCount = 0;
-    if (val === "proceed") {
-      nextPhase = getNextProfileSupplementPhase(entry); // 不足項目があれば追加ヒアリング、なければapply_info
-    } else if (val === "reconsider") {
-      nextPhase = "matching"; // マッチング結果に戻る
     }
   }
   // 引き継ぎ
@@ -4816,16 +4245,15 @@ function handleLinePostback(dataStr, entry) {
       }
     }
   }
-  // 同意取得
+  // 同意取得（legacy: redirect to intake_light）
   else if (params.has("consent")) {
     const val = params.get("consent");
     entry.unexpectedTextCount = 0;
     if (val === "agree") {
       entry.consentAt = new Date().toISOString();
-      nextPhase = "q1_urgency";
+      nextPhase = "il_area"; // redirect to intake_light
     } else if (val === "check") {
-      // phaseは変えない（consentのまま）、確認促しメッセージを返す
-      nextPhase = "consent_check";
+      nextPhase = null; // no-op
     }
   }
   // AI自由相談
@@ -4862,32 +4290,6 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "ai_consultation_retry";
     }
   }
-  // 追加ヒアリング: 資格
-  else if (params.has("ps_qual")) {
-    entry.qualification = params.get("ps_qual");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getNextProfileSupplementPhase(entry);
-  }
-  // 追加ヒアリング: 経験年数
-  else if (params.has("ps_exp")) {
-    entry.experience = params.get("ps_exp");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getNextProfileSupplementPhase(entry);
-  }
-  // 追加ヒアリング: 得意分野
-  else if (params.has("ps_str")) {
-    const val = params.get("ps_str");
-    if (!entry.strengths) entry.strengths = [];
-    entry.strengths = [val]; // 単一選択（簡易版）
-    entry.unexpectedTextCount = 0;
-    nextPhase = getNextProfileSupplementPhase(entry);
-  }
-  // 追加ヒアリング: 変えたいこと
-  else if (params.has("ps_chg")) {
-    entry.change = params.get("ps_chg");
-    entry.unexpectedTextCount = 0;
-    nextPhase = getNextProfileSupplementPhase(entry);
-  }
   // area_page経由の働き方選択
   else if (params.has("area_welcome")) {
     const val = params.get("area_welcome");
@@ -4901,10 +4303,10 @@ function handleLinePostback(dataStr, entry) {
     entry.unexpectedTextCount = 0;
     if (val === "restart") {
       // 最初からやり直し
-      entry.phase = "consent";
+      entry.phase = "il_area";
       entry.answers = {};
       entry.consultMessages = [];
-      nextPhase = "consent";
+      nextPhase = "il_area";
     } else if (val === "jobs") {
       nextPhase = "matching"; // 求人表示
     } else if (val === "handoff") {
@@ -4920,7 +4322,7 @@ function handleLinePostback(dataStr, entry) {
     } else if (val === "reselect") {
       nextPhase = "matching"; // 施設選び直し
     } else if (val === "cancel") {
-      nextPhase = "apply_cancelled"; // 応募キャンセル
+      nextPhase = "nurture_warm"; // 応募キャンセル → ナーチャリングへ
     }
   }
   // キャリアシート確認
@@ -4930,19 +4332,7 @@ function handleLinePostback(dataStr, entry) {
     if (val === "ok") {
       nextPhase = "apply_confirm"; // 応募確定
     } else if (val === "edit") {
-      nextPhase = "career_sheet_edit"; // 修正モード
-    }
-  }
-  // プライバシー同意
-  else if (params.has("privacy")) {
-    const val = params.get("privacy");
-    entry.unexpectedTextCount = 0;
-    if (val === "agree") {
-      entry.privacyConsented = true;
-      entry.privacyConsentedAt = new Date().toISOString();
-      nextPhase = "apply_info";
-    } else if (val === "cancel") {
-      nextPhase = "nurture_warm"; // やめる → ナーチャリングへ
+      nextPhase = "handoff"; // 修正は担当者が対応
     }
   }
   // 面接対策
@@ -4967,33 +4357,7 @@ function handleLinePostback(dataStr, entry) {
 function handleFreeTextInput(text, entry) {
   const phase = entry.phase;
 
-  // Q9: 職歴入力待ち
-  if (phase === "q9_work_history") {
-    entry.workHistoryText = text;
-    entry.unexpectedTextCount = 0;
-    return getFlowForEntry(entry).q9_work_history; // → q10_qualification
-  }
-
-  // 経歴書修正モード
-  if (phase === "resume_edit") {
-    entry.unexpectedTextCount = 0;
-    return "resume_apply_edit"; // 修正適用フラグ
-  }
-
-  // consent中の自由テキスト → Quick Reply再表示
-  if (phase === "consent") {
-    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-    return null;
-  }
-
-  // reverse_nomination: 逆指名の病院名入力
-  if (phase === "reverse_nomination") {
-    entry.reverseNominationHospital = text;
-    entry.unexpectedTextCount = 0;
-    return "reverse_nomination_confirm";
-  }
-
-  // apply_info: 個人情報入力サブステップ
+  // apply_info: 名前入力 → apply_consent
   if (phase === "apply_info") {
     if (!entry.applyStep || entry.applyStep === "name") {
       // バリデーション: 2文字以上
@@ -5001,53 +4365,10 @@ function handleFreeTextInput(text, entry) {
         return { type: "text", text: "お名前は2文字以上でご入力ください🙏\n例: 山田 花子" };
       }
       entry.fullName = text;
-      entry.applyStep = "birth";
-      entry.unexpectedTextCount = 0;
-      return "apply_info_birth";
-    } else if (entry.applyStep === "birth") {
-      // バリデーション: 日付パターン（YYYY年MM月DD日, YYYY/MM/DD, YYYY-MM-DD, YYYYMMDD）
-      const birthPatterns = [
-        /^\d{4}年\d{1,2}月\d{1,2}日$/,
-        /^\d{4}\/\d{1,2}\/\d{1,2}$/,
-        /^\d{4}-\d{1,2}-\d{1,2}$/,
-        /^\d{8}$/,
-      ];
-      if (!birthPatterns.some(p => p.test(text.trim()))) {
-        return { type: "text", text: "生年月日の形式が正しくないようです🙏\n以下のいずれかの形式でご入力ください:\n\n・1995年6月15日\n・1995/06/15\n・1995-06-15\n・19950615" };
-      }
-      entry.birthDate = text;
-      entry.applyStep = "phone";
-      entry.unexpectedTextCount = 0;
-      return "apply_info_phone";
-    } else if (entry.applyStep === "phone") {
-      // バリデーション: ハイフン除去後10桁以上
-      const digitsOnly = text.replace(/[-ー−‐]/g, "");
-      if (!/^\d{10,}$/.test(digitsOnly)) {
-        return { type: "text", text: "電話番号は10桁以上の数字でご入力ください🙏\n例: 090-1234-5678 または 09012345678" };
-      }
-      entry.phone = text;
-      entry.applyStep = "workplace";
-      entry.unexpectedTextCount = 0;
-      return "apply_info_workplace";
-    } else if (entry.applyStep === "workplace") {
-      entry.currentWorkplace = text;
       entry.applyStep = "done";
       entry.unexpectedTextCount = 0;
       return "apply_consent";
     }
-  }
-
-  // career_sheet修正モード: ユーザーの修正指示を受け取る
-  if (phase === "career_sheet_edit") {
-    entry.careerSheetEditRequest = text;
-    entry.unexpectedTextCount = 0;
-    return "career_sheet_apply_edit";
-  }
-
-  // apply_consent_privacy中の自由テキスト → Quick Reply再表示
-  if (phase === "apply_consent_privacy") {
-    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-    return null;
   }
 
   // apply_consent中の自由テキスト → Quick Reply再表示
@@ -5073,12 +4394,6 @@ function handleFreeTextInput(text, entry) {
     return "ai_consultation_reply";
   }
 
-  // resume_confirm中の自由テキスト → Quick Replyを再表示（TEXT_TO_POSTBACKに流さない）
-  if (phase === "resume_confirm") {
-    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-    return null;
-  }
-
   // handoffフェーズ中の自由テキスト → Bot沈黙、Slackに転送
   if (phase === "handoff") {
     return "handoff_silent"; // Slack転送のみ、LINE応答なし
@@ -5092,27 +4407,13 @@ function handleFreeTextInput(text, entry) {
 
   // intake_light / matching_preview / matching_browse / nurture_warm中の自由テキスト → Quick Reply再表示
   if (phase === "il_area" || phase === "il_workstyle" || phase === "il_urgency" ||
-      phase === "matching_preview" || phase === "matching_browse" || phase === "nurture_warm" ||
-      phase === "ps_qualification" || phase === "ps_experience" || phase === "ps_strengths" || phase === "ps_change") {
+      phase === "matching_preview" || phase === "matching_browse" || phase === "nurture_warm") {
     entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
     return null;
   }
 
   // PC対応: テキストからpostbackデータを推定（フェーズ対応版）
-  // ※ Q9/resume_edit/resume_confirm/handoff/matchingは上で処理済み
-  // 現在のフェーズに対応するキーワードのみマッチさせる（誤ジャンプ防止）
-  const phaseToExpectedPrefix = {
-    consent: "consent=",
-    q1_urgency: "q1=",
-    q2_change: "q2=",
-    q3_area: "q3=",
-    q4_experience: "q4=",
-    q5_workstyle: "q5=",
-    q6_workplace: "q6=",
-    q7_strengths: "q7=",
-    q8_concerns: "q8=",
-    q10_qualification: "q10=",
-  };
+  const phaseToExpectedPrefix = {};
   const expectedPrefix = phaseToExpectedPrefix[phase];
   if (expectedPrefix) {
     // 現在のフェーズに合うキーワードのみマッチ（長いキーワードを先にチェック）
@@ -5326,7 +4627,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         if (!entry) {
           console.warn(`[LINE] No KV entry for postback ${userId.slice(0, 8)}, creating new session`);
           entry = createLineEntry();
-          entry.phase = "q1_urgency";
+          entry.phase = "il_area";
         } else {
           console.log(`[LINE] KV hit for postback ${userId.slice(0, 8)}, phase: ${entry.phase}`);
         }
@@ -5515,35 +4816,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // phaseは変えない（handoff中はhandoffのまま）
           replyMessages = buildPhaseMessage(nextPhase, entry);
         }
-        else if (nextPhase === "resume_confirm" && !entry.workHistoryText) {
-          // 経歴スキップ → 経歴書生成を飛ばしてマッチングへ直行
-          entry.phase = "matching";
-          generateLineMatching(entry);
-          replyMessages = [
-            { type: "text", text: "ありがとうございます！\nあなたの条件に近い施設の情報をお探ししますね。\n※現時点での参考情報です。実際の求人状況は変動しますので、詳しくは担当者が確認いたします。" },
-            ...buildMatchingMessages(entry),
-          ].slice(0, 5);
-          // Slack通知: 求人提案完了 + ヒアリングサマリ
-          if (env.SLACK_BOT_TOKEN) {
-            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-            const qualLabel = POSTBACK_LABELS[`q10_${entry.qualification}`] || "不明";
-            const expLabel = POSTBACK_LABELS[`q4_${entry.experience}`] || "不明";
-            const areaLabel = entry.areaLabel || POSTBACK_LABELS[`q3_${entry.area}`] || "不明";
-            const workStyleLabel = POSTBACK_LABELS[`q5_${entry.workStyle}`] || "不明";
-            const changeLabel = POSTBACK_LABELS[`q2_${entry.change}`] || "不明";
-            const urgLabel = POSTBACK_LABELS[`q1_${entry.urgency}`] || "不明";
-            const matchingText = (entry.matchingResults || []).slice(0, 5).map(r =>
-              `  ${r.adjustedScore || r.s || "?"}pt: ${r.n || r.name || "不明"}（${r.sal || r.salary || ""}）`
-            ).join("\n") || "（なし）";
-            fetch("https://slack.com/api/chat.postMessage", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🏥 *求人提案完了*\n\n📋 *ヒアリング内容*\n資格: ${qualLabel} / 経験: ${expLabel}\n緊急度: ${urgLabel}\n変えたいこと: ${changeLabel}\nエリア: ${areaLabel} / 働き方: ${workStyleLabel}\n\n🏆 *提案した施設*\n${matchingText}\n\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n\n💬 返信: \`!reply ${userId} メッセージ\`` }),
-            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
-          }
-        } else if (nextPhase === "resume_confirm") {
-          replyMessages = await buildResumeConfirmMessages(entry, env);
-        } else if (nextPhase === "matching_more") {
+        else if (nextPhase === "matching_more") {
           // FIX-10: 次の5件を表示（最大offset=15で3ページ）
           const currentOffset = entry.matchingOffset || 0;
           const newOffset = Math.min(currentOffset + 5, 15);
@@ -5568,18 +4841,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               },
             }];
           }
-        } else if (nextPhase === "consent_check") {
-          entry.phase = "consent"; // phaseはconsentのまま
-          replyMessages = [{
-            type: "text",
-            text: "リンクをご確認ください。確認後、「同意する」をタップしてください。",
-            quickReply: {
-              items: [
-                qrItem("✅ 同意する", "consent=agree"),
-                qrItem("内容を確認する", "consent=check"),
-              ],
-            },
-          }];
         } else if (nextPhase === "ai_consultation_waiting") {
           entry.phase = "ai_consultation";
           if (entry.welcomeIntent === "check_salary") {
@@ -5620,23 +4881,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               ],
             },
           }];
-        } else if (nextPhase === "reverse_nomination") {
-          entry.phase = "reverse_nomination";
-          replyMessages = buildPhaseMessage("reverse_nomination", entry);
-        } else if (nextPhase === "reverse_nomination_confirm") {
-          entry.phase = "reverse_nomination_confirm";
-          replyMessages = buildPhaseMessage("reverse_nomination_confirm", entry);
-        } else if (nextPhase && nextPhase.startsWith("ps_")) {
-          entry.phase = nextPhase;
-          // consult=apply等からの初回遷移時のみブリッジメッセージ
-          if (prevPhase !== "ps_qualification" && prevPhase !== "ps_experience" &&
-              prevPhase !== "ps_strengths" && prevPhase !== "ps_change") {
-            const bridgeMsg = { type: "text", text: "この求人に興味を伝えるために、もう少しだけ情報が必要です💡" };
-            const phaseMessages = buildPhaseMessage(nextPhase, entry);
-            replyMessages = phaseMessages ? [bridgeMsg, ...phaseMessages] : [bridgeMsg];
-          } else {
-            replyMessages = buildPhaseMessage(nextPhase, entry);
-          }
         } else if (nextPhase === "apply_info") {
           entry.phase = "apply_info";
           entry.applyStep = "name";
@@ -5654,26 +4898,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           replyMessages = buildPhaseMessage("apply_confirm", entry);
           // Slack通知
           await sendApplyNotification(userId, entry, env);
-        } else if (nextPhase === "apply_cancelled") {
-          entry.phase = "handoff";
-          replyMessages = [{
-            type: "text",
-            text: "承知しました。いつでもお気軽にご相談ください。\n\n担当者がこのLINEでサポートしますので、気になることがあればメッセージくださいね。",
-            quickReply: {
-              items: [
-                qrItem("本当に無料？", "faq=free"),
-                qrItem("電話は来ない？", "faq=no_phone"),
-                qrItem("求人を探す", "welcome=see_jobs"),
-              ],
-            },
-          }];
-          await sendHandoffNotification(userId, entry, env);
-        } else if (nextPhase === "career_sheet_edit") {
-          entry.phase = "career_sheet_edit";
-          replyMessages = [{
-            type: "text",
-            text: "修正したい箇所を教えてください！\n例：「得意分野を変えたい」「転職理由を修正したい」",
-          }];
         } else if (nextPhase === "interview_prep") {
           entry.phase = "interview_prep";
           replyMessages = buildPhaseMessage("interview_prep", entry);
@@ -5699,11 +4923,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               followUpSent: false,
             }), { expirationTtl: 604800 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); }); // 7日TTL
           }
-        } else if (nextPhase === "resume_edit") {
-          replyMessages = [{
-            type: "text",
-            text: "修正したい箇所を教えてください！\n例：「志望動機をもっと具体的に」「職歴の○○を修正」",
-          }];
         } else if (nextPhase) {
           replyMessages = buildPhaseMessage(nextPhase, entry);
         }
@@ -5734,10 +4953,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           if (pbParams.get("match") === "detail") {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.JOB_DETAIL, userId, entry, env, ctx));
           }
-          // match=reverse → REVERSE_NOMINATION
-          if (pbParams.get("match") === "reverse" || entry.phase === "reverse_nomination") {
-            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.REVERSE_NOMINATION, userId, entry, env, ctx));
-          }
+          // (reverse_nomination removed - was tracked here)
           // intake完了 → matching_preview
           if (entry.phase === "matching_preview" && prevPhase !== "matching_preview") {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.INTAKE_COMPLETE, userId, entry, env, ctx));
@@ -5751,8 +4967,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           if (entry.phase === "handoff" && prevPhase !== "handoff") {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
           }
-          // CONSULTATION_START（詳細ヒアリング開始）
-          if (entry.phase === "q2_change" && prevPhase !== "q2_change") {
+          // CONSULTATION_START（intake_light Q2 = il_workstyle）
+          if (entry.phase === "il_workstyle" && prevPhase !== "il_workstyle") {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.CONSULTATION_START, userId, entry, env, ctx));
           }
           // CONSULTATION_COMPLETE（ヒアリング完了→matching）
@@ -5787,7 +5003,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         if (!entry) {
           console.warn(`[LINE] No KV entry for ${userId.slice(0, 8)}, creating new session`);
           entry = createLineEntry();
-          entry.phase = "q1_urgency";
+          entry.phase = "il_area";
         } else {
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
@@ -5800,7 +5016,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
         // UUID v4パターン: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionCandidate);
-        if (isUUID && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
+        if (isUUID && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "il_area")) {
           // KVからセッション情報を取得
           let sessionCtx = null;
           if (env?.LINE_SESSIONS) {
@@ -5865,7 +5081,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         if (/^text=/i.test(codeCandidate)) {
           codeCandidate = codeCandidate.replace(/^text=/i, '');
         }
-        if (/^[A-Z0-9]{6}$/.test(codeCandidate) && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "q1_urgency")) {
+        if (/^[A-Z0-9]{6}$/.test(codeCandidate) && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "il_area")) {
           // KVから取得（優先）→ インメモリフォールバック
           let webSession = null;
           if (env?.LINE_SESSIONS) {
@@ -5934,13 +5150,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             console.log(`[LINE] Handoff code ${codeCandidate} accepted, user ${userId.slice(0, 8)}`);
             continue;
           } else {
-            entry.phase = "q1_urgency";
+            entry.phase = "il_area";
             entry.updatedAt = Date.now();
             await saveLineEntry(userId, entry, env);
 
             const msgs = [
               { type: "text", text: "コードの有効期限が切れているか、見つかりませんでした。\n改めてお話を聞かせてください！" },
-              ...buildPhaseMessage("q1_urgency", entry),
+              ...buildPhaseMessage("il_area", entry),
             ];
             await lineReply(event.replyToken, msgs.slice(0, 5), channelAccessToken);
             continue;
@@ -6099,74 +5315,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           continue;
         }
 
-        if (nextPhase === "resume_apply_edit") {
-          const editPrompt = `以下の職務経歴書を、ユーザーの修正要望に基づいて修正してください。
-LINEで送るので500文字以内、マークダウンは使わないでください。
-
-【現在のドラフト】
-${entry.resumeDraft || "（なし）"}
-
-【修正要望】
-${userText}`;
-          let revisedResume = await callLineAI(editPrompt, [], env);
-          if (revisedResume && revisedResume.length > 50) {
-            entry.resumeDraft = revisedResume;
-          }
-          entry.phase = "resume_confirm";
-
-          const textParts = splitText(entry.resumeDraft || "修正しました", 450);
-          replyMessages = [
-            ...textParts.map(part => ({ type: "text", text: part })),
-            {
-              type: "text",
-              text: "修正しました！こちらでよろしいですか？",
-              quickReply: {
-                items: [
-                  qrItem("OK！これでいい", "resume=ok"),
-                  qrItem("修正したい", "resume=edit"),
-                ],
-              },
-            },
-          ].slice(0, 5);
-        } else if (nextPhase === "reverse_nomination_confirm") {
-          entry.phase = "reverse_nomination_confirm";
-          replyMessages = buildPhaseMessage("reverse_nomination_confirm", entry);
-        } else if (nextPhase === "apply_info_birth" || nextPhase === "apply_info_phone" || nextPhase === "apply_info_workplace") {
-          // apply_infoサブステップ: phaseはapply_infoのまま、サブステップメッセージを返す
-          entry.phase = "apply_info";
-          replyMessages = buildPhaseMessage(nextPhase, entry);
-        } else if (nextPhase === "apply_consent") {
+        if (nextPhase === "apply_consent") {
           // apply_info完了 → apply_consent
           entry.phase = "apply_consent";
           replyMessages = buildPhaseMessage("apply_consent", entry);
-        } else if (nextPhase === "career_sheet_apply_edit") {
-          // 匿名プロフィール修正: ユーザーの修正指示を担当者に引き継ぐ
-          // （entry値の自動変更はせず、修正リクエストをSlackに転送して担当者が対応）
-          entry.phase = "career_sheet";
-          const editReq = entry.careerSheetEditRequest || "";
-          const sheet = generateAnonymousProfile(entry);
-          entry.careerSheet = sheet;
-          replyMessages = [
-            { type: "text", text: `ご要望「${editReq}」を担当者に伝えますね。\n\n現在のプロフィール内容はこちらです:\n\n${sheet}` },
-            {
-              type: "text",
-              text: "修正は担当者が対応します。\nこの内容で一旦病院への確認を進めてよろしいですか？",
-              quickReply: {
-                items: [
-                  qrItem("✅ これで進めて", "sheet=ok"),
-                  qrItem("やっぱりやめる", "apply=cancel"),
-                ],
-              },
-            },
-          ].slice(0, 5);
-          // Slack通知: 修正リクエスト
-          if (env.SLACK_BOT_TOKEN) {
-            fetch("https://slack.com/api/chat.postMessage", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📝 *プロフィール修正リクエスト*\nユーザー: \`${userId.slice(0, 8)}...\`\n修正内容: ${editReq}\n\n📋 現在のプロフィール:\n${sheet}\n\n💬 \`!reply ${userId} メッセージ\`` }),
-            }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
-          }
         } else if (nextPhase === null) {
           if (entry.unexpectedTextCount >= 3) {
             // Stage 3: 3回以上 → 担当者引き継ぎ
@@ -6213,17 +5365,7 @@ ${userText}`;
         } else {
           entry.phase = nextPhase;
 
-          if (nextPhase === "resume_confirm" && !entry.workHistoryText) {
-            // 経歴スキップ → マッチングへ直行
-            entry.phase = "matching";
-            generateLineMatching(entry);
-            replyMessages = [
-              { type: "text", text: "あなたの条件に近い施設の情報をお探ししますね。\n※現時点での参考情報です。実際の求人状況は変動しますので、詳しくは担当者が確認いたします。" },
-              ...buildMatchingMessages(entry),
-            ].slice(0, 5);
-          } else if (nextPhase === "resume_confirm") {
-            replyMessages = await buildResumeConfirmMessages(entry, env);
-          } else if (nextPhase === "matching") {
+          if (nextPhase === "matching") {
             generateLineMatching(entry);
             replyMessages = [
               { type: "text", text: "あなたの条件に近い施設の情報をお探ししますね。\n※現時点での参考情報です。実際の求人状況は変動しますので、詳しくは担当者が確認いたします。" },
@@ -6247,9 +5389,9 @@ ${userText}`;
             il_workstyle:      FUNNEL_EVENTS.INTAKE_START,       // intake Q1回答後
             matching_preview:  FUNNEL_EVENTS.INTAKE_COMPLETE,    // intake 3問完了→matching
             matching_browse:   FUNNEL_EVENTS.MATCHING_BROWSE,    // 他の求人も見たい
-            q2_change:         FUNNEL_EVENTS.CONSULTATION_START, // 詳細ヒアリング開始
+            il_workstyle:      FUNNEL_EVENTS.CONSULTATION_START, // intake_light Q2
             matching:          FUNNEL_EVENTS.CONSULTATION_COMPLETE, // ヒアリング完了→matching
-            resume_confirm:    FUNNEL_EVENTS.RESUME_GENERATE,    // 経歴書生成
+            apply_confirm:     FUNNEL_EVENTS.RESUME_GENERATE,    // 応募確定（旧経歴書生成）
             handoff:           FUNNEL_EVENTS.HANDOFF,            // 担当者引き継ぎ
           };
           const eventName = phaseEventMap[entry.phase];
