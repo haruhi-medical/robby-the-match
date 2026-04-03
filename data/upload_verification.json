@@ -362,7 +362,21 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-03T18:38:55.804434",
+      "content_id": "ai_ある_0331_04",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-03T19:04:18.986114",
+      "content_id": "ai_給与_0331_05",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-04-02T17:28:29.023931"
+  "last_updated": "2026-04-03T19:04:18.986125"
 }

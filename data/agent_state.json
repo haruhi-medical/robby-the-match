@@ -4,7 +4,7 @@
     "health_monitor": "2026-04-03T07:00:19",
     "competitor_analyst": "2026-04-03T10:00:13",
     "content_creator": "2026-04-03T15:03:42",
-    "sns_poster": "2026-04-02T17:28:29",
+    "sns_poster": "2026-04-03T18:40:33",
     "daily_reviewer": "2026-04-02T23:00:30",
     "seo_optimizer": "2026-04-03T04:00:18"
   },
@@ -13,7 +13,7 @@
     "health_monitor": "completed",
     "competitor_analyst": "completed",
     "content_creator": "completed",
-    "sns_poster": "completed",
+    "sns_poster": "running",
     "daily_reviewer": "completed",
     "seo_optimizer": "completed"
   },

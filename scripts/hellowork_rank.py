@@ -316,11 +316,11 @@ AREA_MAP = {
 
 
 def classify_area(job):
-    loc = job.get("work_location", "") + job.get("work_address", "")
+    loc = job.get("work_location", "") + job.get("work_address", "") + job.get("employer_address", "")
+    # 市区町村名の完全マッチを優先（「千葉」だけで千葉県全体にマッチするのを防止）
     for area_name, cities in AREA_MAP.items():
         for city in cities:
-            city_base = city.rstrip("市区町村")
-            if city in loc or city_base in loc:
+            if city in loc:  # 「千葉市」「船橋市」等の完全一致
                 return area_name
     return None
 

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-03T15:03:40.999792",
+  "updated": "2026-04-03T18:43:59.061200",
   "posts": [
     {
       "id": 1,
@@ -3207,11 +3207,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0331_04_20260403.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -3250,8 +3250,8 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0331_05_20260403.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -3624,7 +3624,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3650,7 +3650,8 @@
           "CTAがソフトCTAの典型例ではない"
         ],
         "suggestion": "フックを25文字以内に短縮し、CTAをソフトCTAの典型例に変更する"
-      }
+      },
+      "scheduled_for": "2026-04-03 17:30"
     },
     {
       "id": 180,
@@ -3667,7 +3668,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3679,7 +3680,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 9.11,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3691,7 +3692,9 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
-      }
+      },
+      "scheduled_for": "2026-04-04 12:00",
+      "quality_checked": true
     },
     {
       "id": 181,
@@ -3708,7 +3711,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3720,7 +3723,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.35,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3732,7 +3735,9 @@
           "ハッシュタグが4個以内ではない"
         ],
         "suggestion": "ハッシュタグを3個以内に絞り、より具体的で関連性の高いものを使用する"
-      }
+      },
+      "scheduled_for": "2026-04-05 21:00",
+      "quality_checked": true
     },
     {
       "id": 182,
@@ -3749,7 +3754,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3761,7 +3766,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.86,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3773,7 +3778,9 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを25文字以内に修正し、より具体的な数字や状況を追加して看護師の共感度を高める"
-      }
+      },
+      "scheduled_for": "2026-04-06 17:30",
+      "quality_checked": true
     },
     {
       "id": 183,
@@ -3790,7 +3797,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3802,7 +3809,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.13,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3815,7 +3822,9 @@
           "スライド5でロビーが登場していない"
         ],
         "suggestion": "フックを25文字以内に収め、スライド3でロビーを登場させる"
-      }
+      },
+      "scheduled_for": "2026-04-07 12:00",
+      "quality_checked": true
     },
     {
       "id": 184,
@@ -3832,7 +3841,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3844,7 +3853,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.88,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -3856,7 +3865,9 @@
           "ハッシュタグが4個以内ではない"
         ],
         "suggestion": "ハッシュタグを3個以内に絞り、より具体的で関連性の高いものを使用する"
-      }
+      },
+      "scheduled_for": "2026-04-08 21:00",
+      "quality_checked": true
     },
     {
       "id": 185,
@@ -3873,7 +3884,7 @@
       ],
       "cta_type": "hard",
       "content_type": "trend",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3898,7 +3909,8 @@
           "CTAがハードCTAのみ"
         ],
         "suggestion": "フックを短くし、ソフトCTAを追加して8:2ルールを満たすように改善する"
-      }
+      },
+      "scheduled_for": "2026-04-09 17:30"
     }
   ],
   "archive": [

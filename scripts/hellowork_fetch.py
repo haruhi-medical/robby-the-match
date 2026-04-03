@@ -368,50 +368,50 @@ def main():
             total_pages = info["pages"]
             print(f"   全{total_count}件 ({total_pages}ページ)")
 
-        max_pages = 1 if args.test else total_pages
-        all_nurse_jobs = []
-        consecutive_failures = 0
+            max_pages = 1 if args.test else total_pages
+            all_nurse_jobs = []
+            consecutive_failures = 0
 
-        for page in range(1, max_pages + 1):
-            print(f"   ページ {page}/{max_pages} 取得中...", end=" ", flush=True)
-            records = fetch_page(token, page)
+            for page in range(1, max_pages + 1):
+                print(f"   ページ {page}/{max_pages} 取得中...", end=" ", flush=True)
+                records = fetch_page(token, page)
 
-            # 401/空レスポンス時はトークン再取得して1回リトライ
-            if not records:
-                print("⚠️ 取得失敗 → トークン再取得...", end=" ", flush=True)
-                token = get_token(user_id, password)
-                if not token:
-                    print("❌ トークン再取得失敗")
+                # 401/空レスポンス時はトークン再取得して1回リトライ
+                if not records:
+                    print("⚠️ 取得失敗 → トークン再取得...", end=" ", flush=True)
+                    token = get_token(user_id, password)
+                    if not token:
+                        print("❌ トークン再取得失敗")
+                        consecutive_failures += 1
+                        if consecutive_failures >= 3:
+                            print("❌ 3ページ連続失敗 → 中断")
+                            break
+                        continue
+                    records = fetch_page(token, page)
+
+                if args.save_raw:
+                    RAW_DIR.mkdir(parents=True, exist_ok=True)
+
+                nurse_count = 0
+                for rec in records:
+                    if is_nurse_job(rec):
+                        job = parse_job(rec)
+                        all_nurse_jobs.append(job)
+                        nurse_count += 1
+
+                if records:
+                    consecutive_failures = 0
+                else:
                     consecutive_failures += 1
                     if consecutive_failures >= 3:
                         print("❌ 3ページ連続失敗 → 中断")
                         break
-                    continue
-                records = fetch_page(token, page)
 
-            if args.save_raw:
-                RAW_DIR.mkdir(parents=True, exist_ok=True)
+                print(f"{len(records)}件中 看護師{nurse_count}件")
 
-            nurse_count = 0
-            for rec in records:
-                if is_nurse_job(rec):
-                    job = parse_job(rec)
-                    all_nurse_jobs.append(job)
-                    nurse_count += 1
-
-            if records:
-                consecutive_failures = 0
-            else:
-                consecutive_failures += 1
-                if consecutive_failures >= 3:
-                    print("❌ 3ページ連続失敗 → 中断")
-                    break
-
-            print(f"{len(records)}件中 看護師{nurse_count}件")
-
-            # レートリミット対策
-            if page < max_pages:
-                time.sleep(2)
+                # レートリミット対策
+                if page < max_pages:
+                    time.sleep(2)
 
             print(f"   {pref_name}: 看護師{len(all_nurse_jobs)}件取得")
             all_nurse_jobs_combined.extend(all_nurse_jobs)

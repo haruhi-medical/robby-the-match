@@ -627,5 +627,19 @@
     "timestamp": "2026-04-02T17:05:04.038740",
     "status": "error",
     "error": "No slides found and generation failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260331_ai_ある_0331_04",
+    "timestamp": "2026-04-03T18:16:42.640083",
+    "status": "error",
+    "error": "login_required"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260331_ai_給与_0331_05",
+    "timestamp": "2026-04-03T18:40:58.896121",
+    "status": "error",
+    "error": "login_required"
   }
 ]
