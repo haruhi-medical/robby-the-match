@@ -157,35 +157,40 @@ body {
 
       var userId = profile.userId;
 
-      // セッション紐付けAPI呼び出し
-      return fetch(API_BASE + '/api/link-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId || ('liff_' + Date.now()),
-          user_id: userId,
-        }),
-      })
-      .then(function(res) { return res.json(); })
-      .then(function() {
-        // 友だち追加状況チェック
-        return liff.getFriendship();
-      })
+      // まず友だち追加状況をチェック
+      return liff.getFriendship()
       .then(function(data) {
-        if (data.friendFlag) {
-          // 既に友だち → Push APIで求人を送信（Worker側でliff:{userId}を参照）
-          showState(stateAlreadyFriend);
-          // Push APIトリガー: link-sessionで保存済みなので、
-          // Worker側のcronまたは手動でPushするか、ここから追加APIを叩く
-          // 簡易実装: 3秒後にLINEアプリを開く
-          setTimeout(function() {
-            liff.closeWindow();
-          }, 2000);
-        } else {
-          // 友だち未追加 → 追加画面を表示
-          addFriendBtn.href = LINE_ADD_URL;
-          showState(stateAddFriend);
-        }
+        var isFriend = data.friendFlag;
+
+        // セッション紐付けAPI呼び出し（友だち済みフラグ付き）
+        return fetch(API_BASE + '/api/link-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId || ('liff_' + Date.now()),
+            user_id: userId,
+            already_friend: isFriend,
+          }),
+        })
+        .then(function(res) { return res.json(); })
+        .then(function() {
+          if (isFriend) {
+            // 既に友だち → Worker側でPush送信済み → LINEアプリに戻す
+            showState(stateAlreadyFriend);
+            setTimeout(function() {
+              // LINEアプリ内ブラウザなら閉じる、外部ブラウザならLINEを開く
+              if (liff.isInClient()) {
+                liff.closeWindow();
+              } else {
+                window.location.href = 'https://line.me/R/ti/p/@174cxnev';
+              }
+            }, 1500);
+          } else {
+            // 友だち未追加 → 追加画面を表示
+            addFriendBtn.href = LINE_ADD_URL;
+            showState(stateAddFriend);
+          }
+        });
       });
     })
     .catch(function(err) {

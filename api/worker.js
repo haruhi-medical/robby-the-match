@@ -2453,7 +2453,7 @@ async function handleLinkSession(request, env) {
 
   try {
     const body = await request.json();
-    const { session_id, user_id } = body;
+    const { session_id, user_id, already_friend } = body;
 
     if (!session_id || !user_id) {
       return new Response(JSON.stringify({ error: 'session_id and user_id are required' }), {
@@ -2500,9 +2500,82 @@ async function handleLinkSession(request, env) {
     // インメモリフォールバック
     webSessionMap.set(`liff:${user_id}`, liffData);
 
-    console.log(`[LinkSession] Linked: userId=${user_id.slice(0, 8)}, session=${session_id.slice(0, 8)}, source=${liffData.source}`);
+    console.log(`[LinkSession] Linked: userId=${user_id.slice(0, 8)}, session=${session_id.slice(0, 8)}, source=${liffData.source}, alreadyFriend=${!!already_friend}`);
 
-    return new Response(JSON.stringify({ ok: true, linked: true }), {
+    // ========== 既に友だち追加済みの場合: Push APIで即メッセージ送信 ==========
+    // followイベントが発火しないため、ここで直接Pushする
+    if (already_friend && env.LINE_CHANNEL_ACCESS_TOKEN) {
+      try {
+        // ユーザーエントリを取得or作成
+        let entry = await getLineEntryAsync(user_id, env);
+        if (!entry) {
+          entry = createLineEntry();
+        }
+        entry.webSessionData = liffData;
+        entry.welcomeSource = liffData.source || 'liff';
+        entry.welcomeIntent = liffData.intent || 'see_jobs';
+        if (liffData.area) entry.area = liffData.area;
+        // LP診断の回答があれば復元
+        if (liffData.answers) {
+          try {
+            const ans = typeof liffData.answers === 'string' ? JSON.parse(liffData.answers) : liffData.answers;
+            if (ans.area) entry.area = ans.area;
+            if (ans.workStyle || ans.workstyle) entry.workStyle = ans.workStyle || ans.workstyle;
+            if (ans.urgency) entry.urgency = ans.urgency;
+          } catch (e) { /* パース失敗は無視 */ }
+        }
+
+        // セッション復元ウェルカム
+        const sessionWelcome = buildSessionWelcome(liffData, entry);
+        if (sessionWelcome && sessionWelcome.nextPhase) {
+          entry.phase = sessionWelcome.nextPhase;
+        } else {
+          entry.phase = 'il_area';
+        }
+        entry.updatedAt = Date.now();
+        await saveLineEntry(user_id, entry, env);
+
+        // Push APIでメッセージ送信
+        const pushMsgs = (sessionWelcome && sessionWelcome.messages && sessionWelcome.messages.length > 0)
+          ? sessionWelcome.messages
+          : [{
+              type: 'text',
+              text: 'おかえりなさい！\nナースロビーです。\n\nあなたに合う求人を探しますね。\nまず、どのエリアで働きたいですか？',
+              quickReply: {
+                items: [
+                  qrItem('横浜・川崎', 'il_area=yokohama_kawasaki'),
+                  qrItem('相模原・県央', 'il_area=sagamihara_kenoh'),
+                  qrItem('湘南・鎌倉', 'il_area=shonan_kamakura'),
+                  qrItem('横須賀・三浦', 'il_area=yokosuka_miura'),
+                  qrItem('県西・小田原', 'il_area=kensei'),
+                  qrItem('東京', 'il_area=tokyo'),
+                  qrItem('まだ決めてない', 'il_area=undecided'),
+                ],
+              },
+            }];
+
+        await fetch('https://api.line.me/v2/bot/message/push', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
+          },
+          body: JSON.stringify({ to: user_id, messages: pushMsgs }),
+        });
+
+        console.log(`[LinkSession] Push sent to already-friend ${user_id.slice(0, 8)}`);
+
+        // 使用済みLIFFセッションを削除
+        try {
+          if (env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${user_id}`);
+          webSessionMap.delete(`liff:${user_id}`);
+        } catch (e) { /* 削除失敗は無視 */ }
+      } catch (pushErr) {
+        console.error(`[LinkSession] Push error: ${pushErr.message}`);
+      }
+    }
+
+    return new Response(JSON.stringify({ ok: true, linked: true, pushed: !!already_friend }), {
       status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   } catch (err) {
