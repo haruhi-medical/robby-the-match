@@ -4012,17 +4012,25 @@ async function generateLineMatching(entry, env, offset = 0) {
     }
 
     // 施設タイプマッチ（entry.facilityType を使用）
+    // 病院は「逆マッチ」: 訪問/クリニック/介護でなければ病院とみなす
     if (!entry.facilityType || entry.facilityType === 'any') {
       matchFlags.facilityType = true;
     } else {
-      const text = (j.t || '') + (j.n || '');
-      const typeKeywords = {
-        hospital: ['病院', '病棟'],
-        clinic: ['クリニック', '診療所', '医院'],
-        visiting: ['訪問看護', '訪問'],
-        care: ['老人', '介護', '福祉', '特養'],
-      };
-      matchFlags.facilityType = (typeKeywords[entry.facilityType] || []).some(kw => text.includes(kw));
+      const text = (j.t || '') + (j.n || '') + (j.desc || '');
+      const isVisiting = ['訪問看護', '訪問介護', '訪問リハ'].some(kw => text.includes(kw));
+      const isClinic = ['クリニック', '診療所', '医院'].some(kw => text.includes(kw));
+      const isCare = ['老人', '介護施設', '福祉', '特養', '老健', 'デイサービス', 'グループホーム'].some(kw => text.includes(kw));
+
+      if (entry.facilityType === 'hospital') {
+        // 病院 = 訪問でもクリニックでも介護でもないもの
+        matchFlags.facilityType = !isVisiting && !isClinic && !isCare;
+      } else if (entry.facilityType === 'clinic') {
+        matchFlags.facilityType = isClinic;
+      } else if (entry.facilityType === 'visiting') {
+        matchFlags.facilityType = isVisiting;
+      } else if (entry.facilityType === 'care') {
+        matchFlags.facilityType = isCare;
+      }
     }
 
     matchCount = Object.values(matchFlags).filter(Boolean).length;
