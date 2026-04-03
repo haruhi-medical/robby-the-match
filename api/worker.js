@@ -3619,12 +3619,18 @@ async function buildPhaseMessage(phase, entry, env) {
         previewText = previewText.slice(0, 4900) + "\n…";
       }
 
+      // 各求人を指定して相談できるQuick Reply
+      const jobQRs = previewResults.map((r, i) => {
+        const shortName = (r.n || '求人').slice(0, 10);
+        return qrItem(`${i+1}. ${shortName}`, `match=detail&idx=${i}`);
+      });
+
       return [{
         type: "text",
         text: previewText,
         quickReply: {
           items: [
-            qrItem("この求人について相談する", "handoff=ok"),
+            ...jobQRs,
             qrItem("他の求人も見たい", "matching_preview=more"),
             qrItem("条件を変えて探す", "matching_preview=deep"),
             qrItem("まだ早いかも", "matching_preview=later"),
