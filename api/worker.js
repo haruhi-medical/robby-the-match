@@ -3523,7 +3523,9 @@ async function buildPhaseMessage(phase, entry, env) {
         text: `${prefLabel}ですね！\n\n${countLine}\n\nどんな職場が気になりますか？`,
         quickReply: {
           items: [
-            qrItem("病院", "il_ft=hospital"),
+            qrItem("急性期病院", "il_ft=hospital_acute"),
+            qrItem("回復期病院", "il_ft=hospital_recovery"),
+            qrItem("慢性期病院", "il_ft=hospital_chronic"),
             qrItem("クリニック", "il_ft=clinic"),
             qrItem("訪問看護", "il_ft=visiting"),
             qrItem("介護施設", "il_ft=care"),
@@ -3534,7 +3536,8 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "il_workstyle": {
-      const ftLabelsWS = {hospital: "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設", any: "こだわりなし"};
+      const subLabel = entry.hospitalSubType ? `${entry.hospitalSubType}` : '';
+      const ftLabelsWS = {hospital: subLabel || "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設", any: "こだわりなし"};
       const ftLabelWS = ftLabelsWS[entry.facilityType] || "";
       const nowCount = await countCandidatesD1(entry, env);
       return [{
@@ -3574,7 +3577,9 @@ async function buildPhaseMessage(phase, entry, env) {
         text: `${areaLabelFT}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nどんな職場が気になりますか？`,
         quickReply: {
           items: [
-            qrItem("病院", "il_ft=hospital"),
+            qrItem("急性期病院", "il_ft=hospital_acute"),
+            qrItem("回復期病院", "il_ft=hospital_recovery"),
+            qrItem("慢性期病院", "il_ft=hospital_chronic"),
             qrItem("クリニック", "il_ft=clinic"),
             qrItem("訪問看護", "il_ft=visiting"),
             qrItem("介護施設", "il_ft=care"),
@@ -4278,15 +4283,16 @@ async function generateLineMatching(entry, env, offset = 0) {
     try {
       const baseArea = (entry.area || '').replace('_il', '');
       const cities = AREA_CITY_MAP[baseArea] || [];
-      // 施設タイプに応じたD1カテゴリ
       const d1Category = CATEGORY_MAP[entry.facilityType] || '病院';
+      // 病院サブタイプフィルタ（急性期/回復期/慢性期）
+      const subTypeFilter = entry.hospitalSubType ? ` AND sub_type = '${entry.hospitalSubType}'` : '';
       let sql, params;
       if (cities.length > 0) {
         const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses}) ORDER BY bed_count DESC LIMIT 5`;
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses})${subTypeFilter} ORDER BY RANDOM() LIMIT 5`;
         params = [d1Category, ...cities.map(c => `%${c}%`)];
       } else {
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND prefecture = '神奈川県' ORDER BY bed_count DESC LIMIT 5`;
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${subTypeFilter} ORDER BY RANDOM() LIMIT 5`;
         params = [d1Category];
       }
       const d1Result = await env.DB.prepare(sql).bind(...params).all();
@@ -4644,6 +4650,7 @@ function handleLinePostback(dataStr, entry) {
     delete entry.workStyle;
     delete entry.urgency;
     delete entry.facilityType;
+    delete entry.hospitalSubType;
     delete entry.matchingResults;
     // 千葉・埼玉・その他はサブエリアなし→areaも設定
     const PREF_AREA_MAP = { chiba: 'chiba_all', saitama: 'saitama_all', other: 'undecided' };
@@ -4665,13 +4672,20 @@ function handleLinePostback(dataStr, entry) {
   // 施設タイプ選択（エリア選択後、働き方の前）
   else if (params.has("il_ft")) {
     const val = params.get("il_ft");
-    entry.facilityType = val;
     entry.unexpectedTextCount = 0;
-    if (val === 'clinic') {
-      entry.workStyle = 'day'; // クリニックは日勤自動設定
-      entry._clinicSkip = true; // 働き方スキップフラグ
-      nextPhase = "il_urgency"; // 働き方をスキップ
+    // 病院サブタイプ付き
+    if (val.startsWith('hospital_')) {
+      entry.facilityType = 'hospital';
+      const subMap = { hospital_acute: '急性期', hospital_recovery: '回復期', hospital_chronic: '慢性期' };
+      entry.hospitalSubType = subMap[val] || '';
+      nextPhase = "il_workstyle";
+    } else if (val === 'clinic') {
+      entry.facilityType = 'clinic';
+      entry.workStyle = 'day';
+      entry._clinicSkip = true;
+      nextPhase = "il_urgency";
     } else {
+      entry.facilityType = val;
       nextPhase = "il_workstyle";
     }
   }
@@ -4804,6 +4818,7 @@ function handleLinePostback(dataStr, entry) {
       delete entry.workStyle;
       delete entry.urgency;
       delete entry.facilityType;
+    delete entry.hospitalSubType;
       delete entry.matchingResults;
       nextPhase = "il_area"; // intake_light開始
     } else if (val === "check_salary") {
