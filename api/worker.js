@@ -3548,95 +3548,174 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "matching_preview": {
-      // --- D1フォールバック施設の場合 ---
-      const hasFallback = entry.matchingResults && entry.matchingResults.length > 0 && entry.matchingResults[0].isFallback;
-      if (hasFallback) {
-        let fallbackText = "今ちょうど条件に合う求人は準備中ですが、\nこの地域の主要病院をご紹介できます。\n";
-        entry.matchingResults.slice(0, 5).forEach(r => {
-          fallbackText += `\n━━ ご紹介交渉できる施設 ━━\n`;
-          fallbackText += `📌 ${(r.n || "病院").slice(0, 30)}\n`;
-          if (r.bed_count) fallbackText += `  病床数: ${r.bed_count}`;
-          if (r.loc) fallbackText += ` / 📍 ${r.loc}`;
-          fallbackText += `\n  ※現在求人未掲載ですが、ご希望があればご紹介交渉いたします\n`;
-        });
-        fallbackText += `\n条件に合う新着が出たらすぐにLINEでお知らせしますね。\n通知を受け取りますか？`;
-        if (fallbackText.length > 4900) {
-          fallbackText = fallbackText.slice(0, 4900) + "\n…";
-        }
+      const BRAND_COLOR = "#5a8fa8";
+      const wsLabelsP = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
+      const ftLabelsP = {hospital: "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設"};
+      const areaLabelP = entry.areaLabel || "お選びのエリア";
+      const wsLabelP = wsLabelsP[entry.workStyle] || "";
+      const condParts = [areaLabelP, wsLabelP].filter(Boolean).join(" × ");
+
+      // --- 結果0件 ---
+      if (!entry.matchingResults || entry.matchingResults.length === 0) {
         return [{
           type: "text",
-          text: fallbackText,
+          text: `お伝えいただいた条件だと、今はぴったりの求人が見つかりませんでした。\n\n条件に合う新着が出たらすぐにLINEでお知らせしますね。`,
           quickReply: {
             items: [
               qrItem("通知を受け取る", "nurture=subscribe"),
-              qrItem("この施設について相談する", "handoff=ok"),
               qrItem("条件を変えて探す", "welcome=see_jobs"),
             ],
           },
         }];
       }
 
-      // --- 結果0件（D1フォールバックも無し） ---
-      if (!entry.matchingResults || entry.matchingResults.length === 0) {
-        return [{
-          type: "text",
-          text: "お伝えいただいた条件だと、今はぴったりの求人が見つかりませんでした。\n条件を少し広げてみませんか？",
+      // --- Flexカルーセル求人カード生成 ---
+      const allResults = entry.matchingResults.slice(0, 3);
+      const normalResults = allResults.filter(r => !r.isFallback);
+      const fallbackResults = allResults.filter(r => r.isFallback);
+
+      // 通常求人カード
+      function buildJobBubble(job, idx) {
+        const sal = job.sal || '';
+        const bon = job.bon ? `+ 賞与 ${job.bon}` : '';
+        const shift = job.shift ? job.shift.replace(/\(1\)/g, '').trim().slice(0, 20) : '';
+        const station = job.sta ? job.sta.slice(0, 15) : '';
+        const hol = job.hol ? `年間休日 ${job.hol}日` : '';
+        const name = (job.n || '求人').slice(0, 25);
+        const matchLabel = [wsLabelP, areaLabelP].filter(Boolean).join('・');
+        const isTop = idx === 0 && (job.r === 'S' || job.matchCount >= 3);
+
+        const bodyContents = [];
+        // 月給（大フォント）
+        if (sal) {
+          bodyContents.push({ type: "text", text: sal, size: "xl", weight: "bold", color: BRAND_COLOR });
+        }
+        // 賞与
+        if (bon) {
+          bodyContents.push({ type: "text", text: bon, size: "sm", color: "#999999", margin: "xs" });
+        }
+        // 勤務時間
+        if (shift) {
+          bodyContents.push({ type: "text", text: `🕐 ${shift}`, size: "sm", color: "#333333", margin: "md" });
+        }
+        // 最寄駅
+        if (station) {
+          bodyContents.push({ type: "text", text: `📍 ${station}`, size: "sm", color: "#333333", margin: "xs" });
+        }
+        // 年間休日
+        if (hol) {
+          bodyContents.push({ type: "text", text: `🗓 ${hol}`, size: "sm", color: "#333333", margin: "xs" });
+        }
+        // セパレータ
+        bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
+        // 施設名（小さく）
+        bodyContents.push({ type: "text", text: name, size: "xs", color: "#999999", margin: "md", wrap: true });
+        // マッチ条件
+        if (matchLabel) {
+          bodyContents.push({ type: "text", text: matchLabel, size: "xxs", color: "#AAAAAA", margin: "xs" });
+        }
+
+        return {
+          type: "bubble",
+          size: "kilo",
+          header: {
+            type: "box", layout: "vertical", paddingAll: "12px",
+            backgroundColor: isTop ? BRAND_COLOR : "#F5F5F5",
+            contents: [{
+              type: "text",
+              text: isTop ? "あなたの希望にマッチ" : "条件に近い求人",
+              size: "xs", weight: "bold",
+              color: isTop ? "#FFFFFF" : "#666666",
+            }],
+          },
+          body: {
+            type: "box", layout: "vertical", paddingAll: "16px", spacing: "none",
+            contents: bodyContents,
+          },
+          footer: {
+            type: "box", layout: "vertical", paddingAll: "12px",
+            contents: [{
+              type: "button", style: "primary", height: "sm",
+              color: BRAND_COLOR,
+              action: { type: "postback", label: "この求人について聞く", data: `match=detail&idx=${idx}`, displayText: `${name}について聞きたい` },
+            }],
+          },
+        };
+      }
+
+      // D1フォールバック施設カード
+      function buildFallbackBubble(fac) {
+        const name = (fac.n || '病院').slice(0, 25);
+        const subType = fac.t || '';
+        const loc = fac.loc ? fac.loc.replace(/^神奈川県|^東京都/, '').slice(0, 15) : '';
+        const bedLabel = fac.bed_count ? (fac.bed_count >= 300 ? '大規模' : fac.bed_count >= 100 ? '中規模' : '小規模') + `（${fac.bed_count}床）` : '';
+
+        const bodyContents = [
+          { type: "text", text: name, size: "md", weight: "bold", color: "#333333", wrap: true },
+        ];
+        if (subType || bedLabel) {
+          bodyContents.push({ type: "text", text: [subType, bedLabel].filter(Boolean).join('・'), size: "sm", color: "#666666", margin: "sm" });
+        }
+        if (loc) {
+          bodyContents.push({ type: "text", text: `📍 ${loc}`, size: "sm", color: "#666666", margin: "xs" });
+        }
+        bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
+        bodyContents.push({ type: "text", text: "公開求人はありませんが、\n条件を確認できます", size: "xs", color: "#999999", margin: "md", wrap: true });
+
+        return {
+          type: "bubble",
+          size: "kilo",
+          header: {
+            type: "box", layout: "vertical", paddingAll: "12px",
+            backgroundColor: "#FFF8F0",
+            contents: [{ type: "text", text: "あなたに合いそうな施設", size: "xs", weight: "bold", color: "#8B7355" }],
+          },
+          body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
+          footer: {
+            type: "box", layout: "vertical", paddingAll: "12px",
+            contents: [{
+              type: "button", style: "secondary", height: "sm",
+              action: { type: "postback", label: "この病院の条件を確認", data: `handoff=ok&facility=${encodeURIComponent(name)}`, displayText: `${name}の条件を確認したい` },
+            }],
+          },
+        };
+      }
+
+      // カルーセル組み立て
+      const bubbles = [];
+      normalResults.forEach((r, i) => bubbles.push(buildJobBubble(r, i)));
+      // 通常求人2件以下ならフォールバック追加
+      if (normalResults.length <= 2) {
+        fallbackResults.slice(0, 3 - normalResults.length).forEach(r => bubbles.push(buildFallbackBubble(r)));
+      }
+
+      // altText（Flex非対応端末用）
+      const altParts = normalResults.slice(0, 2).map(r => `${r.sal || ''} ${r.sta || ''}`).join(' / ');
+      const altText = `${condParts}の求人${allResults.length}件: ${altParts}`;
+
+      // 導入テキスト + Flexカルーセル
+      const messages = [];
+      messages.push({
+        type: "text",
+        text: `あなたにぴったりの求人が\n見つかりました！\n\n${condParts} で ${entry.matchingResults.length}件マッチ 🎯\nおすすめ順にご紹介します。`,
+      });
+
+      if (bubbles.length > 0) {
+        messages.push({
+          type: "flex",
+          altText: altText.slice(0, 400),
+          contents: { type: "carousel", contents: bubbles },
           quickReply: {
             items: [
-              qrItem("条件を変えて探す", "matching_preview=deep"),
-              qrItem("新着を待つ", "matching_preview=later"),
+              qrItem("他の求人も見る", "matching_preview=more"),
+              qrItem("条件を変える", "welcome=see_jobs"),
+              qrItem("あとで見る", "matching_preview=later"),
             ],
           },
-        }];
+        });
       }
 
-      // --- 通常の求人結果（チェックマーク方式） ---
-      const previewResults = entry.matchingResults.slice(0, 3);
-      const previewAreaLabel = entry.areaLabel || "お選びのエリア";
-      const wsLabels = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
-      const wsLabel = wsLabels[entry.workStyle] || "";
-      const ftLabels = {hospital: "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設"};
-      const ftLabel = ftLabels[entry.facilityType] || "";
-      const condLabel = [previewAreaLabel, wsLabel, ftLabel].filter(Boolean).join(" × ");
-
-      let previewText = `あなたにぴったりの求人、見つかりました！\n\n${condLabel} で${entry.matchingResults.length}件マッチ 🎯\n`;
-      previewResults.forEach((r, i) => {
-        const jobName = r.n || r.name || "求人";
-        const jobSal = r.sal || r.salary || "";
-        const jobLoc = r.loc || "";
-        const checks = buildMatchChecks(r, entry);
-        previewText += `\n━━━━━━━━━━\n`;
-        previewText += `${i + 1}. ${jobName.slice(0, 30)}\n`;
-        previewText += `${checks}\n`;
-        const details = [];
-        if (jobSal) details.push(`💰 ${jobSal}`);
-        if (jobLoc) details.push(`📍 ${jobLoc}`);
-        if (details.length > 0) previewText += `${details.join(' / ')}\n`;
-      });
-      previewText += `\n気になる求人はありますか？`;
-      // LINE Text上限5000文字ガード
-      if (previewText.length > 4900) {
-        previewText = previewText.slice(0, 4900) + "\n…";
-      }
-
-      // 各求人を指定して相談できるQuick Reply
-      const jobQRs = previewResults.map((r, i) => {
-        const shortName = (r.n || '求人').slice(0, 10);
-        return qrItem(`${i+1}. ${shortName}`, `match=detail&idx=${i}`);
-      });
-
-      return [{
-        type: "text",
-        text: previewText,
-        quickReply: {
-          items: [
-            ...jobQRs,
-            qrItem("他の求人も見たい", "matching_preview=more"),
-            qrItem("条件を変えて探す", "matching_preview=deep"),
-            qrItem("まだ早いかも", "matching_preview=later"),
-          ],
-        },
-      }];
+      return messages;
     }
 
     case "matching_browse": {
