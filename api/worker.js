@@ -119,7 +119,7 @@ const STATE_CATEGORIES = {
   // 1. 初期接触
   ONBOARDING:    ["welcome"],
   // 2. ヒアリング（intake_light 3問）
-  INTAKE:        ["il_area", "il_subarea", "il_workstyle", "il_urgency", "il_facility_type"],
+  INTAKE:        ["il_area", "il_subarea", "il_facility_type", "il_workstyle", "il_urgency"],
   // 3. マッチング
   MATCHING:      ["matching_preview", "matching_browse", "matching"],
   // 4. AI相談
@@ -129,7 +129,7 @@ const STATE_CATEGORIES = {
   // 6. 面接準備
   INTERVIEW:     ["interview_prep"],
   // 7. ハンドオフ（人間対応）
-  HANDOFF:       ["handoff", "handoff_silent"],
+  HANDOFF:       ["handoff", "handoff_silent", "handoff_phone_check", "handoff_phone_time"],
   // 8. ナーチャリング
   NURTURE:       ["nurture_warm", "nurture_subscribed", "nurture_stay"],
   // 9. FAQ
@@ -2734,10 +2734,10 @@ const LINE_SESSION_TTL = 2592000000; // 30日間
 // フロー分岐: urgencyに応じてルートが変わる
 const PHASE_FLOW_LIGHT = {
   il_area:           "il_subarea",
-  il_subarea:        "il_workstyle",
+  il_subarea:        "il_facility_type",
+  il_facility_type:  "il_workstyle",
   il_workstyle:      "il_urgency",
-  il_urgency:        "il_facility_type",
-  il_facility_type:  "matching_preview",
+  il_urgency:        "matching_preview",
   matching_preview:  "matching_browse",
   matching_browse:   "matching",
   matching:          "ai_consultation",
@@ -3517,27 +3517,29 @@ async function buildPhaseMessage(phase, entry, env) {
           },
         }];
       }
-      // 千葉・埼玉・その他 → サブエリアなしで直接il_workstyleへ
+      // 千葉・埼玉・その他 → サブエリアなしで直接il_facility_typeへ
       return [{
         type: "text",
-        text: `${prefLabel}ですね！\n\n${countLine}\n\n希望の働き方は？`,
+        text: `${prefLabel}ですね！\n\n${countLine}\n\nどんな職場が気になりますか？`,
         quickReply: {
           items: [
-            qrItem("日勤のみ", "il_ws=day"),
-            qrItem("夜勤ありOK", "il_ws=twoshift"),
-            qrItem("パート・非常勤", "il_ws=part"),
-            qrItem("夜勤専従", "il_ws=night"),
+            qrItem("病院（入院あり）", "il_ft=hospital"),
+            qrItem("クリニック", "il_ft=clinic"),
+            qrItem("訪問看護", "il_ft=visiting"),
+            qrItem("介護施設", "il_ft=care"),
+            qrItem("こだわりなし", "il_ft=any"),
           ],
         },
       }];
     }
 
     case "il_workstyle": {
-      const areaLabel = entry.areaLabel || entry.area || "";
+      const ftLabelsWS = {hospital: "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設", any: "こだわりなし"};
+      const ftLabelWS = ftLabelsWS[entry.facilityType] || "";
       const nowCount = await countCandidatesD1(entry, env);
       return [{
         type: "text",
-        text: `${areaLabel}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(nowCount.facilities + nowCount.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\n希望の働き方は？`,
+        text: `${ftLabelWS}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(nowCount.facilities + nowCount.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\n希望の働き方は？`,
         quickReply: {
           items: [
             qrItem("日勤のみ", "il_ws=day"),
@@ -3550,10 +3552,11 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "il_urgency": {
-      const currentCountU = await countCandidatesD1(entry, env);
+      const clinicPrefix = entry._clinicSkip ? "クリニックは日勤中心ですね！\n\n" : "";
+      if (entry._clinicSkip) delete entry._clinicSkip;
       return [{
         type: "text",
-        text: `━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountU.facilities + currentCountU.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nかなり絞れてきました！\n転職の温度感を教えてください。`,
+        text: `${clinicPrefix}転職の温度感を教えてください。`,
         quickReply: {
           items: [
             qrItem("すぐにでも転職したい", "il_urg=urgent"),
@@ -3565,10 +3568,11 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "il_facility_type": {
+      const areaLabelFT = entry.areaLabel || entry.area || "";
       const currentCountF = await countCandidatesD1(entry, env);
       return [{
         type: "text",
-        text: `━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nあと1つだけ！\nどんな職場が気になりますか？`,
+        text: `${areaLabelFT}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nどんな職場が気になりますか？`,
         quickReply: {
           items: [
             qrItem("病院（入院あり）", "il_ft=hospital"),
@@ -3654,12 +3658,12 @@ async function buildPhaseMessage(phase, entry, env) {
           size: "kilo",
           header: {
             type: "box", layout: "vertical", paddingAll: "12px",
-            backgroundColor: isTop ? BRAND_COLOR : "#F5F5F5",
+            backgroundColor: BRAND_COLOR,
             contents: [{
               type: "text",
-              text: isTop ? "あなたの希望にマッチ" : "条件に近い求人",
+              text: isTop ? "あなたの希望にマッチ" : "募集中",
               size: "xs", weight: "bold",
-              color: isTop ? "#FFFFFF" : "#666666",
+              color: "#FFFFFF",
             }],
           },
           body: {
@@ -3671,7 +3675,7 @@ async function buildPhaseMessage(phase, entry, env) {
             contents: [{
               type: "button", style: "primary", height: "sm",
               color: BRAND_COLOR,
-              action: { type: "postback", label: "この求人について聞く", data: `match=detail&idx=${idx}`, displayText: `${name}について聞きたい` },
+              action: { type: "postback", label: "この施設について聞く", data: `match=detail&idx=${idx}`, displayText: `${name}について聞きたい` },
             }],
           },
         };
@@ -3701,22 +3705,23 @@ async function buildPhaseMessage(phase, entry, env) {
           bodyContents.push({ type: "text", text: `📍 ${loc}`, size: "sm", color: "#666666", margin: "xs" });
         }
         bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
-        bodyContents.push({ type: "text", text: "公開求人はありませんが、\n条件を確認できます", size: "xs", color: "#999999", margin: "md", wrap: true });
+        bodyContents.push({ type: "text", text: "私たちが最新の募集状況を確認します", size: "xs", color: "#999999", margin: "md", wrap: true });
 
         return {
           type: "bubble",
           size: "kilo",
           header: {
             type: "box", layout: "vertical", paddingAll: "12px",
-            backgroundColor: "#FFF8F0",
-            contents: [{ type: "text", text: "あなたに合いそうな施設", size: "xs", weight: "bold", color: "#8B7355" }],
+            backgroundColor: BRAND_COLOR,
+            contents: [{ type: "text", text: "空き確認可", size: "xs", weight: "bold", color: "#FFFFFF" }],
           },
           body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
           footer: {
             type: "box", layout: "vertical", paddingAll: "12px",
             contents: [{
-              type: "button", style: "secondary", height: "sm",
-              action: { type: "postback", label: "この病院の条件を確認", data: `handoff=ok&facility=${encodeURIComponent(name)}`, displayText: `${name}の条件を確認したい` },
+              type: "button", style: "primary", height: "sm",
+              color: BRAND_COLOR,
+              action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent(name)}`, displayText: `${name}の条件を確認したい` },
             }],
           },
         };
@@ -3977,6 +3982,34 @@ async function buildPhaseMessage(phase, entry, env) {
           ],
         },
       }];
+
+    case "handoff_phone_check": {
+      return [{
+        type: "text",
+        text: "担当者に引き継ぎますね。\n\nお電話は控えた方が良いですか？",
+        quickReply: {
+          items: [
+            qrItem("はい（LINEでお願いします）", "phone_check=line_only"),
+            qrItem("いいえ（電話OK）", "phone_check=phone_ok"),
+          ],
+        },
+      }];
+    }
+
+    case "handoff_phone_time": {
+      return [{
+        type: "text",
+        text: "ありがとうございます！\nご都合の良い時間帯はありますか？",
+        quickReply: {
+          items: [
+            qrItem("午前中", "phone_time=morning"),
+            qrItem("午後", "phone_time=afternoon"),
+            qrItem("夕方以降", "phone_time=evening"),
+            qrItem("いつでもOK", "phone_time=anytime"),
+          ],
+        },
+      }];
+    }
 
     case "handoff": {
       if (entry.appliedAt) {
@@ -4524,8 +4557,16 @@ async function sendHandoffNotification(userId, entry, env) {
     }).join("\n");
   }
 
+  // 電話連絡希望
+  const phoneLabels = { line_only: "LINEのみ希望", phone_ok: "電話OK" };
+  const timeLabels = { morning: "午前中", afternoon: "午後", evening: "夕方以降", anytime: "いつでもOK" };
+  const phonePrefText = phoneLabels[entry.phonePreference] || "未確認";
+  const phoneTimeText = entry.preferredCallTime ? timeLabels[entry.preferredCallTime] || entry.preferredCallTime : "";
+  const phoneInfoLine = phoneTimeText ? `${phonePrefText}（${phoneTimeText}）` : phonePrefText;
+
   const slackText = `🎯 *LINE相談 → 人間対応リクエスト*
 温度感: ${tempEmoji} ${temperature} / 緊急度: ${urgLabel}
+📞 連絡方法: ${phoneInfoLine}
 
 🔥 *ハンドオフ理由*
 ${handoffReasonsText}
@@ -4614,7 +4655,20 @@ function handleLinePostback(dataStr, entry) {
     entry.area = val + "_il"; // AREA_ZONE_MAPでq3_{val}_ilとして展開
     entry.areaLabel = IL_AREA_LABELS[val] || val;
     entry.unexpectedTextCount = 0;
-    nextPhase = "il_workstyle";
+    nextPhase = "il_facility_type";
+  }
+  // 施設タイプ選択（エリア選択後、働き方の前）
+  else if (params.has("il_ft")) {
+    const val = params.get("il_ft");
+    entry.facilityType = val;
+    entry.unexpectedTextCount = 0;
+    if (val === 'clinic') {
+      entry.workStyle = 'day'; // クリニックは日勤自動設定
+      entry._clinicSkip = true; // 働き方スキップフラグ
+      nextPhase = "il_urgency"; // 働き方をスキップ
+    } else {
+      nextPhase = "il_workstyle";
+    }
   }
   // intake_light: 働き方
   else if (params.has("il_ws")) {
@@ -4625,12 +4679,6 @@ function handleLinePostback(dataStr, entry) {
   // intake_light: 温度感
   else if (params.has("il_urg")) {
     entry.urgency = params.get("il_urg");
-    entry.unexpectedTextCount = 0;
-    nextPhase = "il_facility_type";
-  }
-  // 施設タイプ選択（アキネーター4問目）
-  else if (params.has("il_ft")) {
-    entry.facilityType = params.get("il_ft");
     entry.unexpectedTextCount = 0;
     nextPhase = "matching_preview";
   }
@@ -4700,22 +4748,44 @@ function handleLinePostback(dataStr, entry) {
       if (facilityName && !entry.interestedFacility) {
         entry.interestedFacility = decodeURIComponent(facilityName);
       }
-      nextPhase = "handoff"; // 担当者紹介→ハンドオフ
+      nextPhase = "handoff_phone_check"; // 担当者紹介→電話確認→ハンドオフ
     } else if (val === "other") {
       nextPhase = "matching_more";
     } else if (val === "reverse") {
       // BUG #2修正: 逆指名→ハンドオフ
       entry.reverseNomination = true;
-      nextPhase = "handoff";
+      nextPhase = "handoff_phone_check";
     } else if (val === "later") {
       // BUG #1修正: まだ早いかも→ナーチャリング
       nextPhase = "nurture_warm";
     }
   }
+  // 電話確認ステップ
+  else if (params.has("phone_check")) {
+    const val = params.get("phone_check");
+    entry.phonePreference = val; // 'line_only' or 'phone_ok'
+    entry.unexpectedTextCount = 0;
+    if (val === 'phone_ok') {
+      nextPhase = "handoff_phone_time"; // 時間帯確認
+    } else {
+      nextPhase = "handoff"; // LINE連絡のみ → handoff
+    }
+  }
+  // 電話時間帯
+  else if (params.has("phone_time")) {
+    entry.preferredCallTime = params.get("phone_time");
+    entry.unexpectedTextCount = 0;
+    nextPhase = "handoff";
+  }
   // 引き継ぎ
   else if (params.has("handoff")) {
     entry.unexpectedTextCount = 0;
-    nextPhase = "handoff";
+    // facility付きの場合（フォールバック施設カード経由）
+    const facilityName = params.get("facility");
+    if (facilityName) {
+      entry.interestedFacility = decodeURIComponent(facilityName);
+    }
+    nextPhase = "handoff_phone_check";
   }
   // ウェルカム
   else if (params.has("welcome")) {
@@ -4772,7 +4842,7 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = getNextProfileSupplementPhase(entry); // 不足項目があれば追加ヒアリング、なければapply_info
     } else if (val === "direct_handoff") {
       entry.handoffRequestedByUser = true;
-      nextPhase = "handoff"; // 応募せず直接引き継ぎ
+      nextPhase = "handoff_phone_check"; // 応募せず直接引き継ぎ→電話確認
     } else if (val === "start") {
       nextPhase = "ai_consultation_waiting"; // テキスト入力待ち
     } else if (val === "continue") {
@@ -4815,7 +4885,7 @@ function handleLinePostback(dataStr, entry) {
     } else if (val === "jobs") {
       nextPhase = "matching"; // 求人表示
     } else if (val === "handoff") {
-      nextPhase = "handoff"; // 担当者引き継ぎ
+      nextPhase = "handoff_phone_check"; // 担当者引き継ぎ→電話確認
     }
   }
   // 応募同意
@@ -5425,10 +5495,16 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "interview_prep") {
           entry.phase = "interview_prep";
           replyMessages = await buildPhaseMessage("interview_prep", entry, env);
+        } else if (nextPhase === "handoff_phone_check") {
+          entry.phase = "handoff_phone_check";
+          replyMessages = await buildPhaseMessage("handoff_phone_check", entry, env);
+        } else if (nextPhase === "handoff_phone_time") {
+          entry.phase = "handoff_phone_time";
+          replyMessages = await buildPhaseMessage("handoff_phone_time", entry, env);
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
           replyMessages = [
-            { type: "text", text: "担当者に引き継ぎました。\nお返事まで少しお待ちくださいね。\n\nその間に、気になることがあればいつでもメッセージくださいね。" },
+            { type: "text", text: "かしこまりました。担当者に引き継ぎました。\n\n良い日をお過ごしくださいませ！" },
             { type: "text", text: "よくある質問もまとめてあります👇",
               quickReply: {
                 items: [
