@@ -1,12 +1,12 @@
 {
   "lastRun": {
-    "ai_marketing_orchestrator": "2026-04-03T06:00:06",
-    "health_monitor": "2026-04-03T07:00:19",
+    "ai_marketing_orchestrator": "2026-04-04T06:00:03",
+    "health_monitor": "2026-04-04T07:00:18",
     "competitor_analyst": "2026-04-03T10:00:13",
     "content_creator": "2026-04-03T15:03:42",
     "sns_poster": "2026-04-03T18:40:33",
     "daily_reviewer": "2026-04-03T23:00:28",
-    "seo_optimizer": "2026-04-04T04:00:00"
+    "seo_optimizer": "2026-04-04T04:00:21"
   },
   "status": {
     "ai_marketing_orchestrator": "completed",
@@ -15,7 +15,7 @@
     "content_creator": "completed",
     "sns_poster": "running",
     "daily_reviewer": "completed",
-    "seo_optimizer": "running"
+    "seo_optimizer": "completed"
   },
   "pendingTasks": {
     "content_creator": [
@@ -25,6 +25,13 @@
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
         "created": "2026-04-02T07:00:17.525944",
         "status": "processing"
+      },
+      {
+        "from": "health_monitor",
+        "type": "emergency_generate",
+        "details": "キュー残り0件。緊急コンテンツ生成必要。",
+        "created": "2026-04-04T07:00:17.553407",
+        "status": "pending"
       }
     ]
   },
@@ -37,8 +44,8 @@
     "topPerformingTags": [],
     "queueRemaining": 0,
     "totalPostsThisWeek": 45,
-    "lastMarketingPDCA": "2026-04-03 06:00:00",
-    "queuePending": 17,
+    "lastMarketingPDCA": "2026-04-04 06:00:00",
+    "queuePending": 15,
     "dailyGeneratedCount": 0
   },
   "agentMemory": {

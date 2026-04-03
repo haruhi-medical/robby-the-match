@@ -31,7 +31,7 @@ log "=== ハローワーク求人パイプライン開始 ==="
 
 # Step 1: API取得
 log "Step 1: ハローワークAPI取得中..."
-if $PYTHON scripts/hellowork_fetch.py >> "$LOG_FILE" 2>&1; then
+if $PYTHON scripts/hellowork_fetch.py --all-prefectures >> "$LOG_FILE" 2>&1; then
     NURSE_COUNT=$(python3 -c "import json; d=json.load(open('data/hellowork_nurse_jobs.json')); print(d['total_nurse'])" 2>/dev/null || echo "?")
     log "✅ 取得完了: 看護師求人 ${NURSE_COUNT}件"
 else
