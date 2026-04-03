@@ -3569,8 +3569,8 @@ async function buildPhaseMessage(phase, entry, env) {
           quickReply: {
             items: [
               qrItem("通知を受け取る", "nurture=subscribe"),
-              qrItem("この施設について相談する", "matching_preview=detail"),
-              qrItem("条件を変えて探す", "il_area"),
+              qrItem("この施設について相談する", "handoff=ok"),
+              qrItem("条件を変えて探す", "welcome=see_jobs"),
             ],
           },
         }];
@@ -3624,9 +3624,9 @@ async function buildPhaseMessage(phase, entry, env) {
         text: previewText,
         quickReply: {
           items: [
-            qrItem("この求人について相談する", "matching_preview=detail"),
-            qrItem("もっと詳しく条件を教える", "matching_preview=deep"),
+            qrItem("この求人について相談する", "handoff=ok"),
             qrItem("他の求人も見たい", "matching_preview=more"),
+            qrItem("条件を変えて探す", "matching_preview=deep"),
             qrItem("まだ早いかも", "matching_preview=later"),
           ],
         },
@@ -4006,15 +4006,11 @@ function buildMatchChecks(job, entry) {
   const wsLabels = {day:'日勤OK', twoshift:'夜勤OK', part:'パートOK', night:'夜勤専従OK'};
   if (!entry.workStyle || matchesWorkStyle(job, entry.workStyle)) {
     checks.push('✓ ' + (wsLabels[entry.workStyle] || '勤務形態OK'));
-  } else {
-    checks.push('− 勤務形態未確認');
   }
-  // 施設タイプ
+  // 施設タイプ（不一致は表示しない）
   if (!entry.facilityType || entry.facilityType === 'any' || matchesFacilityType(job, entry.facilityType)) {
     const ftLabels = {hospital:'病院', clinic:'クリニック', visiting:'訪問看護', care:'介護施設'};
-    checks.push('✓ ' + (ftLabels[entry.facilityType] || '施設'));
-  } else {
-    checks.push('− 施設タイプ未確認');
+    checks.push('✓ ' + (ftLabels[entry.facilityType] || '施設OK'));
   }
   return checks.join('  ');
 }
@@ -4147,8 +4143,8 @@ async function generateLineMatching(entry, env, offset = 0) {
           d: { sal: 0, hol: 0, bon: 0, wel: 0, emp: 0 },
           bed_count: f.bed_count || 0,
           isFallback: true,
-          matchCount: 1,
-          matchFlags: { area: true, workStyle: false, facilityType: false },
+          matchCount: 2,
+          matchFlags: { area: true, workStyle: false, facilityType: true },
           sortKey: 0,
         }));
         console.log(`[Matching] D1フォールバック: ${d1Result.results.length}件の病院を取得`);
