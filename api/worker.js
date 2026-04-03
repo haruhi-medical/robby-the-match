@@ -4034,31 +4034,34 @@ async function generateLineMatching(entry, env, offset = 0) {
 
   // --- 施設タイプ ハードフィルタ ---
   // ユーザーが施設タイプを指定した場合、不一致の求人を除外
-  // 除外した結果0件になる場合はフィルタを緩和して全件に戻す
+  // 除外した結果0件 → D1フォールバックに進む（緩和しない）
   if (entry.facilityType && entry.facilityType !== 'any' && allJobs.length > 0) {
     const filtered = allJobs.filter(j => j.matchFlags && j.matchFlags.facilityType);
     if (filtered.length > 0) {
       allJobs = filtered;
-      console.log(`[Matching] 施設タイプハードフィルタ: ${entry.facilityType} → ${filtered.length}件に絞り込み`);
+      console.log(`[Matching] 施設タイプハードフィルタ: ${entry.facilityType} → ${filtered.length}件`);
     } else {
-      console.log(`[Matching] 施設タイプハードフィルタ: ${entry.facilityType} → 0件のためフィルタ緩和`);
+      // 0件: 不一致求人を見せるのではなくD1フォールバックに任せる
+      allJobs = [];
+      console.log(`[Matching] 施設タイプハードフィルタ: ${entry.facilityType} 該当求人0件 → D1フォールバックへ`);
     }
   }
 
-  // --- それでも0件: D1病院フォールバック ---
+  // --- 0件: D1施設フォールバック ---
   if (allJobs.length === 0 && env?.DB) {
     try {
       const baseArea = (entry.area || '').replace('_il', '');
       const cities = AREA_CITY_MAP[baseArea] || [];
+      // 施設タイプに応じたD1カテゴリ
+      const d1Category = CATEGORY_MAP[entry.facilityType] || '病院';
       let sql, params;
       if (cities.length > 0) {
         const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count FROM facilities WHERE category = '病院' AND (${whereClauses}) LIMIT 5`;
-        params = cities.map(c => `%${c}%`);
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count FROM facilities WHERE category = ? AND (${whereClauses}) ORDER BY bed_count DESC LIMIT 5`;
+        params = [d1Category, ...cities.map(c => `%${c}%`)];
       } else {
-        // undecided or tokyo_included — 神奈川全体
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count FROM facilities WHERE category = '病院' AND prefecture = '神奈川県' LIMIT 5`;
-        params = [];
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count FROM facilities WHERE category = ? AND prefecture = '神奈川県' ORDER BY bed_count DESC LIMIT 5`;
+        params = [d1Category];
       }
       const d1Result = await env.DB.prepare(sql).bind(...params).all();
       if (d1Result && d1Result.results && d1Result.results.length > 0) {
