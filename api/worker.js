@@ -119,7 +119,7 @@ const STATE_CATEGORIES = {
   // 1. 初期接触
   ONBOARDING:    ["welcome"],
   // 2. ヒアリング（intake_light 3問）
-  INTAKE:        ["il_area", "il_workstyle", "il_urgency"],
+  INTAKE:        ["il_area", "il_workstyle", "il_urgency", "il_facility_type"],
   // 3. マッチング
   MATCHING:      ["matching_preview", "matching_browse", "matching"],
   // 4. AI相談
@@ -437,6 +437,75 @@ const EXTERNAL_JOBS = {
 };
 
 // ---------- FACILITY_DATABASE は worker_facilities.js からimport済み ----------
+
+// ---------- アキネーター候補数計算 ----------
+// ユーザーの回答に基づいて、マッチする施設数と求人数をリアルタイム計算
+function countCandidates(entry) {
+  let totalFacilities = 0;
+  let totalJobs = 0;
+
+  // 施設数（FACILITY_DATABASE）
+  const areaKeys = entry.area ? getAreaKeysFromZone(`q3_${entry.area}`) : null;
+  for (const [areaName, facilities] of Object.entries(FACILITY_DATABASE)) {
+    for (const f of facilities) {
+      // エリアフィルタ
+      if (areaKeys && areaKeys.length > 0) {
+        const fArea = f.area || areaName;
+        const match = areaKeys.some(ak => fArea.includes(ak) || areaName.includes(ak));
+        if (!match) continue;
+      }
+      // 施設タイプフィルタ
+      if (entry.facilityType && entry.facilityType !== 'any') {
+        const ft = (f.type || f.category || '').toLowerCase();
+        if (entry.facilityType === 'hospital' && !ft.includes('病院') && !ft.includes('急性') && !ft.includes('回復') && !ft.includes('療養')) continue;
+        if (entry.facilityType === 'clinic' && !ft.includes('クリニック') && !ft.includes('診療所')) continue;
+        if (entry.facilityType === 'visiting' && !ft.includes('訪問')) continue;
+        if (entry.facilityType === 'care' && !ft.includes('介護') && !ft.includes('老健') && !ft.includes('特養')) continue;
+      }
+      totalFacilities++;
+    }
+  }
+
+  // 求人数（EXTERNAL_JOBS）
+  const profession = 'nurse';
+  const jobSource = EXTERNAL_JOBS[profession] || {};
+  for (const [jobArea, jobs] of Object.entries(jobSource)) {
+    if (!Array.isArray(jobs)) continue;
+    for (const j of jobs) {
+      if (typeof j !== 'object') continue;
+      // エリアフィルタ
+      if (areaKeys && areaKeys.length > 0) {
+        const match = areaKeys.some(ak => jobArea.includes(ak));
+        if (!match) continue;
+      }
+      // 働き方フィルタ
+      if (entry.workStyle) {
+        if (entry.workStyle === 'day' && j.t && (j.t.includes('夜勤') || j.t.includes('二交代') || j.t.includes('三交代'))) continue;
+        if (entry.workStyle === 'night' && j.t && j.t.includes('日勤のみ')) continue;
+        if (entry.workStyle === 'part' && j.emp && !j.emp.includes('パート')) continue;
+      }
+      totalJobs++;
+    }
+  }
+
+  return { facilities: totalFacilities, jobs: totalJobs };
+}
+
+// 候補数テキスト生成
+function candidateText(prev, current) {
+  const bar = '━━━━━━━━━━━━━━━';
+  let text = bar + '\n📊 ';
+  if (prev) {
+    text += `${prev.facilities + prev.jobs}件 → ${current.facilities + current.jobs}件に絞り込み`;
+  } else {
+    text += `現在の候補: ${current.facilities + current.jobs}件`;
+  }
+  if (current.jobs > 0) {
+    text += `\n  うち求人あり: ${current.jobs}件 🔥`;
+  }
+  text += '\n' + bar;
+  return text;
+}
 
 // ---------- エリア名マッチングヘルパー ----------
 function findAreaName(areaInput) {
@@ -2588,7 +2657,8 @@ const LINE_SESSION_TTL = 2592000000; // 30日間
 const PHASE_FLOW_LIGHT = {
   il_area:           "il_workstyle",
   il_workstyle:      "il_urgency",
-  il_urgency:        "matching_preview",
+  il_urgency:        "il_facility_type",
+  il_facility_type:  "matching_preview",
   matching_preview:  "matching_browse",
   matching_browse:   "matching",
   matching:          "ai_consultation",
@@ -3305,11 +3375,12 @@ function buildPhaseMessage(phase, entry) {
           quickReply: { items: [qrItem("求人を見る", "welcome=start")] },
         },
       ];
-    // ===== intake_light フロー =====
-    case "il_area":
+    // ===== intake_light フロー（アキネーター型: 候補数リアルタイム表示） =====
+    case "il_area": {
+      const totalCount = countCandidates({});
       return [{
         type: "text",
-        text: "どのエリアで働きたいですか？",
+        text: `全国${totalCount.facilities + totalCount.jobs}件の中から\nあなたにぴったりの職場を見つけます。\n\nまず、どのエリアで働きたいですか？`,
         quickReply: {
           items: [
             qrItem("横浜・川崎", "il_area=yokohama_kawasaki"),
@@ -3322,12 +3393,15 @@ function buildPhaseMessage(phase, entry) {
           ],
         },
       }];
+    }
 
     case "il_workstyle": {
       const areaLabel = entry.areaLabel || entry.area || "";
+      const prevCount = countCandidates({});
+      const nowCount = countCandidates(entry);
       return [{
         type: "text",
-        text: `${areaLabel}ですね！\n\n希望の働き方は？`,
+        text: `${areaLabel}ですね！\n\n${candidateText(prevCount, nowCount)}\n\n希望の働き方は？`,
         quickReply: {
           items: [
             qrItem("日勤のみ", "il_ws=day"),
@@ -3339,10 +3413,12 @@ function buildPhaseMessage(phase, entry) {
       }];
     }
 
-    case "il_urgency":
+    case "il_urgency": {
+      const prevCountU = countCandidates({ area: entry.area });
+      const nowCountU = countCandidates(entry);
       return [{
         type: "text",
-        text: "最後に、転職の温度感を教えてください。",
+        text: `${candidateText(prevCountU, nowCountU)}\n\nかなり絞れてきました！\n転職の温度感を教えてください。`,
         quickReply: {
           items: [
             qrItem("すぐにでも転職したい", "il_urg=urgent"),
@@ -3351,6 +3427,25 @@ function buildPhaseMessage(phase, entry) {
           ],
         },
       }];
+    }
+
+    case "il_facility_type": {
+      const prevCountF = countCandidates({ area: entry.area, workStyle: entry.workStyle });
+      const nowCountF = countCandidates(entry);
+      return [{
+        type: "text",
+        text: `${candidateText(prevCountF, nowCountF)}\n\nあと1つだけ！\nどんな職場が気になりますか？`,
+        quickReply: {
+          items: [
+            qrItem("病院（入院あり）", "il_ft=hospital"),
+            qrItem("クリニック", "il_ft=clinic"),
+            qrItem("訪問看護", "il_ft=visiting"),
+            qrItem("介護施設", "il_ft=care"),
+            qrItem("こだわりなし", "il_ft=any"),
+          ],
+        },
+      }];
+    }
 
     case "matching_preview": {
       if (!entry.matchingResults || entry.matchingResults.length === 0) {
@@ -3370,8 +3465,11 @@ function buildPhaseMessage(phase, entry) {
       const previewAreaLabel = entry.areaLabel || "お選びのエリア";
       const wsLabels = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
       const wsLabel = wsLabels[entry.workStyle] || "";
+      const ftLabels = {hospital: "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設"};
+      const ftLabel = ftLabels[entry.facilityType] || "";
+      const condLabel = [previewAreaLabel, wsLabel, ftLabel].filter(Boolean).join(" × ");
 
-      let previewText = `${previewAreaLabel} × ${wsLabel} で${previewResults.length}件見つかりました！\n`;
+      let previewText = `あなたにぴったりの求人、見つかりました！\n\n${condLabel} で${entry.matchingResults.length}件マッチ 🎯\n`;
       previewResults.forEach((r, i) => {
         const jobName = r.n || r.name || "求人";
         const jobSal = r.sal || r.salary || "";
@@ -4144,6 +4242,12 @@ function handleLinePostback(dataStr, entry) {
   // intake_light: 温度感
   else if (params.has("il_urg")) {
     entry.urgency = params.get("il_urg");
+    entry.unexpectedTextCount = 0;
+    nextPhase = "il_facility_type";
+  }
+  // 施設タイプ選択（アキネーター4問目）
+  else if (params.has("il_ft")) {
+    entry.facilityType = params.get("il_ft");
     entry.unexpectedTextCount = 0;
     nextPhase = "matching_preview";
   }
