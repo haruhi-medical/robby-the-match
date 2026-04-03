@@ -3766,7 +3766,7 @@ async function buildPhaseMessage(phase, entry, env) {
         // カルーセル後のフォローメッセージ（Quick Reply付き）
         messages.push({
           type: "text",
-          text: "ロビーは病院側の負担が少ない分、内定につながりやすいよ。\n気になる施設があったら気軽に聞いてね😊",
+          text: "ナースロビーは病院側の負担が少ないシステムですので、内定に繋がりやすいです。\n気軽にお尋ねください！",
           quickReply: {
             items: [
               qrItem("他の求人も見る", "matching_preview=more"),
