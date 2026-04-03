@@ -1,65 +1,72 @@
 {
-  "created": "2026-04-01T15:00:13.619636",
-  "updated": "2026-04-02T15:04:49.716962",
-  "week_of": "2026-04-01",
+  "created": "2026-04-03T15:01:18.770708",
+  "updated": "2026-04-03T15:02:01.149307",
+  "week_of": "2026-04-03",
   "total": 7,
-  "queue_pending_at_creation": 9,
+  "queue_pending_at_creation": 6,
   "plans": [
     {
       "day": 1,
-      "category": "転職",
+      "category": "トレンド",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_転職_0402_01",
-      "hint": "退職届を出したら急に「待遇改善する」と言われた。3年間の不満を無視してたくせに"
+      "content_id": "ai_トレ_0403_01",
+      "hint": "母に「看護師辞めたい」と言ったら「せっかく資格取ったのに」。資格は足枷じゃない",
+      "hook_idea": "看護師5年目、資格が足かせ？"
     },
     {
       "day": 2,
-      "category": "あるある",
+      "category": "給与",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0402_02",
-      "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた"
+      "status": "planned",
+      "content_id": null,
+      "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？",
+      "hook_idea": "夜勤10回、手取り35万？"
     },
     {
       "day": 3,
-      "category": "地域ネタ",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_地域_0402_03",
-      "hint": "県西部の病院は紹介会社に135万払えない。だから看護師が来ない。この悪循環"
+      "status": "planned",
+      "content_id": null,
+      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
+      "hook_idea": "師長に退職届出したら…"
     },
     {
       "day": 4,
-      "category": "業界裏側",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_業界_0402_04",
-      "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布"
+      "status": "planned",
+      "content_id": null,
+      "hint": "プリセプターやれって言われた。自分がまだプリセプティーの気持ちなのに",
+      "hook_idea": "プリセプター任命、自分もまだプリセプティ"
     },
     {
       "day": 5,
-      "category": "給与",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_給与_0402_05",
-      "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
+      "hook_idea": "インシデントレポート、報告書は業務外？"
     },
     {
       "day": 6,
-      "category": "あるある",
+      "category": "業界裏側",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0402_06",
-      "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布",
+      "hook_idea": "看護師紹介料、病院が得してる？"
     },
     {
       "day": 7,
       "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_地域_0402_07",
-      "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い"
+      "status": "planned",
+      "content_id": null,
+      "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い",
+      "hook_idea": "神奈川看護師、ワースト3位の理由"
     }
   ]
 }
