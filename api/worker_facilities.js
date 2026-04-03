@@ -1,5 +1,5 @@
 // ==========================================
-// 神奈川ナース転職 - 施設データベース（自動生成）
+// ナースロビー - 施設データベース（自動生成）
 // Generated: 2026-04-01T06:18:43.301Z
 // Source: config.js (17エリア, 212施設)
 // Generator: scripts/generate_worker_facilities.js
@@ -839,7 +839,7 @@ const FACILITY_DATABASE = {
       ],
       "nurseCount": 54,
       "ptCount": null,
-      "features": "神奈川ナース転職紹介可能・ケアミックス・回復期リハビリ・ブランクOK・地域密着",
+      "features": "ナースロビー紹介可能・ケアミックス・回復期リハビリ・ブランクOK・地域密着",
       "access": "小田原駅バス15分",
       "nightShiftType": "二交代制",
       "annualHolidays": 115,

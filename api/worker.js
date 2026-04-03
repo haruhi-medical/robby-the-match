@@ -1,5 +1,5 @@
 // ========================================
-// 神奈川ナース転職 - Cloudflare Workers API
+// ナースロビー - Cloudflare Workers API
 // フォーム送信プロキシ / Slack通知 / AIチャット / Google Sheets連携
 // v2.0: 施設データベース + 距離計算 + 改良プロンプト
 // ========================================
@@ -917,10 +917,10 @@ function buildSystemPrompt(userMsgCount, profession, area, experience) {
     }
   }
 
-  let basePrompt = `あなたは神奈川ナース転職のAI転職アドバイザーです。看護師・理学療法士など医療専門職の転職をサポートしています。あなたの名前は「ロビー」です。
+  let basePrompt = `あなたはナースロビーのAI転職アドバイザーです。看護師・理学療法士など医療専門職の転職をサポートしています。あなたの名前は「ロビー」です。
 
 【あなたの人格・話し方】
-- 神奈川ナース転職のAI転職アドバイザーとして、神奈川県の医療機関に詳しい立場で話してください
+- ナースロビーのAI転職アドバイザーとして、神奈川県の医療機関に詳しい立場で話してください
 - 神奈川県内の医療機関事情に精通しています。各病院の特徴・雰囲気・実際の働きやすさを知っている前提で話してください
 - 「受け持ち」「夜勤入り」「インシデント」「プリセプター」「ラダー」「申し送り」等の看護現場の用語を自然に使えます
 - 相手の言葉をまず受け止めてから返してください（例: 「夜勤がつらい」→「夜勤明けの疲れって本当にキツいですよね。体がしんどいのか、生活リズムが合わないのか、人によって理由も違いますし」）
@@ -969,8 +969,8 @@ ${SHIFT_DATA}
 ${MARKET_DATA}
 
 【重要: 紹介可能施設と一般情報の区別】
-- 神奈川ナース転職が直接ご紹介できる求人: 小林病院（小田原市・150床・ケアミックス型）のみ
-- 小林病院については「神奈川ナース転職から直接ご紹介できる求人です」と伝えてよい
+- ナースロビーが直接ご紹介できる求人: 小林病院（小田原市・150床・ケアミックス型）のみ
+- 小林病院については「ナースロビーから直接ご紹介できる求人です」と伝えてよい
 - それ以外の施設データベースの情報は「このエリアにはこういった医療機関があります」と一般的な地域情報として伝える
 - 契約外の施設について「紹介できます」「応募できます」「求人が出ています」とは絶対に言わない
 - 地域の施設情報を伝えた後は「詳しい求人状況はLINEでお調べしますね」と誘導する
@@ -2809,7 +2809,7 @@ function buildSessionWelcome(sessionCtx, entry) {
       nextPhase: 'welcome',
       messages: [{
         type: 'text',
-        text: `こんにちは！神奈川ナース転職です。\n\n${areaLabel}の看護師求人を\nお探しですね。\n\nあと2つだけ教えてください👇`,
+        text: `こんにちは！ナースロビーです。\n\n${areaLabel}の看護師求人を\nお探しですね。\n\nあと2つだけ教えてください👇`,
         quickReply: {
           items: [
             qrItem('日勤のみ', 'area_welcome=day'),
@@ -2828,7 +2828,7 @@ function buildSessionWelcome(sessionCtx, entry) {
       nextPhase: 'welcome',
       messages: [{
         type: 'text',
-        text: 'ようこそ！神奈川ナース転職です。\n\n年収診断からいらっしゃったんですね。\nもう少し詳しい年収情報と、\nあなたの条件に合う求人を\nお見せできます。\n\n3つだけ教えてくださいね。',
+        text: 'ようこそ！ナースロビーです。\n\n年収診断からいらっしゃったんですね。\nもう少し詳しい年収情報と、\nあなたの条件に合う求人を\nお見せできます。\n\n3つだけ教えてくださいね。',
         quickReply: {
           items: [
             qrItem('さっそく始める', 'welcome=see_jobs'),
@@ -2863,7 +2863,7 @@ function buildSessionWelcome(sessionCtx, entry) {
         nextPhase: 'welcome',
         messages: [{
           type: 'text',
-          text: 'ようこそ！神奈川ナース転職です🏥\n\n転職のご相談ですね。\nまず簡単に条件を教えていただければ、\nあなたに合う求人をお見せしながら\nお話しできます。\n\n3つだけ教えてくださいね。',
+          text: 'ようこそ！ナースロビーです🏥\n\n転職のご相談ですね。\nまず簡単に条件を教えていただければ、\nあなたに合う求人をお見せしながら\nお話しできます。\n\n3つだけ教えてくださいね。',
           quickReply: {
             items: [
               qrItem('さっそく始める', 'welcome=see_jobs'),
@@ -2879,7 +2879,7 @@ function buildSessionWelcome(sessionCtx, entry) {
       nextPhase: 'welcome',
       messages: [{
         type: 'text',
-        text: 'ようこそ！神奈川ナース転職です🏥\n\n求人をお探しなんですね。\n3つだけ教えてください。\nすぐにあなたに合う求人をお見せします。\n\n※名前や電話番号は不要です',
+        text: 'ようこそ！ナースロビーです🏥\n\n求人をお探しなんですね。\n3つだけ教えてください。\nすぐにあなたに合う求人をお見せします。\n\n※名前や電話番号は不要です',
         quickReply: {
           items: [
             qrItem('さっそく始める', 'welcome=see_jobs'),
@@ -2896,7 +2896,7 @@ function buildSessionWelcome(sessionCtx, entry) {
     nextPhase: 'welcome',
     messages: [{
       type: 'text',
-      text: 'はじめまして！\n神奈川ナース転職です🏥\n\n神奈川県の看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？',
+      text: 'はじめまして！\nナースロビーです🏥\n\n看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？',
       quickReply: {
         items: [
           qrItem('求人を探したい', 'welcome=see_jobs'),
@@ -3257,7 +3257,7 @@ ${concern === "なし" ? "特になし" : concern}
 
 ━━━━━━━━━━━━━━━━━━
 ※ 氏名・連絡先は開示していません
-神奈川ナース転職（23-ユ-302928）
+ナースロビー（23-ユ-302928）
 ━━━━━━━━━━━━━━━━━━`;
   return sheet;
 }
@@ -3323,7 +3323,7 @@ function buildPhaseMessage(phase, entry) {
       return [
         {
           type: "text",
-          text: "友だち追加ありがとうございます！\n神奈川ナース転職のAI転職アドバイザー「ロビー」です🤖\n\nシン・AI転職 — 早い × 簡単 × 24時間\n手数料10%だから、病院が採用しやすい＝あなたの内定率が上がります。\n\n📱 しつこい電話なし（LINEのみ）\n⚡ AIで最短3日マッチング\n📝 経歴書もAIが下書き\n\nまずは、あなたの転職の緊急度を教えてください！",
+          text: "友だち追加ありがとうございます！\nナースロビーのAI転職アドバイザー「ロビー」です🤖\n\nシン・AI転職 — 早い × 簡単 × 24時間\n手数料10%だから、病院が採用しやすい＝あなたの内定率が上がります。\n\n📱 しつこい電話なし（LINEのみ）\n⚡ AIで最短3日マッチング\n📝 経歴書もAIが下書き\n\nまずは、あなたの転職の緊急度を教えてください！",
         },
         {
           type: "text",
@@ -3690,7 +3690,7 @@ function buildPhaseMessage(phase, entry) {
     case "consent":
       return [{
         type: "text",
-        text: "友だち追加ありがとうございます！\n神奈川ナース転職です。\n\n転職サポートのため、個人情報の取り扱いについてご確認をお願いします。\n\n📋 個人情報保護方針:\nhttps://quads-nurse.com/privacy.html\n📋 利用規約:\nhttps://quads-nurse.com/terms.html\n\n上記を確認の上、同意いただける場合は「同意する」をタップしてください。",
+        text: "友だち追加ありがとうございます！\nナースロビーです。\n\n転職サポートのため、個人情報の取り扱いについてご確認をお願いします。\n\n📋 個人情報保護方針:\nhttps://quads-nurse.com/privacy.html\n📋 利用規約:\nhttps://quads-nurse.com/terms.html\n\n上記を確認の上、同意いただける場合は「同意する」をタップしてください。",
         quickReply: {
           items: [
             qrItem("✅ 同意する", "consent=agree"),
@@ -5059,7 +5059,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         const msgs = [{
           type: "text",
-          text: "はじめまして！\n神奈川ナース転職です\n\n神奈川県の看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？",
+          text: "はじめまして！\nナースロビーです\n\n看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？",
           quickReply: {
             items: [
               qrItem("求人を探したい", "welcome=see_jobs"),
@@ -6101,7 +6101,7 @@ async function handleLineAIConsultation(userText, entry, env) {
   const EXTENDED_MAX = 8;
   const limit = entry.consultExtended ? EXTENDED_MAX : MAX_TURNS;
 
-  const systemPrompt = `あなたは「ロビー」、神奈川ナース転職のAI転職相談アシスタントです。
+  const systemPrompt = `あなたは「ロビー」、ナースロビーのAI転職相談アシスタントです。
 看護師の転職相談に親身に答えます。
 
 【回答ルール】
@@ -6441,7 +6441,7 @@ async function handleScheduledNurture(env) {
           shouldSend = true;
         } else if (sentCount === 2 && daysSinceEntry >= 14) {
           // Day 14: チェックイン
-          messageText = "お久しぶりです！\n神奈川ナース転職です。\n\n転職のこと、\nまだ気になっていますか？\nいつでもお手伝いできますよ。";
+          messageText = "お久しぶりです！\nナースロビーです。\n\n転職のこと、\nまだ気になっていますか？\nいつでもお手伝いできますよ。";
           shouldSend = true;
         } else if (sentCount >= 3 && daysSinceEntry >= 30) {
           // Day 30+: nurture_coldに移行（KVキー削除）

@@ -1,5 +1,5 @@
 // ========================================
-// 神奈川ナース転職 - Chat Widget v5.1
+// ナースロビー - Chat Widget v5.1
 // LINE誘導特化 - 2問→診断結果→LINE CTA
 // 「すげー！」体験を作る
 // ========================================
@@ -11,7 +11,7 @@
   // Configuration
   // --------------------------------------------------
   var CHAT_CONFIG = {
-    brandName: typeof CONFIG !== "undefined" ? CONFIG.BRAND_NAME : "神奈川ナース転職",
+    brandName: typeof CONFIG !== "undefined" ? CONFIG.BRAND_NAME : "ナースロビー",
     hospitals: typeof CONFIG !== "undefined" ? CONFIG.HOSPITALS : [],
   };
 
@@ -496,7 +496,7 @@
     showTyping();
     setTimeout(function () {
       hideTyping();
-      addMessage("ai", "こんにちは！神奈川ナース転職のAIアドバイザー、ロビーです。\n\n2つだけ質問させてください。あなたのエリアの年収相場と、条件に合いそうな施設をAIが分析します。\n\n名前や電話番号は一切不要。30秒で終わります。");
+      addMessage("ai", "こんにちは！ナースロビーのAIアドバイザー、ロビーです。\n\n2つだけ質問させてください。あなたのエリアの年収相場と、条件に合いそうな施設をAIが分析します。\n\n名前や電話番号は一切不要。30秒で終わります。");
 
       setTimeout(function () {
         showTyping();

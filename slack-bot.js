@@ -1,5 +1,5 @@
 // ========================================
-// 神奈川ナース転職 - Slack → Claude Code Bridge
+// ナースロビー - Slack → Claude Code Bridge
 // Slackメッセージ = Claude Code入力と同等に処理
 // ========================================
 
@@ -28,12 +28,12 @@ const PROJECT_DIR = __dirname;
 let processing = false;
 
 // ---------- プロジェクト固定コンテキスト ----------
-const SYSTEM_CONTEXT = `あなたは神奈川ナース転職プロジェクトの開発エージェントです。
+const SYSTEM_CONTEXT = `あなたはナースロビープロジェクトの開発エージェントです。
 プロジェクトディレクトリ: ${PROJECT_DIR}
 このプロジェクトは医療人材紹介LP（はるひメディカルサービス）です。
 ボートレースとは無関係です。このプロジェクトのファイルのみを対象に作業してください。
 主要ファイル: index.html, style.css, script.js, chat.js, chat.css, config.js, privacy.html, terms.html, api/worker.js
-ブランド名: 神奈川ナース転職
+ブランド名: ナースロビー
 日本語で回答してください。`;
 
 // ---------- Claude Code実行 ----------
@@ -125,7 +125,7 @@ app.event("app_mention", async ({ event, say }) => {
 (async () => {
   await app.start();
   console.log("==========================================");
-  console.log("  神奈川ナース転職 - Claude Code Bridge");
+  console.log("  ナースロビー - Claude Code Bridge");
   console.log("  Slack message = Claude Code input");
   console.log("  Socket Mode: Active");
   console.log(`  Channel: #平島claudecode`);

@@ -1,5 +1,5 @@
 /**
- * 神奈川ナース転職 — 転職診断UI v5.0 (vanilla JS)
+ * ナースロビー — 転職診断UI v5.0 (vanilla JS)
  * 3問構成: エリア→働き方→温度感
  *
  * REQUIRED: Add to LP <head> before closing tag:
