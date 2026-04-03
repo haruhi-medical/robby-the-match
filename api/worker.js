@@ -5418,7 +5418,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // Track shown job IDs
           if (entry.matchingResults && entry.matchingResults.length > 0) {
             if (!entry.browsedJobIds) entry.browsedJobIds = [];
-            const shownIds = entry.matchingResults.slice(0, 5).map(r => r.n || r.name);
+            const shownIds = entry.matchingResults.slice(0, 5).map(r => `${r.n || r.name}_${r.loc || ''}`);
             entry.browsedJobIds.push(...shownIds);
           }
           replyMessages = await buildPhaseMessage("matching_preview", entry, env);
@@ -5452,13 +5452,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           await generateLineMatching(entry, env);
           if (entry.matchingResults && entry.browsedJobIds && entry.browsedJobIds.length > 0) {
             entry.matchingResults = entry.matchingResults.filter(r =>
-              !entry.browsedJobIds.includes(r.n || r.name)
+              !entry.browsedJobIds.includes(`${r.n || r.name}_${r.loc || ''}`)
             );
           }
           // Track newly shown job IDs
           if (entry.matchingResults && entry.matchingResults.length > 0) {
             if (!entry.browsedJobIds) entry.browsedJobIds = [];
-            const shownIds = entry.matchingResults.slice(0, 5).map(r => r.n || r.name);
+            const shownIds = entry.matchingResults.slice(0, 5).map(r => `${r.n || r.name}_${r.loc || ''}`);
             entry.browsedJobIds.push(...shownIds);
           }
           replyMessages = await buildPhaseMessage("matching_browse", entry, env);
@@ -6084,7 +6084,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             entry.phase = "handoff";
             replyMessages = [{
               type: "text",
-              text: "うまくお答えできずすみません。\n担当者が引き継いで、このLINEでご対応しますね。\n翌営業日までにご連絡いたします。電話はしません。",
+              text: "うまくお答えできずすみません。\n担当者に引き継ぎました。\n翌営業日までにこのLINEでご連絡しますね。\n\n良い日をお過ごしくださいませ！",
             }];
             await sendHandoffNotification(userId, entry, env);
           } else if (entry.unexpectedTextCount === 2) {
