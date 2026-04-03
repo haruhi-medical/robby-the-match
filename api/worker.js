@@ -119,7 +119,7 @@ const STATE_CATEGORIES = {
   // 1. 初期接触
   ONBOARDING:    ["welcome"],
   // 2. ヒアリング（intake_light 3問）
-  INTAKE:        ["il_area", "il_workstyle", "il_urgency", "il_facility_type"],
+  INTAKE:        ["il_area", "il_subarea", "il_workstyle", "il_urgency", "il_facility_type"],
   // 3. マッチング
   MATCHING:      ["matching_preview", "matching_browse", "matching"],
   // 4. AI相談
@@ -2715,7 +2715,8 @@ const LINE_SESSION_TTL = 2592000000; // 30日間
 // ---------- 定数: フェーズフロー ----------
 // フロー分岐: urgencyに応じてルートが変わる
 const PHASE_FLOW_LIGHT = {
-  il_area:           "il_workstyle",
+  il_area:           "il_subarea",
+  il_subarea:        "il_workstyle",
   il_workstyle:      "il_urgency",
   il_urgency:        "il_facility_type",
   il_facility_type:  "matching_preview",
@@ -2863,8 +2864,11 @@ const IL_AREA_LABELS = {
   sagamihara_kenoh: "相模原・県央",
   yokosuka_miura: "横須賀・三浦",
   odawara_kensei: "小田原・県西",
-  tokyo_included: "東京含む",
-  undecided: "未定",
+  kanagawa_all: "神奈川県全域",
+  tokyo_included: "東京全域",
+  tokyo_23ku: "東京23区",
+  tokyo_tama: "東京多摩地域",
+  undecided: "全エリア",
 };
 
 // PC用テキスト→postbackキーマッピング（intake_light + 共通操作のみ）
@@ -3436,6 +3440,7 @@ async function buildPhaseMessage(phase, entry, env) {
         },
       ];
     // ===== intake_light フロー（アキネーター型: 候補数リアルタイム表示） =====
+    // ステップ1: 都道府県選択（2段階の1段目）
     case "il_area": {
       const totalCount = await countCandidatesD1({}, env);
       return [{
@@ -3443,13 +3448,42 @@ async function buildPhaseMessage(phase, entry, env) {
         text: `全国${totalCount.facilities + totalCount.jobs}件の中から\nあなたにぴったりの職場を見つけます。\n\nまず、どのエリアで働きたいですか？`,
         quickReply: {
           items: [
+            qrItem("神奈川県", "il_pref=kanagawa"),
+            qrItem("東京都", "il_pref=tokyo"),
+            qrItem("その他・未定", "il_area=undecided"),
+          ],
+        },
+      }];
+    }
+
+    // ステップ1b: サブエリア選択（2段階の2段目）
+    case "il_subarea": {
+      const prefCount = await countCandidatesD1(entry, env);
+      const prefLabel = entry.prefecture === 'tokyo' ? '東京都' : '神奈川県';
+      if (entry.prefecture === 'tokyo') {
+        return [{
+          type: "text",
+          text: `${prefLabel}ですね！\n\n${candidateText(null, prefCount)}\n\n東京のどのあたりが希望ですか？`,
+          quickReply: {
+            items: [
+              qrItem("23区", "il_area=tokyo_23ku"),
+              qrItem("多摩地域", "il_area=tokyo_tama"),
+              qrItem("どこでもOK", "il_area=tokyo_included"),
+            ],
+          },
+        }];
+      }
+      return [{
+        type: "text",
+        text: `${prefLabel}ですね！\n\n${candidateText(null, prefCount)}\n\n神奈川のどのあたりが希望ですか？`,
+        quickReply: {
+          items: [
             qrItem("横浜・川崎", "il_area=yokohama_kawasaki"),
             qrItem("湘南・鎌倉", "il_area=shonan_kamakura"),
             qrItem("相模原・県央", "il_area=sagamihara_kenoh"),
             qrItem("横須賀・三浦", "il_area=yokosuka_miura"),
             qrItem("小田原・県西", "il_area=odawara_kensei"),
-            qrItem("東京も含めて検討", "il_area=tokyo_included"),
-            qrItem("まだ決めてない", "il_area=undecided"),
+            qrItem("どこでもOK", "il_area=kanagawa_all"),
           ],
         },
       }];
@@ -4261,16 +4295,17 @@ function buildMatchingMessages(entry) {
   });
 
   // 補足テキスト + 逆指名案内
-  let supplementText = "気になる求人はありますか？\n「この求人が気になる」を押していただければ、担当者が最新の募集状況を確認します。\n\n💡 *ここにない病院でも大丈夫！*\n「あの病院で働きたい」という希望があれば、名前を伏せて直接確認できます。手数料10%の強みを活かして、病院に直接提案します。";
+  let supplementText = "気になる施設はありますか？\n\nこの中の施設について、もっと詳しい内部情報をお伝えできます。\n実際にこの地域を担当しているスタッフが、あなたの気になることにお答えします。\n\n✓ お電話はしません\n✓ このLINEだけでやり取りします\n✓ 応募を強制することは一切ありません";
 
   messages.push({
     type: "text",
     text: supplementText,
     quickReply: {
       items: [
-        qrItem("気になる求人がある", "match=detail"),
+        qrItem("詳しく聞きたい", "match=detail"),
         qrItem("他の病院に聞いてほしい", "match=reverse"),
         qrItem("他の求人も見たい", "match=other"),
+        qrItem("まだ早いかも", "match=later"),
       ],
     },
   });
@@ -4403,8 +4438,15 @@ function handleLinePostback(dataStr, entry) {
   const params = new URLSearchParams(dataStr);
   let nextPhase = null;
 
-  // intake_light: エリア
-  if (params.has("il_area")) {
+  // intake_light: 都道府県選択（2段階の1段目）
+  if (params.has("il_pref")) {
+    const pref = params.get("il_pref");
+    entry.prefecture = pref;
+    entry.unexpectedTextCount = 0;
+    nextPhase = "il_subarea";
+  }
+  // intake_light: サブエリア選択（2段階の2段目）
+  else if (params.has("il_area")) {
     const val = params.get("il_area");
     entry.area = val + "_il"; // AREA_ZONE_MAPでq3_{val}_ilとして展開
     entry.areaLabel = IL_AREA_LABELS[val] || val;
@@ -4840,14 +4882,23 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.welcomeSource = 'none';
           await saveLineEntry(userId, entry, env);
 
+          // 求人数を取得して動的ウェルカム
+          let jobCount = 123; // デフォルト
+          try {
+            if (env?.DB) {
+              const cnt = await env.DB.prepare('SELECT COUNT(*) as cnt FROM facilities').first();
+              jobCount = cnt?.cnt || jobCount;
+            }
+          } catch (e) { /* D1エラーは無視 */ }
+
           const msgs = [{
             type: "text",
-            text: "はじめまして！\nナースロビーです\n\n看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？",
+            text: `はじめまして！\nナースロビーのロビーです🤖\n\n${jobCount.toLocaleString()}件の医療機関の中から\nあなたにぴったりの職場を見つけます。\n\n完全無料・電話なし・LINE完結。\n\nまずは求人を探してみませんか？`,
             quickReply: {
               items: [
-                qrItem("求人を探したい", "welcome=see_jobs"),
+                qrItem("求人を探す", "welcome=see_jobs"),
                 qrItem("年収を知りたい", "welcome=check_salary"),
-                qrItem("転職の相談をしたい", "welcome=consult"),
+                qrItem("まず相談したい", "welcome=consult"),
                 qrItem("まだ見てるだけ", "welcome=browse"),
               ],
             },
@@ -6106,18 +6157,39 @@ async function handleScheduledNurture(env) {
         let shouldSend = false;
         let messageText = "";
 
+        // 動的求人数を取得（D1）
+        let dynamicJobCount = '';
+        if (env?.DB && data.area) {
+          try {
+            const baseArea = (data.area || '').replace('_il', '');
+            const cities = AREA_CITY_MAP[baseArea] || [];
+            let cnt = 0;
+            if (cities.length > 0) {
+              const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
+              const r = await env.DB.prepare(`SELECT COUNT(*) as cnt FROM facilities WHERE category = '病院' AND (${whereClauses})`).bind(...cities.map(c => `%${c}%`)).first();
+              cnt = r?.cnt || 0;
+            }
+            if (cnt > 0) dynamicJobCount = `${cnt}件の医療機関`;
+          } catch (e) { /* D1エラーは無視 */ }
+        }
+
         if (sentCount === 0 && daysSinceEntry >= 3) {
-          // Day 3: エリア新着情報
+          // Day 3: エリア新着情報（動的数字付き）
           const areaLabel = data.areaLabel || "神奈川県";
-          messageText = `${areaLabel}エリアの\n看護師求人に動きがありました。\n\nよかったら見てみませんか？`;
+          messageText = dynamicJobCount
+            ? `${areaLabel}エリアに\n${dynamicJobCount}の看護師求人があります。\n\n今週も新着が出ています。\nよかったら見てみませんか？`
+            : `${areaLabel}エリアの\n看護師求人に動きがありました。\n\nよかったら見てみませんか？`;
           shouldSend = true;
         } else if (sentCount === 1 && daysSinceEntry >= 7) {
-          // Day 7: 転職ガイド情報
-          messageText = "看護師の転職で\n一番大事なのは「タイミング」。\n\n年度替わりは求人が増える時期です。\n気になる求人だけでも\nチェックしておきませんか？";
+          // Day 7: 具体的な求人数
+          const areaLabel = data.areaLabel || "お探しのエリア";
+          messageText = dynamicJobCount
+            ? `${areaLabel}エリアには現在\n${dynamicJobCount}があります。\n\n人気の求人は早く埋まります。\n気になるものだけでも\nチェックしておきませんか？`
+            : "看護師の転職で\n一番大事なのは「タイミング」。\n\n気になる求人だけでも\nチェックしておきませんか？";
           shouldSend = true;
         } else if (sentCount === 2 && daysSinceEntry >= 14) {
           // Day 14: チェックイン
-          messageText = "お久しぶりです！\nナースロビーです。\n\n転職のこと、\nまだ気になっていますか？\nいつでもお手伝いできますよ。";
+          messageText = "お久しぶりです！\nナースロビーのロビーです。\n\n転職のこと、\nまだ気になっていますか？\nいつでもお手伝いできますよ。";
           shouldSend = true;
         } else if (sentCount >= 3 && daysSinceEntry >= 30) {
           // Day 30+: nurture_coldに移行（KVキー削除）

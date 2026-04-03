@@ -393,11 +393,16 @@
         '<div>' + ICONS[0] + ' ' + findLabel(0, A.a) + '</div>' +
         '<div>' + ICONS[1] + ' ' + findLabel(1, A.w) + '</div>' +
         '<div>' + ICONS[2] + ' ' + findLabel(2, A.t) + '</div>' +
+      '</div>' +
+      '<div style="margin-top:12px;padding:10px;background:#f0f7f5;border-radius:8px;font-size:0.88rem;color:#1a7f64;text-align:center;">' +
+        '詳しい結果と、あなたに合う求人<strong>' + ct + '件</strong>をお届けします' +
       '</div>';
     r.appendChild(el('div', 'shindan-summary', summaryHTML));
 
     /* CTA */
-    var ctaText = A.t === 'info' ? 'まずは情報だけ受け取る' : '診断結果を受け取る';
+    var ctaText = ct > 0
+      ? 'あなたに合う' + ct + '件の求人を見る'
+      : (A.t === 'info' ? 'まずは情報だけ受け取る' : '診断結果を受け取る');
     var skipped = window._shindanSkipped;
     window._shindanSkipped = false;
 
