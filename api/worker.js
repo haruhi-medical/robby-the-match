@@ -3681,16 +3681,23 @@ async function buildPhaseMessage(phase, entry, env) {
       function buildFallbackBubble(fac) {
         const name = (fac.n || '病院').slice(0, 25);
         const subType = fac.t || '';
-        const loc = fac.loc ? fac.loc.replace(/^神奈川県|^東京都/, '').slice(0, 15) : '';
+        const loc = fac.loc ? fac.loc.replace(/^神奈川県|^東京都|^埼玉県|^千葉県/, '').slice(0, 15) : '';
         const bedLabel = fac.bed_count ? (fac.bed_count >= 300 ? '大規模' : fac.bed_count >= 100 ? '中規模' : '小規模') + `（${fac.bed_count}床）` : '';
+        const stationText = fac.nearest_station ? `📍 ${fac.nearest_station}${fac.station_minutes ? ' 徒歩' + fac.station_minutes + '分' : ''}` : '';
+        const nurseText = fac.nurse_fulltime ? `👩‍⚕️ 看護師${fac.nurse_fulltime}名` : '';
 
         const bodyContents = [
           { type: "text", text: name, size: "md", weight: "bold", color: "#333333", wrap: true },
         ];
-        if (subType || bedLabel) {
-          bodyContents.push({ type: "text", text: [subType, bedLabel].filter(Boolean).join('・'), size: "sm", color: "#666666", margin: "sm" });
+        // 施設規模
+        const infoLine = [subType, bedLabel, nurseText].filter(Boolean).join('・');
+        if (infoLine) {
+          bodyContents.push({ type: "text", text: infoLine, size: "sm", color: "#666666", margin: "sm", wrap: true });
         }
-        if (loc) {
+        // 最寄駅（優先表示）
+        if (stationText) {
+          bodyContents.push({ type: "text", text: stationText, size: "sm", color: "#333333", margin: "xs" });
+        } else if (loc) {
           bodyContents.push({ type: "text", text: `📍 ${loc}`, size: "sm", color: "#666666", margin: "xs" });
         }
         bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
@@ -4238,10 +4245,10 @@ async function generateLineMatching(entry, env, offset = 0) {
       let sql, params;
       if (cities.length > 0) {
         const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count FROM facilities WHERE category = ? AND (${whereClauses}) ORDER BY bed_count DESC LIMIT 5`;
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses}) ORDER BY bed_count DESC LIMIT 5`;
         params = [d1Category, ...cities.map(c => `%${c}%`)];
       } else {
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count FROM facilities WHERE category = ? AND prefecture = '神奈川県' ORDER BY bed_count DESC LIMIT 5`;
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND prefecture = '神奈川県' ORDER BY bed_count DESC LIMIT 5`;
         params = [d1Category];
       }
       const d1Result = await env.DB.prepare(sql).bind(...params).all();
@@ -4261,6 +4268,9 @@ async function generateLineMatching(entry, env, offset = 0) {
           r: 'B',
           d: { sal: 0, hol: 0, bon: 0, wel: 0, emp: 0 },
           bed_count: f.bed_count || 0,
+          nearest_station: f.nearest_station || '',
+          station_minutes: f.station_minutes || 0,
+          nurse_fulltime: f.nurse_fulltime ? parseInt(f.nurse_fulltime) : 0,
           isFallback: true,
           matchCount: 2,
           matchFlags: { area: true, workStyle: false, facilityType: true },
