@@ -3612,7 +3612,7 @@ async function buildPhaseMessage(phase, entry, env) {
       }
 
       // --- Flexカルーセル求人カード生成 ---
-      const allResults = entry.matchingResults.slice(0, 3);
+      const allResults = entry.matchingResults.slice(0, 5);
       const normalResults = allResults.filter(r => !r.isFallback);
       const fallbackResults = allResults.filter(r => r.isFallback);
 
@@ -3741,8 +3741,9 @@ async function buildPhaseMessage(phase, entry, env) {
       const bubbles = [];
       normalResults.forEach((r, i) => bubbles.push(buildJobBubble(r, i)));
       // 通常求人2件以下ならフォールバック追加
-      if (normalResults.length <= 2) {
-        fallbackResults.slice(0, 3 - normalResults.length).forEach(r => bubbles.push(buildFallbackBubble(r)));
+      // 通常求人+フォールバックで合計5枚を目指す
+      if (normalResults.length < 5) {
+        fallbackResults.slice(0, 5 - normalResults.length).forEach(r => bubbles.push(buildFallbackBubble(r)));
       }
 
       // altText（Flex非対応端末用）
@@ -3788,7 +3789,7 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
 
-      const browseResults = entry.matchingResults.slice(0, 3);
+      const browseResults = entry.matchingResults.slice(0, 5);
       const browseAreaLabel = entry.areaLabel || "お選びのエリア";
       const browseWsLabels = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
       const browseWsLabel = browseWsLabels[entry.workStyle] || "";
@@ -5279,7 +5280,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // Track shown job IDs
           if (entry.matchingResults && entry.matchingResults.length > 0) {
             if (!entry.browsedJobIds) entry.browsedJobIds = [];
-            const shownIds = entry.matchingResults.slice(0, 3).map(r => r.n || r.name);
+            const shownIds = entry.matchingResults.slice(0, 5).map(r => r.n || r.name);
             entry.browsedJobIds.push(...shownIds);
           }
           replyMessages = await buildPhaseMessage("matching_preview", entry, env);
@@ -5319,7 +5320,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // Track newly shown job IDs
           if (entry.matchingResults && entry.matchingResults.length > 0) {
             if (!entry.browsedJobIds) entry.browsedJobIds = [];
-            const shownIds = entry.matchingResults.slice(0, 3).map(r => r.n || r.name);
+            const shownIds = entry.matchingResults.slice(0, 5).map(r => r.n || r.name);
             entry.browsedJobIds.push(...shownIds);
           }
           replyMessages = await buildPhaseMessage("matching_browse", entry, env);
