@@ -3709,6 +3709,22 @@ async function buildPhaseMessage(phase, entry, env) {
       }
 
       // D1フォールバック施設カード
+      // 施設コメント自動生成（客観ファクトのみ、主観禁止）
+      function buildAutoComment(fac) {
+        const points = [];
+        if (fac.nearest_station && fac.station_minutes) {
+          if (fac.station_minutes <= 5) points.push('駅チカ');
+          else if (fac.station_minutes <= 10) points.push('駅徒歩圏内');
+        }
+        if (fac.nurse_fulltime && fac.nurse_fulltime >= 200) points.push('看護体制充実');
+        else if (fac.nurse_fulltime && fac.nurse_fulltime >= 50) points.push('中規模体制');
+        if (fac.bed_count && fac.bed_count >= 300) points.push('大規模病院');
+        if (fac.t === '急性期') points.push('急性期');
+        else if (fac.t === '回復期') points.push('回復期リハ');
+        else if (fac.t === '慢性期') points.push('療養型');
+        return points.length > 0 ? points.slice(0, 3).join(' / ') : '';
+      }
+
       function buildFallbackBubble(fac) {
         const name = (fac.n || '病院').slice(0, 25);
         const subType = fac.t || '';
@@ -3726,6 +3742,11 @@ async function buildPhaseMessage(phase, entry, env) {
         const bodyContents = [
           { type: "text", text: name, size: "md", weight: "bold", color: "#333333", wrap: true },
         ];
+        // 自動コメント
+        const autoComment = buildAutoComment(fac);
+        if (autoComment) {
+          bodyContents.push({ type: "text", text: autoComment, size: "xs", color: BRAND_COLOR, margin: "sm", wrap: true });
+        }
         // 施設規模
         const infoLine = [subType, bedLabel, nurseText].filter(Boolean).join('・');
         if (infoLine) {
@@ -3778,6 +3799,27 @@ async function buildPhaseMessage(phase, entry, env) {
       messages.push({
         type: "text",
         text: `あなたにぴったりの求人が\n見つかりました！\n\n${condParts} で ${entry.matchingResults.length}件マッチ 🎯\nおすすめ順にご紹介します。`,
+      });
+
+      // 末尾ナビカード追加
+      bubbles.push({
+        type: "bubble",
+        size: "kilo",
+        body: {
+          type: "box", layout: "vertical", paddingAll: "20px", spacing: "md",
+          justifyContent: "center",
+          contents: [
+            { type: "text", text: "もっと探す？", size: "lg", weight: "bold", color: "#333333", align: "center" },
+            { type: "text", text: "他にもたくさんの施設が\nあなたを待っています", size: "xs", color: "#999999", align: "center", wrap: true, margin: "sm" },
+            { type: "separator", margin: "lg", color: "#E8E8E8" },
+            { type: "button", style: "primary", height: "sm", color: BRAND_COLOR, margin: "lg",
+              action: { type: "postback", label: "他の求人を探す", data: "matching_preview=more", displayText: "他の求人も見たい" } },
+            { type: "button", style: "secondary", height: "sm", margin: "sm",
+              action: { type: "postback", label: "条件を変えて探す", data: "welcome=see_jobs", displayText: "条件を変えたい" } },
+            { type: "button", style: "secondary", height: "sm", margin: "sm",
+              action: { type: "postback", label: "直接相談する", data: "handoff=ok", displayText: "直接相談したい" } },
+          ],
+        },
       });
 
       if (bubbles.length > 0) {
