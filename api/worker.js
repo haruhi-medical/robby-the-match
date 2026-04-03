@@ -4032,6 +4032,19 @@ async function generateLineMatching(entry, env, offset = 0) {
 
   allJobs.sort((a, b) => b.sortKey - a.sortKey);
 
+  // --- 施設タイプ ハードフィルタ ---
+  // ユーザーが施設タイプを指定した場合、不一致の求人を除外
+  // 除外した結果0件になる場合はフィルタを緩和して全件に戻す
+  if (entry.facilityType && entry.facilityType !== 'any' && allJobs.length > 0) {
+    const filtered = allJobs.filter(j => j.matchFlags && j.matchFlags.facilityType);
+    if (filtered.length > 0) {
+      allJobs = filtered;
+      console.log(`[Matching] 施設タイプハードフィルタ: ${entry.facilityType} → ${filtered.length}件に絞り込み`);
+    } else {
+      console.log(`[Matching] 施設タイプハードフィルタ: ${entry.facilityType} → 0件のためフィルタ緩和`);
+    }
+  }
+
   // --- それでも0件: D1病院フォールバック ---
   if (allJobs.length === 0 && env?.DB) {
     try {
