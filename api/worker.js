@@ -4877,10 +4877,10 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "il_area"; // intake_light開始
     } else if (val === "check_salary") {
       entry.welcomeIntent = "check_salary";
-      nextPhase = "ai_consultation_waiting"; // 年収相談
+      nextPhase = "faq_salary"; // 年収FAQ→具体的な数字を即提示
     } else if (val === "consult") {
       entry.welcomeIntent = "consult";
-      nextPhase = "ai_consultation_waiting"; // 一般相談
+      nextPhase = "handoff_phone_check"; // 直接担当者に相談
     } else if (val === "browse") {
       nextPhase = "nurture_warm"; // 低温度
     } else if (val === "start") {
