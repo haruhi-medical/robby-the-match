@@ -468,19 +468,35 @@ async function countCandidatesD1(entry, env) {
       const params = [];
 
       // エリアフィルタ
-      if (entry.area && entry.area !== 'undecided') {
-        if (entry.area === 'tokyo_included') {
-          // 東京+神奈川全域
+      const areaKey = (entry.area || '').replace('_il', '');
+      if (areaKey && areaKey !== 'undecided') {
+        // prefecture直接指定（千葉・埼玉・東京全域等）
+        const AREA_PREF_MAP = {
+          chiba_all: '千葉県', saitama_all: '埼玉県',
+          tokyo_included: null, tokyo_23ku: '東京都', tokyo_tama: '東京都',
+          kanagawa_all: '神奈川県',
+        };
+        if (AREA_PREF_MAP[areaKey] !== undefined) {
+          if (AREA_PREF_MAP[areaKey]) {
+            sql += ' AND prefecture = ?';
+            params.push(AREA_PREF_MAP[areaKey]);
+          }
+          // null = 全県（tokyo_included）→ フィルタなし
         } else {
-          const cities = AREA_CITY_MAP[entry.area];
+          // 市区町村名でフィルタ（横浜・川崎等）
+          const cities = AREA_CITY_MAP[areaKey];
           if (cities && cities.length > 0) {
-            const placeholders = cities.map(() => '?').join(',');
             sql += ` AND (${cities.map(() => 'address LIKE ?').join(' OR ')})`;
             cities.forEach(c => params.push(`%${c}%`));
-          } else {
-            sql += ' AND prefecture = ?';
-            params.push('神奈川県');
           }
+        }
+      }
+      // prefectureのみ指定（サブエリア未選択時）
+      if (!areaKey && entry.prefecture) {
+        const PREF_NAME = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県' };
+        if (PREF_NAME[entry.prefecture]) {
+          sql += ' AND prefecture = ?';
+          params.push(PREF_NAME[entry.prefecture]);
         }
       }
 
@@ -2873,8 +2889,8 @@ const IL_AREA_LABELS = {
   tokyo_included: "東京全域",
   tokyo_23ku: "東京23区",
   tokyo_tama: "東京多摩地域",
-  chiba_all: "千葉県",
-  saitama_all: "埼玉県",
+  chiba_all: "千葉県全域",
+  saitama_all: "埼玉県全域",
   undecided: "全エリア",
 };
 
@@ -3502,22 +3518,6 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
       // 千葉・埼玉・その他 → サブエリアなしで直接il_workstyleへ
-      const prefTotal = prefCount.facilities + prefCount.jobs;
-      if (prefTotal === 0) {
-        // D1にデータがないエリア → 準備中メッセージ + 希望を聞いてhandoff
-        return [{
-          type: "text",
-          text: `${prefLabel}ですね！\n\n${prefLabel}の求人データは現在準備中です。\n\nご希望の条件をお聞かせいただければ、\n担当者がお探しします。\n\n希望の働き方は？`,
-          quickReply: {
-            items: [
-              qrItem("日勤のみ", "il_ws=day"),
-              qrItem("夜勤ありOK", "il_ws=twoshift"),
-              qrItem("パート・非常勤", "il_ws=part"),
-              qrItem("夜勤専従", "il_ws=night"),
-            ],
-          },
-        }];
-      }
       return [{
         type: "text",
         text: `${prefLabel}ですね！\n\n${countLine}\n\n希望の働き方は？`,
