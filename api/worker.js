@@ -438,47 +438,86 @@ const EXTERNAL_JOBS = {
 
 // ---------- FACILITY_DATABASE は worker_facilities.js からimport済み ----------
 
-// ---------- アキネーター候補数計算 ----------
-// ユーザーの回答に基づいて、マッチする施設数と求人数をリアルタイム計算
-function countCandidates(entry) {
-  let totalFacilities = 0;
-  let totalJobs = 0;
+// ---------- アキネーター候補数計算（D1対応） ----------
+// D1がある場合は17,913施設からSQLでカウント。なければインメモリFACILITY_DATABASE。
+// エリアマッピング: il_area選択値 → 所在地の市区名
+const AREA_CITY_MAP = {
+  yokohama_kawasaki: ['横浜市', '川崎市'],
+  shonan_kamakura: ['藤沢市', '茅ヶ崎市', '鎌倉市', '逗子市', '葉山町', '寒川町'],
+  sagamihara_kenoh: ['相模原市', '厚木市', '海老名市', '座間市', '綾瀬市', '大和市', '愛川町'],
+  yokosuka_miura: ['横須賀市', '三浦市'],
+  odawara_kensei: ['小田原市', '南足柄市', '箱根町', '湯河原町', '真鶴町', '松田町', '山北町', '大井町', '開成町', '中井町', '二宮町', '大磯町', '平塚市', '秦野市', '伊勢原市'],
+  tokyo_included: [], // 東京全域 — prefectureフィルタで対応
+  undecided: [], // 全エリア
+};
+const CATEGORY_MAP = {
+  hospital: '病院',
+  clinic: 'クリニック',
+  visiting: '訪問看護ST',
+  care: '介護施設',
+};
 
-  // 施設数（FACILITY_DATABASE）
-  const areaKeys = entry.area ? getAreaKeysFromZone(`q3_${entry.area}`) : null;
-  for (const [areaName, facilities] of Object.entries(FACILITY_DATABASE)) {
-    for (const f of facilities) {
+async function countCandidatesD1(entry, env) {
+  // D1が使える場合
+  if (env?.DB) {
+    try {
+      let sql = 'SELECT COUNT(*) as cnt FROM facilities WHERE 1=1';
+      const params = [];
+
       // エリアフィルタ
-      if (areaKeys && areaKeys.length > 0) {
-        const fArea = f.area || areaName;
-        const match = areaKeys.some(ak => fArea.includes(ak) || areaName.includes(ak));
-        if (!match) continue;
+      if (entry.area && entry.area !== 'undecided') {
+        if (entry.area === 'tokyo_included') {
+          // 東京+神奈川全域
+        } else {
+          const cities = AREA_CITY_MAP[entry.area];
+          if (cities && cities.length > 0) {
+            const placeholders = cities.map(() => '?').join(',');
+            sql += ` AND (${cities.map(() => 'address LIKE ?').join(' OR ')})`;
+            cities.forEach(c => params.push(`%${c}%`));
+          } else {
+            sql += ' AND prefecture = ?';
+            params.push('神奈川県');
+          }
+        }
       }
+
       // 施設タイプフィルタ
       if (entry.facilityType && entry.facilityType !== 'any') {
-        const ft = (f.type || f.category || '').toLowerCase();
-        if (entry.facilityType === 'hospital' && !ft.includes('病院') && !ft.includes('急性') && !ft.includes('回復') && !ft.includes('療養')) continue;
-        if (entry.facilityType === 'clinic' && !ft.includes('クリニック') && !ft.includes('診療所')) continue;
-        if (entry.facilityType === 'visiting' && !ft.includes('訪問')) continue;
-        if (entry.facilityType === 'care' && !ft.includes('介護') && !ft.includes('老健') && !ft.includes('特養')) continue;
+        const catName = CATEGORY_MAP[entry.facilityType];
+        if (catName) {
+          sql += ' AND category = ?';
+          params.push(catName);
+        }
       }
-      totalFacilities++;
+
+      const result = await env.DB.prepare(sql).bind(...params).first();
+      const facilityCount = result?.cnt || 0;
+
+      // 求人数はEXTERNAL_JOBSからカウント（D1のjobsテーブルはまだ空）
+      const jobCount = countJobsInMemory(entry);
+
+      return { facilities: facilityCount, jobs: jobCount };
+    } catch (e) {
+      console.error('[D1] countCandidates error:', e.message);
+      // D1エラー時はインメモリフォールバック
     }
   }
 
-  // 求人数（EXTERNAL_JOBS）
-  const profession = 'nurse';
-  const jobSource = EXTERNAL_JOBS[profession] || {};
+  // フォールバック: インメモリ
+  return countCandidatesInMemory(entry);
+}
+
+function countJobsInMemory(entry) {
+  let totalJobs = 0;
+  const areaKeys = entry.area ? getAreaKeysFromZone(`q3_${entry.area}`) : null;
+  const jobSource = EXTERNAL_JOBS.nurse || {};
   for (const [jobArea, jobs] of Object.entries(jobSource)) {
     if (!Array.isArray(jobs)) continue;
     for (const j of jobs) {
       if (typeof j !== 'object') continue;
-      // エリアフィルタ
       if (areaKeys && areaKeys.length > 0) {
-        const match = areaKeys.some(ak => jobArea.includes(ak));
-        if (!match) continue;
+        if (!areaKeys.some(ak => jobArea.includes(ak))) continue;
       }
-      // 働き方フィルタ
       if (entry.workStyle) {
         if (entry.workStyle === 'day' && j.t && (j.t.includes('夜勤') || j.t.includes('二交代') || j.t.includes('三交代'))) continue;
         if (entry.workStyle === 'night' && j.t && j.t.includes('日勤のみ')) continue;
@@ -487,8 +526,29 @@ function countCandidates(entry) {
       totalJobs++;
     }
   }
+  return totalJobs;
+}
 
-  return { facilities: totalFacilities, jobs: totalJobs };
+function countCandidatesInMemory(entry) {
+  let totalFacilities = 0;
+  const areaKeys = entry.area ? getAreaKeysFromZone(`q3_${entry.area}`) : null;
+  for (const [areaName, facilities] of Object.entries(FACILITY_DATABASE)) {
+    for (const f of facilities) {
+      if (areaKeys && areaKeys.length > 0) {
+        const fArea = f.area || areaName;
+        if (!areaKeys.some(ak => fArea.includes(ak) || areaName.includes(ak))) continue;
+      }
+      if (entry.facilityType && entry.facilityType !== 'any') {
+        const ft = (f.type || f.category || '').toLowerCase();
+        if (entry.facilityType === 'hospital' && !ft.includes('病院')) continue;
+        if (entry.facilityType === 'clinic' && !ft.includes('クリニック') && !ft.includes('診療所')) continue;
+        if (entry.facilityType === 'visiting' && !ft.includes('訪問')) continue;
+        if (entry.facilityType === 'care' && !ft.includes('介護') && !ft.includes('老健')) continue;
+      }
+      totalFacilities++;
+    }
+  }
+  return { facilities: totalFacilities, jobs: countJobsInMemory(entry) };
 }
 
 // 候補数テキスト生成
@@ -3363,7 +3423,7 @@ async function sendApplyNotification(userId, entry, env) {
 }
 
 // ---------- フェーズ別メッセージ+Quick Reply生成 ----------
-function buildPhaseMessage(phase, entry) {
+async function buildPhaseMessage(phase, entry, env) {
   switch (phase) {
     case "welcome":
       // oaMessage経由でコードが自動送信されるため、手動案内は不要
@@ -3377,7 +3437,7 @@ function buildPhaseMessage(phase, entry) {
       ];
     // ===== intake_light フロー（アキネーター型: 候補数リアルタイム表示） =====
     case "il_area": {
-      const totalCount = countCandidates({});
+      const totalCount = await countCandidatesD1({}, env);
       return [{
         type: "text",
         text: `全国${totalCount.facilities + totalCount.jobs}件の中から\nあなたにぴったりの職場を見つけます。\n\nまず、どのエリアで働きたいですか？`,
@@ -3397,8 +3457,8 @@ function buildPhaseMessage(phase, entry) {
 
     case "il_workstyle": {
       const areaLabel = entry.areaLabel || entry.area || "";
-      const prevCount = countCandidates({});
-      const nowCount = countCandidates(entry);
+      const prevCount = await countCandidatesD1({}, env);
+      const nowCount = await countCandidatesD1(entry, env);
       return [{
         type: "text",
         text: `${areaLabel}ですね！\n\n${candidateText(prevCount, nowCount)}\n\n希望の働き方は？`,
@@ -3414,8 +3474,8 @@ function buildPhaseMessage(phase, entry) {
     }
 
     case "il_urgency": {
-      const prevCountU = countCandidates({ area: entry.area });
-      const nowCountU = countCandidates(entry);
+      const prevCountU = await countCandidatesD1({ area: entry.area }, env);
+      const nowCountU = await countCandidatesD1(entry, env);
       return [{
         type: "text",
         text: `${candidateText(prevCountU, nowCountU)}\n\nかなり絞れてきました！\n転職の温度感を教えてください。`,
@@ -3430,8 +3490,8 @@ function buildPhaseMessage(phase, entry) {
     }
 
     case "il_facility_type": {
-      const prevCountF = countCandidates({ area: entry.area, workStyle: entry.workStyle });
-      const nowCountF = countCandidates(entry);
+      const prevCountF = await countCandidatesD1({ area: entry.area, workStyle: entry.workStyle }, env);
+      const nowCountF = await countCandidatesD1(entry, env);
       return [{
         type: "text",
         text: `${candidateText(prevCountF, nowCountF)}\n\nあと1つだけ！\nどんな職場が気になりますか？`,
@@ -4772,7 +4832,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             const shownIds = entry.matchingResults.slice(0, 3).map(r => r.n || r.name);
             entry.browsedJobIds.push(...shownIds);
           }
-          replyMessages = buildPhaseMessage("matching_preview", entry);
+          replyMessages = await buildPhaseMessage("matching_preview", entry, env);
           // 条件緩和提案（結果が少ない場合）
           const relaxSuggestion = suggestRelaxation(entry, (entry.matchingResults || []).length);
           if (relaxSuggestion && replyMessages && replyMessages.length < 5) {
@@ -4812,7 +4872,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             const shownIds = entry.matchingResults.slice(0, 3).map(r => r.n || r.name);
             entry.browsedJobIds.push(...shownIds);
           }
-          replyMessages = buildPhaseMessage("matching_browse", entry);
+          replyMessages = await buildPhaseMessage("matching_browse", entry, env);
         }
         // ===== matching（matching_preview/browseから「気になる」選択時） =====
         else if (nextPhase === "matching") {
@@ -4874,7 +4934,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         else if (nextPhase === "nurture_warm") {
           entry.nurtureEnteredAt = entry.nurtureEnteredAt || Date.now();
           entry.nurtureSentCount = entry.nurtureSentCount || 0;
-          replyMessages = buildPhaseMessage("nurture_warm", entry);
+          replyMessages = await buildPhaseMessage("nurture_warm", entry, env);
           // KVにナーチャリングインデックス登録（Cron Triggerでスキャン用）
           if (env?.LINE_SESSIONS) {
             const nurtureData = JSON.stringify({
@@ -4918,7 +4978,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // ===== FAQ回答 =====
         else if (nextPhase === "faq_free" || nextPhase === "faq_no_phone") {
           // phaseは変えない（handoff中はhandoffのまま）
-          replyMessages = buildPhaseMessage(nextPhase, entry);
+          replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         }
         else if (nextPhase === "matching_more") {
           // FIX-10: 次の5件を表示（最大offset=15で3ページ）
@@ -4988,23 +5048,23 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "apply_info") {
           entry.phase = "apply_info";
           entry.applyStep = "name";
-          replyMessages = buildPhaseMessage("apply_info", entry);
+          replyMessages = await buildPhaseMessage("apply_info", entry, env);
         } else if (nextPhase === "apply_consent") {
           entry.phase = "apply_consent";
-          replyMessages = buildPhaseMessage("apply_consent", entry);
+          replyMessages = await buildPhaseMessage("apply_consent", entry, env);
         } else if (nextPhase === "career_sheet") {
           entry.phase = "career_sheet";
-          replyMessages = buildPhaseMessage("career_sheet", entry);
+          replyMessages = await buildPhaseMessage("career_sheet", entry, env);
         } else if (nextPhase === "apply_confirm") {
           entry.phase = "apply_confirm";
           entry.appliedAt = new Date().toISOString();
           entry.status = "applied";
-          replyMessages = buildPhaseMessage("apply_confirm", entry);
+          replyMessages = await buildPhaseMessage("apply_confirm", entry, env);
           // Slack通知
           await sendApplyNotification(userId, entry, env);
         } else if (nextPhase === "interview_prep") {
           entry.phase = "interview_prep";
-          replyMessages = buildPhaseMessage("interview_prep", entry);
+          replyMessages = await buildPhaseMessage("interview_prep", entry, env);
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
           replyMessages = [
@@ -5028,12 +5088,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             }), { expirationTtl: 604800 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); }); // 7日TTL
           }
         } else if (nextPhase) {
-          replyMessages = buildPhaseMessage(nextPhase, entry);
+          replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         }
 
         // フォールバック: nextPhaseが未定義 or replyMessagesが空の場合、現フェーズを再表示
         if (!replyMessages || replyMessages.length === 0) {
-          const fallbackMsg = buildPhaseMessage(entry.phase, entry);
+          const fallbackMsg = await buildPhaseMessage(entry.phase, entry, env);
           if (fallbackMsg) {
             replyMessages = [
               { type: "text", text: "もう一度お選びください👇" },
@@ -5260,7 +5320,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
             const msgs = [
               { type: "text", text: "コードの有効期限が切れているか、見つかりませんでした。\n改めてお話を聞かせてください！" },
-              ...buildPhaseMessage("il_area", entry),
+              ...await buildPhaseMessage("il_area", entry, env),
             ];
             await lineReply(event.replyToken, msgs.slice(0, 5), channelAccessToken);
             continue;
@@ -5422,7 +5482,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         if (nextPhase === "apply_consent") {
           // apply_info完了 → apply_consent
           entry.phase = "apply_consent";
-          replyMessages = buildPhaseMessage("apply_consent", entry);
+          replyMessages = await buildPhaseMessage("apply_consent", entry, env);
         } else if (nextPhase === null) {
           if (entry.unexpectedTextCount >= 3) {
             // Stage 3: 3回以上 → 担当者引き継ぎ
@@ -5447,7 +5507,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             }];
           } else {
             // Stage 1: 1回目 → 現フェーズのQuick Reply再表示
-            const currentPhaseMsg = buildPhaseMessage(entry.phase, entry);
+            const currentPhaseMsg = await buildPhaseMessage(entry.phase, entry, env);
             if (currentPhaseMsg) {
               replyMessages = [
                 { type: "text", text: "すみません、うまく読み取れませんでした。\n下のボタンからお選びいただけますか？" },
@@ -5476,7 +5536,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               ...buildMatchingMessages(entry),
             ].slice(0, 5);
           } else {
-            replyMessages = buildPhaseMessage(nextPhase, entry);
+            replyMessages = await buildPhaseMessage(nextPhase, entry, env);
           }
         }
 

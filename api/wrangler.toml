@@ -14,6 +14,12 @@ binding = "AI"
 binding = "LINE_SESSIONS"
 id = "c523fb0833e2482cbfc58eef8824c7b0"
 
+# 施設DB（D1 SQLite — 全国医療機関マスター）
+[[d1_databases]]
+binding = "DB"
+database_name = "nurse-robby-db"
+database_id = "d147e3ef-ff45-413f-8e21-c3e813a5f504"
+
 # 環境変数（デプロイ前に wrangler secret で設定すること）
 # wrangler secret put ANTHROPIC_API_KEY  ← 将来Claudeに戻す時用
 # wrangler secret put SLACK_WEBHOOK_URL
