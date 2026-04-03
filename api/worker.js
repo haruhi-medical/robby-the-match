@@ -5572,49 +5572,100 @@ ${MARKET_DATA}
 働き方: ${entry.workStyle || "不明"}`;
 
   let aiResponse = null;
+  const messages = [{ role: "system", content: systemPrompt }, ...entry.consultMessages.slice(-6)];
 
-  // OpenAI優先
-  if (env.OPENAI_API_KEY) {
+  // ========== 多層フォールバック（4段階） ==========
+  // 優先度1: OpenAI GPT-4o-mini（メイン）
+  if (!aiResponse && env.OPENAI_API_KEY) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...entry.consultMessages.slice(-6),
-          ],
-          max_tokens: 300,
-          temperature: 0.7,
-        }),
+        body: JSON.stringify({ model: "gpt-4o-mini", messages, max_tokens: 300, temperature: 0.7 }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         aiResponse = data.choices?.[0]?.message?.content;
+        if (aiResponse) console.log("[AI] OpenAI OK");
       }
-    } catch (e) { console.error("[AI] OpenAI error:", e); }
+    } catch (e) { console.error("[AI] OpenAI error:", e.message || e); }
   }
 
-  // Cloudflare Workers AIフォールバック（5秒タイムアウト — replyToken有効期限内に返す必要あり）
+  // 優先度2: Anthropic Claude Haiku（高品質フォールバック）
+  if (!aiResponse && env.ANTHROPIC_API_KEY) {
+    try {
+      console.log("[AI] Trying Claude Haiku...");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 300,
+          system: systemPrompt,
+          messages: entry.consultMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        aiResponse = data.content?.[0]?.text;
+        if (aiResponse) console.log("[AI] Claude Haiku OK");
+      }
+    } catch (e) { console.error("[AI] Claude Haiku error:", e.message || e); }
+  }
+
+  // 優先度3: Google Gemini Flash（コスト効率フォールバック）
+  if (!aiResponse && env.GOOGLE_AI_KEY) {
+    try {
+      console.log("[AI] Trying Gemini Flash...");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const geminiMessages = entry.consultMessages.slice(-6).map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.GOOGLE_AI_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: geminiMessages,
+          generationConfig: { maxOutputTokens: 300, temperature: 0.7 },
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (aiResponse) console.log("[AI] Gemini Flash OK");
+      }
+    } catch (e) { console.error("[AI] Gemini Flash error:", e.message || e); }
+  }
+
+  // 優先度4: Cloudflare Workers AI（エッジGPU、外部API依存なし）
   if (!aiResponse && env.AI) {
     try {
-      console.log("[AI] Trying Workers AI (5s timeout)...");
-      const aiPromise = env.AI.run("@cf/meta/llama-3-8b-instruct", {
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...entry.consultMessages.slice(-4),
-        ],
+      console.log("[AI] Trying Workers AI...");
+      const aiPromise = env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+        messages: messages.slice(0, 5), // Workers AIはコンテキスト短めに
         max_tokens: 200,
       });
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Workers AI timeout")), 5000));
       const result = await Promise.race([aiPromise, timeoutPromise]);
       aiResponse = result?.response;
-      console.log(`[AI] Workers AI OK: ${(aiResponse || "").slice(0, 50)}`);
+      if (aiResponse) console.log("[AI] Workers AI OK");
     } catch (e) { console.error("[AI] Workers AI error:", e.message || e); }
   }
 
