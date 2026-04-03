@@ -3455,8 +3455,8 @@ async function buildPhaseMessage(phase, entry, env) {
         text: `${totalCount.facilities.toLocaleString()}件の医療機関の中から\nあなたにぴったりの職場を見つけます。\n\nまず、どのエリアで働きたいですか？`,
         quickReply: {
           items: [
-            qrItem("神奈川県", "il_pref=kanagawa"),
             qrItem("東京都", "il_pref=tokyo"),
+            qrItem("神奈川県", "il_pref=kanagawa"),
             qrItem("千葉県", "il_pref=chiba"),
             qrItem("埼玉県", "il_pref=saitama"),
             qrItem("その他の地域", "il_pref=other"),
@@ -3502,6 +3502,22 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
       // 千葉・埼玉・その他 → サブエリアなしで直接il_workstyleへ
+      const prefTotal = prefCount.facilities + prefCount.jobs;
+      if (prefTotal === 0) {
+        // D1にデータがないエリア → 準備中メッセージ + 希望を聞いてhandoff
+        return [{
+          type: "text",
+          text: `${prefLabel}ですね！\n\n${prefLabel}の求人データは現在準備中です。\n\nご希望の条件をお聞かせいただければ、\n担当者がお探しします。\n\n希望の働き方は？`,
+          quickReply: {
+            items: [
+              qrItem("日勤のみ", "il_ws=day"),
+              qrItem("夜勤ありOK", "il_ws=twoshift"),
+              qrItem("パート・非常勤", "il_ws=part"),
+              qrItem("夜勤専従", "il_ws=night"),
+            ],
+          },
+        }];
+      }
       return [{
         type: "text",
         text: `${prefLabel}ですね！\n\n${countLine}\n\n希望の働き方は？`,
