@@ -447,7 +447,10 @@ const AREA_CITY_MAP = {
   sagamihara_kenoh: ['相模原市', '厚木市', '海老名市', '座間市', '綾瀬市', '大和市', '愛川町'],
   yokosuka_miura: ['横須賀市', '三浦市'],
   odawara_kensei: ['小田原市', '南足柄市', '箱根町', '湯河原町', '真鶴町', '松田町', '山北町', '大井町', '開成町', '中井町', '二宮町', '大磯町', '平塚市', '秦野市', '伊勢原市'],
-  tokyo_included: [], // 東京全域 — prefectureフィルタで対応
+  kanagawa_all: ['横浜市', '川崎市', '相模原市', '藤沢市', '茅ヶ崎市', '小田原市', '厚木市', '海老名市', '大和市', '横須賀市', '鎌倉市', '平塚市', '秦野市'],
+  tokyo_included: [], // 東京+神奈川全域 — prefectureフィルタで対応
+  tokyo_23ku: [], // 東京23区 — prefectureフィルタで対応
+  tokyo_tama: [], // 東京多摩 — prefectureフィルタで対応
   undecided: [], // 全エリア
 };
 const CATEGORY_MAP = {
@@ -2854,7 +2857,10 @@ const AREA_ZONE_MAP = {
   q3_sagamihara_kenoh_il:   ["相模原", "厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
   q3_yokosuka_miura_il:     ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
   q3_odawara_kensei_il:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
-  q3_tokyo_included_il:     ["横浜", "川崎"],  // 東京は対象外だが横浜・川崎をカバー
+  q3_tokyo_included_il:     ["横浜", "川崎", "東京"],  // 東京+横浜・川崎をカバー
+  q3_tokyo_23ku_il:         ["東京"],  // 東京23区（EXTERNAL_JOBSには東京求人が少ないためD1フォールバック）
+  q3_tokyo_tama_il:         ["東京"],  // 東京多摩地域
+  q3_kanagawa_all_il:       ["横浜", "川崎", "相模原", "藤沢", "茅ヶ崎", "小田原", "厚木", "海老名", "大和", "横須賀", "鎌倉", "平塚", "秦野"],  // 神奈川全域
   q3_undecided_il:          ["横浜", "川崎", "相模原", "横須賀", "藤沢", "茅ヶ崎", "平塚", "厚木", "小田原"],  // 未定→主要エリア全て
 };
 
@@ -3684,6 +3690,24 @@ async function buildPhaseMessage(phase, entry, env) {
             qrItem("大丈夫です", "nurture=no"),
           ],
         },
+      }];
+
+    // BUG #6修正: ナーチャリング購読/非購読の確認メッセージ
+    case "nurture_subscribed":
+      return [{
+        type: "text",
+        text: "ありがとうございます！\n条件に合う新着求人が出たら\nすぐにお知らせしますね。\n\nいつでも「求人を探す」と\n話しかけてください🤖",
+        quickReply: {
+          items: [
+            qrItem("今すぐ求人を探す", "welcome=see_jobs"),
+          ],
+        },
+      }];
+
+    case "nurture_stay":
+      return [{
+        type: "text",
+        text: "了解しました！\n\nまた気になった時に\nいつでも話しかけてくださいね。\nお待ちしています。",
       }];
 
     case "faq_free":
@@ -4528,15 +4552,25 @@ function handleLinePostback(dataStr, entry) {
       const idx = parseInt(params.get("idx"), 10);
       if (!isNaN(idx) && entry.matchingResults && entry.matchingResults[idx]) {
         entry.interestedFacility = entry.matchingResults[idx].n || entry.matchingResults[idx].name || null;
+      } else if (entry.matchingResults && entry.matchingResults.length > 0) {
+        // idx未指定の場合は1番目を自動選択（BUG #3修正）
+        entry.interestedFacility = entry.matchingResults[0].n || entry.matchingResults[0].name || null;
       }
       // 後方互換: 旧facility形式もサポート
       const facilityName = params.get("facility");
       if (facilityName && !entry.interestedFacility) {
         entry.interestedFacility = decodeURIComponent(facilityName);
       }
-      nextPhase = getFlowForEntry(entry).matching; // → ai_consultation
+      nextPhase = "handoff"; // 担当者紹介→ハンドオフ
     } else if (val === "other") {
       nextPhase = "matching_more";
+    } else if (val === "reverse") {
+      // BUG #2修正: 逆指名→ハンドオフ
+      entry.reverseNomination = true;
+      nextPhase = "handoff";
+    } else if (val === "later") {
+      // BUG #1修正: まだ早いかも→ナーチャリング
+      nextPhase = "nurture_warm";
     }
   }
   // 引き継ぎ
@@ -4647,6 +4681,16 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "matching"; // 施設選び直し
     } else if (val === "cancel") {
       nextPhase = "nurture_warm"; // 応募キャンセル → ナーチャリングへ
+    }
+  }
+  // 経歴書確認（BUG #5修正）
+  else if (params.has("resume")) {
+    const val = params.get("resume");
+    entry.unexpectedTextCount = 0;
+    if (val === "ok") {
+      nextPhase = "career_sheet";
+    } else if (val === "edit") {
+      nextPhase = "handoff";
     }
   }
   // キャリアシート確認
