@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ナースロビー — 求人を受け取る</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 28px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.logo { font-size: 1.3rem; font-weight: 700; color: #1a7f64; margin-bottom: 8px; }
+.tagline { font-size: 0.8rem; color: #888; margin-bottom: 24px; }
+.spinner {
+  width: 40px; height: 40px; margin: 0 auto 16px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #1a7f64;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.status { font-size: 0.95rem; color: #333; line-height: 1.6; }
+.status-sub { font-size: 0.82rem; color: #888; margin-top: 8px; }
+.error { color: #d32f2f; }
+.btn-add {
+  display: inline-block;
+  background: #06C755;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: 8px;
+  text-decoration: none;
+  margin-top: 20px;
+  transition: opacity 0.2s;
+}
+.btn-add:hover { opacity: 0.9; }
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ナースロビー</div>
+  <div class="tagline">シン・AI転職 — 早い × 簡単 × 24時間</div>
+
+  <!-- 読み込み中 -->
+  <div id="state-loading">
+    <div class="spinner"></div>
+    <p class="status">準備しています...</p>
+  </div>
+
+  <!-- 友だち追加が必要 -->
+  <div id="state-add-friend" class="hidden">
+    <p class="status">あなたに合う求人の準備ができました！<br>受け取るには友だち追加してください。</p>
+    <a id="add-friend-btn" href="#" class="btn-add">友だち追加して求人を受け取る</a>
+    <p class="status-sub">※完全無料・電話なし・いつでもブロックOK</p>
+  </div>
+
+  <!-- 既に友だち追加済み -->
+  <div id="state-already-friend" class="hidden">
+    <p class="status">求人を準備中です...<br>LINEに戻ってください。</p>
+    <p class="status-sub">数秒後に自動で表示されます</p>
+  </div>
+
+  <!-- エラー -->
+  <div id="state-error" class="hidden">
+    <p class="status error" id="error-msg">エラーが発生しました</p>
+    <a href="https://lin.ee/oUgDB3x" class="btn-add" style="background:#1a7f64;">こちらから友だち追加</a>
+    <p class="status-sub">※LINEで直接追加できます</p>
+  </div>
+</div>
+
+<!-- LIFF SDK -->
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.24.0/sdk.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  // ========== 設定 ==========
+  // LINE Developers Console で作成した LIFF ID をここに設定
+  // 未設定の場合はフォールバック（lin.ee直リンク）に自動切り替え
+  var LIFF_ID = '';  // 例: '1234567890-abcdefgh'
+  var API_BASE = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev';
+  var LINE_ADD_URL = 'https://lin.ee/oUgDB3x';
+
+  // ========== URLパラメータ取得 ==========
+  var params = new URLSearchParams(window.location.search);
+  var sessionId = params.get('session_id') || '';
+
+  // ========== DOM ==========
+  var stateLoading = document.getElementById('state-loading');
+  var stateAddFriend = document.getElementById('state-add-friend');
+  var stateAlreadyFriend = document.getElementById('state-already-friend');
+  var stateError = document.getElementById('state-error');
+  var errorMsg = document.getElementById('error-msg');
+  var addFriendBtn = document.getElementById('add-friend-btn');
+
+  function showState(el) {
+    [stateLoading, stateAddFriend, stateAlreadyFriend, stateError].forEach(function(s) {
+      s.classList.add('hidden');
+    });
+    el.classList.remove('hidden');
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    showState(stateError);
+  }
+
+  // ========== LIFF ID 未設定時のフォールバック ==========
+  if (!LIFF_ID) {
+    // LIFF未設定: 従来のline-startエンドポイント経由にフォールバック
+    if (sessionId) {
+      window.location.href = API_BASE + '/api/line-start?session_id=' + encodeURIComponent(sessionId)
+        + '&source=' + encodeURIComponent(params.get('source') || 'lp')
+        + '&intent=' + encodeURIComponent(params.get('intent') || 'see_jobs')
+        + '&area=' + encodeURIComponent(params.get('area') || '')
+        + '&answers=' + encodeURIComponent(params.get('answers') || '');
+    } else {
+      window.location.href = LINE_ADD_URL;
+    }
+    return;
+  }
+
+  // ========== LIFF 初期化 ==========
+  liff.init({ liffId: LIFF_ID })
+    .then(function() {
+      // ログインチェック
+      if (!liff.isLoggedIn()) {
+        liff.login({ redirectUri: window.location.href });
+        return;
+      }
+
+      // プロフィール取得
+      return liff.getProfile();
+    })
+    .then(function(profile) {
+      if (!profile) return; // login redirect中
+
+      var userId = profile.userId;
+
+      // セッション紐付けAPI呼び出し
+      return fetch(API_BASE + '/api/link-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId || ('liff_' + Date.now()),
+          user_id: userId,
+        }),
+      })
+      .then(function(res) { return res.json(); })
+      .then(function() {
+        // 友だち追加状況チェック
+        return liff.getFriendship();
+      })
+      .then(function(data) {
+        if (data.friendFlag) {
+          // 既に友だち → Push APIで求人を送信（Worker側でliff:{userId}を参照）
+          showState(stateAlreadyFriend);
+          // Push APIトリガー: link-sessionで保存済みなので、
+          // Worker側のcronまたは手動でPushするか、ここから追加APIを叩く
+          // 簡易実装: 3秒後にLINEアプリを開く
+          setTimeout(function() {
+            liff.closeWindow();
+          }, 2000);
+        } else {
+          // 友だち未追加 → 追加画面を表示
+          addFriendBtn.href = LINE_ADD_URL;
+          showState(stateAddFriend);
+        }
+      });
+    })
+    .catch(function(err) {
+      console.error('LIFF error:', err);
+      showError('接続エラーが発生しました');
+    });
+})();
+</script>
+</body>
+</html>

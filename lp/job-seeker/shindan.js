@@ -397,12 +397,12 @@
     r.appendChild(el('div', 'shindan-summary', summaryHTML));
 
     /* CTA */
-    var ctaText = A.t === 'info' ? 'まずは情報だけ受け取る' : 'LINEで求人を受け取る';
+    var ctaText = A.t === 'info' ? 'まずは情報だけ受け取る' : '診断結果を受け取る';
     var skipped = window._shindanSkipped;
     window._shindanSkipped = false;
 
-    // Build LINE URL via shared endpoint
-    var EP = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/line-start';
+    // Build LINE URL via LIFF bridge (fallback to line-start if LIFF ID not set)
+    var EP = '/lp/job-seeker/liff.html';
     var sid = window.__lineSessionId || '';
     var areaLabel = '';
     var areaOpts = Q[0].o;
@@ -418,22 +418,19 @@
     }));
     var ctaURL;
     if (skipped) {
-      ctaURL = EP + '?session_id=' + sid + '&source=shindan_skip&intent=diagnose&page_type=paid_lp&answers=' + answersJson;
+      ctaURL = EP + '?session_id=' + sid + '&source=shindan_skip&intent=diagnose&answers=' + answersJson;
     } else {
-      ctaURL = EP + '?session_id=' + sid + '&source=shindan&intent=diagnose&page_type=paid_lp&answers=' + answersJson;
+      ctaURL = EP + '?session_id=' + sid + '&source=shindan&intent=diagnose&answers=' + answersJson;
     }
 
     var cta = el('a', 'shindan-cta', '', {
       href: ctaURL,
       target: '_blank',
       rel: 'noopener',
-      'aria-label': ctaText + ' — LINEで友だち追加'
+      'aria-label': ctaText
     });
 
-    // LINE icon SVG
-    cta.innerHTML =
-      '<svg class="shindan-cta-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 5.82 2 10.5c0 2.83 1.67 5.33 4.27 6.92L5.5 21l3.6-1.97C10.03 19.34 11 19.5 12 19.5c5.52 0 10-3.82 10-8.5S17.52 2 12 2zm-2.5 11h-2v-1h2v1zm0-2h-2v-1h2v1zm3.25 2h-2v-1h2v1zm0-2h-2v-1h2v1zm3.25 2h-2v-1h2v1zm0-2h-2v-1h2v1z" fill="currentColor"/></svg>' +
-      '<span>' + ctaText + '</span>';
+    cta.innerHTML = '<span>' + ctaText + '</span>';
 
     cta.addEventListener('click', function () {
       ga('click_cta', { source: 'shindan', intent: 'diagnose', page_type: 'paid_lp', session_id: sid, area: A.a, workstyle: A.w, timing: A.t });

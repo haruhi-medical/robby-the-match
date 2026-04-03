@@ -1110,9 +1110,15 @@ export default {
 
     // ========== 共通LINE送客エンドポイント ==========
     // 全CTAからここを経由してLINEへ。session_id + source + intent をKVに保存し、
-    // dm_text付きでLINE友だち追加URLへ302リダイレクト
+    // dm_text付きでLINE友だち追加URLへ302リダイレクト（LIFF非対応端末フォールバック）
     if (url.pathname === "/api/line-start" && request.method === "GET") {
       return handleLineStart(url, env);
+    }
+
+    // ========== LIFF セッション紐付けエンドポイント ==========
+    // LIFF経由でuserIdとsession_idを紐付け。follow時に即マッチング表示する。
+    if (url.pathname === "/api/link-session" && request.method === "POST") {
+      return handleLinkSession(request, env);
     }
 
     // ヘルスチェック
@@ -2432,6 +2438,78 @@ async function handleLineStart(url, env) {
   } catch (err) {
     console.error('[LineStart] Error:', err);
     return new Response(null, { status: 302, headers: { 'Location': LINE_START_FALLBACK } });
+  }
+}
+
+// ========== LIFF セッション紐付け ==========
+// LIFF ブリッジページから呼ばれる。userId + session_id を紐付けてKVに保存。
+// follow イベント時に liff:{userId} を参照して即マッチング表示する。
+async function handleLinkSession(request, env) {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
+  try {
+    const body = await request.json();
+    const { session_id, user_id } = body;
+
+    if (!session_id || !user_id) {
+      return new Response(JSON.stringify({ error: 'session_id and user_id are required' }), {
+        status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
+    // KVからセッション情報を取得
+    let sessionData = null;
+    if (env?.LINE_SESSIONS) {
+      try {
+        const raw = await env.LINE_SESSIONS.get(`session:${session_id}`, { cacheTtl: 60 });
+        if (raw) sessionData = JSON.parse(raw);
+      } catch (e) {
+        console.error('[LinkSession] KV get error:', e.message);
+      }
+    }
+    // インメモリフォールバック
+    if (!sessionData && webSessionMap.has(`session:${session_id}`)) {
+      sessionData = webSessionMap.get(`session:${session_id}`);
+    }
+
+    if (!sessionData) {
+      // セッションが見つからない場合でもuser_idだけ保存（直接LIFFアクセス対応）
+      sessionData = { sessionId: session_id, source: 'liff_direct', intent: 'see_jobs', createdAt: Date.now() };
+    }
+
+    // liff:{userId} に保存（24h TTL）
+    // follow イベントハンドラでこのキーを参照する
+    const liffData = {
+      ...sessionData,
+      userId: user_id,
+      linkedAt: Date.now(),
+      linkedVia: 'liff',
+    };
+
+    if (env?.LINE_SESSIONS) {
+      try {
+        await env.LINE_SESSIONS.put(`liff:${user_id}`, JSON.stringify(liffData), { expirationTtl: 86400 });
+      } catch (e) {
+        console.error('[LinkSession] KV put error:', e.message);
+      }
+    }
+    // インメモリフォールバック
+    webSessionMap.set(`liff:${user_id}`, liffData);
+
+    console.log(`[LinkSession] Linked: userId=${user_id.slice(0, 8)}, session=${session_id.slice(0, 8)}, source=${liffData.source}`);
+
+    return new Response(JSON.stringify({ ok: true, linked: true }), {
+      status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
+  } catch (err) {
+    console.error('[LinkSession] Error:', err);
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
+      status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 }
 
@@ -5049,27 +5127,77 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.phase = "welcome";
           entry.updatedAt = Date.now();
         }
-        // session_id は follow 直後のテキストメッセージ（dm_text）で届くため、
-        // ここでは source=none のデフォルトwelcome を送る。
-        // dm_text が届いた場合はテキストメッセージハンドラでsession検出→welcome再送する。
-        // ただし follow イベント時点では dm_text の内容は分からないので、
-        // 汎用的なwelcomeを送り、session検出時に上書きする設計。
-        entry.welcomeSource = 'none';
-        await saveLineEntry(userId, entry, env);
 
-        const msgs = [{
-          type: "text",
-          text: "はじめまして！\nナースロビーです\n\n看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？",
-          quickReply: {
-            items: [
-              qrItem("求人を探したい", "welcome=see_jobs"),
-              qrItem("年収を知りたい", "welcome=check_salary"),
-              qrItem("転職の相談をしたい", "welcome=consult"),
-              qrItem("まだ見てるだけ", "welcome=browse"),
-            ],
-          },
-        }];
-        await lineReply(event.replyToken, msgs, channelAccessToken);
+        // ========== LIFF経由セッション復元 ==========
+        // LIFFブリッジページで事前にlink-sessionが呼ばれていれば、
+        // liff:{userId} にセッション情報が保存されている。
+        // follow時点でセッション復元 → 即マッチング表示。
+        let liffSessionCtx = null;
+        try {
+          if (env?.LINE_SESSIONS) {
+            const liffRaw = await env.LINE_SESSIONS.get(`liff:${userId}`, { cacheTtl: 60 });
+            if (liffRaw) liffSessionCtx = JSON.parse(liffRaw);
+          }
+          if (!liffSessionCtx && webSessionMap.has(`liff:${userId}`)) {
+            liffSessionCtx = webSessionMap.get(`liff:${userId}`);
+          }
+        } catch (e) {
+          console.error(`[LINE] LIFF session lookup error: ${e.message}`);
+        }
+
+        if (liffSessionCtx) {
+          // LIFF経由: セッション情報を復元して即マッチング or カスタムウェルカム
+          console.log(`[LINE] LIFF session found for ${userId.slice(0, 8)}: source=${liffSessionCtx.source}`);
+          entry.webSessionData = liffSessionCtx;
+          entry.welcomeSource = liffSessionCtx.source || 'liff';
+          entry.welcomeIntent = liffSessionCtx.intent || 'see_jobs';
+          if (liffSessionCtx.area) {
+            entry.area = liffSessionCtx.area;
+            // エリアラベルの変換はbuildSessionWelcomeで行う
+          }
+          // LP診断の回答があれば復元
+          if (liffSessionCtx.answers) {
+            try {
+              const ans = typeof liffSessionCtx.answers === 'string' ? JSON.parse(liffSessionCtx.answers) : liffSessionCtx.answers;
+              if (ans.area) entry.area = ans.area;
+              if (ans.workStyle) entry.workStyle = ans.workStyle;
+              if (ans.urgency) entry.urgency = ans.urgency;
+            } catch (e) { /* パース失敗は無視 */ }
+          }
+          // セッション復元ウェルカム
+          const sessionWelcome = buildSessionWelcome(liffSessionCtx, entry);
+          if (sessionWelcome && sessionWelcome.nextPhase) {
+            entry.phase = sessionWelcome.nextPhase;
+          }
+          await saveLineEntry(userId, entry, env);
+          if (sessionWelcome && sessionWelcome.messages && sessionWelcome.messages.length > 0) {
+            await lineReply(event.replyToken, sessionWelcome.messages, channelAccessToken);
+          }
+          // 使用済みLIFFセッションを削除
+          try {
+            if (env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${userId}`);
+            webSessionMap.delete(`liff:${userId}`);
+          } catch (e) { /* 削除失敗は無視 */ }
+        } else {
+          // 通常フォロー（LIFF未経由 or dm_text方式）
+          // dm_text が届いた場合はテキストメッセージハンドラでsession検出→welcome再送する。
+          entry.welcomeSource = 'none';
+          await saveLineEntry(userId, entry, env);
+
+          const msgs = [{
+            type: "text",
+            text: "はじめまして！\nナースロビーです\n\n看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？",
+            quickReply: {
+              items: [
+                qrItem("求人を探したい", "welcome=see_jobs"),
+                qrItem("年収を知りたい", "welcome=check_salary"),
+                qrItem("転職の相談をしたい", "welcome=consult"),
+                qrItem("まだ見てるだけ", "welcome=browse"),
+              ],
+            },
+          }];
+          await lineReply(event.replyToken, msgs, channelAccessToken);
+        }
 
         // ファネルイベント: LINE友達追加
         ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.LINE_FOLLOW, userId, entry, env, ctx));

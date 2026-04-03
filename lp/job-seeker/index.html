@@ -1832,11 +1832,12 @@
       }
       var sid = uuid();
       window.__lineSessionId = sid;
-      var EP = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/line-start';
+      // LIFF ブリッジ経由（LIFF ID未設定時は自動でline-startにフォールバック）
+      var LIFF_BRIDGE = '/lp/job-seeker/liff.html';
 
       // CTA href書き換え
       function lineUrl(source, intent) {
-        return EP + '?session_id=' + sid + '&source=' + source + '&intent=' + intent + '&page_type=paid_lp';
+        return LIFF_BRIDGE + '?session_id=' + sid + '&source=' + source + '&intent=' + intent;
       }
 
       // Hero CTA
