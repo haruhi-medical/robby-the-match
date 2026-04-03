@@ -5387,10 +5387,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         if (nextPhase && prevPhase !== nextPhase) {
           const phaseEventMap = {
             il_workstyle:      FUNNEL_EVENTS.INTAKE_START,       // intake Q1回答後
+            il_urgency:        FUNNEL_EVENTS.CONSULTATION_START, // intake Q2回答後
             matching_preview:  FUNNEL_EVENTS.INTAKE_COMPLETE,    // intake 3問完了→matching
             matching_browse:   FUNNEL_EVENTS.MATCHING_BROWSE,    // 他の求人も見たい
-            il_workstyle:      FUNNEL_EVENTS.CONSULTATION_START, // intake_light Q2
-            matching:          FUNNEL_EVENTS.CONSULTATION_COMPLETE, // ヒアリング完了→matching
+            matching:          FUNNEL_EVENTS.CONSULTATION_COMPLETE, // マッチング詳細表示
             apply_confirm:     FUNNEL_EVENTS.RESUME_GENERATE,    // 応募確定（旧経歴書生成）
             handoff:           FUNNEL_EVENTS.HANDOFF,            // 担当者引き継ぎ
           };
