@@ -2876,6 +2876,8 @@ const AREA_ZONE_MAP = {
   q3_tokyo_23ku_il:         ["東京"],  // 東京23区（EXTERNAL_JOBSには東京求人が少ないためD1フォールバック）
   q3_tokyo_tama_il:         ["東京"],  // 東京多摩地域
   q3_kanagawa_all_il:       ["横浜", "川崎", "相模原", "藤沢", "茅ヶ崎", "小田原", "厚木", "海老名", "大和", "横須賀", "鎌倉", "平塚", "秦野"],  // 神奈川全域
+  q3_chiba_all_il:          [],  // 千葉県（EXTERNAL_JOBSに該当なし→D1フォールバック）
+  q3_saitama_all_il:        [],  // 埼玉県（同上）
   q3_undecided_il:          ["横浜", "川崎", "相模原", "横須賀", "藤沢", "茅ヶ崎", "平塚", "厚木", "小田原"],  // 未定→主要エリア全て
 };
 
@@ -4402,18 +4404,25 @@ async function generateLineMatching(entry, env, offset = 0) {
       const baseArea = (entry.area || '').replace('_il', '');
       const cities = AREA_CITY_MAP[baseArea] || [];
       const d1Category = CATEGORY_MAP[entry.facilityType] || '病院';
-      // 病院サブタイプフィルタ（急性期/回復期/慢性期）
-      const subTypeFilter = entry.hospitalSubType ? ` AND sub_type = '${entry.hospitalSubType}'` : '';
-      // 診療科フィルタ
-      const deptFilter = entry.department ? ` AND departments LIKE '%${entry.department}%'` : '';
+      // バインドパラメータでSQLインジェクション対策
+      let extraFilters = '';
+      const extraParams = [];
+      if (entry.hospitalSubType) {
+        extraFilters += ' AND sub_type = ?';
+        extraParams.push(entry.hospitalSubType);
+      }
+      if (entry.department) {
+        extraFilters += ' AND departments LIKE ?';
+        extraParams.push(`%${entry.department}%`);
+      }
       let sql, params;
       if (cities.length > 0) {
         const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses})${subTypeFilter}${deptFilter} ORDER BY RANDOM() LIMIT 5`;
-        params = [d1Category, ...cities.map(c => `%${c}%`)];
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses})${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+        params = [d1Category, ...cities.map(c => `%${c}%`), ...extraParams];
       } else {
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${subTypeFilter}${deptFilter} ORDER BY RANDOM() LIMIT 5`;
-        params = [d1Category];
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+        params = [d1Category, ...extraParams];
       }
       const d1Result = await env.DB.prepare(sql).bind(...params).all();
       if (d1Result && d1Result.results && d1Result.results.length > 0) {
@@ -5378,12 +5387,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         const dataStr = event.postback.data;
 
-        // handoff中のpostbackはFAQ以外を無視（Bot再起動防止）
-        if (entry.phase === "handoff") {
+        // handoff中のpostbackはFAQのみ許可（Bot再起動防止）
+        if (entry.phase === "handoff" || entry.phase === "handoff_silent") {
           const pbParams = new URLSearchParams(dataStr);
-          if (!pbParams.has("faq") && !pbParams.has("welcome")) {
+          if (!pbParams.has("faq")) {
             console.log(`[LINE] Handoff guard: blocked postback "${dataStr}" for ${userId.slice(0, 8)}`);
-            // FAQでないpostbackは無視し、handoff状態を維持
+            // FAQ以外のpostbackは全て無視（welcomeも含む）。handoff状態を維持
             await saveLineEntry(userId, entry, env);
             continue;
           }
