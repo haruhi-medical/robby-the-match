@@ -27,9 +27,18 @@ RANKED_FILE = PROJECT_ROOT / "data" / "hellowork_ranked.json"
 INPUT_FILE = PROJECT_ROOT / "data" / "hellowork_nurse_jobs.json"
 WORKER_JS = PROJECT_ROOT / "api" / "worker.js"
 
-AREA_ORDER = ["横浜", "川崎", "相模原", "横須賀", "鎌倉", "藤沢",
-              "茅ヶ崎", "平塚", "大磯", "秦野", "伊勢原", "厚木",
-              "大和", "海老名", "小田原", "南足柄・開成"]
+AREA_ORDER = [
+    # 神奈川
+    "横浜", "川崎", "相模原", "横須賀", "鎌倉", "藤沢",
+    "茅ヶ崎", "平塚", "大磯", "秦野", "伊勢原", "厚木",
+    "大和", "海老名", "小田原", "南足柄・開成",
+    # 東京
+    "23区", "多摩",
+    # 埼玉
+    "さいたま", "川口・戸田", "所沢・入間", "川越・東松山", "越谷・草加", "埼玉その他",
+    # 千葉
+    "千葉", "船橋・市川", "柏・松戸", "千葉その他",
+]
 
 
 def build_job_object(rj):
@@ -64,13 +73,15 @@ def build_job_object(rj):
         welfare_parts.append("退職金あり")
     wel = "、".join(welfare_parts) if welfare_parts else ""
 
-    # 仕事内容（80文字に短縮）
+    # 仕事内容（150文字に拡大）
     desc = rj.get("job_description", "")
-    if len(desc) > 80:
-        desc = desc[:77] + "..."
+    if len(desc) > 150:
+        desc = desc[:147] + "..."
 
-    # 勤務地
+    # 勤務地（work_locationが空ならwork_address/employer_addressからフォールバック）
     loc = rj.get("work_location", "")
+    if not loc:
+        loc = rj.get("work_address", "") or rj.get("employer_address", "")
 
     # 勤務時間
     shift = rj.get("shift1", "")

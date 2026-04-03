@@ -30,7 +30,14 @@ RAW_DIR = DATA_DIR / "hellowork_raw"
 
 # API設定
 API_BASE = "https://teikyo.hellowork.mhlw.go.jp/teikyo/api/2.0"
-DATA_ID = "M114"  # 神奈川県・民間職業紹介事業者用一般求人
+DATA_ID = "M114"  # デフォルト: 神奈川県
+# 4県対応
+DATA_IDS = {
+    "M113": "東京都",
+    "M114": "神奈川県",
+    "M111": "埼玉県",
+    "M112": "千葉県",
+}
 
 # 看護師フィルタキーワード
 NURSE_KEYWORDS = ["看護", "ナース", "准看護", "訪問看護", "保健師", "助産師"]
@@ -309,10 +316,13 @@ def show_stats():
 
 
 def main():
+    global DATA_ID
     parser = argparse.ArgumentParser(description="ハローワーク看護師求人取得")
     parser.add_argument("--test", action="store_true", help="1ページだけテスト取得")
     parser.add_argument("--stats", action="store_true", help="保存済みデータの統計表示")
     parser.add_argument("--save-raw", action="store_true", help="生XMLも保存")
+    parser.add_argument("--all-prefectures", action="store_true", help="4県全てを取得（東京/神奈川/埼玉/千葉）")
+    parser.add_argument("--data-id", type=str, default=None, help="特定のDATA_IDを指定（例: M113）")
     args = parser.parse_args()
 
     if args.stats:
@@ -334,13 +344,29 @@ def main():
     print(f"✅ トークン取得成功")
 
     try:
-        # M114の情報取得
-        info = get_data_list(token)
-        if not info:
-            sys.exit(1)
-        total_count = info["count"]
-        total_pages = info["pages"]
-        print(f"📦 {DATA_ID}: 全{total_count}件 ({total_pages}ページ)")
+        # 取得対象DATA_ID決定
+        if args.all_prefectures:
+            target_ids = list(DATA_IDS.keys())
+        elif args.data_id:
+            target_ids = [args.data_id]
+        else:
+            target_ids = [DATA_ID]  # デフォルト: M114（神奈川のみ）
+
+        all_nurse_jobs_combined = []
+
+        for current_data_id in target_ids:
+            DATA_ID = current_data_id
+            pref_name = DATA_IDS.get(current_data_id, current_data_id)
+            print(f"\n{'='*50}")
+            print(f"📦 {current_data_id}（{pref_name}）取得開始...")
+
+            info = get_data_list(token)
+            if not info:
+                print(f"⚠️ {current_data_id}スキップ")
+                continue
+            total_count = info["count"]
+            total_pages = info["pages"]
+            print(f"   全{total_count}件 ({total_pages}ページ)")
 
         max_pages = 1 if args.test else total_pages
         all_nurse_jobs = []
@@ -387,15 +413,18 @@ def main():
             if page < max_pages:
                 time.sleep(2)
 
-        # JSON保存
+            print(f"   {pref_name}: 看護師{len(all_nurse_jobs)}件取得")
+            all_nurse_jobs_combined.extend(all_nurse_jobs)
+            all_nurse_jobs = []  # 次の県用にリセット
+
+        # JSON保存（全県統合）
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         output = {
             "fetched_at": datetime.now().isoformat(),
-            "data_id": DATA_ID,
-            "total_all": total_count,
-            "total_nurse": len(all_nurse_jobs),
-            "pages_fetched": max_pages,
-            "jobs": all_nurse_jobs,
+            "data_ids": target_ids,
+            "prefectures": [DATA_IDS.get(d, d) for d in target_ids],
+            "total_nurse": len(all_nurse_jobs_combined),
+            "jobs": all_nurse_jobs_combined,
         }
 
         with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
