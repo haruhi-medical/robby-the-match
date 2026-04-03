@@ -119,7 +119,7 @@ const STATE_CATEGORIES = {
   // 1. 初期接触
   ONBOARDING:    ["welcome"],
   // 2. ヒアリング（intake_light 3問）
-  INTAKE:        ["il_area", "il_subarea", "il_facility_type", "il_workstyle", "il_urgency"],
+  INTAKE:        ["il_area", "il_subarea", "il_facility_type", "il_department", "il_workstyle", "il_urgency"],
   // 3. マッチング
   MATCHING:      ["matching_preview", "matching_browse", "matching"],
   // 4. AI相談
@@ -3535,6 +3535,29 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
+    // 診療科選択（病院選択後のみ表示）
+    case "il_department": {
+      const subLabelD = entry.hospitalSubType || '病院';
+      return [{
+        type: "text",
+        text: `${subLabelD}ですね！\n希望の診療科はありますか？`,
+        quickReply: {
+          items: [
+            qrItem("内科系", "il_dept=内科"),
+            qrItem("外科系", "il_dept=外科"),
+            qrItem("整形外科", "il_dept=整形外科"),
+            qrItem("循環器", "il_dept=循環器内科"),
+            qrItem("小児科", "il_dept=小児科"),
+            qrItem("産婦人科", "il_dept=産婦人科"),
+            qrItem("精神科", "il_dept=精神科"),
+            qrItem("リハビリ", "il_dept=リハビリテーション科"),
+            qrItem("救急", "il_dept=救急"),
+            qrItem("こだわりなし", "il_dept=any"),
+          ],
+        },
+      }];
+    }
+
     case "il_workstyle": {
       const subLabel = entry.hospitalSubType ? `${entry.hospitalSubType}` : '';
       const ftLabelsWS = {hospital: subLabel || "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設", any: "こだわりなし"};
@@ -4339,13 +4362,15 @@ async function generateLineMatching(entry, env, offset = 0) {
       const d1Category = CATEGORY_MAP[entry.facilityType] || '病院';
       // 病院サブタイプフィルタ（急性期/回復期/慢性期）
       const subTypeFilter = entry.hospitalSubType ? ` AND sub_type = '${entry.hospitalSubType}'` : '';
+      // 診療科フィルタ
+      const deptFilter = entry.department ? ` AND departments LIKE '%${entry.department}%'` : '';
       let sql, params;
       if (cities.length > 0) {
         const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses})${subTypeFilter} ORDER BY RANDOM() LIMIT 5`;
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses})${subTypeFilter}${deptFilter} ORDER BY RANDOM() LIMIT 5`;
         params = [d1Category, ...cities.map(c => `%${c}%`)];
       } else {
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${subTypeFilter} ORDER BY RANDOM() LIMIT 5`;
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${subTypeFilter}${deptFilter} ORDER BY RANDOM() LIMIT 5`;
         params = [d1Category];
       }
       const d1Result = await env.DB.prepare(sql).bind(...params).all();
@@ -4704,6 +4729,7 @@ function handleLinePostback(dataStr, entry) {
     delete entry.urgency;
     delete entry.facilityType;
     delete entry.hospitalSubType;
+    delete entry.department;
     delete entry.matchingResults;
     // 千葉・埼玉・その他はサブエリアなし→areaも設定
     const PREF_AREA_MAP = { chiba: 'chiba_all', saitama: 'saitama_all', other: 'undecided' };
@@ -4731,7 +4757,7 @@ function handleLinePostback(dataStr, entry) {
       entry.facilityType = 'hospital';
       const subMap = { hospital_acute: '急性期', hospital_recovery: '回復期', hospital_chronic: '慢性期' };
       entry.hospitalSubType = subMap[val] || '';
-      nextPhase = "il_workstyle";
+      nextPhase = "il_department"; // 診療科選択へ
     } else if (val === 'clinic') {
       entry.facilityType = 'clinic';
       entry.workStyle = 'day';
@@ -4741,6 +4767,13 @@ function handleLinePostback(dataStr, entry) {
       entry.facilityType = val;
       nextPhase = "il_workstyle";
     }
+  }
+  // 診療科選択（病院選択後）
+  else if (params.has("il_dept")) {
+    const val = params.get("il_dept");
+    entry.department = val === 'any' ? '' : val;
+    entry.unexpectedTextCount = 0;
+    nextPhase = "il_workstyle";
   }
   // intake_light: 働き方
   else if (params.has("il_ws")) {
@@ -4873,6 +4906,7 @@ function handleLinePostback(dataStr, entry) {
       delete entry.urgency;
       delete entry.facilityType;
     delete entry.hospitalSubType;
+    delete entry.department;
       delete entry.matchingResults;
       nextPhase = "il_area"; // intake_light開始
     } else if (val === "check_salary") {
