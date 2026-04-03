@@ -3552,11 +3552,10 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "il_urgency": {
-      const clinicPrefix = entry._clinicSkip ? "クリニックは日勤中心ですね！\n\n" : "";
       if (entry._clinicSkip) delete entry._clinicSkip;
       return [{
         type: "text",
-        text: `${clinicPrefix}転職の温度感を教えてください。`,
+        text: "転職の温度感を教えてください。",
         quickReply: {
           items: [
             qrItem("すぐにでも転職したい", "il_urg=urgent"),
