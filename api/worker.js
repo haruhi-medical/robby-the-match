@@ -557,14 +557,13 @@ function countCandidatesInMemory(entry) {
 // 候補数テキスト生成
 function candidateText(prev, current) {
   const bar = '━━━━━━━━━━━━━━━';
+  const total = current.facilities + current.jobs;
   let text = bar + '\n📊 ';
   if (prev) {
-    text += `${prev.facilities + prev.jobs}件 → ${current.facilities + current.jobs}件に絞り込み`;
+    const prevTotal = prev.facilities + prev.jobs;
+    text += `${prevTotal.toLocaleString()}件 → ${total.toLocaleString()}件に絞り込み`;
   } else {
-    text += `現在の候補: ${current.facilities + current.jobs}件`;
-  }
-  if (current.jobs > 0) {
-    text += `\n  うち求人あり: ${current.jobs}件 🔥`;
+    text += `候補: ${total.toLocaleString()}件`;
   }
   text += '\n' + bar;
   return text;
@@ -2874,6 +2873,8 @@ const IL_AREA_LABELS = {
   tokyo_included: "東京全域",
   tokyo_23ku: "東京23区",
   tokyo_tama: "東京多摩地域",
+  chiba_all: "千葉県",
+  saitama_all: "埼玉県",
   undecided: "全エリア",
 };
 
@@ -3451,12 +3452,14 @@ async function buildPhaseMessage(phase, entry, env) {
       const totalCount = await countCandidatesD1({}, env);
       return [{
         type: "text",
-        text: `全国${totalCount.facilities + totalCount.jobs}件の中から\nあなたにぴったりの職場を見つけます。\n\nまず、どのエリアで働きたいですか？`,
+        text: `${totalCount.facilities.toLocaleString()}件の医療機関の中から\nあなたにぴったりの職場を見つけます。\n\nまず、どのエリアで働きたいですか？`,
         quickReply: {
           items: [
             qrItem("神奈川県", "il_pref=kanagawa"),
             qrItem("東京都", "il_pref=tokyo"),
-            qrItem("その他・未定", "il_area=undecided"),
+            qrItem("千葉県", "il_pref=chiba"),
+            qrItem("埼玉県", "il_pref=saitama"),
+            qrItem("その他の地域", "il_pref=other"),
           ],
         },
       }];
@@ -3465,11 +3468,14 @@ async function buildPhaseMessage(phase, entry, env) {
     // ステップ1b: サブエリア選択（2段階の2段目）
     case "il_subarea": {
       const prefCount = await countCandidatesD1(entry, env);
-      const prefLabel = entry.prefecture === 'tokyo' ? '東京都' : '神奈川県';
+      const PREF_LABELS = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県', other: 'その他の地域' };
+      const prefLabel = PREF_LABELS[entry.prefecture] || entry.prefecture;
+      const countLine = `━━━━━━━━━━━━━━━\n📊 候補: ${prefCount.facilities.toLocaleString()}件\n━━━━━━━━━━━━━━━`;
+
       if (entry.prefecture === 'tokyo') {
         return [{
           type: "text",
-          text: `${prefLabel}ですね！\n\n${candidateText(null, prefCount)}\n\n東京のどのあたりが希望ですか？`,
+          text: `${prefLabel}ですね！\n\n${countLine}\n\n東京のどのあたりが希望ですか？`,
           quickReply: {
             items: [
               qrItem("23区", "il_area=tokyo_23ku"),
@@ -3479,17 +3485,32 @@ async function buildPhaseMessage(phase, entry, env) {
           },
         }];
       }
+      if (entry.prefecture === 'kanagawa') {
+        return [{
+          type: "text",
+          text: `${prefLabel}ですね！\n\n${countLine}\n\n神奈川のどのあたりが希望ですか？`,
+          quickReply: {
+            items: [
+              qrItem("横浜・川崎", "il_area=yokohama_kawasaki"),
+              qrItem("湘南・鎌倉", "il_area=shonan_kamakura"),
+              qrItem("相模原・県央", "il_area=sagamihara_kenoh"),
+              qrItem("横須賀・三浦", "il_area=yokosuka_miura"),
+              qrItem("小田原・県西", "il_area=odawara_kensei"),
+              qrItem("どこでもOK", "il_area=kanagawa_all"),
+            ],
+          },
+        }];
+      }
+      // 千葉・埼玉・その他 → サブエリアなしで直接il_workstyleへ
       return [{
         type: "text",
-        text: `${prefLabel}ですね！\n\n${candidateText(null, prefCount)}\n\n神奈川のどのあたりが希望ですか？`,
+        text: `${prefLabel}ですね！\n\n${countLine}\n\n希望の働き方は？`,
         quickReply: {
           items: [
-            qrItem("横浜・川崎", "il_area=yokohama_kawasaki"),
-            qrItem("湘南・鎌倉", "il_area=shonan_kamakura"),
-            qrItem("相模原・県央", "il_area=sagamihara_kenoh"),
-            qrItem("横須賀・三浦", "il_area=yokosuka_miura"),
-            qrItem("小田原・県西", "il_area=odawara_kensei"),
-            qrItem("どこでもOK", "il_area=kanagawa_all"),
+            qrItem("日勤のみ", "il_ws=day"),
+            qrItem("夜勤ありOK", "il_ws=twoshift"),
+            qrItem("パート・非常勤", "il_ws=part"),
+            qrItem("夜勤専従", "il_ws=night"),
           ],
         },
       }];
@@ -4548,6 +4569,13 @@ function handleLinePostback(dataStr, entry) {
     const pref = params.get("il_pref");
     entry.prefecture = pref;
     entry.unexpectedTextCount = 0;
+    // 千葉・埼玉・その他はサブエリアなし→areaも設定
+    const PREF_AREA_MAP = { chiba: 'chiba_all', saitama: 'saitama_all', other: 'undecided' };
+    const PREF_LABEL_MAP = { chiba: '千葉県', saitama: '埼玉県', other: '全エリア', kanagawa: '神奈川県', tokyo: '東京都' };
+    if (PREF_AREA_MAP[pref]) {
+      entry.area = PREF_AREA_MAP[pref] + '_il';
+      entry.areaLabel = PREF_LABEL_MAP[pref] || pref;
+    }
     nextPhase = "il_subarea";
   }
   // intake_light: サブエリア選択（2段階の2段目）
