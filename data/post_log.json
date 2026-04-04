@@ -641,5 +641,19 @@
     "timestamp": "2026-04-03T18:40:58.896121",
     "status": "error",
     "error": "login_required"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260331_ai_ある_0331_06",
+    "timestamp": "2026-04-04T20:18:59.275732",
+    "status": "error",
+    "error": "login_required"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260331_ai_業界_0331_07",
+    "timestamp": "2026-04-04T20:48:44.801154",
+    "status": "error",
+    "error": "login_required"
   }
 ]

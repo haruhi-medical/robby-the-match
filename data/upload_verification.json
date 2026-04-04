@@ -376,7 +376,21 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-04T20:42:34.113040",
+      "content_id": "ai_ある_0331_06",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-04T21:08:31.774996",
+      "content_id": "ai_業界_0331_07",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-04-03T19:04:18.986125"
+  "last_updated": "2026-04-04T21:08:31.775005"
 }

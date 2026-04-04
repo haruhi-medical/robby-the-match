@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-03T19:04:18.977934",
+  "updated": "2026-04-04T20:51:38.728063",
   "posts": [
     {
       "id": 1,
@@ -3293,11 +3293,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0331_06_20260404.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -3337,8 +3337,8 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0331_07_20260404.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -3896,7 +3896,7 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
+      "quality_score": 8.65,
       "ai_review": {
         "score": 7,
         "persona_fit": 8,
@@ -3910,7 +3910,186 @@
         ],
         "suggestion": "フックを短くし、ソフトCTAを追加して8:2ルールを満たすように改善する"
       },
-      "scheduled_for": "2026-04-09 17:30"
+      "scheduled_for": "2026-04-09 17:30",
+      "quality_checked": true
+    },
+    {
+      "id": 186,
+      "content_id": "ai_給与_0404_01",
+      "batch": "ai_batch_20260404_1500",
+      "slide_dir": "content/generated/ai_batch_20260404_1500/ai_給与_0404_01",
+      "json_path": "content/generated/ai_batch_20260404_1500/ai_給与_0404_01.json",
+      "caption": "神奈川の看護師さん、給与のこと知ってますか？\n\n看護師の平均年収は546万円だけど、手取りは？\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師給与",
+        "#夜勤手当",
+        "#看護師転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8.78,
+      "quality_checked": true
+    },
+    {
+      "id": 187,
+      "content_id": "ai_ある_0404_02",
+      "batch": "ai_batch_20260404_1500",
+      "slide_dir": "content/generated/ai_batch_20260404_1500/ai_ある_0404_02",
+      "json_path": "content/generated/ai_batch_20260404_1500/ai_ある_0404_02.json",
+      "caption": "夜勤明け、電車で座る暇ある？\n\n看護師の価値を高く見積もろう。\n\n同僚にも教えてあげて。",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#看護師の価値",
+        "#夜勤手当"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8.45,
+      "quality_checked": true
+    },
+    {
+      "id": 188,
+      "content_id": "ai_ある_0404_03",
+      "batch": "ai_batch_20260404_1500",
+      "slide_dir": "content/generated/ai_batch_20260404_1500/ai_ある_0404_03",
+      "json_path": "content/generated/ai_batch_20260404_1500/ai_ある_0404_03.json",
+      "caption": "神奈川の夜勤看護師\n\n時給2,000円って高い？\n\nこの情報をシェアして",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#夜勤手当",
+        "#コンビニバイト"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8.5,
+      "quality_checked": true
+    },
+    {
+      "id": 189,
+      "content_id": "ai_ある_0404_04",
+      "batch": "ai_batch_20260404_1500",
+      "slide_dir": "content/generated/ai_batch_20260404_1500/ai_ある_0404_04",
+      "json_path": "content/generated/ai_batch_20260404_1500/ai_ある_0404_04.json",
+      "caption": "神奈川の看護師5年目で月収40万って本当？\n\n看護師不足は3.1万人。市場価値を高く見積もろう\n\nこの情報、知らなかった人いる？",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナース転職",
+        "#神奈川ナース"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 9.0,
+      "quality_checked": true
+    },
+    {
+      "id": 190,
+      "content_id": "ai_業界_0404_05",
+      "batch": "ai_batch_20260404_1500",
+      "slide_dir": "content/generated/ai_batch_20260404_1500/ai_業界_0404_05",
+      "json_path": "content/generated/ai_batch_20260404_1500/ai_業界_0404_05.json",
+      "caption": "看護師5年目で年収546万って高すぎない?\n\n看護師の転職市場では、紹介料20-30%の高さに疑問を持たれてるんだ。\n\nこの情報、保存しておくと、転職する時に役立つよ。",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 191,
+      "content_id": "ai_地域_0404_06",
+      "batch": "ai_batch_20260404_1500",
+      "slide_dir": "content/generated/ai_batch_20260404_1500/ai_地域_0404_06",
+      "json_path": "content/generated/ai_batch_20260404_1500/ai_地域_0404_06.json",
+      "caption": "神奈川の看護師5年目が時給2万取る理由\n\n看護師の給与が低い理由は？\n\nこの情報、保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#神奈川就職",
+        "#ナース転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
     }
   ],
   "archive": [
