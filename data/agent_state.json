@@ -5,8 +5,10 @@
     "competitor_analyst": "2026-04-04T10:00:17",
     "content_creator": "2026-04-04T15:05:40",
     "sns_poster": "2026-04-04T20:48:18",
-    "daily_reviewer": "2026-04-04T23:00:00",
-    "seo_optimizer": "2026-04-04T04:00:21"
+    "daily_reviewer": "2026-04-04T23:00:23",
+    "seo_optimizer": "2026-04-04T04:00:21",
+    "weekly_content_planner": "2026-04-05T05:00:02",
+    "weekly_strategist": "2026-04-05T06:00:00"
   },
   "status": {
     "ai_marketing_orchestrator": "completed",
@@ -14,8 +16,10 @@
     "competitor_analyst": "completed",
     "content_creator": "completed",
     "sns_poster": "running",
-    "daily_reviewer": "running",
-    "seo_optimizer": "completed"
+    "daily_reviewer": "completed",
+    "seo_optimizer": "completed",
+    "weekly_content_planner": "failed",
+    "weekly_strategist": "running"
   },
   "pendingTasks": {
     "content_creator": [
@@ -68,12 +72,12 @@
         "紹介": 0,
         "トレンド": 0
       },
-      "lastAnalysisDate": "2026-04-04"
+      "lastAnalysisDate": "2026-04-05"
     },
     "sns_poster": {
       "totalPosted": 45,
       "averageViews": 0,
-      "lastAnalysisDate": "2026-04-04"
+      "lastAnalysisDate": "2026-04-05"
     }
   }
 }
