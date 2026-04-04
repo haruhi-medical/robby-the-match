@@ -1,0 +1,275 @@
+{
+  "run_at": "2026-04-04T08:42:17.758655",
+  "summary": {
+    "pass": 47,
+    "fail": 1,
+    "skip": 5
+  },
+  "results": [
+    {
+      "name": "Worker /api/health",
+      "status": "❌ FAIL",
+      "detail": "HTTP Error 403: Forbidden"
+    },
+    {
+      "name": "EXTERNAL_JOBS 全28エリア存在",
+      "status": "✅ PASS",
+      "detail": "28エリア全OK"
+    },
+    {
+      "name": "EXTERNAL_JOBS 合計100件以上",
+      "status": "✅ PASS",
+      "detail": "213件"
+    },
+    {
+      "name": "給与データ形式が正しい",
+      "status": "✅ PASS",
+      "detail": "99件の月給データ"
+    },
+    {
+      "name": "AREA_ZONE_MAP: q3_yokohama_kawasaki_il",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_ZONE_MAP: q3_tokyo_23ku_il",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_ZONE_MAP: q3_tokyo_tama_il",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_ZONE_MAP: q3_chiba_all_il",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_ZONE_MAP: q3_saitama_all_il",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_ZONE_MAP: q3_kanagawa_all_il",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_ZONE_MAP: q3_undecided_il",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_CITY_MAP: tokyo_23ku にデータあり",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_CITY_MAP: tokyo_tama にデータあり",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_CITY_MAP: chiba_all にデータあり",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_CITY_MAP: saitama_all にデータあり",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "AREA_CITY_MAP: kanagawa_all にデータあり",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "ADJACENT_AREAS: tokyo_23ku",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "ADJACENT_AREAS: tokyo_tama",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "ADJACENT_AREAS: saitama_all",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "ADJACENT_AREAS: chiba_all",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "ADJACENT_AREAS: kanagawa_all",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "D1 総施設数 > 20000",
+      "status": "✅ PASS",
+      "detail": "24488件"
+    },
+    {
+      "name": "D1 病院数 > 1400",
+      "status": "✅ PASS",
+      "detail": "1498件"
+    },
+    {
+      "name": "D1 診療科カバー率 > 95%",
+      "status": "✅ PASS",
+      "detail": "1497/1498 (99%)"
+    },
+    {
+      "name": "D1 最寄駅カバー率 > 95%",
+      "status": "✅ PASS",
+      "detail": "1491/1498 (99%)"
+    },
+    {
+      "name": "D1 看護師数カバー率 > 80%",
+      "status": "✅ PASS",
+      "detail": "1342/1498 (89%)"
+    },
+    {
+      "name": "D1 東京都にデータあり",
+      "status": "✅ PASS",
+      "detail": "12748件"
+    },
+    {
+      "name": "D1 神奈川県にデータあり",
+      "status": "✅ PASS",
+      "detail": "5165件"
+    },
+    {
+      "name": "D1 埼玉県にデータあり",
+      "status": "✅ PASS",
+      "detail": "3673件"
+    },
+    {
+      "name": "D1 千葉県にデータあり",
+      "status": "✅ PASS",
+      "detail": "2902件"
+    },
+    {
+      "name": "全postbackにハンドラあり",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'il_area'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'il_subarea'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'il_facility_type'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'il_department'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'il_workstyle'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'il_urgency'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'matching_preview'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'matching_browse'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'nurture_warm'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'nurture_subscribed'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'handoff_phone_check'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "buildPhaseMessage case 'handoff_phone_time'",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "LINE Webhook署名検証あり",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "timingSafeEqual使用",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "D1バインドパラメータ（hospitalSubType）",
+      "status": "✅ PASS",
+      "detail": "文字列連結なし確認"
+    },
+    {
+      "name": "D1 SQLバインドパラメータ方式",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "cron 4県対応(--all-prefectures)",
+      "status": "✅ PASS",
+      "detail": ""
+    },
+    {
+      "name": "LINE follow→welcomeメッセージ",
+      "status": "⏭️ SKIP",
+      "detail": "LINE Messaging APIトークンなし"
+    },
+    {
+      "name": "LINE postback→応答",
+      "status": "⏭️ SKIP",
+      "detail": "LINE Messaging APIトークンなし"
+    },
+    {
+      "name": "LIFF→セッション引き継ぎ",
+      "status": "⏭️ SKIP",
+      "detail": "ブラウザ操作が必要"
+    },
+    {
+      "name": "Push API配信",
+      "status": "⏭️ SKIP",
+      "detail": "LINE APIトークンなし"
+    },
+    {
+      "name": "ナーチャリングcronトリガー",
+      "status": "⏭️ SKIP",
+      "detail": "cron手動実行が必要"
+    }
+  ]
+}
