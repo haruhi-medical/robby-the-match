@@ -3250,3 +3250,17 @@ AI Marketing PDCA:
    - 「看護師転職のための年収相場と昇給のコツ」
    - 「神奈川県の看護師不足地域と転職の機会」
 
+### 🔎 競合監視（10:00:01）
+   - 「小田原市の看護師転職ガイド」
+   - 「看護師転職のための年収相場と昇給のコツ」
+   - 「神奈川県の看護師不足地域と転職の機会」
+[pdca_ai_engine] job=competitor 完了 (exit=0)
+[INFO] commit済み（pushは日次レビューで一括）
+
+### content（15:00:01）
+コンテンツ生成:   id=189, content_id=ai_ある_0404_04, batch=ai_batch_20260404_1500, cta=soft
+  id=190, content_id=ai_業界_0404_05, batch=ai_batch_20260404_1500, cta=soft
+  id=191, content_id=ai_地域_0404_06, batch=ai_batch_20260404_1500, cta=soft
+
+[NOTE] available (21) >= threshold (7) -- --auto では生成スキップ
+

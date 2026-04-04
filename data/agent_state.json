@@ -2,8 +2,8 @@
   "lastRun": {
     "ai_marketing_orchestrator": "2026-04-04T06:00:03",
     "health_monitor": "2026-04-04T07:00:18",
-    "competitor_analyst": "2026-04-04T10:00:01",
-    "content_creator": "2026-04-03T15:03:42",
+    "competitor_analyst": "2026-04-04T10:00:17",
+    "content_creator": "2026-04-04T15:05:40",
     "sns_poster": "2026-04-03T18:40:33",
     "daily_reviewer": "2026-04-03T23:00:28",
     "seo_optimizer": "2026-04-04T04:00:21"
@@ -11,7 +11,7 @@
   "status": {
     "ai_marketing_orchestrator": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "running",
+    "competitor_analyst": "completed",
     "content_creator": "completed",
     "sns_poster": "running",
     "daily_reviewer": "completed",
@@ -31,7 +31,7 @@
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
         "created": "2026-04-04T07:00:17.553407",
-        "status": "pending"
+        "status": "processing"
       }
     ]
   },

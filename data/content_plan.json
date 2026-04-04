@@ -1,6 +1,6 @@
 {
   "created": "2026-04-03T15:01:18.770708",
-  "updated": "2026-04-03T15:02:01.149307",
+  "updated": "2026-04-04T15:05:39.557930",
   "week_of": "2026-04-03",
   "total": 7,
   "queue_pending_at_creation": 6,
@@ -18,8 +18,8 @@
       "day": 2,
       "category": "給与",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_給与_0404_01",
       "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？",
       "hook_idea": "夜勤10回、手取り35万？"
     },
@@ -27,8 +27,8 @@
       "day": 3,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0404_02",
       "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
       "hook_idea": "師長に退職届出したら…"
     },
@@ -36,8 +36,8 @@
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0404_03",
       "hint": "プリセプターやれって言われた。自分がまだプリセプティーの気持ちなのに",
       "hook_idea": "プリセプター任命、自分もまだプリセプティ"
     },
@@ -45,8 +45,8 @@
       "day": 5,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0404_04",
       "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
       "hook_idea": "インシデントレポート、報告書は業務外？"
     },
@@ -54,8 +54,8 @@
       "day": 6,
       "category": "業界裏側",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_業界_0404_05",
       "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布",
       "hook_idea": "看護師紹介料、病院が得してる？"
     },
@@ -63,8 +63,8 @@
       "day": 7,
       "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_地域_0404_06",
       "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い",
       "hook_idea": "神奈川看護師、ワースト3位の理由"
     }
