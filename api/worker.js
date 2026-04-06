@@ -3769,18 +3769,23 @@ async function buildPhaseMessage(phase, entry, env) {
         type: "text",
         text: `${ftLabelWS}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(nowCount.facilities + nowCount.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\n希望の働き方は？`,
         quickReply: {
-          items: [
-            qrItem("日勤のみ", "il_ws=day"),
-            qrItem("夜勤ありOK", "il_ws=twoshift"),
-            qrItem("パート・非常勤", "il_ws=part"),
-            qrItem("夜勤専従", "il_ws=night"),
-          ],
+          items: entry._isClinic
+            ? [
+                qrItem("常勤（日勤）", "il_ws=day"),
+                qrItem("パート・非常勤", "il_ws=part"),
+              ]
+            : [
+                qrItem("日勤のみ", "il_ws=day"),
+                qrItem("夜勤ありOK", "il_ws=twoshift"),
+                qrItem("パート・非常勤", "il_ws=part"),
+                qrItem("夜勤専従", "il_ws=night"),
+              ],
         },
       }];
     }
 
     case "il_urgency": {
-      if (entry._clinicSkip) delete entry._clinicSkip;
+      if (entry._isClinic) delete entry._isClinic;
       return [{
         type: "text",
         text: "今の転職への気持ちは？",
@@ -4054,10 +4059,11 @@ async function buildPhaseMessage(phase, entry, env) {
       if (!entry.matchingResults || entry.matchingResults.length === 0) {
         return [{
           type: "text",
-          text: "今ある求人は全てお見せしました。\n条件を変えて探すか、新着が出たらお知らせしますね。",
+          text: "今ある求人は全てお見せしました。\n条件を変えて探すか、担当者に直接相談もできます。",
           quickReply: {
             items: [
               qrItem("条件を変えて探す", "matching_browse=change"),
+              qrItem("直接相談する", "consult=handoff"),
               qrItem("新着を待つ", "matching_browse=done"),
             ],
           },
@@ -4881,9 +4887,12 @@ function buildMatchingMessages(entry) {
   if (results.length === 0) {
     return [{
       type: "text",
-      text: "申し訳ありません、条件に合う施設が見つかりませんでした。\n担当者が直接お探しいたします！",
+      text: "申し訳ありません、条件に合う施設が見つかりませんでした。\n\n条件を変えて探すか、担当者が直接お探しすることもできます。",
       quickReply: {
-        items: [qrItem("お願いします！", "handoff=ok")],
+        items: [
+          qrItem("条件を変えて探す", "matching_preview=deep"),
+          qrItem("担当者に相談する", "handoff=ok"),
+        ],
       },
     }];
   }
@@ -5114,9 +5123,8 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "il_department"; // 診療科選択へ
     } else if (val === 'clinic') {
       entry.facilityType = 'clinic';
-      entry.workStyle = 'day';
-      entry._clinicSkip = true;
-      nextPhase = "il_urgency";
+      entry._isClinic = true;
+      nextPhase = "il_workstyle"; // クリニックでも働き方を聞く（パート希望者対応）
     } else {
       entry.facilityType = val;
       nextPhase = "il_workstyle";
@@ -5191,13 +5199,13 @@ function handleLinePostback(dataStr, entry) {
     } else if (val === "workstyle") {
       // 働き方のみリセット→il_workstyle
       delete entry.workStyle;
-      delete entry._clinicSkip;
+      delete entry._isClinic;
       nextPhase = "il_workstyle";
     } else {
       // 全リセット
       delete entry.area; delete entry.areaLabel; delete entry.prefecture;
       delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
-      delete entry.workStyle; delete entry.urgency; delete entry._clinicSkip;
+      delete entry.workStyle; delete entry.urgency; delete entry._isClinic;
       nextPhase = "il_area";
     }
   }
