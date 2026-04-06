@@ -568,12 +568,12 @@ const AREA_CITY_MAP = {
   sagamihara_kenoh: ['相模原市', '厚木市', '海老名市', '座間市', '綾瀬市', '大和市', '愛川町'],
   yokosuka_miura: ['横須賀市', '三浦市'],
   odawara_kensei: ['小田原市', '南足柄市', '箱根町', '湯河原町', '真鶴町', '松田町', '山北町', '大井町', '開成町', '中井町', '二宮町', '大磯町', '平塚市', '秦野市', '伊勢原市'],
-  kanagawa_all: ['横浜市', '川崎市', '相模原市', '藤沢市', '茅ヶ崎市', '小田原市', '厚木市', '海老名市', '大和市', '横須賀市', '鎌倉市', '平塚市', '秦野市'],
-  tokyo_included: ['新宿区', '渋谷区', '品川区', '世田谷区', '大田区', '横浜市', '川崎市'],
+  kanagawa_all: [],  // 神奈川全域 → prefectureフィルタで検索（D1_AREA_PREF: 神奈川県）
+  tokyo_included: [],  // 東京全域 → prefectureフィルタで検索（D1_AREA_PREF: 東京都）
   tokyo_23ku: ['千代田区', '中央区', '港区', '新宿区', '文京区', '台東区', '墨田区', '江東区', '品川区', '目黒区', '大田区', '世田谷区', '渋谷区', '中野区', '杉並区', '豊島区', '北区', '荒川区', '板橋区', '練馬区', '足立区', '葛飾区', '江戸川区'],
-  tokyo_tama: ['八王子市', '立川市', '武蔵野市', '三鷹市', '府中市', '調布市', '町田市', '多摩市', '日野市'],
-  chiba_all: ['千葉市', '船橋市', '市川市', '柏市', '松戸市', '浦安市', '習志野市', '八千代市', '流山市', '我孫子市', '市原市', '木更津市', '成田市'],
-  saitama_all: ['さいたま市', '川口市', '所沢市', '川越市', '越谷市', '草加市', '春日部市', '三郷市', '戸田市', '入間市', '狭山市', '朝霞市', '新座市'],
+  tokyo_tama: ['八王子市', '立川市', '武蔵野市', '三鷹市', '府中市', '調布市', '町田市', '多摩市', '日野市', '青梅市', '国分寺市', '国立市', '小金井市', '小平市', '東村山市', '東大和市', '清瀬市', '東久留米市', '西東京市', '福生市', '羽村市', 'あきる野市', '稲城市', '狛江市', '武蔵村山市'],
+  chiba_all: [],  // 千葉全域 → prefectureフィルタで検索（D1_AREA_PREF: 千葉県）
+  saitama_all: [],  // 埼玉全域 → prefectureフィルタで検索（D1_AREA_PREF: 埼玉県）
   undecided: [], // 全エリア
 };
 const CATEGORY_MAP = {
@@ -596,7 +596,7 @@ async function countCandidatesD1(entry, env) {
         // prefecture直接指定（千葉・埼玉・東京全域等）
         const AREA_PREF_MAP = {
           chiba_all: '千葉県', saitama_all: '埼玉県',
-          tokyo_included: null, tokyo_23ku: '東京都', tokyo_tama: '東京都',
+          tokyo_included: '東京都', tokyo_23ku: '東京都', tokyo_tama: '東京都',
           kanagawa_all: '神奈川県',
         };
         if (AREA_PREF_MAP[areaKey] !== undefined) {
@@ -604,7 +604,7 @@ async function countCandidatesD1(entry, env) {
             sql += ' AND prefecture = ?';
             params.push(AREA_PREF_MAP[areaKey]);
           }
-          // null = 全県（tokyo_included）→ フィルタなし
+          // 全エリア選択 → prefectureでフィルタ
         } else {
           // 市区町村名でフィルタ（横浜・川崎等）
           const cities = AREA_CITY_MAP[areaKey];
@@ -2993,7 +2993,7 @@ const AREA_ZONE_MAP = {
   q3_sagamihara_kenoh_il:   ["相模原", "厚木", "海老名", "座間", "綾瀬", "大和", "愛川"],
   q3_yokosuka_miura_il:     ["横須賀", "鎌倉", "逗子", "三浦", "葉山"],
   q3_odawara_kensei_il:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
-  q3_tokyo_included_il:     ["横浜", "川崎", "東京"],  // 東京+横浜・川崎をカバー
+  q3_tokyo_included_il:     ["東京", "23区", "多摩"],  // 東京全域
   q3_tokyo_23ku_il:         ["東京"],  // 東京23区（EXTERNAL_JOBSには東京求人が少ないためD1フォールバック）
   q3_tokyo_tama_il:         ["東京"],  // 東京多摩地域
   q3_kanagawa_all_il:       ["横浜", "川崎", "相模原", "藤沢", "茅ヶ崎", "小田原", "厚木", "海老名", "大和", "横須賀", "鎌倉", "平塚", "秦野"],  // 神奈川全域
@@ -4552,6 +4552,13 @@ async function generateLineMatching(entry, env, offset = 0) {
       const baseArea = (entry.area || '').replace('_il', '');
       const cities = AREA_CITY_MAP[baseArea] || [];
       const d1Category = CATEGORY_MAP[entry.facilityType] || '病院';
+      // prefecture直接フィルタ（千葉/埼玉/東京/神奈川全域選択時）
+      const D1_AREA_PREF = {
+        chiba_all: '千葉県', saitama_all: '埼玉県',
+        tokyo_included: '東京都', kanagawa_all: '神奈川県',
+        tokyo_23ku: '東京都', tokyo_tama: '東京都',
+      };
+      const prefFilter = D1_AREA_PREF[baseArea] || null;
       // バインドパラメータでSQLインジェクション対策
       let extraFilters = '';
       const extraParams = [];
@@ -4568,6 +4575,21 @@ async function generateLineMatching(entry, env, offset = 0) {
         const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
         sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses})${extraFilters} ORDER BY RANDOM() LIMIT 5`;
         params = [d1Category, ...cities.map(c => `%${c}%`), ...extraParams];
+      } else if (prefFilter) {
+        // 都市リストがない場合はprefectureでフィルタ（千葉全域/埼玉全域等）
+        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+        params = [d1Category, prefFilter, ...extraParams];
+      } else if (entry.prefecture) {
+        // エリア未選択だがprefecureがある場合
+        const PREF_NAME = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県' };
+        const pn = PREF_NAME[entry.prefecture];
+        if (pn) {
+          sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+          params = [d1Category, pn, ...extraParams];
+        } else {
+          sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+          params = [d1Category, ...extraParams];
+        }
       } else {
         sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
         params = [d1Category, ...extraParams];
