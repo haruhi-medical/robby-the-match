@@ -4369,9 +4369,17 @@ async function buildPhaseMessage(phase, entry, env) {
           text: "✅ 担当者が名前を伏せて施設に確認します。\n\n🔒 お名前や連絡先は、先方が関心を示すまで開示しません。\n回答があり次第ご連絡しますね。\n\n質問があればいつでもメッセージください。\n（担当者が確認してお返事します）",
         }];
       }
+      if (entry.phonePreference === "phone_ok") {
+        const timeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK' };
+        const timeText = entry.preferredCallTime ? timeLabels[entry.preferredCallTime] || '' : '';
+        return [{
+          type: "text",
+          text: `ありがとうございます！\n\nここからは担当者が引き継ぎます。\n翌営業日までに${timeText ? `${timeText}に` : ''}お電話またはLINEでご連絡しますね。\n\n気になることがあればいつでもメッセージしてください！`,
+        }];
+      }
       return [{
         type: "text",
-        text: "ありがとうございます！\n\nここからは担当者が引き継いで、このLINEでご連絡します。\n翌営業日までにはお返事しますね。\n\n電話はしませんので、ご安心ください。\n気になることがあればいつでもメッセージしてください！",
+        text: "ありがとうございます！\n\nここからは担当者が引き継いで、このLINEでご連絡します。\n翌営業日までにはお返事しますね。\n\nお電話はしませんのでご安心ください。\n気になることがあればいつでもメッセージしてください！",
       }];
     }
 
