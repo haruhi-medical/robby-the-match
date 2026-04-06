@@ -48,6 +48,8 @@ load_dotenv(project_root / ".env")
 # Slack設定
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C09A7U4TV4G")
+# LINE引き継ぎ通知チャンネル（Worker側がhandoffメッセージを送る先）
+SLACK_LINE_CHANNEL_ID = "C0AEG626EUW"  # #ロビー小田原人材紹介
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN", "")
 
 # 指示キューファイル
@@ -697,25 +699,38 @@ def run_polling(channel: str, interval: int = 30):
     print("---")
 
     last_ts = load_last_ts()
+    last_ts_line = last_ts  # LINE通知チャンネル用の別タイムスタンプ
     processed_ts = set()
+
+    # LINE通知チャンネルも監視（handoff後の!reply対応）
+    channels_to_watch = [channel]
+    if SLACK_LINE_CHANNEL_ID and SLACK_LINE_CHANNEL_ID != channel:
+        channels_to_watch.append(SLACK_LINE_CHANNEL_ID)
+        print(f"LINE通知チャンネルも監視: {SLACK_LINE_CHANNEL_ID}")
 
     while True:
         try:
-            messages = get_conversation_history(channel, oldest=last_ts, limit=10)
-            for msg in reversed(messages):
-                ts = msg.get("ts", "")
-                if ts in processed_ts:
-                    continue
-                processed_ts.add(ts)
-                process_message(msg, channel)
+            for ch_idx, ch in enumerate(channels_to_watch):
+                ch_ts = last_ts if ch_idx == 0 else last_ts_line
+                messages = get_conversation_history(ch, oldest=ch_ts, limit=10)
+                for msg in reversed(messages):
+                    ts = msg.get("ts", "")
+                    if ts in processed_ts:
+                        continue
+                    processed_ts.add(ts)
+                    process_message(msg, ch)
+
+                if messages:
+                    newest_ts = messages[0].get("ts", ch_ts)
+                    if ch_idx == 0:
+                        last_ts = newest_ts
+                    else:
+                        last_ts_line = newest_ts
 
             if len(processed_ts) > 500:
                 processed_ts.clear()
 
-            if messages:
-                newest_ts = messages[0].get("ts", last_ts)
-                last_ts = newest_ts
-                save_last_ts(last_ts)
+            save_last_ts(last_ts)
 
             time.sleep(interval)
 
