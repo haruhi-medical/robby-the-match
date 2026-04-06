@@ -5802,14 +5802,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.handoffAt = Date.now();
           replyMessages = [
             { type: "text", text: "かしこまりました。担当者に引き継ぎました。\n\n良い日をお過ごしくださいませ！" },
-            { type: "text", text: "よくある質問もまとめてあります👇",
-              quickReply: {
-                items: [
-                  qrItem("本当に無料？", "faq=free"),
-                  qrItem("電話は来ない？", "faq=no_phone"),
-                ],
-              },
-            },
           ];
           await sendHandoffNotification(userId, entry, env);
           // KVにハンドオフインデックス登録（Cron Triggerでフォロー用）
