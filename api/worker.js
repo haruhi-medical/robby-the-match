@@ -5801,7 +5801,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
           replyMessages = [
-            { type: "text", text: "かしこまりました。担当者に引き継ぎました。\n\n良い日をお過ごしくださいませ！" },
+            { type: "text", text: "かしこまりました。担当者に引き継ぎました。\n\nこの後の流れをお伝えしますね👇\n\n① 翌営業日までに担当者がこのLINEでご連絡します\n② お電話はしませんのでご安心ください\n③ 気になることがあればいつでもメッセージしてください\n\nお待たせしないよう対応しますね！" },
           ];
           await sendHandoffNotification(userId, entry, env);
           // KVにハンドオフインデックス登録（Cron Triggerでフォロー用）
