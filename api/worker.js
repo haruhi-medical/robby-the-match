@@ -129,7 +129,7 @@ const STATE_CATEGORIES = {
   // 6. 面接準備
   INTERVIEW:     ["interview_prep"],
   // 7. ハンドオフ（人間対応）
-  HANDOFF:       ["handoff", "handoff_silent", "handoff_phone_check", "handoff_phone_time"],
+  HANDOFF:       ["handoff", "handoff_silent", "handoff_phone_check", "handoff_phone_time", "handoff_phone_number"],
   // 8. ナーチャリング
   NURTURE:       ["nurture_warm", "nurture_subscribed", "nurture_stay", "area_notify_optin"],
   // 9. FAQ
@@ -4297,6 +4297,15 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
+    case "handoff_phone_number": {
+      const timeLabel = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK' };
+      const timeText = timeLabel[entry.preferredCallTime] || entry.preferredCallTime || '';
+      return [{
+        type: "text",
+        text: `${timeText}ですね！\n\n📞 お電話番号を教えてください。\n（例: 090-1234-5678）\n\n※担当者からのご連絡にのみ使用します。`,
+      }];
+    }
+
     case "handoff": {
       if (entry.appliedAt) {
         return [{
@@ -4889,7 +4898,8 @@ async function sendHandoffNotification(userId, entry, env) {
   const timeLabels = { morning: "午前中", afternoon: "午後", evening: "夕方以降", anytime: "いつでもOK" };
   const phonePrefText = phoneLabels[entry.phonePreference] || "未確認";
   const phoneTimeText = entry.preferredCallTime ? timeLabels[entry.preferredCallTime] || entry.preferredCallTime : "";
-  const phoneInfoLine = phoneTimeText ? `${phonePrefText}（${phoneTimeText}）` : phonePrefText;
+  const phoneNumberText = entry.phoneNumber ? `\n📱 電話番号: ${entry.phoneNumber}` : '';
+  const phoneInfoLine = phoneTimeText ? `${phonePrefText}（${phoneTimeText}）${phoneNumberText}` : `${phonePrefText}${phoneNumberText}`;
 
   const slackText = `🎯 *LINE相談 → 人間対応リクエスト*
 温度感: ${tempEmoji} ${temperature} / 緊急度: ${urgLabel}
@@ -5137,7 +5147,7 @@ function handleLinePostback(dataStr, entry) {
   else if (params.has("phone_time")) {
     entry.preferredCallTime = params.get("phone_time");
     entry.unexpectedTextCount = 0;
-    nextPhase = "handoff";
+    nextPhase = "handoff_phone_number"; // 電話番号確認へ
   }
   // 引き継ぎ
   else if (params.has("handoff")) {
@@ -5308,6 +5318,32 @@ function handleLinePostback(dataStr, entry) {
 function handleFreeTextInput(text, entry) {
   const phase = entry.phase;
 
+  // === 電話番号入力（handoff_phone_number フェーズ） ===
+  if (phase === "handoff_phone_number") {
+    const digits = text.replace(/[\s\-\u3000（）()]/g, '');
+    const isPhone = /^0[0-9]{9,10}$/.test(digits);
+    if (isPhone) {
+      entry.phoneNumber = digits;
+      entry.unexpectedTextCount = 0;
+      return "handoff"; // 電話番号取得 → handoffへ
+    }
+    // 電話番号じゃない場合
+    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+    if (entry.unexpectedTextCount >= 2) {
+      // 2回失敗 → 電話番号なしでhandoffへ
+      return "handoff";
+    }
+    return {
+      type: "text",
+      text: "電話番号の形式で入力してください。\n（例: 090-1234-5678）\n\n電話番号を伝えたくない場合は「LINE希望」と送ってください。",
+      quickReply: {
+        items: [
+          { type: "action", action: { type: "postback", label: "LINEでお願いします", data: "phone_check=line_only", displayText: "LINEでお願いします" } },
+        ],
+      },
+    };
+  }
+
   // === 自由テキストからの都道府県/市区町村名検出 ===
   if (phase === "il_area" || phase === "il_subarea" || phase === "welcome") {
     const prefMap = {
@@ -5411,7 +5447,7 @@ function handleFreeTextInput(text, entry) {
   if (phase === "il_area" || phase === "il_subarea" || phase === "il_facility_type" || phase === "il_department" ||
       phase === "il_workstyle" || phase === "il_urgency" ||
       phase === "matching_preview" || phase === "matching_browse" || phase === "nurture_warm" ||
-      phase === "handoff_phone_check" || phase === "handoff_phone_time") {
+      phase === "handoff_phone_check" || phase === "handoff_phone_time" || phase === "handoff_phone_number") {
     entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
     return null;
   }
@@ -5944,6 +5980,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "handoff_phone_time") {
           entry.phase = "handoff_phone_time";
           replyMessages = await buildPhaseMessage("handoff_phone_time", entry, env);
+        } else if (nextPhase === "handoff_phone_number") {
+          entry.phase = "handoff_phone_number";
+          replyMessages = await buildPhaseMessage("handoff_phone_number", entry, env);
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
           replyMessages = [
