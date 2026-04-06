@@ -572,10 +572,10 @@ const AREA_CITY_MAP = {
   chiba_inba: ['成田市', '佐倉市', '印西市', '四街道市', '白井市', '富里市', '酒々井町'],
   chiba_sotobo: ['館山市', '鴨川市', '勝浦市', '茂原市', '東金市', '山武市', '銚子市', '旭市', '香取市', '大網白里市', '南房総市', 'いすみ市', '匝瑳市'],
   chiba_all: [],  // 千葉全域 → prefectureフィルタで検索（D1_AREA_PREF: 千葉県）
-  saitama_south: ['さいたま市', '川口市', '蕨市', '戸田市', '和光市', '朝霞市', '志木市', '新座市', '八潮市', '三郷市', '吉川市', '松伏町'],
+  saitama_south: ['さいたま市', '川口市', '蕨市', '戸田市', '和光市', '朝霞市', '志木市', '新座市', '八潮市', '三郷市', '吉川市', '松伏町', '上尾市', '桶川市', '北本市', '伊奈町'],
   saitama_east: ['越谷市', '草加市', '春日部市', '久喜市', '蓮田市', '白岡市', '幸手市', '杉戸町', '宮代町'],
   saitama_west: ['所沢市', '川越市', '入間市', '狭山市', '飯能市', '日高市', '坂戸市', '鶴ヶ島市', '東松山市', 'ふじみ野市', '富士見市'],
-  saitama_north: ['熊谷市', '深谷市', '本庄市', '行田市', '加須市', '羽生市', '鴻巣市', '上尾市', '桶川市', '北本市', '秩父市'],
+  saitama_north: ['熊谷市', '深谷市', '本庄市', '行田市', '加須市', '羽生市', '鴻巣市', '秩父市'],
   saitama_all: [],  // 埼玉全域 → prefectureフィルタで検索（D1_AREA_PREF: 埼玉県）
   undecided: [], // 全エリア
 };
@@ -4024,7 +4024,7 @@ async function buildPhaseMessage(phase, entry, env) {
             { type: "button", style: "primary", height: "sm", color: BRAND_COLOR, margin: "lg",
               action: { type: "postback", label: "他の求人を探す", data: "matching_preview=more", displayText: "他の求人も見たい" } },
             { type: "button", style: "secondary", height: "sm", margin: "sm",
-              action: { type: "postback", label: "条件を変えて探す", data: "welcome=see_jobs", displayText: "条件を変えたい" } },
+              action: { type: "postback", label: "条件を変えて探す", data: "matching_preview=deep", displayText: "条件を変えたい" } },
             { type: "button", style: "secondary", height: "sm", margin: "sm",
               action: { type: "postback", label: "直接相談する", data: "handoff=ok", displayText: "直接相談したい" } },
           ],
@@ -4644,6 +4644,19 @@ async function generateLineMatching(entry, env, offset = 0) {
       } else if (entry.facilityType === 'care') {
         matchFlags.facilityType = isCare;
       }
+    }
+
+    // 診療科マッチ（department指定時、descやtに診療科名が含まれるか）
+    if (entry.department) {
+      const deptText = (j.t || '') + (j.desc || '') + (j.n || '');
+      matchFlags.department = deptText.includes(entry.department);
+    }
+
+    // 病院サブタイプマッチ（急性期/回復期/慢性期）
+    if (entry.hospitalSubType && entry.facilityType === 'hospital') {
+      const subText = (j.t || '') + (j.desc || '') + (j.n || '');
+      const subKeywords = { '急性期': ['急性期', '救急', 'ICU', 'HCU'], '回復期': ['回復期', 'リハビリ'], '慢性期': ['慢性期', '療養'] };
+      matchFlags.subType = (subKeywords[entry.hospitalSubType] || []).some(kw => subText.includes(kw));
     }
 
     matchCount = Object.values(matchFlags).filter(Boolean).length;
