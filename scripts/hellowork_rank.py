@@ -316,12 +316,22 @@ AREA_MAP = {
 
 
 def classify_area(job):
-    loc = job.get("work_location", "") + job.get("work_address", "") + job.get("employer_address", "")
-    # 市区町村名の完全マッチを優先（「千葉」だけで千葉県全体にマッチするのを防止）
+    loc = (job.get("work_location") or "") + (job.get("work_address") or "") + (job.get("employer_address") or "")
+    if not loc.strip():
+        return None
+    # 都道府県チェック: 関東4都県以外はスキップ
+    valid_prefs = ["東京都", "神奈川県", "千葉県", "埼玉県"]
+    if not any(p in loc for p in valid_prefs):
+        return None
+    # 長い市区町村名から先にマッチ（「東大和市」を「大和市」より先に検出）
+    all_entries = []
     for area_name, cities in AREA_MAP.items():
         for city in cities:
-            if city in loc:  # 「千葉市」「船橋市」等の完全一致
-                return area_name
+            all_entries.append((city, area_name))
+    all_entries.sort(key=lambda x: -len(x[0]))  # 長い名前を優先
+    for city, area_name in all_entries:
+        if city in loc:
+            return area_name
     return None
 
 
