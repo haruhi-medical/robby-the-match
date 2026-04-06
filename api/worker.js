@@ -2658,14 +2658,12 @@ async function handleLineStart(url, env) {
     // shindan 3問の回答（LP内ミニ診断から来た場合）
     const answers = url.searchParams.get('answers') || '';
 
-    if (!sessionId) {
-      // session_idなしの場合はフォールバックURLへ
-      return new Response(null, { status: 302, headers: { 'Location': LINE_START_FALLBACK } });
-    }
+    // session_idなしの場合は自動生成（広告リンク等）
+    const effectiveSessionId = sessionId || crypto.randomUUID();
 
     // KVにセッション情報を保存（24h TTL）
     const sessionData = {
-      sessionId,
+      sessionId: effectiveSessionId,
       source,
       intent,
       pageType,
@@ -2676,16 +2674,16 @@ async function handleLineStart(url, env) {
 
     if (env?.LINE_SESSIONS) {
       try {
-        await env.LINE_SESSIONS.put(`session:${sessionId}`, JSON.stringify(sessionData), { expirationTtl: 86400 });
+        await env.LINE_SESSIONS.put(`session:${effectiveSessionId}`, JSON.stringify(sessionData), { expirationTtl: 86400 });
       } catch (e) {
         console.error('[LineStart] KV put error:', e.message);
       }
     }
     // インメモリフォールバック
-    webSessionMap.set(`session:${sessionId}`, sessionData);
+    webSessionMap.set(`session:${effectiveSessionId}`, sessionData);
 
     // dm_text にsession_idを埋め込んでLINE友だち追加URLへリダイレクト
-    const dmText = encodeURIComponent(sessionId);
+    const dmText = encodeURIComponent(effectiveSessionId);
     const redirectUrl = `${LINE_START_OA_URL}?dm_text=${dmText}`;
 
     return new Response(null, {
@@ -3122,6 +3120,24 @@ function buildSessionWelcome(sessionCtx, entry) {
           items: [
             qrItem('求人を見てみる', 'welcome=see_jobs'),
             qrItem('まだ情報収集中', 'welcome=browse'),
+          ],
+        },
+      }],
+    };
+  }
+
+  // Meta広告経由（LINE直リンク）
+  if (source === 'meta_ad') {
+    return {
+      nextPhase: 'welcome',
+      messages: [{
+        type: 'text',
+        text: '広告から来てくれたんですね！\nナースロビーです🏥\n\n看護師さん専門の転職サポートです。\n完全無料・電話なし・LINE完結。\nいつでもブロックOKです。\n\nさっそく求人を探してみませんか？',
+        quickReply: {
+          items: [
+            qrItem('求人を探す', 'welcome=see_jobs'),
+            qrItem('年収を知りたい', 'welcome=check_salary'),
+            qrItem('まず相談したい', 'welcome=consult'),
           ],
         },
       }],

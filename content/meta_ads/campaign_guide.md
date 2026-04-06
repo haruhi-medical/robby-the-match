@@ -1,56 +1,35 @@
-# Meta広告キャンペーン — Ads Manager方式（v2.0）
+# Meta広告キャンペーン — LINE直リンク方式（v3.0）
 
-> 目的: Instagram広告 → LP → LINE友だち追加（問い合わせ獲得）
-> 予算: 月¥5,000（日¥500 × 5日 × 2回）
+> 目的: Instagram/Facebook広告 → LINE友だち追加（LP経由なし）
+> 予算: ¥2,000/日（月約¥60,000）
 
 ---
 
 ## ゴールと導線
 
 ```
-Instagram広告（ストーリーズ/リール）
-  ↓ CTA「詳しく見る」→ LP直リンク
-LP（quads-nurse.com/lp/job-seeker/）
-  ↓ ファーストビューにLINEボタン（7箇所配置済み）
-LINE友だち追加（lin.ee/oUgDB3x）
+広告（ストーリーズ/リール/フィード）
+  ↓ CTA「詳しくはこちら」→ Worker /api/line-start
+Worker: session自動生成 → KV保存 → LINE友だち追加画面にリダイレクト
+  ↓
+LINE友だち追加 → meta_ad用ウェルカムメッセージ → Bot会話開始
 ```
 
-**重要: 「投稿ブースト」は使わない。LPリンクが設定できないため。**
+**LP経由なし。広告からLINEに直接送客。摩擦を最小化。**
 
 ---
 
-## 前提条件チェック
+## 前提条件
 
 - [x] Facebookページ作成済み
 - [x] Instagramビジネスアカウント化+FB連携済み
-- [ ] **Meta Pixel ID取得 → LPに埋め込み**（下記手順）
+- [x] Meta Pixel設定済み（ID: 2326210157891886）
+- [x] Worker /api/line-start に source=meta_ad 対応済み
 - [ ] **Ads Managerでキャンペーン作成**（下記手順）
 
 ---
 
-## 既存Facebookページでの出稿について
-
-Facebookページが別サービス名であっても、Instagram広告はInstagramアカウント名で表示されるため問題ありません。
-Ads Managerで広告を作成する際、「Instagramアカウント」として@robby.for.nurseを選択すれば、
-ユーザーに表示される広告主名は「robby.for.nurse」になります。
-
----
-
-## Step 1: Meta Pixel IDの取得（5分）
-
-1. https://business.facebook.com/events_manager/ にアクセス
-2. 左メニュー「データソース」→「ピクセル」
-3. 「ピクセルを追加」→ 名前: 「神奈川ナース転職」
-4. 「手動でコードをインストール」を選択
-5. **16桁の数字（Pixel ID）をコピー**
-6. Slackで平島さんがPixel IDを共有 → Claude CodeがLPに埋め込み
-
-> Pixel IDが設定されると、LP訪問者数・LINEボタンクリック数が
-> Meta広告マネージャーで直接確認でき、広告の自動最適化が効く。
-
----
-
-## Step 2: Ads Managerでキャンペーン作成（10分）
+## Step 1: Ads Managerでキャンペーン作成
 
 ### アクセス
 https://www.facebook.com/adsmanager/
@@ -60,145 +39,165 @@ https://www.facebook.com/adsmanager/
 | 項目 | 設定値 |
 |------|--------|
 | キャンペーン目的 | **トラフィック** |
-| キャンペーン名 | `NR_2026-03_traffic_test` |
-| 特別広告カテゴリ | なし（求人広告ではなく情報提供型のため） |
+| キャンペーン名 | `NR_2026-04_line_direct` |
+| 特別広告カテゴリ | なし（情報提供型） |
+| 予算タイプ | **CBO（キャンペーン予算最適化）** |
+| 日予算 | **¥2,000** |
 
 ### 広告セット設定
 
 | 項目 | 設定値 |
 |------|--------|
-| 広告セット名 | `kanagawa_nurse_25-40F` |
-| 最適化対象 | **ランディングページビュー** |
-| 日予算 | **¥500** |
-| 期間 | 5日間 |
-| 地域 | **神奈川県**（県全域） |
-| 年齢 | 25-40歳 |
+| 広告セット名 | `line_direct_nurse_24-38F` |
+| 最適化対象 | **リンクのクリック** |
+| 地域 | **神奈川県 + 東京都 + 千葉県 + 埼玉県** |
+| 年齢 | 24-38歳 |
 | 性別 | 女性 |
-| 興味関心 | 「看護」「看護師」「医療」「転職」 |
-| 配信面 | **Advantage+ 配置**（自動最適化。手動の場合はストーリーズ+リール優先） |
+| 興味関心 | 看護 / 看護師 / 医療 / 転職 / ヘルスケア / 病院 |
+| オーディエンス | **Advantage+ オーディエンスON** |
+| 配信面 | **Advantage+ 配置**（自動最適化） |
 
-### 広告クリエイティブ設定
+### リンク先URL（全広告共通）
 
-**広告1本目: AD1 地域密着型**
-
-| 項目 | 設定値 |
-|------|--------|
-| 広告名 | `ad1_local_feed` |
-| フォーマット | シングル画像 |
-| 画像 | `content/meta_ads/v3/ad1_local_feed.png` をアップロード |
-| メインテキスト | 下記参照 |
-| リンク先URL | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=paid&utm_campaign=ad1_local` |
-| CTAボタン | **「詳しくはこちら」** |
-
-**メインテキスト（125文字以内）:**
 ```
-神奈川県の看護師さんへ
-
-転職エージェントの手数料、10%って知ってた？
-神奈川県全域対応の転職サポート。相談無料。
-
-▶ 詳しくはリンクから
+https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/line-start?source=meta_ad&intent=direct
 ```
 
-**広告2本目: AD3 共感型**
+> Worker がsession_idを自動生成 → KV保存 → LINE友だち追加画面にリダイレクト。
+> follow後に「広告から来てくれたんですね！」のウェルカムメッセージが表示される。
 
+### 広告クリエイティブ（3本でA/B/Cテスト）
+
+**AD1: 年収診断型**
 | 項目 | 設定値 |
 |------|--------|
-| 広告名 | `ad3_empathy_feed` |
-| 画像 | `content/meta_ads/v3/ad3_empathy_feed.png` をアップロード |
-| リンク先URL | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=paid&utm_campaign=ad3_empathy` |
+| 広告名 | `ad1_salary_line` |
+| フォーマット | シングル画像 or 動画 |
 | CTAボタン | **「詳しくはこちら」** |
 
-**メインテキスト:**
+メインテキスト:
+```
+看護師5年目の平均年収、480万円って知ってた？
+
+あなたの経験で、いくら貰えるはず？
+LINEで30秒で分かります。
+
+✅ 完全無料
+✅ 電話なし・LINE完結
+✅ いつでもブロックOK
+```
+
+**AD2: 共感型**
+| 項目 | 設定値 |
+|------|--------|
+| 広告名 | `ad2_empathy_line` |
+
+メインテキスト:
 ```
 「前にも言ったよね」
+
 この言葉、何回聞いた？
+人間関係がしんどいなら、環境を変えるだけで解決するかも。
 
-それ、環境を変えるだけで解決するかも。
-神奈川県で、あなたに合う職場を見つけませんか？
+LINEで気軽に相談できます。
 
-▶ 相談無料・営業電話なし
+✅ 完全無料・電話なし
+✅ 名前も電話番号もいらない
+✅ いつでもブロックOK
 ```
 
-> AD2（手数料比較）は2本の結果を見てから2回目のブーストで使用。
-> 最初は2本でA/Bテスト。
+**AD3: 数字インパクト型**
+| 項目 | 設定値 |
+|------|--------|
+| 広告名 | `ad3_number_line` |
+
+メインテキスト:
+```
+転職エージェントの手数料、50万円も差があるって知ってた？
+
+手数料が安い → 病院の負担が軽い → 内定が出やすい。
+
+まずはLINEで求人を見てみませんか？
+
+✅ 完全無料・電話なし
+✅ いつでもブロックOK
+```
 
 ---
 
-## Step 3: 配信開始後のチェック（毎日1分）
+## Step 2: 配信開始後のモニタリング
 
 ### 確認場所
-Meta Ads Manager → キャンペーン → `NR_2026-03_traffic_test`
+Meta Ads Manager → キャンペーン → `NR_2026-04_line_direct`
 
-### 見るべき数値
+### 日次チェック指標
 
-| 指標 | 意味 | 5日間の目安 |
-|------|------|------------|
-| リーチ | 見た人数 | 1,500-3,000人 |
-| LPビュー | LPを開いた人数 | 15-40人 |
-| CPC | 1クリックあたりコスト | ¥50-150 |
+| 指標 | 意味 | 目安 |
+|------|------|------|
+| リーチ | 見た人数 | 3,000-6,000人/日 |
+| クリック | LINE追加画面を開いた人数 | 20-60/日 |
+| CPC | 1クリックあたりコスト | ¥30-100 |
 | CTR | クリック率 | 0.5-2.0% |
+| LINE登録数 | LINE管理画面で確認 | 5-15人/日 |
 
-### 判断基準（5日後）
-- **CTR 1%以上の広告 → 勝ち。2回目のブースト（¥2,500）に採用**
-- **CTR 0.3%未満 → 負け。クリエイティブ差し替え**
-- **両方0.5%前後 → AD2に差し替えて再テスト**
+### 判断基準（7日後）
+- **CTR 1%以上 + LINE登録CPA ¥2,000以下 → 勝ち。予算維持 or 増額検討**
+- **CTR 0.5-1% → クリエイティブ差し替え検討**
+- **CTR 0.3%未満 → 停止。クリエイティブ全面見直し**
+- **LINE登録CPA ¥5,000以上 → 停止。導線見直し**
 
 ---
 
-## 月間運用フロー
+## 月間レポートテンプレート
 
 ```
-Day 1-5:  AD1 vs AD3 をA/Bテスト（¥2,500）
-Day 6:    結果確認。勝ち広告を特定
-Day 7-11: 勝ち広告 or AD2で2回目ブースト（¥2,500）
-Day 12:   月次レビュー
-```
-
-### 月次レポート（Slackで共有）
-```
-【2026年3月 Instagram広告レポート】
-■ 予算: ¥5,000（2回配信）
+【2026年4月 Meta広告レポート】
+■ 予算: ¥___（¥2,000/日 × ___日）
 ■ 総リーチ: ___人
-■ LPビュー: ___回
+■ クリック: ___回
 ■ CPC: ¥___
-■ LINE新規登録: ___名（LINE管理画面で確認）
-■ 1登録あたりコスト: ¥___
+■ CTR: ___%
+■ LINE新規登録: ___名
+■ 1登録あたりコスト（CPA）: ¥___
 ■ 最も効果的だった広告: AD_
+■ 次月アクション: ___
 ```
 
 ---
 
-## Meta Pixel ID取得後にClaude Codeがやること
+## 技術的な仕組み
 
-Pixel IDを教えてもらったら:
-1. `index.html` + `lp/job-seeker/index.html` の `PIXEL_ID` を実際のIDに置換（2ファイル計4箇所）
-2. デプロイ: `git push origin main && git push origin main:master`
-3. Metaイベントテストツールで PageView + Lead イベントを確認
+```
+広告タップ
+  ↓
+Worker /api/line-start?source=meta_ad&intent=direct
+  ↓ session_id自動生成 → KV保存（source=meta_ad）
+LINE友だち追加画面（dm_text=session_id）
+  ↓ ユーザーが友だち追加
+follow イベント → dm_text のsession_id検出 → KVからsource復元
+  ↓
+buildSessionWelcome(source=meta_ad) → 広告専用ウェルカムメッセージ
+  ↓
+Bot会話開始（求人を探す / 年収を知りたい / まず相談したい）
+```
 
-> LINEボタンクリック時の `fbq('track', 'Lead')` およびチャット開封時の
-> `fbq('trackCustom', 'ChatOpen')` は実装済み（Pixel ID未設定時は自動スキップ）。
-
----
-
-## UTMパラメータ一覧
-
-| 広告 | URL |
-|------|-----|
-| AD1 地域密着 | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=paid&utm_campaign=ad1_local` |
-| AD2 手数料比較 | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=paid&utm_campaign=ad2_comparison` |
-| AD3 共感型 | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=paid&utm_campaign=ad3_empathy` |
-| オーガニック投稿 | `https://quads-nurse.com/lp/job-seeker/?utm_source=instagram&utm_medium=organic` |
+### Meta CAPI連携
+- follow時に `trackFunnelEvent(LINE_FOLLOW)` → Meta CAPI で `Lead` イベント送信
+- META_ACCESS_TOKEN + META_PIXEL_ID がWorker secretsに設定されている場合のみ発火
+- ⚠️ 現在META_ACCESS_TOKENが無効化されている → Developerダッシュボードで再発行が必要
 
 ---
 
 ## よくある質問
 
-**Q: 投稿ブーストじゃダメなの？**
-A: ダメ。投稿ブーストではLP直リンクが貼れない。「プロフィールへのアクセス」しか誘導できず、LINE登録に繋がらない。
+**Q: なぜLP経由をやめたのか？**
+A: 前回テストでLP→LINE転換率が0.9%と低かった。広告→LINE直なら摩擦ゼロで友だち追加率が上がる。
+
+**Q: Pixelが踏めないのでは？**
+A: Worker /api/line-start を経由するため、サーバーサイド（CAPI）でLeadイベントを発火する。クライアントサイドPixelは不要。
 
 **Q: 特別広告カテゴリは必要？**
-A: 今回は不要。「看護師募集！」ではなく「転職の情報提供」なので求人広告に該当しない。
+A: 不要。「看護師募集！」ではなく「転職の情報提供」なので求人広告に該当しない。
 
-**Q: 予算を増やしたい場合は？**
-A: LINE登録1件あたりのコスト（CPA）が¥2,000以下なら、月¥10,000-20,000に増額の価値あり。成約1件の利益（約30万円）に対してROASは十分。
+**Q: 予算判断の基準は？**
+A: LINE登録CPA ¥2,000以下なら継続。成約1件の利益（約30万円）に対してROAS十分。CPA ¥5,000超なら停止。
