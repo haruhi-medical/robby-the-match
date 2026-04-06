@@ -1,72 +1,72 @@
 {
-  "created": "2026-04-03T15:01:18.770708",
-  "updated": "2026-04-04T15:05:39.557930",
-  "week_of": "2026-04-03",
+  "created": "2026-04-06T15:00:15.439286",
+  "updated": "2026-04-06T15:01:45.586813",
+  "week_of": "2026-04-06",
   "total": 7,
-  "queue_pending_at_creation": 6,
+  "queue_pending_at_creation": 5,
   "plans": [
     {
       "day": 1,
-      "category": "トレンド",
+      "category": "給与",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_トレ_0403_01",
-      "hint": "母に「看護師辞めたい」と言ったら「せっかく資格取ったのに」。資格は足枷じゃない",
-      "hook_idea": "看護師5年目、資格が足かせ？"
+      "content_id": "ai_給与_0406_01",
+      "hint": "産業看護師（企業ナース）の年収500万。病棟5年目の自分は430万。何が違う？",
+      "hook_idea": "病棟5年目、年収430万"
     },
     {
       "day": 2,
-      "category": "給与",
+      "category": "業界裏側",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_給与_0404_01",
-      "hint": "夜勤専従なら月10回で手取り35万。でも体がもつのは何年？",
-      "hook_idea": "夜勤10回、手取り35万？"
+      "content_id": "ai_業界_0406_02",
+      "hint": "大手紹介会社の利益率40%。看護師の転職1件で営業マンに50万のインセンティブ",
+      "hook_idea": "夜勤の看護師の紹介料、50万"
     },
     {
       "day": 3,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0404_02",
-      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
-      "hook_idea": "師長に退職届出したら…"
+      "status": "planned",
+      "content_id": null,
+      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
+      "hook_idea": "看護師、辞めたい日と残りたい日同じ"
     },
     {
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0404_03",
-      "hint": "プリセプターやれって言われた。自分がまだプリセプティーの気持ちなのに",
-      "hook_idea": "プリセプター任命、自分もまだプリセプティ"
+      "status": "planned",
+      "content_id": null,
+      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
+      "hook_idea": "退職届出す日、PHSストラップ3年分"
     },
     {
       "day": 5,
-      "category": "あるある",
+      "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0404_04",
-      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
-      "hook_idea": "インシデントレポート、報告書は業務外？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "秦野の病院、夜勤の日だけ駐車場が満車。始発じゃ間に合わないから全員車通勤",
+      "hook_idea": "秦野の病院、夜勤の駐車場満車"
     },
     {
       "day": 6,
-      "category": "業界裏側",
+      "category": "給与",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_業界_0404_05",
-      "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布",
-      "hook_idea": "看護師紹介料、病院が得してる？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "訪問看護に転職したら年収は下がったけど、オンコール手当で月3万入る。QOLは上がった",
+      "hook_idea": "訪問看護転職、年収下がる"
     },
     {
       "day": 7,
-      "category": "地域ネタ",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_地域_0404_06",
-      "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い",
-      "hook_idea": "神奈川看護師、ワースト3位の理由"
+      "status": "planned",
+      "content_id": null,
+      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
+      "hook_idea": "インシデントレポート書いてたら朝"
     }
   ]
 }

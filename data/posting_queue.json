@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-06T06:00:04.926501",
+  "updated": "2026-04-06T15:03:04.256511",
   "posts": [
     {
       "id": 1,
@@ -3958,7 +3958,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3969,9 +3969,23 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 8.45,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      },
+      "scheduled_for": "2026-04-06 17:30"
     },
     {
       "id": 188,
@@ -3988,7 +4002,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3999,9 +4013,23 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.5,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "キャプションが200文字以内ではない"
+        ],
+        "suggestion": "看護師の共感を深め、フックを強化し、キャプションを短くすることでより効果的な投稿になる可能性がある"
+      },
+      "scheduled_for": "2026-04-07 12:00"
     },
     {
       "id": 189,
@@ -4018,7 +4046,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4029,9 +4057,23 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 9.0,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      },
+      "scheduled_for": "2026-04-08 21:00"
     },
     {
       "id": 190,
@@ -4048,7 +4090,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4059,8 +4101,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを25文字以内に短縮し、ハッシュタグを4個以内に調整する"
+      },
+      "scheduled_for": "2026-04-09 17:30"
     },
     {
       "id": 191,
@@ -4077,7 +4133,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4088,8 +4144,108 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 6,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 6,
+        "persona_fit": 8,
+        "hook_strength": 4,
+        "legal_compliance": 9,
+        "cta_quality": 7,
+        "empathy": 6,
+        "issues": [
+          "フックが25文字以内ではない",
+          "看護師のリアルな気持ちに寄り添っていない"
+        ],
+        "suggestion": "看護師5年目で時給2万取る理由って？と質問を投げかけ、看護師の気持ちに寄り添った内容に変更する"
+      },
+      "scheduled_for": "2026-04-10 12:00"
+    },
+    {
+      "id": 192,
+      "content_id": "ai_給与_0406_01",
+      "batch": "ai_batch_20260406_1500",
+      "slide_dir": "content/generated/ai_batch_20260406_1500/ai_給与_0406_01",
+      "json_path": "content/generated/ai_batch_20260406_1500/ai_給与_0406_01.json",
+      "caption": "神奈川県の看護師さん\n\n看護師5年目で年収430万。手数料20-30%っていうのは看護師に還元される金額じゃないんだ。\n\nプロフのリンクから調べてみて。",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師"
+      ],
+      "cta_type": "hard",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 6,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 6,
+        "persona_fit": 8,
+        "hook_strength": 4,
+        "legal_compliance": 9,
+        "cta_quality": 7,
+        "empathy": 6,
+        "issues": [
+          "フックが25文字以内でない",
+          "CTAがハードCTAのみ"
+        ],
+        "suggestion": "フックを25文字以内に修正し、ソフトCTAを追加して8:2ルールを満たす"
+      },
+      "scheduled_for": "2026-04-11 21:00"
+    },
+    {
+      "id": 193,
+      "content_id": "ai_業界_0406_02",
+      "batch": "ai_batch_20260406_1500",
+      "slide_dir": "content/generated/ai_batch_20260406_1500/ai_業界_0406_02",
+      "json_path": "content/generated/ai_batch_20260406_1500/ai_業界_0406_02.json",
+      "caption": "夜勤月8回の看護師の時給、コンビニと同じって本当？\n\n夜勤看護師の時給はコンビニと同じなのに、紹介会社は90万も取る\n\n保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#夜勤看護師",
+        "#コンビニと同じ時給"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ロビーの名前が出ていない"
+        ],
+        "suggestion": "フックを25文字以内に短縮し、ロビーの名前を適切な位置に配置する"
+      },
+      "scheduled_for": "2026-04-12 17:30"
     }
   ],
   "archive": [
