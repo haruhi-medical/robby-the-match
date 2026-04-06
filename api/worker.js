@@ -121,7 +121,7 @@ const STATE_CATEGORIES = {
   // 2. ヒアリング（intake_light 3問）
   INTAKE:        ["il_area", "il_subarea", "il_facility_type", "il_department", "il_workstyle", "il_urgency"],
   // 3. マッチング
-  MATCHING:      ["matching_preview", "matching_browse", "matching"],
+  MATCHING:      ["matching_preview", "matching_browse", "matching", "condition_change"],
   // 4. AI相談
   AI_CONSULT:    ["ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"],
   // 5. 応募フロー
@@ -4128,6 +4128,27 @@ async function buildPhaseMessage(phase, entry, env) {
         text: "了解しました！\n\nまた気になった時に\nいつでも話しかけてくださいね。\nお待ちしています。",
       }];
 
+    // ===== 条件部分変更 =====
+    case "condition_change": {
+      const currentArea = entry.areaLabel || '未選択';
+      const ftLabels = { hospital: '病院', clinic: 'クリニック', visiting: '訪問看護', care: '介護施設', any: 'こだわりなし' };
+      const wsLabels = { day: '日勤のみ', twoshift: '夜勤ありOK', part: 'パート・非常勤', night: '夜勤専従' };
+      const currentFt = ftLabels[entry.facilityType] || '未選択';
+      const currentWs = wsLabels[entry.workStyle] || '未選択';
+      return [{
+        type: "text",
+        text: `現在の条件:\n📍 エリア: ${currentArea}\n🏥 施設: ${currentFt}\n⏰ 働き方: ${currentWs}\n\nどの条件を変更しますか？`,
+        quickReply: {
+          items: [
+            qrItem("エリアを変える", "cond_change=area"),
+            qrItem("施設タイプを変える", "cond_change=facility"),
+            qrItem("働き方を変える", "cond_change=workstyle"),
+            qrItem("全部やり直す", "cond_change=all"),
+          ],
+        },
+      }];
+    }
+
     // ===== エリア外ユーザー: 拡大通知オプトイン =====
     case "area_notify_optin":
       return [{
@@ -5130,7 +5151,7 @@ function handleLinePostback(dataStr, entry) {
     } else if (val === "detail") {
       nextPhase = "matching"; // 既存の詳細マッチングフロー
     } else if (val === "deep") {
-      nextPhase = "il_area"; // 条件変更 → intake_lightやり直し（SHORTフロー非互換を修正）
+      nextPhase = "condition_change"; // 条件変更 → 部分変更UI
     } else if (val === "later") {
       nextPhase = "nurture_warm";
     }
@@ -5142,11 +5163,43 @@ function handleLinePostback(dataStr, entry) {
     if (val === "more") {
       nextPhase = "matching_browse"; // 次の3件
     } else if (val === "change") {
-      nextPhase = "il_area"; // intake_lightやり直し
+      nextPhase = "condition_change"; // 条件変更 → 部分変更UI
     } else if (val === "detail") {
       nextPhase = "matching"; // 既存詳細フロー
     } else if (val === "done") {
       nextPhase = "nurture_warm";
+    }
+  }
+  // 条件部分変更
+  else if (params.has("cond_change")) {
+    const val = params.get("cond_change");
+    entry.unexpectedTextCount = 0;
+    delete entry.matchingResults;
+    delete entry.browsedJobIds;
+    entry.matchingOffset = 0;
+    if (val === "area") {
+      // エリアのみリセット→il_area
+      delete entry.area;
+      delete entry.areaLabel;
+      delete entry.prefecture;
+      nextPhase = "il_area";
+    } else if (val === "facility") {
+      // 施設タイプのみリセット→il_facility_type
+      delete entry.facilityType;
+      delete entry.hospitalSubType;
+      delete entry.department;
+      nextPhase = "il_facility_type";
+    } else if (val === "workstyle") {
+      // 働き方のみリセット→il_workstyle
+      delete entry.workStyle;
+      delete entry._clinicSkip;
+      nextPhase = "il_workstyle";
+    } else {
+      // 全リセット
+      delete entry.area; delete entry.areaLabel; delete entry.prefecture;
+      delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
+      delete entry.workStyle; delete entry.urgency; delete entry._clinicSkip;
+      nextPhase = "il_area";
     }
   }
   // nurture選択
@@ -6056,6 +6109,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "handoff_phone_number") {
           entry.phase = "handoff_phone_number";
           replyMessages = await buildPhaseMessage("handoff_phone_number", entry, env);
+        } else if (nextPhase === "condition_change") {
+          entry.phase = "condition_change";
+          replyMessages = await buildPhaseMessage("condition_change", entry, env);
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
           replyMessages = [
