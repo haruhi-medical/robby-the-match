@@ -572,7 +572,15 @@ const AREA_CITY_MAP = {
   tokyo_included: [],  // 東京全域 → prefectureフィルタで検索（D1_AREA_PREF: 東京都）
   tokyo_23ku: ['千代田区', '中央区', '港区', '新宿区', '文京区', '台東区', '墨田区', '江東区', '品川区', '目黒区', '大田区', '世田谷区', '渋谷区', '中野区', '杉並区', '豊島区', '北区', '荒川区', '板橋区', '練馬区', '足立区', '葛飾区', '江戸川区'],
   tokyo_tama: ['八王子市', '立川市', '武蔵野市', '三鷹市', '府中市', '調布市', '町田市', '多摩市', '日野市', '青梅市', '国分寺市', '国立市', '小金井市', '小平市', '東村山市', '東大和市', '清瀬市', '東久留米市', '西東京市', '福生市', '羽村市', 'あきる野市', '稲城市', '狛江市', '武蔵村山市'],
+  chiba_tokatsu: ['船橋市', '市川市', '松戸市', '柏市', '流山市', '浦安市', '習志野市', '八千代市', '我孫子市', '鎌ケ谷市', '野田市'],
+  chiba_uchibo: ['千葉市', '市原市', '木更津市', '君津市', '富津市', '袖ケ浦市'],
+  chiba_inba: ['成田市', '佐倉市', '印西市', '四街道市', '白井市', '富里市', '酒々井町'],
+  chiba_sotobo: ['館山市', '鴨川市', '勝浦市', '茂原市', '東金市', '山武市', '銚子市', '旭市', '香取市', '大網白里市', '南房総市', 'いすみ市', '匝瑳市'],
   chiba_all: [],  // 千葉全域 → prefectureフィルタで検索（D1_AREA_PREF: 千葉県）
+  saitama_south: ['さいたま市', '川口市', '蕨市', '戸田市', '和光市', '朝霞市', '志木市', '新座市', '八潮市', '三郷市', '吉川市', '松伏町'],
+  saitama_east: ['越谷市', '草加市', '春日部市', '久喜市', '蓮田市', '白岡市', '幸手市', '杉戸町', '宮代町'],
+  saitama_west: ['所沢市', '川越市', '入間市', '狭山市', '飯能市', '日高市', '坂戸市', '鶴ヶ島市', '東松山市', 'ふじみ野市', '富士見市'],
+  saitama_north: ['熊谷市', '深谷市', '本庄市', '行田市', '加須市', '羽生市', '鴻巣市', '上尾市', '桶川市', '北本市', '秩父市'],
   saitama_all: [],  // 埼玉全域 → prefectureフィルタで検索（D1_AREA_PREF: 埼玉県）
   undecided: [], // 全エリア
 };
@@ -2993,7 +3001,15 @@ const AREA_ZONE_MAP = {
   q3_tokyo_23ku_il:         ["23区"],  // 東京23区
   q3_tokyo_tama_il:         ["多摩"],  // 東京多摩地域
   q3_kanagawa_all_il:       ["横浜", "川崎", "相模原", "藤沢", "茅ヶ崎", "小田原", "厚木", "海老名", "大和", "横須賀", "鎌倉", "平塚", "秦野"],  // 神奈川全域
+  q3_chiba_tokatsu_il:      ["船橋・市川", "柏・松戸"],
+  q3_chiba_uchibo_il:       ["千葉", "千葉その他"],
+  q3_chiba_inba_il:         ["千葉その他"],
+  q3_chiba_sotobo_il:       ["千葉その他"],
   q3_chiba_all_il:          ["千葉", "船橋・市川", "柏・松戸", "千葉その他"],
+  q3_saitama_south_il:      ["さいたま", "川口・戸田"],
+  q3_saitama_east_il:       ["越谷・草加"],
+  q3_saitama_west_il:       ["所沢・入間", "川越・東松山"],
+  q3_saitama_north_il:      ["埼玉その他"],
   q3_saitama_all_il:        ["さいたま", "川口・戸田", "所沢・入間", "川越・東松山", "越谷・草加", "埼玉その他"],
   q3_undecided_il:          ["横浜", "川崎", "23区", "多摩", "さいたま", "千葉"],  // 全エリア
 };
@@ -3008,7 +3024,15 @@ const IL_AREA_LABELS = {
   tokyo_included: "東京全域",
   tokyo_23ku: "東京23区",
   tokyo_tama: "東京多摩地域",
+  chiba_tokatsu: "船橋・松戸・柏",
+  chiba_uchibo: "千葉市・内房",
+  chiba_inba: "成田・印旛",
+  chiba_sotobo: "外房・房総",
   chiba_all: "千葉県全域",
+  saitama_south: "さいたま・南部",
+  saitama_east: "東部・春日部",
+  saitama_west: "西部・川越・所沢",
+  saitama_north: "北部・熊谷",
   saitama_all: "埼玉県全域",
   undecided: "全エリア",
 };
@@ -3668,7 +3692,39 @@ async function buildPhaseMessage(phase, entry, env) {
           },
         }];
       }
-      // 千葉・埼玉 → サブエリアなしで直接il_facility_typeへ
+      // 千葉 → サブエリア選択
+      if (entry.prefecture === 'chiba') {
+        return [{
+          type: "text",
+          text: `${prefLabel}ですね！\n\n${countLine}\n\n千葉のどのあたりが希望ですか？`,
+          quickReply: {
+            items: [
+              qrItem("船橋・松戸・柏", "il_area=chiba_tokatsu"),
+              qrItem("千葉市・内房", "il_area=chiba_uchibo"),
+              qrItem("成田・印旛", "il_area=chiba_inba"),
+              qrItem("外房・房総", "il_area=chiba_sotobo"),
+              qrItem("どこでもOK", "il_area=chiba_all"),
+            ],
+          },
+        }];
+      }
+      // 埼玉 → サブエリア選択
+      if (entry.prefecture === 'saitama') {
+        return [{
+          type: "text",
+          text: `${prefLabel}ですね！\n\n${countLine}\n\n埼玉のどのあたりが希望ですか？`,
+          quickReply: {
+            items: [
+              qrItem("さいたま・南部", "il_area=saitama_south"),
+              qrItem("東部・春日部", "il_area=saitama_east"),
+              qrItem("西部・川越・所沢", "il_area=saitama_west"),
+              qrItem("北部・熊谷", "il_area=saitama_north"),
+              qrItem("どこでもOK", "il_area=saitama_all"),
+            ],
+          },
+        }];
+      }
+      // その他 → デフォルト（到達しないはず）
       return [{
         type: "text",
         text: `${prefLabel}ですね！\n\n${countLine}\n\nどんな職場が気になりますか？`,
@@ -4434,8 +4490,16 @@ const ADJACENT_AREAS = {
   tokyo_23ku: ['tokyo_tama', 'yokohama_kawasaki'],
   tokyo_tama: ['tokyo_23ku', 'sagamihara_kenoh'],
   // 埼玉
+  saitama_south: ['tokyo_23ku', 'saitama_east', 'saitama_west'],
+  saitama_east: ['saitama_south', 'chiba_tokatsu'],
+  saitama_west: ['saitama_south', 'saitama_north', 'tokyo_tama'],
+  saitama_north: ['saitama_west', 'saitama_east'],
   saitama_all: ['tokyo_23ku', 'tokyo_tama'],
   // 千葉
+  chiba_tokatsu: ['tokyo_23ku', 'saitama_east', 'chiba_uchibo'],
+  chiba_uchibo: ['chiba_tokatsu', 'chiba_sotobo'],
+  chiba_inba: ['chiba_tokatsu', 'chiba_sotobo'],
+  chiba_sotobo: ['chiba_uchibo', 'chiba_inba'],
   chiba_all: ['tokyo_23ku'],
 };
 
@@ -4981,12 +5045,10 @@ function handleLinePostback(dataStr, entry) {
     delete entry.matchingResults;
     delete entry.browsedJobIds;
     entry.matchingOffset = 0;
-    // 千葉・埼玉・その他はサブエリアなし→areaも設定
-    const PREF_AREA_MAP = { chiba: 'chiba_all', saitama: 'saitama_all', other: 'undecided' };
-    const PREF_LABEL_MAP = { chiba: '千葉県', saitama: '埼玉県', other: '全エリア', kanagawa: '神奈川県', tokyo: '東京都' };
-    if (PREF_AREA_MAP[pref]) {
-      entry.area = PREF_AREA_MAP[pref] + '_il';
-      entry.areaLabel = PREF_LABEL_MAP[pref] || pref;
+    // その他のみエリア自動設定（千葉・埼玉はサブエリア選択へ進む）
+    if (pref === 'other') {
+      entry.area = 'undecided_il';
+      entry.areaLabel = '全エリア';
     }
     nextPhase = "il_subarea";
   }
@@ -6438,11 +6500,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           delete entry.hospitalSubType; delete entry.department;
           delete entry.matchingResults; delete entry.browsedJobIds;
           entry.matchingOffset = 0;
-          const PREF_AREA_MAP = { chiba: 'chiba_all', saitama: 'saitama_all', other: 'undecided' };
-          const PREF_LABEL_MAP = { chiba: '千葉県', saitama: '埼玉県', other: '全エリア', kanagawa: '神奈川県', tokyo: '東京都' };
-          if (PREF_AREA_MAP[detectedPref]) {
-            entry.area = PREF_AREA_MAP[detectedPref] + '_il';
-            entry.areaLabel = PREF_LABEL_MAP[detectedPref] || detectedPref;
+          // その他のみエリア自動設定（千葉・埼玉はサブエリア選択へ進む）
+          if (detectedPref === 'other') {
+            entry.area = 'undecided_il';
+            entry.areaLabel = '全エリア';
           }
           entry.phase = "il_subarea";
           replyMessages = await buildPhaseMessage("il_subarea", entry, env);
