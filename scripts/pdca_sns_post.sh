@@ -100,29 +100,9 @@ else
     echo "[WARN] Instagram投稿失敗 (exit=$IG_EXIT)" >> "$LOG"
 fi
 
-# Step 3: TikTok自動投稿（tiktokautouploader主力）
-echo "[INFO] TikTok動画投稿 (tiktokautouploader)..." >> "$LOG"
-python3 "$PROJECT_DIR/scripts/tiktok_post.py" --post-next >> "$LOG" 2>&1
-TK_EXIT=$?
-
-if [ $TK_EXIT -eq 0 ]; then
-    echo "[INFO] TikTok動画投稿処理完了" >> "$LOG"
-else
-    echo "[WARN] TikTok動画投稿失敗 (exit=$TK_EXIT)" >> "$LOG"
-    # フォールバック: Upload-Post.com APIキーがあればカルーセル投稿を試行
-    if grep -q "UPLOADPOST_API_KEY" "$PROJECT_DIR/.env" 2>/dev/null; then
-        echo "[INFO] フォールバック: TikTokカルーセル投稿 (Upload-Post.com API)..." >> "$LOG"
-        python3 "$PROJECT_DIR/scripts/tiktok_carousel.py" --post-next >> "$LOG" 2>&1
-        TK_EXIT=$?
-        if [ $TK_EXIT -eq 0 ]; then
-            echo "[INFO] TikTokカルーセル投稿処理完了" >> "$LOG"
-        else
-            echo "[WARN] TikTokカルーセル投稿も失敗 (exit=$TK_EXIT)" >> "$LOG"
-        fi
-    else
-        echo "[INFO] UPLOADPOST_API_KEY未設定のためカルーセルフォールバックをスキップ" >> "$LOG"
-    fi
-fi
+# Step 3: TikTok投稿は深夜cronに分離（cron_tiktok_post.sh）
+TK_EXIT=0
+echo "[INFO] TikTok投稿は深夜cron (02:30) に分離済み。スキップ。" >> "$LOG"
 
 # Step 4: 投稿ステータス確認
 echo "[INFO] 投稿ステータス:" >> "$LOG"

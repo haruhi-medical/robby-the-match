@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-06T15:03:04.235621",
+  "updated": "2026-04-06T17:21:54.584323",
   "posts": [
     {
       "id": 1,
@@ -3410,8 +3410,8 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0331_02_20260406.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -3958,7 +3958,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -3984,7 +3984,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
-      }
+      },
+      "scheduled_for": "2026-04-06 17:30"
     },
     {
       "id": 188,
@@ -4001,7 +4002,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4027,7 +4028,8 @@
           "キャプションが200文字以内ではない"
         ],
         "suggestion": "看護師の共感を深め、フックを強化し、キャプションを短くすることでより効果的な投稿になる可能性がある"
-      }
+      },
+      "scheduled_for": "2026-04-07 12:00"
     },
     {
       "id": 189,
@@ -4044,7 +4046,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4070,7 +4072,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
-      }
+      },
+      "scheduled_for": "2026-04-08 21:00"
     },
     {
       "id": 190,
@@ -4087,7 +4090,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4099,7 +4102,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.84,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4112,7 +4115,9 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを25文字以内に短縮し、ハッシュタグを4個以内に調整する"
-      }
+      },
+      "scheduled_for": "2026-04-09 17:30",
+      "quality_checked": true
     },
     {
       "id": 191,
@@ -4129,7 +4134,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4141,7 +4146,7 @@
         "comments": null
       },
       "ai_score": 6,
-      "quality_score": 8,
+      "quality_score": 8.32,
       "ai_review": {
         "score": 6,
         "persona_fit": 8,
@@ -4154,7 +4159,9 @@
           "看護師のリアルな気持ちに寄り添っていない"
         ],
         "suggestion": "看護師5年目で時給2万取る理由って？と質問を投げかけ、看護師の気持ちに寄り添った内容に変更する"
-      }
+      },
+      "scheduled_for": "2026-04-10 12:00",
+      "quality_checked": true
     },
     {
       "id": 192,
@@ -4171,7 +4178,7 @@
       ],
       "cta_type": "hard",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4183,7 +4190,7 @@
         "comments": null
       },
       "ai_score": 6,
-      "quality_score": 8,
+      "quality_score": 9.04,
       "ai_review": {
         "score": 6,
         "persona_fit": 8,
@@ -4196,7 +4203,9 @@
           "CTAがハードCTAのみ"
         ],
         "suggestion": "フックを25文字以内に修正し、ソフトCTAを追加して8:2ルールを満たす"
-      }
+      },
+      "scheduled_for": "2026-04-11 21:00",
+      "quality_checked": true
     },
     {
       "id": 193,
@@ -4213,7 +4222,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4225,7 +4234,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.77,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4238,7 +4247,9 @@
           "ロビーの名前が出ていない"
         ],
         "suggestion": "フックを25文字以内に短縮し、ロビーの名前を適切な位置に配置する"
-      }
+      },
+      "scheduled_for": "2026-04-12 17:30",
+      "quality_checked": true
     }
   ],
   "archive": [

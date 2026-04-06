@@ -744,7 +744,7 @@ except Exception as e:
     try:
         result = subprocess.run(
             [str(VENV_PYTHON), str(script)],
-            capture_output=True, text=True, timeout=300,
+            capture_output=True, text=True, timeout=180,
             cwd=str(PROJECT_DIR),
             env={**os.environ, "DISPLAY": ":0"}
         )
@@ -775,7 +775,12 @@ except Exception as e:
             return False
 
     except subprocess.TimeoutExpired:
-        print("   ⚠️ tiktokautouploader: タイムアウト (300秒)")
+        print("   ⚠️ tiktokautouploader: タイムアウト (180秒)")
+        # タイムアウト時にゾンビプロセスを掃除
+        try:
+            subprocess.run(["pkill", "-f", "tiktokautouploader"], timeout=5, capture_output=True)
+        except Exception:
+            pass
         return False
     except Exception as e:
         print(f"   ⚠️ tiktokautouploader: {e}")
@@ -841,7 +846,7 @@ except Exception as e:
     try:
         result = subprocess.run(
             [str(VENV_PYTHON), str(script)],
-            capture_output=True, text=True, timeout=300,
+            capture_output=True, text=True, timeout=180,
             cwd=str(PROJECT_DIR),
             env={**os.environ, "DISPLAY": ":0"}
         )
@@ -872,7 +877,7 @@ except Exception as e:
             return False
 
     except subprocess.TimeoutExpired:
-        print("   ⚠️ tiktok-uploader: タイムアウト (300秒)")
+        print("   ⚠️ tiktok-uploader: タイムアウト (180秒)")
         return False
     except Exception as e:
         print(f"   ⚠️ tiktok-uploader: {e}")
@@ -893,7 +898,7 @@ def upload_method_playwright_direct(video_path, description, hashtags):
         script_path = PROJECT_DIR / "scripts" / "tiktok_upload_playwright.py"
         result = subprocess.run(
             [str(VENV_PYTHON), str(script_path), "--video", str(video_path), "--caption", full_caption],
-            capture_output=True, text=True, timeout=300,
+            capture_output=True, text=True, timeout=180,
             cwd=str(PROJECT_DIR),
             env={**os.environ, "DISPLAY": ":0"}
         )
@@ -917,7 +922,7 @@ def upload_method_playwright_direct(video_path, description, hashtags):
                 print(f"      stdout: {stdout[-300:]}")
             return False
     except subprocess.TimeoutExpired:
-        print("   ⚠️ Playwright直接: タイムアウト (300秒)")
+        print("   ⚠️ Playwright直接: タイムアウト (180秒)")
         return False
     except Exception as e:
         print(f"   ⚠️ Playwright直接: {e}")
@@ -951,7 +956,7 @@ def _detect_captcha(stdout, stderr):
     return any(kw in combined for kw in captcha_keywords)
 
 
-def upload_to_tiktok(video_path, caption, hashtags, max_retries=2):
+def upload_to_tiktok(video_path, caption, hashtags, max_retries=1):
     """
     TikTokにアップロード（リトライ + プロフィール実検証付き）
 
@@ -985,7 +990,7 @@ def upload_to_tiktok(video_path, caption, hashtags, max_retries=2):
 
     for attempt in range(max_retries + 1):
         if attempt > 0:
-            wait = 30 * (2 ** (attempt - 1))  # 30秒, 60秒
+            wait = 15 * (2 ** (attempt - 1))  # 15秒, 30秒
             print(f"\n   🔄 リトライ {attempt}/{max_retries} ({wait}秒待機)")
             time.sleep(wait)
 
