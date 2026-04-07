@@ -6217,9 +6217,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           replyMessages = await buildPhaseMessage("condition_change", entry, env);
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
+          const handoffTimeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK' };
+          const handoffTimeText = entry.preferredCallTime ? handoffTimeLabels[entry.preferredCallTime] || entry.preferredCallTime : '';
           replyMessages = [
             { type: "text", text: entry.phonePreference === "phone_ok"
-              ? `担当者に引き継ぎました。\n24時間以内に${entry.preferredCallTime ? `ご希望の時間帯（${entry.preferredCallTime}）に` : ""}お電話またはLINEでご連絡いたしますので、少しお待ちください。\n\n気になることがあればいつでもメッセージしてくださいね。`
+              ? `担当者に引き継ぎました。\n24時間以内に${handoffTimeText ? `ご希望の時間帯（${handoffTimeText}）に` : ""}お電話またはLINEでご連絡いたしますので、少しお待ちください。\n\n気になることがあればいつでもメッセージしてくださいね。`
               : "担当者に引き継ぎました。\n24時間以内にこのLINEでご連絡いたしますので、少しお待ちください。\n\nお電話はしませんのでご安心ください。\n気になることがあればいつでもメッセージしてくださいね。" },
           ];
           await sendHandoffNotification(userId, entry, env);
