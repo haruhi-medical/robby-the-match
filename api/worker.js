@@ -3117,7 +3117,7 @@ function buildSessionWelcome(sessionCtx, entry) {
     nextPhase: 'welcome',
     messages: [{
       type: 'text',
-      text: '「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n判断できるまで、名前も聞きません。\n\n静かに、転職活動。',
+      text: '「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n名前も聞きません。\n\nLINEで静かに、転職活動。',
       quickReply: {
         items: [
           qrItem('求人を見てみる', 'welcome=see_jobs'),
@@ -5734,7 +5734,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // 全入口共通ウェルカムメッセージ
           const msgs = [{
             type: "text",
-            text: "「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n判断できるまで、名前も聞きません。\n\n静かに、転職活動。",
+            text: "「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n名前も聞きません。\n\nLINEで静かに、転職活動。",
             quickReply: {
               items: [
                 qrItem("求人を見てみる", "welcome=see_jobs"),
