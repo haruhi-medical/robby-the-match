@@ -29,9 +29,10 @@ INPUT_FILE = PROJECT_ROOT / "data" / "hellowork_nurse_jobs.json"
 OUTPUT_FILE = PROJECT_ROOT / "data" / "hellowork_ranked.json"
 
 # 看護師フィルタ
-NURSE_KEYWORDS = ["看護師", "看護職", "ナース", "訪問看護"]
+NURSE_KEYWORDS = ["看護師", "看護職", "ナース"]
 NOISE_KEYWORDS = ["看護助手", "助手", "補助", "事務", "ケアマネ", "理学療法",
-                   "作業療法", "動物", "歯科", "介護福祉士", "薬剤"]
+                   "作業療法", "言語聴覚", "動物", "歯科", "介護福祉士", "薬剤",
+                   "栄養士", "放射線技師", "臨床検査", "視能訓練"]
 
 # ---------- スコアリング ----------
 
@@ -276,13 +277,23 @@ RANK_LABELS = {
 def is_target_nurse_job(job):
     """看護師本体の求人かフィルタ"""
     title = job.get("job_title", "")
-    desc = job.get("job_description", "")
-    text = title + " " + desc
 
-    has_nurse = any(kw in title for kw in NURSE_KEYWORDS)
+    # ノイズ除外を先にチェック（言語聴覚士、理学療法士等）
     has_noise = any(kw in title for kw in NOISE_KEYWORDS)
+    if has_noise:
+        return False
 
-    return has_nurse and not has_noise
+    # 看護師キーワードが職種名に含まれるか
+    has_nurse = any(kw in title for kw in NURSE_KEYWORDS)
+    if has_nurse:
+        return True
+
+    # 「訪問看護」は事業所名に含まれるだけの場合がある
+    # 職種名に「訪問看護」を含み、かつノイズでなければOK
+    if "訪問看護" in title:
+        return True
+
+    return False
 
 
 # ---------- エリア分類 ----------
