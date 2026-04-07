@@ -333,39 +333,56 @@ AREA_MAP = {
     "南足柄・開成": ["南足柄市", "開成町", "松田町", "山北町", "大井町", "中井町", "箱根町", "真鶴町", "湯河原町"],
     # 東京
     "23区": ["千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区", "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", "中野区", "杉並区", "豊島区", "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"],
-    "多摩": ["八王子市", "立川市", "武蔵野市", "三鷹市", "青梅市", "府中市", "昭島市", "調布市", "町田市", "小金井市", "小平市", "日野市", "東村山市", "国分寺市", "国立市", "福生市", "狛江市", "東大和市", "清瀬市", "東久留米市", "武蔵村山市", "多摩市", "稲城市", "羽村市", "あきる野市", "西東京市"],
+    "多摩": ["八王子市", "立川市", "武蔵野市", "三鷹市", "青梅市", "府中市", "昭島市", "調布市", "町田市", "小金井市", "小平市", "日野市", "東村山市", "国分寺市", "国立市", "福生市", "狛江市", "東大和市", "清瀬市", "東久留米市", "武蔵村山市", "多摩市", "稲城市", "羽村市", "あきる野市", "西東京市", "西多摩郡", "大島町", "瑞穂町", "日の出町"],
     # 埼玉
     "さいたま": ["さいたま市"],
     "川口・戸田": ["川口市", "戸田市", "蕨市", "鳩ヶ谷"],
     "所沢・入間": ["所沢市", "入間市", "狭山市", "飯能市", "日高市"],
     "川越・東松山": ["川越市", "東松山市", "坂戸市", "鶴ヶ島市", "ふじみ野市", "富士見市"],
     "越谷・草加": ["越谷市", "草加市", "春日部市", "三郷市", "八潮市", "吉川市"],
-    "埼玉その他": ["熊谷市", "上尾市", "深谷市", "久喜市", "加須市", "本庄市", "行田市", "秩父市", "北本市", "鴻巣市", "桶川市", "朝霞市", "志木市", "和光市", "新座市"],
+    "埼玉その他": ["熊谷市", "上尾市", "深谷市", "久喜市", "加須市", "本庄市", "行田市", "秩父市", "北本市", "鴻巣市", "桶川市", "朝霞市", "志木市", "和光市", "新座市", "蓮田市", "白岡市", "幸手市", "羽生市", "北葛飾郡", "比企郡", "児玉郡", "秩父郡", "入間郡", "大里郡"],
     # 千葉
     "千葉": ["千葉市"],
     "船橋・市川": ["船橋市", "市川市", "浦安市", "習志野市", "八千代市", "鎌ケ谷市"],
     "柏・松戸": ["柏市", "松戸市", "流山市", "我孫子市", "野田市"],
-    "千葉その他": ["市原市", "木更津市", "成田市", "佐倉市", "四街道市", "印西市", "白井市", "銚子市", "茂原市", "東金市", "旭市", "匝瑳市"],
+    "千葉その他": ["市原市", "木更津市", "成田市", "佐倉市", "四街道市", "印西市", "白井市", "銚子市", "茂原市", "東金市", "旭市", "匝瑳市", "館山市", "鴨川市", "勝浦市", "南房総市", "いすみ市", "富津市", "君津市", "袖ケ浦市", "香取市", "山武市", "富里市", "大網白里市", "印旛郡", "香取郡", "山武郡", "長生郡", "安房郡"],
 }
 
 
 def classify_area(job):
-    loc = (job.get("work_location") or "") + (job.get("work_address") or "") + (job.get("employer_address") or "")
-    if not loc.strip():
+    # 勤務地を優先して検索（事業所本社より勤務地が正確）
+    loc_candidates = [
+        (job.get("work_location") or "").strip(),
+        (job.get("work_address") or "").strip(),
+        (job.get("employer_address") or "").strip(),
+    ]
+    # 都道府県チェック用の結合テキスト
+    all_loc = " ".join(loc_candidates)
+    if not all_loc.strip():
         return None
-    # 都道府県チェック: 関東4都県以外はスキップ
     valid_prefs = ["東京都", "神奈川県", "千葉県", "埼玉県"]
-    if not any(p in loc for p in valid_prefs):
+    if not any(p in all_loc for p in valid_prefs):
         return None
-    # 長い市区町村名から先にマッチ（「東大和市」を「大和市」より先に検出）
+    # 長い市区町村名から先にマッチ
     all_entries = []
     for area_name, cities in AREA_MAP.items():
         for city in cities:
             all_entries.append((city, area_name))
-    all_entries.sort(key=lambda x: -len(x[0]))  # 長い名前を優先
-    for city, area_name in all_entries:
-        if city in loc:
-            return area_name
+    all_entries.sort(key=lambda x: -len(x[0]))
+    # 勤務地(work_location/work_address)を優先してマッチ
+    for loc in loc_candidates[:2]:  # work_location, work_address
+        if not loc:
+            continue
+        for city, area_name in all_entries:
+            if city in loc:
+                return area_name
+    # 勤務地でマッチしなければ事業所住所でマッチ
+    for loc in loc_candidates[2:]:  # employer_address
+        if not loc:
+            continue
+        for city, area_name in all_entries:
+            if city in loc:
+                return area_name
     return None
 
 
@@ -407,6 +424,8 @@ def main():
             "details": details,
             # 元データの主要フィールド
             "work_location": job.get("work_location", ""),
+            "work_address": job.get("work_address", ""),
+            "employer_address": job.get("employer_address", ""),
             "work_station_text": job.get("work_station_text", "") or job.get("work_station", ""),
             "salary_low": job.get("salary_low", ""),
             "salary_high": job.get("salary_high", ""),

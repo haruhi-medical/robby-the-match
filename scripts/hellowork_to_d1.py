@@ -97,13 +97,36 @@ def build_sql(jobs):
         details = j.get("details", {})
         bd = j.get("breakdown", {})
 
-        # 都道府県を勤務地から抽出
-        loc = j.get("work_location", "") or ""
+        # 勤務地: work_location → work_address → employer_address の順でフォールバック
+        loc = (j.get("work_location") or "").strip()
+        if not loc:
+            loc = (j.get("work_address") or "").strip()
+        if not loc:
+            loc = (j.get("employer_address") or "").strip()
+
+        # 都道府県を抽出
         pref = ""
         for p in ["東京都", "神奈川県", "千葉県", "埼玉県"]:
             if p in loc:
                 pref = p
                 break
+        # prefectureが取れない場合、areaから逆引き
+        if not pref and j.get("area"):
+            AREA_PREF_REVERSE = {
+                "横浜": "神奈川県", "川崎": "神奈川県", "相模原": "神奈川県",
+                "横須賀": "神奈川県", "鎌倉": "神奈川県", "藤沢": "神奈川県",
+                "茅ヶ崎": "神奈川県", "平塚": "神奈川県", "大磯": "神奈川県",
+                "秦野": "神奈川県", "伊勢原": "神奈川県", "厚木": "神奈川県",
+                "大和": "神奈川県", "海老名": "神奈川県", "小田原": "神奈川県",
+                "南足柄・開成": "神奈川県",
+                "23区": "東京都", "多摩": "東京都",
+                "さいたま": "埼玉県", "川口・戸田": "埼玉県",
+                "所沢・入間": "埼玉県", "川越・東松山": "埼玉県",
+                "越谷・草加": "埼玉県", "埼玉その他": "埼玉県",
+                "千葉": "千葉県", "船橋・市川": "千葉県",
+                "柏・松戸": "千葉県", "千葉その他": "千葉県",
+            }
+            pref = AREA_PREF_REVERSE.get(j["area"], "")
 
         # 年間休日数値
         holidays_str = j.get("annual_holidays", "")
