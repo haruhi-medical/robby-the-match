@@ -4377,12 +4377,12 @@ async function buildPhaseMessage(phase, entry, env) {
         const timeText = entry.preferredCallTime ? timeLabels[entry.preferredCallTime] || '' : '';
         return [{
           type: "text",
-          text: `ありがとうございます！\n\nここからは担当者が引き継ぎます。\n翌営業日までに${timeText ? `${timeText}に` : ''}お電話またはLINEでご連絡しますね。\n\n気になることがあればいつでもメッセージしてください！`,
+          text: `担当者に引き継ぎました。\n24時間以内に${timeText ? `${timeText}に` : ''}お電話またはLINEでご連絡いたしますので、少しお待ちください。\n\n気になることがあればいつでもメッセージしてくださいね。`,
         }];
       }
       return [{
         type: "text",
-        text: "ありがとうございます！\n\nここからは担当者が引き継いで、このLINEでご連絡します。\n翌営業日までにはお返事しますね。\n\nお電話はしませんのでご安心ください。\n気になることがあればいつでもメッセージしてください！",
+        text: "担当者に引き継ぎました。\n24時間以内にこのLINEでご連絡いたしますので、少しお待ちください。\n\nお電話はしませんのでご安心ください。\n気になることがあればいつでもメッセージしてくださいね。",
       }];
     }
 
@@ -6223,8 +6223,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.handoffAt = Date.now();
           replyMessages = [
             { type: "text", text: entry.phonePreference === "phone_ok"
-              ? `かしこまりました。担当者に引き継ぎました。\n\nこの後の流れをお伝えしますね👇\n\n① 翌営業日までに担当者からご連絡します\n②${entry.preferredCallTime ? ` ご希望の時間帯（${entry.preferredCallTime}）に` : " "}お電話またはLINEでご案内します\n③ 気になることがあればいつでもメッセージしてください\n\nお待たせしないよう対応しますね！`
-              : "かしこまりました。担当者に引き継ぎました。\n\nこの後の流れをお伝えしますね👇\n\n① 翌営業日までに担当者がこのLINEでご連絡します\n② お電話はしませんのでご安心ください\n③ 気になることがあればいつでもメッセージしてください\n\nお待たせしないよう対応しますね！" },
+              ? `担当者に引き継ぎました。\n24時間以内に${entry.preferredCallTime ? `ご希望の時間帯（${entry.preferredCallTime}）に` : ""}お電話またはLINEでご連絡いたしますので、少しお待ちください。\n\n気になることがあればいつでもメッセージしてくださいね。`
+              : "担当者に引き継ぎました。\n24時間以内にこのLINEでご連絡いたしますので、少しお待ちください。\n\nお電話はしませんのでご安心ください。\n気になることがあればいつでもメッセージしてくださいね。" },
           ];
           await sendHandoffNotification(userId, entry, env);
           // KVにハンドオフインデックス登録（Cron Triggerでフォロー用）
