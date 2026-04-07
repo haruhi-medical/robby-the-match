@@ -4636,7 +4636,8 @@ async function generateLineMatching(entry, env, offset = 0) {
         params.push(`%${entry.department}%`, `%${entry.department}%`);
       }
 
-      sql += ' ORDER BY score DESC LIMIT 50';
+      sql += ' ORDER BY score DESC LIMIT 5 OFFSET ?';
+      params.push(offset);
 
       const d1Jobs = await env.DB.prepare(sql).bind(...params).all();
       if (d1Jobs && d1Jobs.results && d1Jobs.results.length > 0) {
@@ -4853,8 +4854,12 @@ async function generateLineMatching(entry, env, offset = 0) {
     }
   }
 
-  // FIX-10: offset対応（ページング）
-  entry.matchingResults = allJobs.slice(offset, offset + 5);
+  // ページング: D1 jobsはSQL側でLIMIT/OFFSET処理済み、EXTERNAL_JOBSはsliceで処理
+  if (allJobs.length > 0 && allJobs[0].isD1Job) {
+    entry.matchingResults = allJobs; // D1 jobsはSQL側で5件に制限済み
+  } else {
+    entry.matchingResults = allJobs.slice(offset, offset + 5);
+  }
   return entry.matchingResults;
 }
 
@@ -5979,21 +5984,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
         }
-        // ===== matching_browse: 次の3件表示 =====
+        // ===== matching_browse: 次の5件表示（D1 offset方式） =====
         else if (nextPhase === "matching_browse") {
-          // Re-run matching and filter out already-browsed jobs
-          await generateLineMatching(entry, env);
-          if (entry.matchingResults && entry.browsedJobIds && entry.browsedJobIds.length > 0) {
-            entry.matchingResults = entry.matchingResults.filter(r =>
-              !entry.browsedJobIds.includes(`${r.n || r.name}_${r.loc || ''}`)
-            );
-          }
-          // Track newly shown job IDs
-          if (entry.matchingResults && entry.matchingResults.length > 0) {
-            if (!entry.browsedJobIds) entry.browsedJobIds = [];
-            const shownIds = entry.matchingResults.slice(0, 5).map(r => `${r.n || r.name}_${r.loc || ''}`);
-            entry.browsedJobIds.push(...shownIds);
-          }
+          const currentOffset = entry.matchingOffset || 0;
+          const newOffset = currentOffset + 5;
+          entry.matchingOffset = newOffset;
+          await generateLineMatching(entry, env, newOffset);
           replyMessages = await buildPhaseMessage("matching_browse", entry, env);
         }
         // ===== matching（matching_preview/browseから「気になる」選択時） =====
@@ -6126,12 +6122,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         }
         else if (nextPhase === "matching_more") {
-          // FIX-10: 次の5件を表示（最大offset=15で3ページ）
+          // 次の5件を表示（D1 jobsで全件対応、offset上限なし）
           const currentOffset = entry.matchingOffset || 0;
-          const newOffset = Math.min(currentOffset + 5, 15);
+          const newOffset = currentOffset + 5;
           entry.matchingOffset = newOffset;
           const moreResults = await generateLineMatching(entry, env, newOffset);
-          if (moreResults.length > 0 && newOffset <= 15) {
+          if (moreResults.length > 0) {
             entry.phase = "matching";
             replyMessages = [
               { type: "text", text: "他の求人もご紹介しますね！" },
