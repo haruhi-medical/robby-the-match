@@ -5960,13 +5960,29 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
         }
-        // ===== matching_browse: 次の5件表示（D1 offset方式） =====
+        // ===== matching_browse: 次の5件表示（10件上限→担当者提案） =====
         else if (nextPhase === "matching_browse") {
           const currentOffset = entry.matchingOffset || 0;
           const newOffset = currentOffset + 5;
-          entry.matchingOffset = newOffset;
-          await generateLineMatching(entry, env, newOffset);
-          replyMessages = await buildPhaseMessage("matching_browse", entry, env);
+          if (newOffset >= 10) {
+            // 10件表示済み → 担当者提案
+            entry.phase = "matching";
+            replyMessages = [{
+              type: "text",
+              text: "ここまで10件の求人をご紹介しました。\n\nこの中にピンとくるものがなければ、担当者があなたの条件に合う求人を直接お探しします。\n\n非公開求人やハローワーク以外の情報もご紹介できます。",
+              quickReply: {
+                items: [
+                  qrItem("担当者に探してもらう", "handoff=ok"),
+                  qrItem("条件を変えて探す", "matching_preview=deep"),
+                  qrItem("今日はここまで", "matching_browse=done"),
+                ],
+              },
+            }];
+          } else {
+            entry.matchingOffset = newOffset;
+            await generateLineMatching(entry, env, newOffset);
+            replyMessages = await buildPhaseMessage("matching_browse", entry, env);
+          }
         }
         // ===== matching（matching_preview/browseから「気になる」選択時） =====
         else if (nextPhase === "matching") {
@@ -6098,29 +6114,46 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         }
         else if (nextPhase === "matching_more") {
-          // 次の5件を表示（D1 jobsで全件対応、offset上限なし）
           const currentOffset = entry.matchingOffset || 0;
           const newOffset = currentOffset + 5;
-          entry.matchingOffset = newOffset;
-          const moreResults = await generateLineMatching(entry, env, newOffset);
-          if (moreResults.length > 0) {
-            entry.phase = "matching";
-            replyMessages = [
-              { type: "text", text: "他の求人もご紹介しますね！" },
-              ...buildMatchingMessages(entry),
-            ].slice(0, 5);
-          } else {
+          // 10件（2ページ）表示済み → 担当者提案に切り替え
+          if (newOffset >= 10) {
             entry.phase = "matching";
             replyMessages = [{
               type: "text",
-              text: "条件に合う求人は以上です。新着が入り次第お知らせします！",
+              text: "ここまで10件の求人をご紹介しました。\n\nこの中にピンとくるものがなければ、担当者があなたの条件に合う求人を直接お探しします。\n\n非公開求人やハローワーク以外の情報もご紹介できます。",
               quickReply: {
                 items: [
-                  qrItem("AIに相談する", "consult=start"),
-                  qrItem("担当者と話したい", "consult=handoff"),
+                  qrItem("担当者に探してもらう", "handoff=ok"),
+                  qrItem("条件を変えて探す", "matching_preview=deep"),
+                  qrItem("今日はここまで", "matching_browse=done"),
                 ],
               },
             }];
+          } else {
+            entry.matchingOffset = newOffset;
+            const moreResults = await generateLineMatching(entry, env, newOffset);
+            if (moreResults.length > 0) {
+              entry.phase = "matching";
+              replyMessages = [
+                { type: "text", text: "他の求人もご紹介しますね！" },
+                ...buildMatchingMessages(entry),
+              ].slice(0, 5);
+            } else {
+              // 10件未満で求人が尽きた場合も担当者提案
+              entry.phase = "matching";
+              replyMessages = [{
+                type: "text",
+                text: "この条件の求人は以上です。\n\n担当者があなたに合う求人を直接お探しすることもできます。",
+                quickReply: {
+                  items: [
+                    qrItem("担当者に探してもらう", "handoff=ok"),
+                    qrItem("条件を変えて探す", "matching_preview=deep"),
+                    qrItem("今日はここまで", "matching_browse=done"),
+                  ],
+                },
+              }];
+            }
           }
         } else if (nextPhase === "ai_consultation_waiting") {
           entry.phase = "ai_consultation";
