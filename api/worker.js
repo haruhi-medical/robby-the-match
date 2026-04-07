@@ -5283,6 +5283,7 @@ function handleLinePostback(dataStr, entry) {
       delete entry.facilityType;
       delete entry.hospitalSubType;
       delete entry.department;
+      delete entry._isClinic;
       nextPhase = "il_facility_type";
     } else if (val === "workstyle") {
       // 働き方のみリセット→il_workstyle
