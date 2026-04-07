@@ -369,12 +369,28 @@ def classify_area(job):
         for city in cities:
             all_entries.append((city, area_name))
     all_entries.sort(key=lambda x: -len(x[0]))
+    # エリアと都道府県の対応マップ（区名重複防止用）
+    AREA_PREF = {
+        "横浜": "神奈川", "川崎": "神奈川", "相模原": "神奈川", "横須賀": "神奈川",
+        "鎌倉": "神奈川", "藤沢": "神奈川", "茅ヶ崎": "神奈川", "平塚": "神奈川",
+        "大磯": "神奈川", "秦野": "神奈川", "伊勢原": "神奈川", "厚木": "神奈川",
+        "大和": "神奈川", "海老名": "神奈川", "小田原": "神奈川", "南足柄・開成": "神奈川",
+        "23区": "東京", "多摩": "東京",
+        "さいたま": "埼玉", "川口・戸田": "埼玉", "所沢・入間": "埼玉",
+        "川越・東松山": "埼玉", "越谷・草加": "埼玉", "埼玉その他": "埼玉",
+        "千葉": "千葉", "船橋・市川": "千葉", "柏・松戸": "千葉", "千葉その他": "千葉",
+    }
+
     # 勤務地(work_location/work_address)を優先してマッチ
     for loc in loc_candidates[:2]:  # work_location, work_address
         if not loc:
             continue
         for city, area_name in all_entries:
             if city in loc:
+                # 区名重複チェック: マッチしたエリアの都道府県と勤務地の都道府県が一致するか
+                expected_pref = AREA_PREF.get(area_name, "")
+                if expected_pref and expected_pref not in loc:
+                    continue  # 都道府県不一致 → スキップ（例: 千葉市中央区 → 23区にマッチさせない）
                 return area_name
     # 勤務地でマッチしなければ事業所住所でマッチ
     for loc in loc_candidates[2:]:  # employer_address
@@ -382,6 +398,9 @@ def classify_area(job):
             continue
         for city, area_name in all_entries:
             if city in loc:
+                expected_pref = AREA_PREF.get(area_name, "")
+                if expected_pref and expected_pref not in loc:
+                    continue
                 return area_name
     return None
 
