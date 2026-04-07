@@ -662,5 +662,12 @@
     "timestamp": "2026-04-06T17:18:54.386140",
     "status": "error",
     "error": "login_required"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260331_ai_給与_0331_07",
+    "timestamp": "2026-04-07T12:03:06.009256",
+    "status": "error",
+    "error": "login_required"
   }
 ]

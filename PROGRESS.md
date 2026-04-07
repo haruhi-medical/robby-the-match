@@ -3425,3 +3425,20 @@ AI Marketing PDCA:
    - 「神奈川県の看護師求人情報」
    - 「看護師転職のための年収と福利厚生について」
 
+### 🔎 競合監視（10:00:00）
+   - 「小田原市の看護師転職ガイド」
+   - 「神奈川県の看護師求人情報」
+   - 「看護師
+[pdca_ai_engine] job=competitor 完了 (exit=0)
+[INFO] commit済み（pushは日次レビューで一括）
+
+### sns_post（12:00:01）
+SNS自動投稿: IG済34件 / 未投稿59件 (IG=0, TK=0)
+
+### content（15:00:01）
+コンテンツ生成:   id=196, content_id=ai_地域_0407_03, batch=ai_batch_20260407_1500, cta=soft
+  id=197, content_id=ai_給与_0407_04, batch=ai_batch_20260407_1500, cta=soft
+  id=198, content_id=ai_ある_0407_05, batch=ai_batch_20260407_1500, cta=soft
+
+[NOTE] available (23) >= threshold (7) -- --auto では生成スキップ
+

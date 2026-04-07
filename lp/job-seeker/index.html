@@ -1860,58 +1860,6 @@
     })();
     </script>
 
-    <!-- A/B Test: CTA Color (green vs coral) -->
-    <script>
-    (function() {
-      'use strict';
-      // Cookie読み書き
-      function getCookie(name) {
-        var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-        return m ? m[1] : null;
-      }
-      function setCookie(name, val, days) {
-        var d = new Date();
-        d.setTime(d.getTime() + days * 86400000);
-        document.cookie = name + '=' + val + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
-      }
-
-      // 振り分け（cookie固定7日）
-      var variant = getCookie('cta_variant');
-      if (!variant) {
-        variant = Math.random() < 0.5 ? 'green' : 'coral';
-        setCookie('cta_variant', variant, 7);
-      }
-
-      // GA4にカスタムディメンション送信
-      if (typeof gtag === 'function') {
-        gtag('set', { 'cta_variant': variant });
-        gtag('event', 'ab_test_assigned', {
-          'test_name': 'cta_color',
-          'variant': variant
-        });
-      }
-
-      // coral群のみCSSオーバーライド
-      if (variant === 'coral') {
-        var style = document.createElement('style');
-        style.textContent = [
-          ':root { --line-glow: rgba(255,107,74,0.30); --line-glow-strong: rgba(255,107,74,0.45); }',
-          '.cta-line-hero { background: linear-gradient(135deg, #FF6B4A 0%, #E85A3A 100%) !important; }',
-          '.cta-line-hero:hover { box-shadow: 0 8px 28px rgba(255,107,74,0.45), 0 2px 8px rgba(0,0,0,0.1) !important; }',
-          '.cta-primary { background: linear-gradient(135deg, #FF6B4A 0%, #E85A3A 100%) !important; box-shadow: 0 4px 16px rgba(255,107,74,0.30), 0 1px 3px rgba(0,0,0,0.08) !important; }',
-          '.cta-primary::before { background: linear-gradient(135deg, #FF6B4A, #FF8566, #FF6B4A) !important; }',
-          '.cta-primary:hover { box-shadow: 0 8px 28px rgba(255,107,74,0.45), 0 2px 8px rgba(0,0,0,0.1) !important; }',
-          '@keyframes ctaPulse { 0%, 100% { box-shadow: 0 4px 16px rgba(255,107,74,0.30), 0 1px 3px rgba(0,0,0,0.08); } 50% { box-shadow: 0 6px 24px rgba(255,107,74,0.45), 0 2px 6px rgba(0,0,0,0.1); } }',
-          '.cta-line { background: linear-gradient(135deg, #FF6B4A 0%, #E85A3A 100%) !important; box-shadow: 0 4px 16px rgba(255,107,74,0.30), 0 1px 3px rgba(0,0,0,0.08) !important; }',
-          '.cta-line:hover { box-shadow: 0 8px 28px rgba(255,107,74,0.45), 0 2px 8px rgba(0,0,0,0.1) !important; }',
-          '.mobile-sticky-cta a { background: linear-gradient(135deg, #FF6B4A 0%, #E85A3A 100%) !important; box-shadow: 0 4px 16px rgba(255,107,74,0.30) !important; }',
-          '.mobile-sticky-cta { border-top-color: rgba(255,107,74,0.1) !important; }'
-        ].join('\n');
-        document.head.appendChild(style);
-      }
-    })();
-    </script>
-
     <!-- Shindan -->
     <script src="shindan.js?v=7.2"></script>
     <!-- Analytics (line_click自動追跡+UTM取得+スクロール計測) -->

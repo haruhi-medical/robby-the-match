@@ -124,10 +124,6 @@
       other: 'consult'
     };
 
-    // A/Bテスト variant 取得
-    var variantMatch = document.cookie.match(/(?:^|; )cta_variant=([^;]*)/);
-    var ctaVariant = variantMatch ? variantMatch[1] : 'unknown';
-
     gtag('event', 'click_cta', {
       source: source,
       intent: intentMap[source] || 'consult',
@@ -137,7 +133,6 @@
       utm_source: utm.utm_source || 'direct',
       utm_medium: utm.utm_medium || '',
       utm_campaign: utm.utm_campaign || '',
-      cta_variant: ctaVariant,
     });
   }
 

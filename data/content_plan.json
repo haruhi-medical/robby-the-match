@@ -1,6 +1,6 @@
 {
   "created": "2026-04-06T15:00:15.439286",
-  "updated": "2026-04-06T15:01:45.586813",
+  "updated": "2026-04-07T15:03:34.842165",
   "week_of": "2026-04-06",
   "total": 7,
   "queue_pending_at_creation": 5,
@@ -27,8 +27,8 @@
       "day": 3,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0407_01",
       "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
       "hook_idea": "看護師、辞めたい日と残りたい日同じ"
     },
@@ -36,8 +36,8 @@
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0407_02",
       "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
       "hook_idea": "退職届出す日、PHSストラップ3年分"
     },
@@ -45,8 +45,8 @@
       "day": 5,
       "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_地域_0407_03",
       "hint": "秦野の病院、夜勤の日だけ駐車場が満車。始発じゃ間に合わないから全員車通勤",
       "hook_idea": "秦野の病院、夜勤の駐車場満車"
     },
@@ -54,8 +54,8 @@
       "day": 6,
       "category": "給与",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_給与_0407_04",
       "hint": "訪問看護に転職したら年収は下がったけど、オンコール手当で月3万入る。QOLは上がった",
       "hook_idea": "訪問看護転職、年収下がる"
     },
@@ -63,8 +63,8 @@
       "day": 7,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0407_05",
       "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
       "hook_idea": "インシデントレポート書いてたら朝"
     }
