@@ -3111,105 +3111,15 @@ function buildSessionWelcome(sessionCtx, entry) {
     };
   }
 
-  // salary-check経由
-  if (source === 'salary_check') {
-    return {
-      nextPhase: 'welcome',
-      messages: [{
-        type: 'text',
-        text: 'ようこそ！ナースロビーです。\n\n年収診断からいらっしゃったんですね。\nもう少し詳しい年収情報と、\nあなたの条件に合う求人を\nお見せできます。\n\n3つだけ教えてくださいね。',
-        quickReply: {
-          items: [
-            qrItem('さっそく始める', 'welcome=see_jobs'),
-            qrItem('年収だけ知りたい', 'welcome=check_salary'),
-          ],
-        },
-      }],
-    };
-  }
-
-  // ブログ/ガイド経由
-  if (source === 'blog') {
-    return {
-      nextPhase: 'welcome',
-      messages: [{
-        type: 'text',
-        text: '記事を読んでくださって\nありがとうございます📖\n\nよかったら、あなたに合う\n神奈川の求人も見てみませんか？\n3つだけ質問させてください。',
-        quickReply: {
-          items: [
-            qrItem('求人を見てみる', 'welcome=see_jobs'),
-            qrItem('まだ情報収集中', 'welcome=browse'),
-          ],
-        },
-      }],
-    };
-  }
-
-  // Meta広告経由（LINE直リンク）
-  if (source === 'meta_ad') {
-    return {
-      nextPhase: 'welcome',
-      messages: [{
-        type: 'text',
-        text: '広告から来てくれたんですね！\nナースロビーです🏥\n\n看護師さん専門の転職サポートです。\n完全無料・電話なし・LINE完結。\nいつでもブロックOKです。\n\nさっそく求人を探してみませんか？',
-        quickReply: {
-          items: [
-            qrItem('求人を探す', 'welcome=see_jobs'),
-            qrItem('年収を知りたい', 'welcome=check_salary'),
-            qrItem('まず相談したい', 'welcome=consult'),
-          ],
-        },
-      }],
-    };
-  }
-
-  // Hero / Sticky / Bottom CTA経由（intent=see_jobs/consult）
-  if (source === 'hero' || source === 'sticky' || source === 'bottom') {
-    if (intent === 'consult') {
-      return {
-        nextPhase: 'welcome',
-        messages: [{
-          type: 'text',
-          text: 'ようこそ！ナースロビーです🏥\n\n転職のご相談ですね。\nまず簡単に条件を教えていただければ、\nあなたに合う求人をお見せしながら\nお話しできます。\n\n3つだけ教えてくださいね。',
-          quickReply: {
-            items: [
-              qrItem('さっそく始める', 'welcome=see_jobs'),
-              qrItem('まず相談したい', 'welcome=consult'),
-            ],
-          },
-        }],
-      };
-    }
-
-    // デフォルト: 求人を見たい
-    return {
-      nextPhase: 'welcome',
-      messages: [{
-        type: 'text',
-        text: 'ようこそ！ナースロビーです🏥\n\n求人をお探しなんですね。\n3つだけ教えてください。\nすぐにあなたに合う求人をお見せします。\n\n※名前や電話番号は不要です',
-        quickReply: {
-          items: [
-            qrItem('さっそく始める', 'welcome=see_jobs'),
-            qrItem('ちょっと相談したい', 'welcome=consult'),
-            qrItem('まだ見てるだけ', 'welcome=browse'),
-          ],
-        },
-      }],
-    };
-  }
-
-  // デフォルト（sourceなし or 未知のsource）
+  // 全入口共通メッセージ（shindan/area_page以外）
   return {
     nextPhase: 'welcome',
     messages: [{
       type: 'text',
-      text: 'はじめまして！\nナースロビーです🏥\n\n看護師さん専門の\n転職サポートです。\n完全無料・電話なし・LINE完結。\n\n何かお手伝いできますか？',
+      text: '「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n判断できるまで、名前も聞きません。\n\n静かに、転職活動。',
       quickReply: {
         items: [
-          qrItem('求人を探したい', 'welcome=see_jobs'),
-          qrItem('年収を知りたい', 'welcome=check_salary'),
-          qrItem('転職の相談をしたい', 'welcome=consult'),
-          qrItem('まだ見てるだけ', 'welcome=browse'),
+          qrItem('求人を見てみる', 'welcome=see_jobs'),
         ],
       },
     }],
@@ -5820,24 +5730,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.welcomeSource = 'none';
           await saveLineEntry(userId, entry, env);
 
-          // 求人数を取得して動的ウェルカム
-          let jobCount = 123; // デフォルト
-          try {
-            if (env?.DB) {
-              const cnt = await env.DB.prepare('SELECT COUNT(*) as cnt FROM facilities').first();
-              jobCount = cnt?.cnt || jobCount;
-            }
-          } catch (e) { /* D1エラーは無視 */ }
-
+          // 全入口共通ウェルカムメッセージ
           const msgs = [{
             type: "text",
-            text: `はじめまして！\nナースロビーのロビーです🤖\n\n${jobCount.toLocaleString()}件の医療機関の中から\nあなたにぴったりの職場を見つけます。\n\n完全無料・電話なし・LINE完結。\n\nまずは求人を探してみませんか？`,
+            text: "「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n判断できるまで、名前も聞きません。\n\n静かに、転職活動。",
             quickReply: {
               items: [
-                qrItem("求人を探す", "welcome=see_jobs"),
-                qrItem("年収を知りたい", "welcome=check_salary"),
-                qrItem("まず相談したい", "welcome=consult"),
-                qrItem("まだ見てるだけ", "welcome=browse"),
+                qrItem("求人を見てみる", "welcome=see_jobs"),
               ],
             },
           }];
