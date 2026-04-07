@@ -103,7 +103,11 @@ def score_job(job):
                 sal_score = 15
             else:
                 sal_score = 8
-            details["salary"] = f"時給{hourly:,}円"
+            # 時給表示: 幅がある場合は「時給○〜○円」
+            if low and high and low != high:
+                details["salary"] = f"時給{low:,}〜{high:,}円"
+            else:
+                details["salary"] = f"時給{hourly:,}円"
         else:
             details["salary"] = "不明"
     else:
@@ -121,7 +125,11 @@ def score_job(job):
                 sal_score = 10
             else:
                 sal_score = 5
-            details["salary"] = f"月給{monthly/10000:.1f}万円"
+            # 給与表示: 幅がある場合は「月給○〜○万円」、同額なら「月給○万円」
+            if low and high and low != high:
+                details["salary"] = f"月給{low/10000:.1f}〜{high/10000:.1f}万円"
+            else:
+                details["salary"] = f"月給{monthly/10000:.1f}万円"
         else:
             details["salary"] = "不明"
     score += sal_score
