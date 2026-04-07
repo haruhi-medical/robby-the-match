@@ -4278,7 +4278,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.43,
+      "quality_checked": true
     },
     {
       "id": 195,
@@ -4307,7 +4308,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.66,
+      "quality_checked": true
     },
     {
       "id": 196,
@@ -4336,7 +4338,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.35,
+      "quality_checked": true
     },
     {
       "id": 197,
@@ -4365,7 +4368,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.7,
+      "quality_checked": true
     },
     {
       "id": 198,
@@ -4394,7 +4398,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 7.95,
+      "quality_checked": true
     }
   ],
   "archive": [
