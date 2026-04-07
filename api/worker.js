@@ -4078,37 +4078,8 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
 
-      const browseResults = entry.matchingResults.slice(0, 5);
-      const browseAreaLabel = entry.areaLabel || "お選びのエリア";
-      const browseWsLabels = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
-      const browseWsLabel = browseWsLabels[entry.workStyle] || "";
-
-      let browseText = `${browseAreaLabel} × ${browseWsLabel} で他にもこんな求人があります！\n\n`;
-      browseResults.forEach((r, i) => {
-        const checks = buildMatchChecks(r, entry);
-        browseText += `━━━━━━━━━━\n`;
-        browseText += `${i + 1}. ${r.n || r.name || "求人"}\n`;
-        browseText += `${checks}\n`;
-        const details = [];
-        if (r.sal || r.salary) details.push(`💰 ${r.sal || r.salary}`);
-        if (r.loc) details.push(`📍 ${r.loc}`);
-        if (details.length > 0) browseText += `${details.join(' / ')}\n`;
-        browseText += `\n`;
-      });
-      browseText += `気になる求人はありますか？`;
-
-      return [{
-        type: "text",
-        text: browseText,
-        quickReply: {
-          items: [
-            qrItem("もっと見る", "matching_browse=more"),
-            qrItem("条件を変えて探す", "matching_browse=change"),
-            qrItem("気になるのがある", "matching_browse=detail"),
-            qrItem("今日はここまで", "matching_browse=done"),
-          ],
-        },
-      }];
+      // matching_browseもFlexカルーセルで表示（matching_previewと同じ形式）
+      return buildPhaseMessage("matching_preview", entry, env);
     }
 
     case "nurture_warm":
@@ -4612,6 +4583,11 @@ async function generateLineMatching(entry, env, offset = 0) {
       if (cities.length > 0) {
         sql += ` AND (${cities.map(() => 'work_location LIKE ?').join(' OR ')})`;
         cities.forEach(c => params.push(`%${c}%`));
+        // 区名の都道府県間重複防止（中央区→千葉市中央区を排除）
+        if (prefFilter) {
+          sql += ' AND prefecture = ?';
+          params.push(prefFilter);
+        }
       } else if (prefFilter) {
         sql += ' AND prefecture = ?';
         params.push(prefFilter);
