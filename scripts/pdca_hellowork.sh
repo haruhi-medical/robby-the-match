@@ -68,6 +68,14 @@ else
     exit 1
 fi
 
+# Step 3.5: D1 jobsテーブル全件更新
+log "Step 3.5: D1 jobs更新中..."
+if $PYTHON scripts/hellowork_to_d1.py >> "$LOG_FILE" 2>&1; then
+    log "✅ D1 jobs更新完了"
+else
+    log "⚠️ D1 jobs更新失敗（EXTERNAL_JOBSで代替動作）"
+fi
+
 # Step 4: git commit + push
 log "Step 4: git commit & push..."
 cd "$PROJECT_DIR"

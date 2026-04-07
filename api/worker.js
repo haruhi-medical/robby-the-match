@@ -4582,42 +4582,127 @@ function buildMatchChecks(job, entry) {
   return checks.join('  ');
 }
 
-// ---------- マッチング結果生成（3条件フィルタ + 一致数ソート + 隣接エリア拡大 + D1フォールバック） ----------
+// ---------- マッチング結果生成（D1 jobs全件検索 + D1 facilitiesフォールバック） ----------
 async function generateLineMatching(entry, env, offset = 0) {
   const profession = entry.qualification === "pt" ? "pt" : "nurse";
   const areaKeys = getAreaKeysFromZone(`q3_${entry.area}`);
 
-  // --- EXTERNAL_JOBSから求人検索 ---
-  function collectJobs(keys) {
-    let jobs = [];
-    const jobSource = EXTERNAL_JOBS[profession] || EXTERNAL_JOBS.nurse || {};
-    for (const ak of keys) {
-      if (jobSource[ak]) {
-        jobs.push(...jobSource[ak].filter(j => typeof j === "object"));
+  let allJobs = [];
+
+  // --- D1 jobsテーブルから全件検索（2,964件対象） ---
+  if (env?.DB) {
+    try {
+      const baseArea = (entry.area || '').replace('_il', '');
+      // エリアフィルタ: AREA_CITY_MAPの都市名 or prefectureで検索
+      const cities = AREA_CITY_MAP[baseArea] || [];
+      const D1_AREA_PREF_JOBS = {
+        chiba_all: '千葉県', saitama_all: '埼玉県',
+        tokyo_included: '東京都', kanagawa_all: '神奈川県',
+        tokyo_23ku: '東京都', tokyo_tama: '東京都',
+      };
+      const prefFilter = D1_AREA_PREF_JOBS[baseArea] || null;
+
+      let sql = `SELECT kjno, employer, title, rank, score, area, prefecture,
+        work_location, salary_form, salary_min, salary_max, salary_display,
+        bonus_text, holidays, emp_type, station_text, shift1, shift2,
+        description, welfare FROM jobs WHERE 1=1`;
+      const params = [];
+
+      // エリアフィルタ
+      if (cities.length > 0) {
+        sql += ` AND (${cities.map(() => 'work_location LIKE ?').join(' OR ')})`;
+        cities.forEach(c => params.push(`%${c}%`));
+      } else if (prefFilter) {
+        sql += ' AND prefecture = ?';
+        params.push(prefFilter);
+      } else if (baseArea && baseArea !== 'undecided') {
+        // areaフィールドで直接マッチ
+        sql += ' AND area = ?';
+        params.push(baseArea);
       }
+
+      // 働き方フィルタ
+      if (entry.workStyle === 'day') {
+        sql += " AND title NOT LIKE '%夜勤%'";
+      } else if (entry.workStyle === 'part') {
+        sql += " AND emp_type LIKE '%パート%'";
+      } else if (entry.workStyle === 'night') {
+        sql += " AND (title LIKE '%夜勤%' OR title LIKE '%二交代%')";
+      }
+
+      // 診療科フィルタ
+      if (entry.department) {
+        sql += " AND (title LIKE ? OR description LIKE ?)";
+        params.push(`%${entry.department}%`, `%${entry.department}%`);
+      }
+
+      sql += ' ORDER BY score DESC LIMIT 50';
+
+      const d1Jobs = await env.DB.prepare(sql).bind(...params).all();
+      if (d1Jobs && d1Jobs.results && d1Jobs.results.length > 0) {
+        allJobs = d1Jobs.results.map(r => ({
+          n: r.employer || '',
+          t: r.title || '',
+          r: r.rank || 'B',
+          s: r.score || 0,
+          d: { sal: 0, hol: 0, bon: 0, emp: 0, wel: 0, loc: 0 },
+          sal: r.salary_display || '',
+          sta: (r.station_text || '').slice(0, 25),
+          hol: r.holidays ? `${r.holidays}` : '',
+          bon: r.bonus_text || '',
+          emp: r.emp_type || '',
+          wel: r.welfare || '',
+          desc: r.description || '',
+          loc: r.work_location || '',
+          shift: r.shift1 || '',
+          matchCount: 3, // D1 jobs = エリア+条件一致済み
+          matchFlags: { area: true, workStyle: true, facilityType: true },
+          sortKey: r.score || 0,
+          isD1Job: true,
+        }));
+        console.log(`[Matching] D1 jobs検索: ${allJobs.length}件ヒット (area=${baseArea})`);
+      }
+    } catch (e) {
+      console.error(`[Matching] D1 jobs検索エラー: ${e.message}`);
     }
-    return jobs.filter(j => j.r !== "C" && j.r !== "D");
   }
 
-  let allJobs = collectJobs(areaKeys);
-
-  // --- 0件時: 隣接エリアに自動拡大 ---
+  // --- D1 jobsが0件の場合: EXTERNAL_JOBSにフォールバック ---
   if (allJobs.length === 0) {
-    const baseArea = (entry.area || '').replace('_il', '');
-    const adjacentAreas = ADJACENT_AREAS[baseArea] || [];
-    for (const adj of adjacentAreas) {
-      const adjKeys = getAreaKeysFromZone(`q3_${adj}_il`);
-      const adjJobs = collectJobs(adjKeys);
-      if (adjJobs.length > 0) {
-        allJobs = adjJobs;
-        console.log(`[Matching] 隣接エリア拡大: ${baseArea} → ${adj} (${adjJobs.length}件)`);
-        break;
+    function collectJobs(keys) {
+      let jobs = [];
+      const jobSource = EXTERNAL_JOBS[profession] || EXTERNAL_JOBS.nurse || {};
+      for (const ak of keys) {
+        if (jobSource[ak]) {
+          jobs.push(...jobSource[ak].filter(j => typeof j === "object"));
+        }
+      }
+      return jobs;
+    }
+    allJobs = collectJobs(areaKeys);
+    if (allJobs.length > 0) {
+      console.log(`[Matching] EXTERNAL_JOBSフォールバック: ${allJobs.length}件`);
+    }
+
+    // --- 0件時: 隣接エリアに自動拡大 ---
+    if (allJobs.length === 0) {
+      const baseArea = (entry.area || '').replace('_il', '');
+      const adjacentAreas = ADJACENT_AREAS[baseArea] || [];
+      for (const adj of adjacentAreas) {
+        const adjKeys = getAreaKeysFromZone(`q3_${adj}_il`);
+        const adjJobs = collectJobs(adjKeys);
+        if (adjJobs.length > 0) {
+          allJobs = adjJobs;
+          console.log(`[Matching] 隣接エリア拡大: ${baseArea} → ${adj} (${adjJobs.length}件)`);
+          break;
+        }
       }
     }
   }
 
-  // --- 3条件フィルタ + 一致数ソート ---
+  // --- 3条件フィルタ + 一致数ソート（EXTERNAL_JOBS用。D1 jobsはSQL側でフィルタ済み） ---
   allJobs = allJobs.map(j => {
+    if (j.isD1Job) return j; // D1 jobsはフィルタ済み
     let matchCount = 0;
     const matchFlags = { area: true, workStyle: false, facilityType: false };
 
@@ -4632,8 +4717,7 @@ async function generateLineMatching(entry, env, offset = 0) {
       if (j.t && (j.t.includes('夜勤') || j.t.includes('二交代'))) matchFlags.workStyle = true;
     }
 
-    // 施設タイプマッチ（entry.facilityType を使用）
-    // 病院は「逆マッチ」: 訪問/クリニック/介護でなければ病院とみなす
+    // 施設タイプマッチ
     if (!entry.facilityType || entry.facilityType === 'any') {
       matchFlags.facilityType = true;
     } else {
@@ -4643,7 +4727,6 @@ async function generateLineMatching(entry, env, offset = 0) {
       const isCare = ['老人', '介護施設', '福祉', '特養', '老健', 'デイサービス', 'グループホーム'].some(kw => text.includes(kw));
 
       if (entry.facilityType === 'hospital') {
-        // 病院 = 訪問でもクリニックでも介護でもないもの
         matchFlags.facilityType = !isVisiting && !isClinic && !isCare;
       } else if (entry.facilityType === 'clinic') {
         matchFlags.facilityType = isClinic;
@@ -4654,7 +4737,7 @@ async function generateLineMatching(entry, env, offset = 0) {
       }
     }
 
-    // 診療科マッチ（department指定時、descやtに診療科名が含まれるか）
+    // 診療科マッチ
     if (entry.department) {
       const deptText = (j.t || '') + (j.desc || '') + (j.n || '');
       matchFlags.department = deptText.includes(entry.department);
