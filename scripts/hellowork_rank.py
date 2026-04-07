@@ -32,7 +32,8 @@ OUTPUT_FILE = PROJECT_ROOT / "data" / "hellowork_ranked.json"
 NURSE_KEYWORDS = ["看護師", "看護職", "ナース"]
 NOISE_KEYWORDS = ["看護助手", "助手", "補助", "事務", "ケアマネ", "理学療法",
                    "作業療法", "言語聴覚", "動物", "歯科", "介護福祉士", "薬剤",
-                   "栄養士", "放射線技師", "臨床検査", "視能訓練"]
+                   "栄養士", "放射線技師", "臨床検査", "視能訓練", "介護職", "介護員",
+                   "生活支援員", "相談員"]
 
 # ---------- スコアリング ----------
 
@@ -50,7 +51,13 @@ def parse_salary(job):
 
     is_hourly = "時給" in form or "時間給" in form or (
         "その他" in form and low_num > 0 and low_num < 10000
-    ) or (low_num > 0 and low_num < 10000)
+    )
+    # salary_formが「月給」「日給月給」を含む場合は月給扱い（時給判定を上書き）
+    if "月給" in form or "日給月給" in form:
+        is_hourly = False
+    # salary_formが空でも、金額が10万超なら月給と判断（時給10万超はありえない）
+    if is_hourly and high_num > 100000:
+        is_hourly = False
 
     return low_num, high_num, is_hourly
 
@@ -131,6 +138,9 @@ def score_job(job):
                 details["salary"] = f"月給{low/10000:.1f}〜{high/10000:.1f}万円"
             else:
                 details["salary"] = f"月給{monthly/10000:.1f}万円"
+            # 月給17万以下は短時間正社員の可能性→注記追加
+            if monthly < 170000 and monthly > 0:
+                details["salary"] += "（※短時間勤務の可能性）"
         else:
             details["salary"] = "不明"
     score += sal_score
@@ -277,6 +287,11 @@ RANK_LABELS = {
 def is_target_nurse_job(job):
     """看護師本体の求人かフィルタ"""
     title = job.get("job_title", "")
+
+    # 派遣除外（社長指示: 派遣は紹介対象外）
+    emp_type = job.get("employment_type", "")
+    if "派遣" in emp_type or "派遣" in title:
+        return False
 
     # ノイズ除外を先にチェック（言語聴覚士、理学療法士等）
     has_noise = any(kw in title for kw in NOISE_KEYWORDS)

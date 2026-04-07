@@ -116,6 +116,14 @@ def build_sql(jobs):
         # 仕事内容（300文字制限）
         desc = (j.get("job_description", "") or "")[:300]
 
+        # salary_formをsalary_displayから正確に判定
+        sal_display = details.get("salary", "")
+        sal_form = j.get("salary_form", "")
+        if sal_display.startswith("月給"):
+            sal_form = "月給"
+        elif sal_display.startswith("時給"):
+            sal_form = "時給"
+
         vals = [
             escape_sql(j.get("kjno", "")),
             escape_sql(j.get("employer", "")),
@@ -125,7 +133,7 @@ def build_sql(jobs):
             escape_sql(j.get("area", "")),
             escape_sql(pref),
             escape_sql(loc),
-            escape_sql(j.get("salary_form", "")),
+            escape_sql(sal_form),
             str(j.get("salary_low", 0) or 0),
             str(j.get("salary_high", 0) or 0),
             escape_sql(details.get("salary", "")),
