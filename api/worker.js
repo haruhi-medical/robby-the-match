@@ -4608,7 +4608,7 @@ async function generateLineMatching(entry, env, offset = 0) {
         params.push(`%${entry.department}%`, `%${entry.department}%`);
       }
 
-      sql += ' ORDER BY score DESC LIMIT 5 OFFSET ?';
+      sql += ' ORDER BY score DESC LIMIT 15 OFFSET ?';
       params.push(offset);
 
       const d1Jobs = await env.DB.prepare(sql).bind(...params).all();
@@ -4633,7 +4633,14 @@ async function generateLineMatching(entry, env, offset = 0) {
           sortKey: r.score || 0,
           isD1Job: true,
         }));
-        console.log(`[Matching] D1 jobs検索: ${allJobs.length}件ヒット (area=${baseArea})`);
+        // 同一事業所の重複制限（1事業所最大2件）→上位5件を選出
+        const employerCount = {};
+        allJobs = allJobs.filter(j => {
+          const emp = j.n || '';
+          employerCount[emp] = (employerCount[emp] || 0) + 1;
+          return employerCount[emp] <= 2;
+        }).slice(0, 5);
+        console.log(`[Matching] D1 jobs検索: ${allJobs.length}件（dedup後） (area=${baseArea})`);
       }
     } catch (e) {
       console.error(`[Matching] D1 jobs検索エラー: ${e.message}`);

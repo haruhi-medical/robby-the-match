@@ -55,8 +55,12 @@ def parse_salary(job):
     # salary_formが「月給」「日給月給」を含む場合は月給扱い（時給判定を上書き）
     if "月給" in form or "日給月給" in form:
         is_hourly = False
-    # salary_formが空でも、金額が10万超なら月給と判断（時給10万超はありえない）
-    if is_hourly and high_num > 100000:
+    # 最終ガード: 金額が10,000未満は絶対に時給（月給1万円はありえない）
+    effective_amount = high_num if high_num else low_num
+    if effective_amount > 0 and effective_amount < 10000:
+        is_hourly = True
+    # 金額が10万超なら月給と判断（時給10万超はありえない）
+    if is_hourly and effective_amount > 100000:
         is_hourly = False
 
     return low_num, high_num, is_hourly
