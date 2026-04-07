@@ -6097,7 +6097,6 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "consult_handoff_choice") {
           // 担当者に引き継ぎ（病院直接確認フローは廃止→まず担当者がヒアリング）
           entry.handoffRequestedByUser = true;
-          nextPhase = "handoff_phone_check";
           entry.phase = "handoff_phone_check";
           replyMessages = await buildPhaseMessage("handoff_phone_check", entry, env);
         } else if (nextPhase === "apply_info") {
