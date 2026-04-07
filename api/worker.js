@@ -5945,12 +5945,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
           replyMessages = [
             { type: "text", text: detailText },
-            { type: "text", text: "気になる求人はありますか？\n\n気になる求人があれば、名前を伏せて病院に確認します。\n💡 ここにない病院にも確認できます！",
+            { type: "text", text: "気になる求人はありますか？\n\n気になる求人があれば、担当者が詳しくお調べします。",
               quickReply: {
                 items: [
-                  qrItem("この求人が気になる", "consult=apply"),
+                  qrItem("この求人が気になる", "handoff=ok"),
                   qrItem("相談したい", "consult=start"),
-                  qrItem("他の病院に聞きたい", "match=reverse"),
                   qrItem("他の求人も見たい", "matching_preview=more"),
                 ],
               },
@@ -6096,18 +6095,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             text: "あと3回まで聞けます！どうぞ😊",
           }];
         } else if (nextPhase === "consult_handoff_choice") {
-          // 応募に進むか担当者と話すかの選択
-          entry.phase = "ai_consultation"; // phaseはai_consultationのまま
-          replyMessages = [{
-            type: "text",
-            text: "名前を伏せて病院に聞いてみますか？それとも担当者と話しますか？",
-            quickReply: {
-              items: [
-                qrItem("病院に聞いてみる", "consult=apply"),
-                qrItem("担当者と話したい", "consult=direct_handoff"),
-              ],
-            },
-          }];
+          // 担当者に引き継ぎ（病院直接確認フローは廃止→まず担当者がヒアリング）
+          entry.handoffRequestedByUser = true;
+          nextPhase = "handoff_phone_check";
+          entry.phase = "handoff_phone_check";
+          replyMessages = await buildPhaseMessage("handoff_phone_check", entry, env);
         } else if (nextPhase === "apply_info") {
           entry.phase = "apply_info";
           entry.applyStep = "name";
