@@ -5969,7 +5969,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             entry.phase = "matching";
             replyMessages = [{
               type: "text",
-              text: "ここまで10件の求人をご紹介しました。\n\nこの中にピンとくるものがなければ、担当者があなたの条件に合う求人を直接お探しします。\n\n非公開求人やハローワーク以外の情報もご紹介できます。",
+              text: "ここまで10件の求人をご紹介しました。\n\nこの中にピンとくるものがなければ、担当者があなたの条件に合う求人を直接お探しします。\n\n非公開求人や、気になる医療機関があれば逆指名で問い合わせることも可能です。",
               quickReply: {
                 items: [
                   qrItem("担当者に探してもらう", "handoff=ok"),
@@ -6121,7 +6121,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             entry.phase = "matching";
             replyMessages = [{
               type: "text",
-              text: "ここまで10件の求人をご紹介しました。\n\nこの中にピンとくるものがなければ、担当者があなたの条件に合う求人を直接お探しします。\n\n非公開求人やハローワーク以外の情報もご紹介できます。",
+              text: "ここまで10件の求人をご紹介しました。\n\nこの中にピンとくるものがなければ、担当者があなたの条件に合う求人を直接お探しします。\n\n非公開求人や、気になる医療機関があれば逆指名で問い合わせることも可能です。",
               quickReply: {
                 items: [
                   qrItem("担当者に探してもらう", "handoff=ok"),
