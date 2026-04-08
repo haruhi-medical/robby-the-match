@@ -4484,7 +4484,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.61,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4498,7 +4498,8 @@
         ],
         "suggestion": "フックを25文字以内に修正し、CTAのバランスを調整することでより効果的な投稿になる可能性がある"
       },
-      "scheduled_for": "2026-04-12 12:00"
+      "scheduled_for": "2026-04-12 12:00",
+      "quality_checked": true
     },
     {
       "id": 200,
@@ -4527,7 +4528,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.72,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4541,7 +4542,8 @@
         ],
         "suggestion": "フックを25文字以内に短縮し、ハッシュタグを4個以内に絞り込むとより効果的になる"
       },
-      "scheduled_for": "2026-04-13 21:00"
+      "scheduled_for": "2026-04-13 21:00",
+      "quality_checked": true
     },
     {
       "id": 201,
@@ -4570,7 +4572,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.83,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4584,7 +4586,8 @@
         ],
         "suggestion": "フックを短くして、ハッシュタグを減らしてみてください"
       },
-      "scheduled_for": "2026-04-14 17:30"
+      "scheduled_for": "2026-04-14 17:30",
+      "quality_checked": true
     }
   ],
   "archive": [
