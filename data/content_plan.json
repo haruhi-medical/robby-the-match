@@ -1,72 +1,72 @@
 {
-  "created": "2026-04-06T15:00:15.439286",
-  "updated": "2026-04-07T15:03:34.842165",
-  "week_of": "2026-04-06",
+  "created": "2026-04-08T15:00:15.182869",
+  "updated": "2026-04-08T15:02:12.401463",
+  "week_of": "2026-04-08",
   "total": 7,
-  "queue_pending_at_creation": 5,
+  "queue_pending_at_creation": 4,
   "plans": [
     {
       "day": 1,
-      "category": "給与",
+      "category": "あるある",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_給与_0406_01",
-      "hint": "産業看護師（企業ナース）の年収500万。病棟5年目の自分は430万。何が違う？",
-      "hook_idea": "病棟5年目、年収430万"
+      "content_id": "ai_ある_0408_01",
+      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
+      "hook_idea": "インシデントレポート書いてたら朝"
     },
     {
       "day": 2,
-      "category": "業界裏側",
-      "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_業界_0406_02",
-      "hint": "大手紹介会社の利益率40%。看護師の転職1件で営業マンに50万のインセンティブ",
-      "hook_idea": "夜勤の看護師の紹介料、50万"
-    },
-    {
-      "day": 3,
       "category": "あるある",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0407_01",
+      "content_id": "ai_ある_0408_02",
       "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
-      "hook_idea": "看護師、辞めたい日と残りたい日同じ"
+      "hook_idea": "看護師辞めたい日の気持ち"
+    },
+    {
+      "day": 3,
+      "category": "給与",
+      "cta_type": "soft",
+      "status": "generated",
+      "content_id": "ai_給与_0408_03",
+      "hint": "ICU5年目で年収480万。一般病棟5年目は430万。同じ看護師免許で100万差",
+      "hook_idea": "ICU5年目、年収480万"
     },
     {
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0407_02",
-      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
-      "hook_idea": "退職届出す日、PHSストラップ3年分"
+      "status": "planned",
+      "content_id": null,
+      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
+      "hook_idea": "看護師の自問自答"
     },
     {
       "day": 5,
-      "category": "地域ネタ",
+      "category": "給与",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_地域_0407_03",
-      "hint": "秦野の病院、夜勤の日だけ駐車場が満車。始発じゃ間に合わないから全員車通勤",
-      "hook_idea": "秦野の病院、夜勤の駐車場満車"
+      "status": "planned",
+      "content_id": null,
+      "hint": "夜勤1回の手当は平均11,000円（日本看護協会調査）。16時間拘束で手当だけ見ると時給換算687円",
+      "hook_idea": "夜勤手当、687円？"
     },
     {
       "day": 6,
       "category": "給与",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_給与_0407_04",
-      "hint": "訪問看護に転職したら年収は下がったけど、オンコール手当で月3万入る。QOLは上がった",
-      "hook_idea": "訪問看護転職、年収下がる"
+      "status": "planned",
+      "content_id": null,
+      "hint": "紹介会社の手数料135万。それ、看護師の年間ボーナスとほぼ同額",
+      "hook_idea": "紹介料135万、誰の口座？"
     },
     {
       "day": 7,
-      "category": "あるある",
+      "category": "転職",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0407_05",
-      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
-      "hook_idea": "インシデントレポート書いてたら朝"
+      "status": "planned",
+      "content_id": null,
+      "hint": "訪問看護に転職したら残業ゼロ。病棟時代の月40時間残業は何だったのか",
+      "hook_idea": "訪問看護、残業ゼロ"
     }
   ]
 }

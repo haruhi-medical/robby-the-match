@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-08T02:47:31.962300",
+  "updated": "2026-04-08T15:03:27.899825",
   "posts": [
     {
       "id": 1,
@@ -3472,11 +3472,11 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0331_07_20260408.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -4266,11 +4266,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -4307,9 +4307,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.66,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "キャプションが200文字以内ではない"
+        ],
+        "suggestion": "フックを短くし、キャプションを簡潔にすることで、看護師の関心をより引き付けられる可能性がある"
+      }
     },
     {
       "id": 196,
@@ -4337,9 +4350,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 8.35,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "キャプションが200文字以内ではない"
+        ],
+        "suggestion": "看護師の共感を深めるために、より具体的な状況設定とデータを提供する"
+      }
     },
     {
       "id": 197,
@@ -4367,9 +4393,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.7,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 7,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハードCTAが8枚目にない"
+        ],
+        "suggestion": "フックを短くし、ハードCTAを追加して看護師の関心を高める"
+      }
     },
     {
       "id": 198,
@@ -4397,9 +4436,148 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 7.95,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "看護師の共感を深めるために、より具体的な数字や状況を盛り込むと良いでしょう"
+      }
+    },
+    {
+      "id": 199,
+      "content_id": "ai_ある_0408_01",
+      "batch": "ai_batch_20260408_1500",
+      "slide_dir": "content/generated/ai_batch_20260408_1500/ai_ある_0408_01",
+      "json_path": "content/generated/ai_batch_20260408_1500/ai_ある_0408_01.json",
+      "caption": "神奈川の看護師5年目で手取り24万って普通なの?\n\n夜勤明けの電車、座る暇ある？\n\nプロフのリンクから無料で市場価値調べよう",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#ナース転職サポート",
+        "#看護師市場価値"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "CTAの8:2ルールが厳密に守られていない"
+        ],
+        "suggestion": "フックを25文字以内に修正し、CTAのバランスを調整することでより効果的な投稿になる可能性がある"
+      }
+    },
+    {
+      "id": 200,
+      "content_id": "ai_ある_0408_02",
+      "batch": "ai_batch_20260408_1500",
+      "slide_dir": "content/generated/ai_batch_20260408_1500/ai_ある_0408_02",
+      "json_path": "content/generated/ai_batch_20260408_1500/ai_ある_0408_02.json",
+      "caption": "看護師5年目で時給2千円って本当?\n\n看護師の時給は低すぎるのではないか?\n\n保存しておくと、転職する時に役立つよ。",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#看護師市場価値",
+        "#ナース転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い",
+          "ハッシュタグが4個以上"
+        ],
+        "suggestion": "フックを25文字以内に短縮し、ハッシュタグを4個以内に絞り込むとより効果的になる"
+      }
+    },
+    {
+      "id": 201,
+      "content_id": "ai_給与_0408_03",
+      "batch": "ai_batch_20260408_1500",
+      "slide_dir": "content/generated/ai_batch_20260408_1500/ai_給与_0408_03",
+      "json_path": "content/generated/ai_batch_20260408_1500/ai_給与_0408_03.json",
+      "caption": "神奈川のICU看護師、年収480万って高すぎない？\n\n看護師の市場価値を高めるために、転職サポートが必要なんだ\n\n保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#ICU看護師",
+        "#看護師転職",
+        "#手数料10%"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くして、ハッシュタグを減らしてみてください"
+      }
     }
   ],
   "archive": [
