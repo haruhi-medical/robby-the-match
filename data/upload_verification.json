@@ -411,7 +411,14 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-09T02:50:14.341463",
+      "content_id": "ai_業界_0331_08",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-04-08T02:56:26.769960"
+  "last_updated": "2026-04-09T02:50:14.341478"
 }

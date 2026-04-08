@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-08T15:03:27.899825",
+  "updated": "2026-04-09T02:41:23.719947",
   "posts": [
     {
       "id": 1,
@@ -3503,8 +3503,8 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0331_08_20260409.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -4296,7 +4296,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4322,7 +4322,8 @@
           "キャプションが200文字以内ではない"
         ],
         "suggestion": "フックを短くし、キャプションを簡潔にすることで、看護師の関心をより引き付けられる可能性がある"
-      }
+      },
+      "scheduled_for": "2026-04-08 17:30"
     },
     {
       "id": 196,
@@ -4339,7 +4340,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4365,7 +4366,8 @@
           "キャプションが200文字以内ではない"
         ],
         "suggestion": "看護師の共感を深めるために、より具体的な状況設定とデータを提供する"
-      }
+      },
+      "scheduled_for": "2026-04-09 12:00"
     },
     {
       "id": 197,
@@ -4382,7 +4384,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4408,7 +4410,8 @@
           "ハードCTAが8枚目にない"
         ],
         "suggestion": "フックを短くし、ハードCTAを追加して看護師の関心を高める"
-      }
+      },
+      "scheduled_for": "2026-04-10 21:00"
     },
     {
       "id": 198,
@@ -4425,7 +4428,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4451,7 +4454,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "看護師の共感を深めるために、より具体的な数字や状況を盛り込むと良いでしょう"
-      }
+      },
+      "scheduled_for": "2026-04-11 17:30"
     },
     {
       "id": 199,
@@ -4468,7 +4472,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4480,7 +4484,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.61,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4493,7 +4497,9 @@
           "CTAの8:2ルールが厳密に守られていない"
         ],
         "suggestion": "フックを25文字以内に修正し、CTAのバランスを調整することでより効果的な投稿になる可能性がある"
-      }
+      },
+      "scheduled_for": "2026-04-12 12:00",
+      "quality_checked": true
     },
     {
       "id": 200,
@@ -4510,7 +4516,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4522,7 +4528,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.72,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4535,7 +4541,9 @@
           "ハッシュタグが4個以上"
         ],
         "suggestion": "フックを25文字以内に短縮し、ハッシュタグを4個以内に絞り込むとより効果的になる"
-      }
+      },
+      "scheduled_for": "2026-04-13 21:00",
+      "quality_checked": true
     },
     {
       "id": 201,
@@ -4552,7 +4560,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4564,7 +4572,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.83,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4577,7 +4585,9 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くして、ハッシュタグを減らしてみてください"
-      }
+      },
+      "scheduled_for": "2026-04-14 17:30",
+      "quality_checked": true
     }
   ],
   "archive": [
