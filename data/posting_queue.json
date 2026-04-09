@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-09T16:33:24.543116",
+  "updated": "2026-04-10T02:54:57.971038",
   "posts": [
     {
       "id": 1,
@@ -3534,11 +3534,11 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_転職_0331_09_20260410.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,

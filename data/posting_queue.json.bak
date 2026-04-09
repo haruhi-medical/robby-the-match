@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-09T16:33:24.519494",
+  "updated": "2026-04-10T02:46:08.464069",
   "posts": [
     {
       "id": 1,
@@ -3534,8 +3534,8 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_転職_0331_09_20260410.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -4604,7 +4604,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4628,7 +4628,8 @@
           "フックが少し長い可能性あり"
         ],
         "suggestion": "看護師の共感度を高めるために、より具体的な状況を描写することを検討してください"
-      }
+      },
+      "scheduled_for": "2026-04-09 17:30"
     },
     {
       "id": 203,
@@ -4645,7 +4646,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4670,7 +4671,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
-      }
+      },
+      "scheduled_for": "2026-04-10 12:00"
     },
     {
       "id": 204,
@@ -4687,7 +4689,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4711,7 +4713,8 @@
           "フックが少し長い可能性あり"
         ],
         "suggestion": "フックを更に簡潔にすることで、見た目のインパクトを高めることができる"
-      }
+      },
+      "scheduled_for": "2026-04-11 21:00"
     },
     {
       "id": 205,
@@ -4728,7 +4731,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4752,7 +4755,8 @@
           "スライドの繰り返しが多い"
         ],
         "suggestion": "スライドの重複を減らし、よりコンパクトな内容にまとめる"
-      }
+      },
+      "scheduled_for": "2026-04-12 17:30"
     },
     {
       "id": 206,
@@ -4769,7 +4773,7 @@
       ],
       "cta_type": "hard",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4794,7 +4798,8 @@
           "CTAがハードCTAのみ"
         ],
         "suggestion": "フックを短くして、ソフトCTAを追加してバランスをとる"
-      }
+      },
+      "scheduled_for": "2026-04-13 12:00"
     },
     {
       "id": 207,
@@ -4811,7 +4816,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4836,7 +4841,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
-      }
+      },
+      "scheduled_for": "2026-04-14 21:00"
     },
     {
       "id": 208,
@@ -4853,7 +4859,7 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4877,7 +4883,8 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを短くして、看護師の共感を高める"
-      }
+      },
+      "scheduled_for": "2026-04-15 17:30"
     }
   ],
   "archive": [

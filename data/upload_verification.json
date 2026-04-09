@@ -418,7 +418,14 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-10T02:54:57.981367",
+      "content_id": "ai_転職_0331_09",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-04-09T02:50:14.341478"
+  "last_updated": "2026-04-10T02:54:57.981378"
 }
