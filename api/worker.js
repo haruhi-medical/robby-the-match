@@ -6731,6 +6731,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         entry.messageCount++;
         entry.updatedAt = Date.now();
 
+        // リッチメニュー自動リンク（ブロック→解除でメニューが消えた場合の復旧）
+        if (env.RICH_MENU_DEFAULT) {
+          ctx.waitUntil(fetch(`https://api.line.me/v2/bot/user/${userId}/richmenu/${env.RICH_MENU_DEFAULT}`, {
+            method: "POST", headers: { "Authorization": `Bearer ${channelAccessToken}` },
+          }).catch(() => {}));
+        }
+
         // === 緊急キーワード検出（全フェーズ共通） ===
         const EMERGENCY_KEYWORDS = ['死にたい', '自殺', '限界', 'もう無理', 'パワハラ', 'いじめ', 'セクハラ', '暴力', '被災'];
         const URGENT_KEYWORDS = ['辞めたい', '退職したい', '今すぐ辞めたい', '明日から行けない', '体調崩した'];
