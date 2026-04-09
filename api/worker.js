@@ -4367,54 +4367,103 @@ async function buildPhaseMessage(phase, entry, env) {
       }
     }
 
-    // ===== リッチメニュー: 履歴書作成 ステップ1 =====
+    // ===== リッチメニュー: 履歴書作成（7問） =====
     case "rm_resume_start":
       return [{
         type: "text",
-        text: "AIと一緒に職務経歴書を作りましょう！\n3つ選ぶだけでドラフトが完成します。\n\nまず、看護師の経験年数を教えてください。",
+        text: "職務経歴書の下書きをAIがお手伝いします。\n担当者が清書・仕上げまでサポートします。\n\n6つ選んで、最後に1つだけ自由に書いてもらえればドラフトが完成します。\n\nQ1. 保有資格を教えてください。",
         quickReply: {
           items: [
-            qrItem("1〜3年", "rm_resume=exp_1_3"),
-            qrItem("3〜5年", "rm_resume=exp_3_5"),
-            qrItem("5〜10年", "rm_resume=exp_5_10"),
-            qrItem("10年以上", "rm_resume=exp_10plus"),
+            qrItem("正看護師", "rm_cv=lic_rn"),
+            qrItem("准看護師", "rm_cv=lic_lpn"),
+            qrItem("保健師", "rm_cv=lic_phn"),
+            qrItem("助産師", "rm_cv=lic_mw"),
           ],
         },
       }];
 
-    // ===== リッチメニュー: 履歴書作成 ステップ2 =====
-    case "rm_resume_dept":
+    case "rm_cv_q2":
       return [{
         type: "text",
-        text: `${entry.rmResumeExp || ''}の経験ですね。\n\n得意な分野・経験のある科を教えてください。`,
+        text: "Q2. 追加の資格はありますか？",
         quickReply: {
           items: [
-            qrItem("内科・外来", "rm_dept=内科・外来"),
-            qrItem("外科・手術室", "rm_dept=外科・手術室"),
-            qrItem("ICU・救急", "rm_dept=ICU・救急"),
-            qrItem("小児科・産科", "rm_dept=小児科・産科"),
-            qrItem("精神科", "rm_dept=精神科"),
-            qrItem("回復期・リハ", "rm_dept=回復期リハ"),
-            qrItem("訪問看護", "rm_dept=訪問看護"),
-            qrItem("クリニック", "rm_dept=クリニック"),
+            qrItem("認定看護師", "rm_cv=cert_cn"),
+            qrItem("専門看護師", "rm_cv=cert_cns"),
+            qrItem("BLS/ACLS", "rm_cv=cert_bls"),
+            qrItem("呼吸療法認定士", "rm_cv=cert_rt"),
+            qrItem("特になし", "rm_cv=cert_none"),
           ],
         },
       }];
 
-    // ===== リッチメニュー: 履歴書作成 ステップ3 =====
-    case "rm_resume_reason":
+    case "rm_cv_q3":
       return [{
         type: "text",
-        text: "転職を考えた理由に近いものは？",
+        text: "Q3. 看護師の経験年数は？",
         quickReply: {
           items: [
-            qrItem("キャリアアップ", "rm_reason=キャリアアップ"),
-            qrItem("人間関係", "rm_reason=人間関係"),
-            qrItem("給与・待遇", "rm_reason=給与・待遇"),
-            qrItem("ワークライフバランス", "rm_reason=WLB"),
-            qrItem("引越し・家庭の事情", "rm_reason=引越し"),
+            qrItem("1〜3年", "rm_cv=exp_1_3"),
+            qrItem("3〜5年", "rm_cv=exp_3_5"),
+            qrItem("5〜10年", "rm_cv=exp_5_10"),
+            qrItem("10年以上", "rm_cv=exp_10plus"),
           ],
         },
+      }];
+
+    case "rm_cv_q4":
+      return [{
+        type: "text",
+        text: "Q4. 直近の職場は？",
+        quickReply: {
+          items: [
+            qrItem("大学病院", "rm_cv=fac_univ"),
+            qrItem("総合病院(200床+)", "rm_cv=fac_general"),
+            qrItem("中小病院(~200床)", "rm_cv=fac_small"),
+            qrItem("クリニック", "rm_cv=fac_clinic"),
+            qrItem("訪問看護", "rm_cv=fac_visiting"),
+            qrItem("介護施設", "rm_cv=fac_care"),
+          ],
+        },
+      }];
+
+    case "rm_cv_q5":
+      return [{
+        type: "text",
+        text: "Q5. 直近の診療科は？",
+        quickReply: {
+          items: [
+            qrItem("内科系", "rm_cv=dept_med"),
+            qrItem("外科系", "rm_cv=dept_surg"),
+            qrItem("ICU・救急", "rm_cv=dept_icu"),
+            qrItem("小児・産科", "rm_cv=dept_pedi"),
+            qrItem("精神科", "rm_cv=dept_psych"),
+            qrItem("回復期リハ", "rm_cv=dept_rehab"),
+            qrItem("外来", "rm_cv=dept_outpt"),
+            qrItem("訪問", "rm_cv=dept_visit"),
+          ],
+        },
+      }];
+
+    case "rm_cv_q6":
+      return [{
+        type: "text",
+        text: "Q6. リーダー経験はありますか？",
+        quickReply: {
+          items: [
+            qrItem("プリセプター", "rm_cv=lead_precep"),
+            qrItem("リーダー", "rm_cv=lead_leader"),
+            qrItem("主任以上", "rm_cv=lead_chief"),
+            qrItem("委員会活動", "rm_cv=lead_committee"),
+            qrItem("特になし", "rm_cv=lead_none"),
+          ],
+        },
+      }];
+
+    case "rm_cv_q7":
+      return [{
+        type: "text",
+        text: "Q7. 最後に、日頃やっていた業務や頑張ったことを自由に教えてください。\n\n箇条書きでOKです。これがあるとグッと良い経歴書になります。\n\n例:\n・人工呼吸器の管理を毎日やってた\n・新人3人のプリセプターをした\n・感染対策の委員をしてた\n・患者さんの退院支援に力を入れた",
       }];
 
     default:
@@ -5597,29 +5646,46 @@ function handleLinePostback(dataStr, entry) {
     entry.handoffRequestedByUser = true;
     nextPhase = "handoff_phone_check";
   }
-  // リッチメニュー履歴書: 経験年数選択
-  else if (params.has("rm_resume")) {
-    const val = params.get("rm_resume");
+  // リッチメニュー履歴書: 7問フロー
+  else if (params.has("rm_cv")) {
+    const val = params.get("rm_cv");
     entry.unexpectedTextCount = 0;
-    if (val === "exp_1_3") { entry.rmResumeExp = "1〜3年"; }
-    else if (val === "exp_3_5") { entry.rmResumeExp = "3〜5年"; }
-    else if (val === "exp_5_10") { entry.rmResumeExp = "5〜10年"; }
-    else if (val === "exp_10plus") { entry.rmResumeExp = "10年以上"; }
-    nextPhase = "rm_resume_dept";
-  }
-  // リッチメニュー履歴書: 得意分野選択
-  else if (params.has("rm_dept")) {
-    const val = params.get("rm_dept");
-    entry.unexpectedTextCount = 0;
-    entry.rmResumeDept = val;
-    nextPhase = "rm_resume_reason";
-  }
-  // リッチメニュー履歴書: 転職理由選択
-  else if (params.has("rm_reason")) {
-    const val = params.get("rm_reason");
-    entry.unexpectedTextCount = 0;
-    entry.rmResumeReason = val;
-    nextPhase = "rm_resume_generate";
+    // Q1: 資格
+    if (val.startsWith("lic_")) {
+      const licMap = { lic_rn: "正看護師", lic_lpn: "准看護師", lic_phn: "保健師", lic_mw: "助産師" };
+      entry.rmCvLicense = licMap[val] || val;
+      nextPhase = "rm_cv_q2";
+    }
+    // Q2: 追加資格
+    else if (val.startsWith("cert_")) {
+      const certMap = { cert_cn: "認定看護師", cert_cns: "専門看護師", cert_bls: "BLS/ACLS", cert_rt: "呼吸療法認定士", cert_none: "特になし" };
+      entry.rmCvCert = certMap[val] || val;
+      nextPhase = "rm_cv_q3";
+    }
+    // Q3: 経験年数
+    else if (val.startsWith("exp_")) {
+      const expMap = { exp_1_3: "1〜3年", exp_3_5: "3〜5年", exp_5_10: "5〜10年", exp_10plus: "10年以上" };
+      entry.rmCvExp = expMap[val] || val;
+      nextPhase = "rm_cv_q4";
+    }
+    // Q4: 直近の職場
+    else if (val.startsWith("fac_")) {
+      const facMap = { fac_univ: "大学病院", fac_general: "総合病院(200床以上)", fac_small: "中小病院(200床未満)", fac_clinic: "クリニック", fac_visiting: "訪問看護", fac_care: "介護施設" };
+      entry.rmCvFacility = facMap[val] || val;
+      nextPhase = "rm_cv_q5";
+    }
+    // Q5: 診療科
+    else if (val.startsWith("dept_")) {
+      const deptMap = { dept_med: "内科系", dept_surg: "外科系", dept_icu: "ICU・救急", dept_pedi: "小児・産科", dept_psych: "精神科", dept_rehab: "回復期リハ", dept_outpt: "外来", dept_visit: "訪問" };
+      entry.rmCvDept = deptMap[val] || val;
+      nextPhase = "rm_cv_q6";
+    }
+    // Q6: リーダー経験
+    else if (val.startsWith("lead_")) {
+      const leadMap = { lead_precep: "プリセプター", lead_leader: "リーダー", lead_chief: "主任以上", lead_committee: "委員会活動", lead_none: "特になし" };
+      entry.rmCvLead = leadMap[val] || val;
+      nextPhase = "rm_cv_q7";
+    }
   }
 
   return nextPhase;
@@ -5628,6 +5694,13 @@ function handleLinePostback(dataStr, entry) {
 // ---------- 自由テキスト処理 ----------
 function handleFreeTextInput(text, entry) {
   const phase = entry.phase;
+
+  // === 履歴書Q7: 自由テキスト入力 ===
+  if (phase === "rm_cv_q7") {
+    entry.rmCvFreeText = text.slice(0, 500); // 500文字制限
+    entry.unexpectedTextCount = 0;
+    return "rm_resume_generate";
+  }
 
   // === 電話番号入力（handoff_phone_number フェーズ） ===
   if (phase === "handoff_phone_number") {
@@ -6313,15 +6386,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "rm_new_jobs") {
           entry.phase = "rm_new_jobs";
           replyMessages = await buildPhaseMessage("rm_new_jobs", entry, env);
-        } else if (nextPhase === "rm_resume_start") {
-          entry.phase = "rm_resume_start";
-          replyMessages = await buildPhaseMessage("rm_resume_start", entry, env);
-        } else if (nextPhase === "rm_resume_dept") {
-          entry.phase = "rm_resume_dept";
-          replyMessages = await buildPhaseMessage("rm_resume_dept", entry, env);
-        } else if (nextPhase === "rm_resume_reason") {
-          entry.phase = "rm_resume_reason";
-          replyMessages = await buildPhaseMessage("rm_resume_reason", entry, env);
+        } else if (nextPhase === "rm_resume_start" || nextPhase === "rm_cv_q2" || nextPhase === "rm_cv_q3" || nextPhase === "rm_cv_q4" || nextPhase === "rm_cv_q5" || nextPhase === "rm_cv_q6" || nextPhase === "rm_cv_q7") {
+          entry.phase = nextPhase;
+          replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         } else if (nextPhase === "rm_resume_generate") {
           // AI職務経歴書生成
           entry.phase = "rm_resume_generate";
@@ -6330,19 +6397,30 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           if (ctx) {
             ctx.waitUntil((async () => {
               try {
-                const prompt = `以下の条件で看護師の職務経歴書のドラフトを作成してください。
-経験年数: ${entry.rmResumeExp || '不明'}
-得意分野: ${entry.rmResumeDept || '不明'}
-転職理由: ${entry.rmResumeReason || '不明'}
+                const prompt = `以下の情報から看護師の職務経歴書のドラフトを作成してください。
 
-以下のフォーマットで作成:
-【職務経歴書】
-■ 職務要約（3-4行）
-■ 職務経歴（施設名は「○○病院」のように伏せて）
-■ 活かせるスキル・経験（箇条書き3-5点）
-■ 自己PR（3-4行）
+【本人情報】
+保有資格: ${entry.rmCvLicense || '不明'}
+追加資格: ${entry.rmCvCert || 'なし'}
+経験年数: ${entry.rmCvExp || '不明'}
+直近の職場: ${entry.rmCvFacility || '不明'}
+直近の診療科: ${entry.rmCvDept || '不明'}
+リーダー経験: ${entry.rmCvLead || 'なし'}
+本人の言葉: ${entry.rmCvFreeText || '（未入力）'}
 
-注意: 具体的な施設名は入れず、ユーザーが後で記入できるようにしてください。400文字以内。`;
+【フォーマット】
+■ 職務要約（3-4行。経験の全体像を簡潔に）
+■ 職務経歴（施設名は「○○病院」のように伏せる。本人が後で記入。具体的な業務内容を箇条書き）
+■ 保有資格（上記から整理）
+■ 活かせるスキル・経験（箇条書き4-5点）
+■ 自己PR（4-5行。本人の言葉をできるだけ活かす）
+
+【ルール】
+- 本人の言葉（「人工呼吸器の管理を毎日やってた」等）を看護業界の専門用語で言い換える
+- 具体的な施設名は入れず「○○病院」「△△クリニック」とする
+- リーダー経験があれば必ず強調する
+- 600-800文字で作成
+- 実際に転職活動で使えるレベルの品質にすること`;
                 let resumeText = '';
                 // OpenAI
                 if (env.OPENAI_API_KEY) {
@@ -6358,14 +6436,14 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                   resumeText = aiData.choices?.[0]?.message?.content || '';
                 }
                 if (!resumeText) {
-                  resumeText = `【職務経歴書ドラフト】\n\n■ 職務要約\n看護師として${entry.rmResumeExp || '数年'}の経験。${entry.rmResumeDept || '病棟'}での勤務を通じ、チーム医療の実践力を培う。\n\n■ 活かせるスキル\n・${entry.rmResumeDept || '看護'}の実務経験\n・患者様とのコミュニケーション力\n・多職種連携の経験\n\n■ 転職理由\n${entry.rmResumeReason || 'キャリアアップ'}のため、新たな環境で看護師としての成長を目指す。`;
+                  resumeText = `【職務経歴書ドラフト】\n\n■ 職務要約\n${entry.rmCvLicense || '看護師'}として${entry.rmCvExp || '数年'}の経験。${entry.rmCvFacility || '病院'}の${entry.rmCvDept || '病棟'}にて看護業務に従事。${entry.rmCvLead && entry.rmCvLead !== '特になし' ? entry.rmCvLead + '経験あり。' : ''}\n\n■ 職務経歴\n○○病院（${entry.rmCvFacility || ''}）${entry.rmCvDept || ''}\n${entry.rmCvFreeText || '・看護業務全般'}\n\n■ 保有資格\n・${entry.rmCvLicense || '看護師免許'}${entry.rmCvCert && entry.rmCvCert !== '特になし' ? '\n・' + entry.rmCvCert : ''}\n\n■ 活かせるスキル\n・${entry.rmCvDept || '看護'}の実務経験（${entry.rmCvExp || ''}）\n・患者様とのコミュニケーション力\n・多職種連携の経験${entry.rmCvLead && entry.rmCvLead !== '特になし' ? '\n・' + entry.rmCvLead + '経験' : ''}`;
                 }
                 entry.rmResumeDraft = resumeText;
                 await saveLineEntry(userId, entry, env);
                 // Push送信
                 const pushMsgs = [
                   { type: "text", text: resumeText },
-                  { type: "text", text: "こちらがドラフトです！\n\n施設名や具体的なエピソードを追記すれば完成します。\n修正したい点があれば教えてくださいね。",
+                  { type: "text", text: "こちらが下書きです！\n\n○○病院の部分にご自身の施設名を入れてください。\n担当者が清書・仕上げまでサポートします。",
                     quickReply: { items: [
                       qrItem("これでOK", "rm=start"),
                       qrItem("担当者に相談", "rm=contact"),
