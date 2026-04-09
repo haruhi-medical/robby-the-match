@@ -1,6 +1,6 @@
 {
   "created": "2026-04-08T15:00:15.182869",
-  "updated": "2026-04-08T15:02:12.401463",
+  "updated": "2026-04-09T15:03:17.580094",
   "week_of": "2026-04-08",
   "total": 7,
   "queue_pending_at_creation": 4,
@@ -36,8 +36,8 @@
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0409_01",
       "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
       "hook_idea": "看護師の自問自答"
     },
@@ -45,8 +45,8 @@
       "day": 5,
       "category": "給与",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_給与_0409_02",
       "hint": "夜勤1回の手当は平均11,000円（日本看護協会調査）。16時間拘束で手当だけ見ると時給換算687円",
       "hook_idea": "夜勤手当、687円？"
     },
@@ -54,8 +54,8 @@
       "day": 6,
       "category": "給与",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_給与_0409_03",
       "hint": "紹介会社の手数料135万。それ、看護師の年間ボーナスとほぼ同額",
       "hook_idea": "紹介料135万、誰の口座？"
     },
@@ -63,8 +63,8 @@
       "day": 7,
       "category": "転職",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_転職_0409_04",
       "hint": "訪問看護に転職したら残業ゼロ。病棟時代の月40時間残業は何だったのか",
       "hook_idea": "訪問看護、残業ゼロ"
     }
