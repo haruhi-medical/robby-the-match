@@ -4293,6 +4293,114 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
+    // ===== リッチメニュー: 新着求人 =====
+    case "rm_new_jobs": {
+      // D1 jobsから最新のsynced_atの求人を5件表示
+      if (!env?.DB) {
+        return [{ type: "text", text: "現在新着求人を取得できません。\n「お仕事探しをスタート」から求人を検索してみてください。" }];
+      }
+      try {
+        // ユーザーの前回条件があれば使う
+        let sql = 'SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type FROM jobs';
+        const params = [];
+        const conditions = [];
+        if (entry.prefecture) {
+          conditions.push('prefecture = ?');
+          params.push(entry.prefecture === 'tokyo' ? '東京都' : entry.prefecture === 'kanagawa' ? '神奈川県' : entry.prefecture === 'chiba' ? '千葉県' : entry.prefecture === 'saitama' ? '埼玉県' : '');
+        }
+        if (conditions.length > 0) {
+          sql += ' WHERE ' + conditions.join(' AND ');
+        }
+        sql += ' ORDER BY score DESC LIMIT 5';
+        const result = await env.DB.prepare(sql).bind(...params).all();
+        if (!result || !result.results || result.results.length === 0) {
+          return [{ type: "text", text: "現在、新着求人はありません。\n\n明日またチェックしてくださいね。\n新しい求人が入り次第お知らせします。",
+            quickReply: { items: [qrItem("求人を探す", "rm=start")] }
+          }];
+        }
+        // カルーセル生成
+        const bubbles = result.results.map((r, i) => ({
+          type: "bubble", size: "kilo",
+          header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
+            contents: [{ type: "text", text: i === 0 ? "おすすめ" : "新着", size: "xs", weight: "bold", color: "#FFFFFF" }] },
+          body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: [
+            ...(r.salary_display ? [{ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR }] : []),
+            ...(r.station_text ? [{ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "md" }] : []),
+            ...(r.holidays ? [{ type: "text", text: `🗓 年間休日 ${r.holidays}日`, size: "sm", color: "#333333", margin: "xs" }] : []),
+            { type: "separator", margin: "lg", color: "#E8E8E8" },
+            { type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true },
+          ]},
+          footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+            { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
+              action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
+          ]},
+        }));
+        return [
+          { type: "text", text: "最新のおすすめ求人です👇" },
+          { type: "flex", altText: "新着求人", contents: { type: "carousel", contents: bubbles.slice(0, 10) } },
+          { type: "text", text: "気になる求人はありましたか？",
+            quickReply: { items: [
+              qrItem("もっと探す", "rm=start"),
+              qrItem("担当者に相談", "rm=contact"),
+            ]}
+          },
+        ];
+      } catch (e) {
+        console.error(`[RichMenu] new_jobs error: ${e.message}`);
+        return [{ type: "text", text: "求人の取得中にエラーが発生しました。\nもう一度お試しください。" }];
+      }
+    }
+
+    // ===== リッチメニュー: 履歴書作成 ステップ1 =====
+    case "rm_resume_start":
+      return [{
+        type: "text",
+        text: "AIと一緒に職務経歴書を作りましょう！\n3つ選ぶだけでドラフトが完成します。\n\nまず、看護師の経験年数を教えてください。",
+        quickReply: {
+          items: [
+            qrItem("1〜3年", "rm_resume=exp_1_3"),
+            qrItem("3〜5年", "rm_resume=exp_3_5"),
+            qrItem("5〜10年", "rm_resume=exp_5_10"),
+            qrItem("10年以上", "rm_resume=exp_10plus"),
+          ],
+        },
+      }];
+
+    // ===== リッチメニュー: 履歴書作成 ステップ2 =====
+    case "rm_resume_dept":
+      return [{
+        type: "text",
+        text: `${entry.rmResumeExp || ''}の経験ですね。\n\n得意な分野・経験のある科を教えてください。`,
+        quickReply: {
+          items: [
+            qrItem("内科・外来", "rm_dept=内科・外来"),
+            qrItem("外科・手術室", "rm_dept=外科・手術室"),
+            qrItem("ICU・救急", "rm_dept=ICU・救急"),
+            qrItem("小児科・産科", "rm_dept=小児科・産科"),
+            qrItem("精神科", "rm_dept=精神科"),
+            qrItem("回復期・リハ", "rm_dept=回復期リハ"),
+            qrItem("訪問看護", "rm_dept=訪問看護"),
+            qrItem("クリニック", "rm_dept=クリニック"),
+          ],
+        },
+      }];
+
+    // ===== リッチメニュー: 履歴書作成 ステップ3 =====
+    case "rm_resume_reason":
+      return [{
+        type: "text",
+        text: "転職を考えた理由に近いものは？",
+        quickReply: {
+          items: [
+            qrItem("キャリアアップ", "rm_reason=キャリアアップ"),
+            qrItem("人間関係", "rm_reason=人間関係"),
+            qrItem("給与・待遇", "rm_reason=給与・待遇"),
+            qrItem("ワークライフバランス", "rm_reason=WLB"),
+            qrItem("引越し・家庭の事情", "rm_reason=引越し"),
+          ],
+        },
+      }];
+
     default:
       return null;
   }
@@ -5438,6 +5546,51 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "handoff";
     }
   }
+  // ===== リッチメニュー機能（既存フローに影響なし） =====
+  else if (params.has("rm")) {
+    const val = params.get("rm");
+    entry.unexpectedTextCount = 0;
+    if (val === "start") {
+      // お仕事探しをスタート → 既存フローと同じ
+      delete entry.area; delete entry.areaLabel; delete entry.prefecture;
+      delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
+      delete entry.workStyle; delete entry.urgency; delete entry._isClinic;
+      delete entry.matchingResults; delete entry.browsedJobIds;
+      entry.matchingOffset = 0;
+      nextPhase = "il_area";
+    } else if (val === "new_jobs") {
+      nextPhase = "rm_new_jobs";
+    } else if (val === "contact") {
+      entry.handoffRequestedByUser = true;
+      nextPhase = "handoff_phone_check";
+    } else if (val === "resume") {
+      nextPhase = "rm_resume_start";
+    }
+  }
+  // リッチメニュー履歴書: 経験年数選択
+  else if (params.has("rm_resume")) {
+    const val = params.get("rm_resume");
+    entry.unexpectedTextCount = 0;
+    if (val === "exp_1_3") { entry.rmResumeExp = "1〜3年"; }
+    else if (val === "exp_3_5") { entry.rmResumeExp = "3〜5年"; }
+    else if (val === "exp_5_10") { entry.rmResumeExp = "5〜10年"; }
+    else if (val === "exp_10plus") { entry.rmResumeExp = "10年以上"; }
+    nextPhase = "rm_resume_dept";
+  }
+  // リッチメニュー履歴書: 得意分野選択
+  else if (params.has("rm_dept")) {
+    const val = params.get("rm_dept");
+    entry.unexpectedTextCount = 0;
+    entry.rmResumeDept = val;
+    nextPhase = "rm_resume_reason";
+  }
+  // リッチメニュー履歴書: 転職理由選択
+  else if (params.has("rm_reason")) {
+    const val = params.get("rm_reason");
+    entry.unexpectedTextCount = 0;
+    entry.rmResumeReason = val;
+    nextPhase = "rm_resume_generate";
+  }
 
   return nextPhase;
 }
@@ -6123,6 +6276,86 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "condition_change") {
           entry.phase = "condition_change";
           replyMessages = await buildPhaseMessage("condition_change", entry, env);
+        // ===== リッチメニュー: 新phaseハンドリング =====
+        } else if (nextPhase === "rm_new_jobs") {
+          entry.phase = "rm_new_jobs";
+          replyMessages = await buildPhaseMessage("rm_new_jobs", entry, env);
+        } else if (nextPhase === "rm_resume_start") {
+          entry.phase = "rm_resume_start";
+          replyMessages = await buildPhaseMessage("rm_resume_start", entry, env);
+        } else if (nextPhase === "rm_resume_dept") {
+          entry.phase = "rm_resume_dept";
+          replyMessages = await buildPhaseMessage("rm_resume_dept", entry, env);
+        } else if (nextPhase === "rm_resume_reason") {
+          entry.phase = "rm_resume_reason";
+          replyMessages = await buildPhaseMessage("rm_resume_reason", entry, env);
+        } else if (nextPhase === "rm_resume_generate") {
+          // AI職務経歴書生成
+          entry.phase = "rm_resume_generate";
+          replyMessages = [{ type: "text", text: "職務経歴書を作成中です...✍️\n少しお待ちください。" }];
+          // AI生成はctx.waitUntilでバックグラウンド実行
+          if (ctx) {
+            ctx.waitUntil((async () => {
+              try {
+                const prompt = `以下の条件で看護師の職務経歴書のドラフトを作成してください。
+経験年数: ${entry.rmResumeExp || '不明'}
+得意分野: ${entry.rmResumeDept || '不明'}
+転職理由: ${entry.rmResumeReason || '不明'}
+
+以下のフォーマットで作成:
+【職務経歴書】
+■ 職務要約（3-4行）
+■ 職務経歴（施設名は「○○病院」のように伏せて）
+■ 活かせるスキル・経験（箇条書き3-5点）
+■ 自己PR（3-4行）
+
+注意: 具体的な施設名は入れず、ユーザーが後で記入できるようにしてください。400文字以内。`;
+                let resumeText = '';
+                // OpenAI
+                if (env.OPENAI_API_KEY) {
+                  const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "gpt-4o-mini", messages: [
+                      { role: "system", content: "あなたは看護師の転職をサポートするキャリアアドバイザーです。" },
+                      { role: "user", content: prompt }
+                    ], max_tokens: 600, temperature: 0.7 }),
+                  });
+                  const aiData = await aiRes.json();
+                  resumeText = aiData.choices?.[0]?.message?.content || '';
+                }
+                if (!resumeText) {
+                  resumeText = `【職務経歴書ドラフト】\n\n■ 職務要約\n看護師として${entry.rmResumeExp || '数年'}の経験。${entry.rmResumeDept || '病棟'}での勤務を通じ、チーム医療の実践力を培う。\n\n■ 活かせるスキル\n・${entry.rmResumeDept || '看護'}の実務経験\n・患者様とのコミュニケーション力\n・多職種連携の経験\n\n■ 転職理由\n${entry.rmResumeReason || 'キャリアアップ'}のため、新たな環境で看護師としての成長を目指す。`;
+                }
+                entry.rmResumeDraft = resumeText;
+                await saveLineEntry(userId, entry, env);
+                // Push送信
+                const pushMsgs = [
+                  { type: "text", text: resumeText },
+                  { type: "text", text: "こちらがドラフトです！\n\n施設名や具体的なエピソードを追記すれば完成します。\n修正したい点があれば教えてくださいね。",
+                    quickReply: { items: [
+                      qrItem("これでOK", "rm=start"),
+                      qrItem("担当者に相談", "rm=contact"),
+                    ]}
+                  },
+                ];
+                await fetch("https://api.line.me/v2/bot/message/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
+                  body: JSON.stringify({ to: userId, messages: pushMsgs }),
+                });
+              } catch (e) {
+                console.error(`[RichMenu] resume generate error: ${e.message}`);
+                await fetch("https://api.line.me/v2/bot/message/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
+                  body: JSON.stringify({ to: userId, messages: [{ type: "text", text: "申し訳ありません、作成中にエラーが発生しました。\nもう一度お試しいただくか、担当者にご相談ください。",
+                    quickReply: { items: [qrItem("もう一度", "rm=resume"), qrItem("担当者に相談", "rm=contact")] }
+                  }] }),
+                });
+              }
+            })());
+          }
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
           const handoffTimeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK' };
