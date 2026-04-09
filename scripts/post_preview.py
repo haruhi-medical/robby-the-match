@@ -43,9 +43,8 @@ def get_next_post(platform: str) -> dict:
             slide_dir = post.get("slide_dir", "")
 
             if platform == "instagram":
-                # Instagram用のキューエントリを探す
-                if "instagram" in content_type or "ig_" in slide_dir:
-                    return post
+                # Instagram用: content_typeやslide_dirに関係なく、ready状態の投稿を返す
+                return post
             else:
                 # TikTok（デフォルト）
                 if "instagram" not in content_type and "ig_" not in slide_dir:

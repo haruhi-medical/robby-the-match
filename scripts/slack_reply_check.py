@@ -45,8 +45,8 @@ def find_post_in_queue(platform: str) -> tuple:
             content_type = post.get("content_type", "").lower()
             slide_dir = post.get("slide_dir", "")
             if platform == "instagram":
-                if "instagram" in content_type or "ig_" in slide_dir:
-                    return post, i
+                # Instagram用: content_typeに関係なくready/pendingの投稿を返す
+                return post, i
             else:
                 if "instagram" not in content_type and "ig_" not in slide_dir:
                     return post, i

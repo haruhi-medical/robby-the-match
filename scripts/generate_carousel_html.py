@@ -217,6 +217,14 @@ def generate_carousel(slides_data: list, output_dir: Path, browser=None, color_s
 
         for idx, slide in enumerate(slides_data):
             slide_num = idx + 1
+            # 文字列のスライドをdict形式に自動変換（ai_content_engine.py互換）
+            if isinstance(slide, str):
+                if idx == 0:
+                    slide = {"type": "hook", "hook_text": slide, "sub_text": ""}
+                elif idx == len(slides_data) - 1:
+                    slide = {"type": "cta", "summary_items": [], "cta_text": slide, "button_text": ""}
+                else:
+                    slide = {"type": "content", "body_text": slide}
             slide_type = slide.get("type", "content")
             dots_html = make_dots_html(total, slide_num)
 

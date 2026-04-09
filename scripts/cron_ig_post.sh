@@ -1,5 +1,11 @@
 #!/bin/bash
 # ============================================
+# cron_ig_post.sh — DISABLED: pdca_sns_post.shに一本化（二重投稿防止）
+# ============================================
+echo "[$(date)] cron_ig_post.sh is disabled. Use pdca_sns_post.sh instead."
+exit 0
+# ============================================
+# 以下は無効化済み（元のコード）
 # cron_ig_post.sh — Instagram自動投稿（毎日21:00）
 # Chrome Debug Mode + Meta Business Suite経由でカルーセル投稿
 # ============================================
