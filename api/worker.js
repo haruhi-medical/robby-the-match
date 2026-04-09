@@ -4293,15 +4293,18 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
-    // ===== リッチメニュー: 担当者に相談（説明→確認） =====
+    // ===== リッチメニュー: 担当者に相談（説明→相談内容選択） =====
     case "rm_contact_intro":
       return [{
         type: "text",
-        text: "担当スタッフに直接相談できます。\n\n📋 こんなことを相談できます:\n・希望に合う求人を探してほしい\n・気になる病院の内部情報を知りたい\n・履歴書や面接のアドバイスがほしい\n・転職するか迷っている\n\n✅ 電話なし・LINEで完結\n✅ 相談だけでもOK\n✅ 24時間以内にご連絡します",
+        text: "転職について担当スタッフに相談できます。\n\n・希望に合う求人を探してほしい\n・気になる病院の内部情報を知りたい\n・履歴書や面接のアドバイスがほしい\n・転職するか迷っている\n\n✅ 電話なし・LINEで完結\n✅ 相談だけでもOK\n\n相談したい内容を教えてください👇",
         quickReply: {
           items: [
-            qrItem("相談する", "rm_contact=yes"),
-            qrItem("まだ大丈夫", "rm_contact=later"),
+            qrItem("求人を探してほしい", "rm_contact=job_search"),
+            qrItem("病院の情報が知りたい", "rm_contact=hospital_info"),
+            qrItem("面接・履歴書", "rm_contact=interview"),
+            qrItem("迷っている", "rm_contact=undecided"),
+            qrItem("その他", "rm_contact=other"),
           ],
         },
       }];
@@ -5097,7 +5100,7 @@ async function sendHandoffNotification(userId, entry, env) {
   if (entry.urgency === "urgent") handoffReasons.push("温度感A（すぐ転職したい）");
   if (entry.interestedFacility) handoffReasons.push(`求人詳細タップ（${entry.interestedFacility.slice(0, 20)}）`);
   if (entry.reverseNominationHospital) handoffReasons.push(`逆指名（${entry.reverseNominationHospital.slice(0, 20)}）`);
-  if (entry.handoffRequestedByUser) handoffReasons.push("本人から「相談したい」");
+  if (entry.handoffRequestedByUser) handoffReasons.push(entry.consultTopic ? `本人から相談希望（${entry.consultTopic}）` : "本人から「相談したい」");
   if ((entry.messageCount || 0) >= 5) handoffReasons.push(`会話${entry.messageCount}ターン（高エンゲージメント）`);
   if (handoffReasons.length === 0) handoffReasons.push("自動判定");
   const handoffReasonsText = handoffReasons.map(r => `• ${r}`).join("\n");
@@ -5579,17 +5582,20 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "rm_resume_start";
     }
   }
-  // リッチメニュー担当者相談: 確認後
+  // リッチメニュー担当者相談: 相談内容選択後→handoff
   else if (params.has("rm_contact")) {
     const val = params.get("rm_contact");
     entry.unexpectedTextCount = 0;
-    if (val === "yes") {
-      entry.handoffRequestedByUser = true;
-      nextPhase = "handoff_phone_check";
-    } else {
-      // 「まだ大丈夫」→求人検索を促す
-      nextPhase = "il_area";
-    }
+    const contactLabels = {
+      job_search: "求人を探してほしい",
+      hospital_info: "病院の情報が知りたい",
+      interview: "面接・履歴書の相談",
+      undecided: "転職するか迷っている",
+      other: "その他の相談",
+    };
+    entry.consultTopic = contactLabels[val] || val;
+    entry.handoffRequestedByUser = true;
+    nextPhase = "handoff_phone_check";
   }
   // リッチメニュー履歴書: 経験年数選択
   else if (params.has("rm_resume")) {
