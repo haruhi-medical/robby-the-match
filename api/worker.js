@@ -4293,6 +4293,18 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
+    // ===== リッチメニュー: 新着求人（準備中） =====
+    case "rm_new_jobs_coming_soon":
+      return [{
+        type: "text",
+        text: "新着求人の通知機能は現在準備中です🔧\n\n「お仕事探しをスタート」から最新の求人を検索できます。",
+        quickReply: {
+          items: [
+            qrItem("求人を探す", "rm=start"),
+          ],
+        },
+      }];
+
     // ===== リッチメニュー: 担当者に相談（説明→相談内容選択） =====
     case "rm_contact_intro":
       return [{
@@ -5594,7 +5606,7 @@ function handleLinePostback(dataStr, entry) {
       entry.matchingOffset = 0;
       nextPhase = "il_area";
     } else if (val === "new_jobs") {
-      nextPhase = "rm_new_jobs";
+      nextPhase = "rm_new_jobs_coming_soon";
     } else if (val === "contact") {
       nextPhase = "rm_contact_intro";
     } else if (val === "resume") {
@@ -6351,6 +6363,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.phase = "condition_change";
           replyMessages = await buildPhaseMessage("condition_change", entry, env);
         // ===== リッチメニュー: 新phaseハンドリング =====
+        } else if (nextPhase === "rm_new_jobs_coming_soon") {
+          entry.phase = "rm_new_jobs_coming_soon";
+          replyMessages = await buildPhaseMessage("rm_new_jobs_coming_soon", entry, env);
         } else if (nextPhase === "rm_contact_intro") {
           entry.phase = "rm_contact_intro";
           replyMessages = await buildPhaseMessage("rm_contact_intro", entry, env);
