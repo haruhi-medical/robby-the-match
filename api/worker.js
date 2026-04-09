@@ -4293,6 +4293,19 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
+    // ===== リッチメニュー: 担当者に相談（説明→確認） =====
+    case "rm_contact_intro":
+      return [{
+        type: "text",
+        text: "担当スタッフに直接相談できます。\n\n📋 こんなことを相談できます:\n・希望に合う求人を探してほしい\n・気になる病院の内部情報を知りたい\n・履歴書や面接のアドバイスがほしい\n・転職するか迷っている\n\n✅ 電話なし・LINEで完結\n✅ 相談だけでもOK\n✅ 24時間以内にご連絡します",
+        quickReply: {
+          items: [
+            qrItem("相談する", "rm_contact=yes"),
+            qrItem("まだ大丈夫", "rm_contact=later"),
+          ],
+        },
+      }];
+
     // ===== リッチメニュー: 新着求人 =====
     case "rm_new_jobs": {
       // D1 jobsから最新のsynced_atの求人を5件表示
@@ -5561,10 +5574,21 @@ function handleLinePostback(dataStr, entry) {
     } else if (val === "new_jobs") {
       nextPhase = "rm_new_jobs";
     } else if (val === "contact") {
-      entry.handoffRequestedByUser = true;
-      nextPhase = "handoff_phone_check";
+      nextPhase = "rm_contact_intro";
     } else if (val === "resume") {
       nextPhase = "rm_resume_start";
+    }
+  }
+  // リッチメニュー担当者相談: 確認後
+  else if (params.has("rm_contact")) {
+    const val = params.get("rm_contact");
+    entry.unexpectedTextCount = 0;
+    if (val === "yes") {
+      entry.handoffRequestedByUser = true;
+      nextPhase = "handoff_phone_check";
+    } else {
+      // 「まだ大丈夫」→求人検索を促す
+      nextPhase = "il_area";
     }
   }
   // リッチメニュー履歴書: 経験年数選択
@@ -6277,6 +6301,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.phase = "condition_change";
           replyMessages = await buildPhaseMessage("condition_change", entry, env);
         // ===== リッチメニュー: 新phaseハンドリング =====
+        } else if (nextPhase === "rm_contact_intro") {
+          entry.phase = "rm_contact_intro";
+          replyMessages = await buildPhaseMessage("rm_contact_intro", entry, env);
         } else if (nextPhase === "rm_new_jobs") {
           entry.phase = "rm_new_jobs";
           replyMessages = await buildPhaseMessage("rm_new_jobs", entry, env);
