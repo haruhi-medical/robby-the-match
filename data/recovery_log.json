@@ -29,11 +29,11 @@
       "last_alert_ts": "2026-04-01T10:30:19.439578"
     },
     "content": {
-      "date": "2026-03-04",
-      "retries": 0,
-      "status": "config_error",
-      "last_error": "認証エラー — ANTHROPIC_API_KEYが未設定または無効",
-      "last_alert_ts": "2026-03-04T20:00:01.170412"
+      "date": "2026-04-09",
+      "retries": 1,
+      "status": "retrying",
+      "last_error": "",
+      "last_alert_ts": ""
     },
     "sns_post": {
       "date": "2026-04-04",

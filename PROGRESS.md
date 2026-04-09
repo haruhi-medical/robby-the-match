@@ -3598,3 +3598,10 @@ AI Marketing PDCA:
 
 [NOTE] available (27) >= threshold (7) -- --auto では生成スキップ
 
+### content（16:30:00）
+コンテンツ生成:   地域ネタ    :   0本  (実績  0.0% / 目標  15%) [!]
+  転職      :   0本  (実績  0.0% / 目標  10%) [!]
+  トレンド    :   0本  (実績  0.0% / 目標   5%) [OK]
+
+[NOTE] available (30) >= threshold (7) -- --auto では生成スキップ
+

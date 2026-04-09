@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-09T02:50:14.331103",
+  "updated": "2026-04-09T16:33:24.519494",
   "posts": [
     {
       "id": 1,
@@ -4588,6 +4588,296 @@
       },
       "scheduled_for": "2026-04-14 17:30",
       "quality_checked": true
+    },
+    {
+      "id": 202,
+      "content_id": "ai_ある_0409_01",
+      "batch": "ai_batch_20260409_1500",
+      "slide_dir": "content/generated/ai_batch_20260409_1500/ai_ある_0409_01",
+      "json_path": "content/generated/ai_batch_20260409_1500/ai_ある_0409_01.json",
+      "caption": "看護師5年目で手取り24万、普通なの？\n\n神奈川県の看護師平均年収は546万円。手取り24万は低い方だよ\n\n同じ状況の看護師さんに送ってあげて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い可能性あり"
+        ],
+        "suggestion": "看護師の共感度を高めるために、より具体的な状況を描写することを検討してください"
+      }
+    },
+    {
+      "id": 203,
+      "content_id": "ai_給与_0409_02",
+      "batch": "ai_batch_20260409_1500",
+      "slide_dir": "content/generated/ai_batch_20260409_1500/ai_給与_0409_02",
+      "json_path": "content/generated/ai_batch_20260409_1500/ai_給与_0409_02.json",
+      "caption": "看護師5年目、夜勤手当全部使っちゃってる？\n神奈川県在住の看護師は夜勤月8回の辛さを知っている\n看護師の価値はお金では買えない\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#看護師",
+        "#夜勤手当",
+        "#神奈川",
+        "#メンタルアカウンティング"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      }
+    },
+    {
+      "id": 204,
+      "content_id": "ai_給与_0409_03",
+      "batch": "ai_batch_20260409_1500",
+      "slide_dir": "content/generated/ai_batch_20260409_1500/ai_給与_0409_03",
+      "json_path": "content/generated/ai_batch_20260409_1500/ai_給与_0409_03.json",
+      "caption": "神奈川の看護師5年目、年収430万は低い？\n\n夜勤とボーナスが年収を決める。\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師給与",
+        "#ナース転職",
+        "#年収"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い可能性あり"
+        ],
+        "suggestion": "フックを更に簡潔にすることで、見た目のインパクトを高めることができる"
+      }
+    },
+    {
+      "id": 205,
+      "content_id": "ai_転職_0409_04",
+      "batch": "ai_batch_20260409_1500",
+      "slide_dir": "content/generated/ai_batch_20260409_1500/ai_転職_0409_04",
+      "json_path": "content/generated/ai_batch_20260409_1500/ai_転職_0409_04.json",
+      "caption": "夜勤専従の時給、コンビニと同じ?\n\n同じ状況の看護師さん、共感できるよね\n\nあなたの病院はどう？コメントで教えて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#夜勤生活",
+        "#看護師コミュニティ"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "スライドの繰り返しが多い"
+        ],
+        "suggestion": "スライドの重複を減らし、よりコンパクトな内容にまとめる"
+      }
+    },
+    {
+      "id": 206,
+      "content_id": "ai_業界_0409_01",
+      "batch": "ai_batch_20260409_1630",
+      "slide_dir": "content/generated/ai_batch_20260409_1630/ai_業界_0409_01",
+      "json_path": "content/generated/ai_batch_20260409_1630/ai_業界_0409_01.json",
+      "caption": "看護師5年目、紹介会社プレッシャーどう思う？\n\n看護師の市場価値を上げるために、手数料10%で転職サポートしているんだ。\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#転職サポート",
+        "#ナース転職"
+      ],
+      "cta_type": "hard",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 5,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "CTAがハードCTAのみ"
+        ],
+        "suggestion": "フックを短くして、ソフトCTAを追加してバランスをとる"
+      }
+    },
+    {
+      "id": 207,
+      "content_id": "ai_給与_0409_02",
+      "batch": "ai_batch_20260409_1630",
+      "slide_dir": "content/generated/ai_batch_20260409_1630/ai_給与_0409_02",
+      "json_path": "content/generated/ai_batch_20260409_1630/ai_給与_0409_02.json",
+      "caption": "神奈川県で看護師5年目、年収550万\n\n地域や働き方によって、給与に大きな差があるんだ\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#給与格差",
+        "#看護師転職",
+        "#ナースジョブ"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      }
+    },
+    {
+      "id": 208,
+      "content_id": "ai_トレ_0409_03",
+      "batch": "ai_batch_20260409_1630",
+      "slide_dir": "content/generated/ai_batch_20260409_1630/ai_トレ_0409_03",
+      "json_path": "content/generated/ai_batch_20260409_1630/ai_トレ_0409_03.json",
+      "caption": "横浜で看護師5年目って年収はいくら？\n\n市場価値とは何だろう\n\n同じ状況の看護師さんに送ってあげて",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#ナースジョブ",
+        "#看護師生活"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "フックを短くして、看護師の共感を高める"
+      }
     }
   ],
   "archive": [

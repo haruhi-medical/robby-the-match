@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-09T15:03:17.569979",
+  "updated": "2026-04-09T16:33:24.543116",
   "posts": [
     {
       "id": 1,
@@ -4604,7 +4604,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4615,8 +4615,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い可能性あり"
+        ],
+        "suggestion": "看護師の共感度を高めるために、より具体的な状況を描写することを検討してください"
+      },
+      "scheduled_for": "2026-04-09 17:30"
     },
     {
       "id": 203,
@@ -4633,7 +4646,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4644,8 +4657,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      },
+      "scheduled_for": "2026-04-10 12:00"
     },
     {
       "id": 204,
@@ -4662,7 +4689,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4673,8 +4700,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い可能性あり"
+        ],
+        "suggestion": "フックを更に簡潔にすることで、見た目のインパクトを高めることができる"
+      },
+      "scheduled_for": "2026-04-11 21:00"
     },
     {
       "id": 205,
@@ -4691,7 +4731,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4702,8 +4742,149 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "スライドの繰り返しが多い"
+        ],
+        "suggestion": "スライドの重複を減らし、よりコンパクトな内容にまとめる"
+      },
+      "scheduled_for": "2026-04-12 17:30"
+    },
+    {
+      "id": 206,
+      "content_id": "ai_業界_0409_01",
+      "batch": "ai_batch_20260409_1630",
+      "slide_dir": "content/generated/ai_batch_20260409_1630/ai_業界_0409_01",
+      "json_path": "content/generated/ai_batch_20260409_1630/ai_業界_0409_01.json",
+      "caption": "看護師5年目、紹介会社プレッシャーどう思う？\n\n看護師の市場価値を上げるために、手数料10%で転職サポートしているんだ。\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#転職サポート",
+        "#ナース転職"
+      ],
+      "cta_type": "hard",
+      "content_type": "industry",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 5,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "CTAがハードCTAのみ"
+        ],
+        "suggestion": "フックを短くして、ソフトCTAを追加してバランスをとる"
+      },
+      "scheduled_for": "2026-04-13 12:00"
+    },
+    {
+      "id": 207,
+      "content_id": "ai_給与_0409_02",
+      "batch": "ai_batch_20260409_1630",
+      "slide_dir": "content/generated/ai_batch_20260409_1630/ai_給与_0409_02",
+      "json_path": "content/generated/ai_batch_20260409_1630/ai_給与_0409_02.json",
+      "caption": "神奈川県で看護師5年目、年収550万\n\n地域や働き方によって、給与に大きな差があるんだ\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#給与格差",
+        "#看護師転職",
+        "#ナースジョブ"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      },
+      "scheduled_for": "2026-04-14 21:00"
+    },
+    {
+      "id": 208,
+      "content_id": "ai_トレ_0409_03",
+      "batch": "ai_batch_20260409_1630",
+      "slide_dir": "content/generated/ai_batch_20260409_1630/ai_トレ_0409_03",
+      "json_path": "content/generated/ai_batch_20260409_1630/ai_トレ_0409_03.json",
+      "caption": "横浜で看護師5年目って年収はいくら？\n\n市場価値とは何だろう\n\n同じ状況の看護師さんに送ってあげて",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#ナースジョブ",
+        "#看護師生活"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "ready",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "フックを短くして、看護師の共感を高める"
+      },
+      "scheduled_for": "2026-04-15 17:30"
     }
   ],
   "archive": [

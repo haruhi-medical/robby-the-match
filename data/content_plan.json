@@ -1,72 +1,72 @@
 {
-  "created": "2026-04-08T15:00:15.182869",
-  "updated": "2026-04-09T15:03:17.580094",
-  "week_of": "2026-04-08",
+  "created": "2026-04-09T16:30:16.851779",
+  "updated": "2026-04-09T16:32:03.754812",
+  "week_of": "2026-04-09",
   "total": 7,
   "queue_pending_at_creation": 4,
   "plans": [
     {
       "day": 1,
-      "category": "あるある",
+      "category": "業界裏側",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_ある_0408_01",
-      "hint": "インシデントレポート書いてたら朝になってた。報告書を書く時間は業務外扱い",
-      "hook_idea": "インシデントレポート書いてたら朝"
+      "content_id": "ai_業界_0409_01",
+      "hint": "紹介会社経由で入職すると「すぐ辞めるな」プレッシャーが強くなる。手数料のせいで",
+      "hook_idea": "看護師5年目、紹介会社プレッシャーどう思"
     },
     {
       "day": 2,
-      "category": "あるある",
-      "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0408_02",
-      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
-      "hook_idea": "看護師辞めたい日の気持ち"
-    },
-    {
-      "day": 3,
       "category": "給与",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_給与_0408_03",
-      "hint": "ICU5年目で年収480万。一般病棟5年目は430万。同じ看護師免許で100万差",
-      "hook_idea": "ICU5年目、年収480万"
+      "content_id": "ai_給与_0409_02",
+      "hint": "産業看護師（企業ナース）の年収500万。病棟5年目の自分は430万。何が違う？",
+      "hook_idea": "産業看護師と病棟、年収5万円差ある？"
+    },
+    {
+      "day": 3,
+      "category": "トレンド",
+      "cta_type": "soft",
+      "status": "generated",
+      "content_id": "ai_トレ_0409_03",
+      "hint": "合コンで「看護師です」→「優しそう」。12時間立ちっぱなしで優しさ搾り出してるとは言えない",
+      "hook_idea": "優しそうって言われたら、夜勤疲れ隠せない"
     },
     {
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0409_01",
-      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
-      "hook_idea": "看護師の自問自答"
+      "status": "planned",
+      "content_id": null,
+      "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた",
+      "hook_idea": "申し送り、異常なし言った直後気づく"
     },
     {
       "day": 5,
-      "category": "給与",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_給与_0409_02",
-      "hint": "夜勤1回の手当は平均11,000円（日本看護協会調査）。16時間拘束で手当だけ見ると時給換算687円",
-      "hook_idea": "夜勤手当、687円？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "新人に「大丈夫？」って聞いたら「大丈夫です」。自分も5年間同じ嘘ついてた",
+      "hook_idea": "新人に大丈夫？と聞いたら大丈夫の嘘"
     },
     {
       "day": 6,
-      "category": "給与",
+      "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_給与_0409_03",
-      "hint": "紹介会社の手数料135万。それ、看護師の年間ボーナスとほぼ同額",
-      "hook_idea": "紹介料135万、誰の口座？"
+      "status": "planned",
+      "content_id": null,
+      "hint": "川崎の大学病院と小田原の市民病院、同じ5年目で年収50万差。立地だけでこんなに違う？",
+      "hook_idea": "川崎と小田原、同じ5年目で年収50万差"
     },
     {
       "day": 7,
-      "category": "転職",
+      "category": "業界裏側",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_転職_0409_04",
-      "hint": "訪問看護に転職したら残業ゼロ。病棟時代の月40時間残業は何だったのか",
-      "hook_idea": "訪問看護、残業ゼロ"
+      "status": "planned",
+      "content_id": null,
+      "hint": "看護師1人の紹介で病院が払う手数料135万。その看護師の年間ボーナスより高い",
+      "hook_idea": "看護師1人紹介で病院が払う135万"
     }
   ]
 }
