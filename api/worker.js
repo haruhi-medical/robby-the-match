@@ -6931,6 +6931,73 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
           entry.phase = "il_subarea";
           replyMessages = await buildPhaseMessage("il_subarea", entry, env);
+        } else if (nextPhase === "rm_resume_generate") {
+          // 履歴書Q7テキスト入力完了 → AI生成
+          entry.phase = "rm_resume_generate";
+          replyMessages = [{ type: "text", text: "職務経歴書を作成中です...✍️\n少しお待ちください。" }];
+          if (ctx) {
+            ctx.waitUntil((async () => {
+              try {
+                const prompt = `以下の情報から看護師の職務経歴書のドラフトを作成してください。
+
+【本人情報】
+保有資格: ${entry.rmCvLicense || '不明'}
+追加資格: ${entry.rmCvCert || 'なし'}
+経験年数: ${entry.rmCvExp || '不明'}
+直近の職場: ${entry.rmCvFacility || '不明'}
+直近の診療科: ${entry.rmCvDept || '不明'}
+リーダー経験: ${entry.rmCvLead || 'なし'}
+本人の言葉: ${entry.rmCvFreeText || '（未入力）'}
+
+【フォーマット】
+■ 職務要約（3-4行。経験の全体像を簡潔に）
+■ 職務経歴（施設名は「○○病院」のように伏せる。具体的な業務内容を箇条書き）
+■ 保有資格（上記から整理）
+■ 活かせるスキル・経験（箇条書き4-5点）
+■ 自己PR（4-5行。本人の言葉をできるだけ活かす）
+
+【ルール】
+- 本人の言葉を看護業界の専門用語で言い換える
+- 施設名は「○○病院」「△△クリニック」とする
+- リーダー経験があれば必ず強調
+- 600-800文字で作成`;
+                let resumeText = '';
+                if (env.OPENAI_API_KEY) {
+                  const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "gpt-4o-mini", messages: [
+                      { role: "system", content: "あなたは看護師の転職をサポートするキャリアアドバイザーです。" },
+                      { role: "user", content: prompt }
+                    ], max_tokens: 800, temperature: 0.7 }),
+                  });
+                  const aiData = await aiRes.json();
+                  resumeText = aiData.choices?.[0]?.message?.content || '';
+                }
+                if (!resumeText) {
+                  resumeText = `【職務経歴書ドラフト】\n\n■ 職務要約\n${entry.rmCvLicense || '看護師'}として${entry.rmCvExp || '数年'}の経験。${entry.rmCvFacility || '病院'}の${entry.rmCvDept || '病棟'}にて看護業務に従事。${entry.rmCvLead && entry.rmCvLead !== '特になし' ? entry.rmCvLead + '経験あり。' : ''}\n\n■ 職務経歴\n○○病院（${entry.rmCvFacility || ''}）${entry.rmCvDept || ''}\n${entry.rmCvFreeText || '・看護業務全般'}\n\n■ 保有資格\n・${entry.rmCvLicense || '看護師免許'}${entry.rmCvCert && entry.rmCvCert !== '特になし' ? '\n・' + entry.rmCvCert : ''}\n\n■ 活かせるスキル\n・${entry.rmCvDept || '看護'}の実務経験（${entry.rmCvExp || ''}）\n・患者様とのコミュニケーション力\n・多職種連携の経験${entry.rmCvLead && entry.rmCvLead !== '特になし' ? '\n・' + entry.rmCvLead + '経験' : ''}`;
+                }
+                entry.rmResumeDraft = resumeText;
+                await saveLineEntry(userId, entry, env);
+                const pushMsgs = [
+                  { type: "text", text: resumeText },
+                  { type: "text", text: "こちらが下書きです！\n\n○○病院の部分にご自身の施設名を入れてください。\n担当者が清書・仕上げまでサポートします。",
+                    quickReply: { items: [
+                      qrItem("これでOK", "rm=start"),
+                      qrItem("担当者に相談", "rm=contact"),
+                    ]}
+                  },
+                ];
+                await fetch("https://api.line.me/v2/bot/message/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
+                  body: JSON.stringify({ to: userId, messages: pushMsgs }),
+                });
+              } catch (e) {
+                console.error(`[Resume] generate error: ${e.message}`);
+              }
+            })());
+          }
         } else if (nextPhase === "apply_consent") {
           // apply_info完了 → apply_consent
           entry.phase = "apply_consent";
