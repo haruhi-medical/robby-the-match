@@ -31,7 +31,7 @@
     "content": {
       "date": "2026-04-09",
       "retries": 1,
-      "status": "retrying",
+      "status": "recovered",
       "last_error": "",
       "last_alert_ts": ""
     },

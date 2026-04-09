@@ -676,5 +676,12 @@
     "timestamp": "2026-04-08T21:15:50.385807",
     "status": "error",
     "error": "login_required"
+  },
+  {
+    "platform": "instagram",
+    "dir": "carousel_20260331_ai_転職_0331_09",
+    "timestamp": "2026-04-09T17:17:02.697108",
+    "status": "error",
+    "error": "login_required"
   }
 ]

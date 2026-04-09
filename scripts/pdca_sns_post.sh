@@ -89,15 +89,41 @@ if [ "$READY_COUNT" -eq 0 ]; then
     python3 "$PROJECT_DIR/scripts/sns_workflow.py" --prepare-next >> "$LOG" 2>&1
 fi
 
-# Step 2: Instagram自動投稿
-echo "[INFO] Instagram自動投稿..." >> "$LOG"
-python3 "$PROJECT_DIR/scripts/auto_post.py" --instagram >> "$LOG" 2>&1
-IG_EXIT=$?
+# Step 2: Instagram自動投稿（Meta Business Suite経由）
+echo "[INFO] Instagram自動投稿（MBS方式）..." >> "$LOG"
 
-if [ $IG_EXIT -eq 0 ]; then
-    echo "[INFO] Instagram投稿処理完了" >> "$LOG"
+# Chrome Debug Mode起動確認
+CHROME_DEBUG_OK=0
+if curl -s --max-time 3 "http://localhost:9223/json" > /dev/null 2>&1; then
+    echo "[INFO] Chrome Debug Mode: 既に起動中 (port 9223)" >> "$LOG"
+    CHROME_DEBUG_OK=1
 else
-    echo "[WARN] Instagram投稿失敗 (exit=$IG_EXIT)" >> "$LOG"
+    echo "[INFO] Chrome Debug Mode未起動 → 起動試行..." >> "$LOG"
+    if bash "$PROJECT_DIR/scripts/start_chrome_debug.sh" >> "$LOG" 2>&1; then
+        sleep 5
+        if curl -s --max-time 3 "http://localhost:9223/json" > /dev/null 2>&1; then
+            echo "[INFO] Chrome Debug Mode: 起動成功" >> "$LOG"
+            CHROME_DEBUG_OK=1
+        else
+            echo "[WARN] Chrome Debug Mode: 起動したがポート応答なし" >> "$LOG"
+        fi
+    else
+        echo "[WARN] Chrome Debug Mode: 起動失敗" >> "$LOG"
+    fi
+fi
+
+if [ $CHROME_DEBUG_OK -eq 1 ]; then
+    python3 "$PROJECT_DIR/scripts/ig_post_meta_suite.py" >> "$LOG" 2>&1
+    IG_EXIT=$?
+    if [ $IG_EXIT -eq 0 ]; then
+        echo "[INFO] Instagram投稿処理完了（MBS方式）" >> "$LOG"
+    else
+        echo "[WARN] Instagram投稿失敗 (MBS方式, exit=$IG_EXIT)" >> "$LOG"
+    fi
+else
+    echo "[ERROR] Chrome Debug Modeが利用不可。Instagram投稿をスキップ。" >> "$LOG"
+    slack_notify "[SNS] Instagram投稿失敗: Chrome Debug Mode (port 9223) が起動できません。手動確認が必要です。"
+    IG_EXIT=1
 fi
 
 # Step 3: TikTok投稿は深夜cronに分離（cron_tiktok_post.sh）
@@ -106,7 +132,18 @@ echo "[INFO] TikTok投稿は深夜cron (02:30) に分離済み。スキップ。
 
 # Step 4: 投稿ステータス確認
 echo "[INFO] 投稿ステータス:" >> "$LOG"
-python3 "$PROJECT_DIR/scripts/auto_post.py" --status >> "$LOG" 2>&1
+python3 -c "
+import json
+from pathlib import Path
+log_file = Path('$PROJECT_DIR/data/post_log.json')
+if log_file.exists():
+    log = json.loads(log_file.read_text())
+    recent = [e for e in log[-10:]]
+    for e in recent:
+        print(f\"  {e.get('timestamp','')} | {e.get('platform','')} | {e.get('status','')} | {e.get('method','')}\")
+else:
+    print('  投稿ログなし')
+" >> "$LOG" 2>&1
 
 # Step 5: キュー枯渇チェック
 READY_REMAINING=$(ls -d "$PROJECT_DIR/content/ready"/*/ 2>/dev/null | wc -l | tr -d ' ')
