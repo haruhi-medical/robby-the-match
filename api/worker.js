@@ -6061,12 +6061,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         const dataStr = event.postback.data;
 
-        // handoff中のpostbackはFAQのみ許可（Bot再起動防止）
+        // handoff中のpostbackはFAQ+リッチメニューのみ許可（Bot再起動防止）
         if (entry.phase === "handoff" || entry.phase === "handoff_silent") {
           const pbParams = new URLSearchParams(dataStr);
-          if (!pbParams.has("faq")) {
+          if (!pbParams.has("faq") && !pbParams.has("rm")) {
             console.log(`[LINE] Handoff guard: blocked postback "${dataStr}" for ${userId.slice(0, 8)}`);
-            // FAQ以外のpostbackは全て無視（welcomeも含む）。handoff状態を維持
+            // FAQ/リッチメニュー以外のpostbackは全て無視。handoff状態を維持
             await saveLineEntry(userId, entry, env);
             continue;
           }
