@@ -1860,6 +1860,34 @@
     })();
     </script>
 
+    <!-- Meta Pixel: LINE CTAクリック = Lead イベント（インライン） -->
+    <script>
+    (function() {
+      'use strict';
+      function fireLeadOnLineClick() {
+        var selectors = '.cta-line-hero, .cta-line, .mobile-sticky-line, a[href*="lin.ee"], a[href*="line.me"], a[href*="line-start"], a[href*="liff.html"]';
+        var buttons = document.querySelectorAll(selectors);
+        buttons.forEach(function(btn) {
+          if (btn.dataset.leadTracked) return;
+          btn.dataset.leadTracked = 'true';
+          btn.addEventListener('click', function() {
+            if (typeof fbq === 'function') {
+              fbq('track', 'Lead', {
+                content_name: btn.className || 'line_cta',
+                content_category: 'line_cta_click'
+              });
+            }
+          });
+        });
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fireLeadOnLineClick);
+      } else {
+        fireLeadOnLineClick();
+      }
+    })();
+    </script>
+
     <!-- Shindan -->
     <script src="shindan.js?v=7.2"></script>
     <!-- Analytics (line_click自動追跡+UTM取得+スクロール計測) -->
