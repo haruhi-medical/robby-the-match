@@ -344,14 +344,15 @@
         }
 
         .header-logo {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--primary);
             text-decoration: none;
-            letter-spacing: 0.02em;
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 8px;
+        }
+
+        .header-logo img {
+            height: 80px;
+            width: auto;
         }
 
         .header-tagline {
@@ -1368,7 +1369,7 @@
 
     <!-- Header -->
     <header class="site-header" id="site-header">
-        <a href="/lp/job-seeker/" class="header-logo">ナースロビー<span class="header-tagline">シン・AI転職</span></a>
+        <a href="/lp/job-seeker/" class="header-logo"><img src="../../assets/logo-nursrobby.png" alt="ナースロビー" height="48"></a>
         <nav class="header-nav">
             <a href="/lp/job-seeker/area/">地域別求人</a>
             <a href="/lp/job-seeker/guide/">転職ガイド</a>
@@ -1382,7 +1383,7 @@
         <div class="mobile-nav-inner" onclick="event.stopPropagation()">
             <button class="mobile-nav-close" onclick="document.getElementById('mobileNav').classList.remove('open')">&times;</button>
             <div style="clear:both;padding-top:8px;">
-                <strong style="font-size:1.1rem;">ナースロビー</strong>
+                <img src="../../assets/logo-nursrobby.png" alt="ナースロビー" style="height:32px;width:auto;">
             </div>
             <a href="/lp/job-seeker/area/">地域別求人</a>
             <a href="/lp/job-seeker/guide/">転職ガイド</a>
