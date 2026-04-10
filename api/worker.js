@@ -4386,7 +4386,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_resume_start":
       return [{
         type: "text",
-        text: "職務経歴書の下書きをAIがお手伝いします。\n担当者が清書・仕上げまでサポートします。\n\n7つの質問に答えるだけでドラフトが完成します。\n\nQ1. 看護師免許を取得した年を教えてください。\n（例: 2018年）",
+        text: "職務経歴書の下書きをAIがお手伝いします。\n担当者が清書・仕上げまでサポートします。\n\n⚠️ 個人情報について\n・施設名は伏せてOKです（「○○病院」等）\n・入力された情報はAIによる下書き作成にのみ使用し、作成後に削除します\n・お名前や住所は一切聞きません\n\n7つの質問に答えるだけでドラフトが完成します。\n\nQ1. 看護師免許を取得した年を教えてください。\n（例: 2018年）",
       }];
 
     case "rm_cv_q2":
@@ -6449,6 +6449,13 @@ ${entry.rmCvQualifications || '看護師免許'}
                   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
                   body: JSON.stringify({ to: userId, messages: pushMsgs }),
                 });
+                // 個人情報削除（下書き作成後は不要）
+                delete entry.rmCvWorkDetail;
+                delete entry.rmCvPrevDetail;
+                delete entry.rmCvQualifications;
+                delete entry.rmCvLicenseYear;
+                delete entry.rmResumeDraft;
+                await saveLineEntry(userId, entry, env);
               } catch (e) {
                 console.error(`[RichMenu] resume generate error: ${e.message}`);
                 await fetch("https://api.line.me/v2/bot/message/push", {
@@ -6994,6 +7001,13 @@ ${entry.rmCvQualifications || '看護師免許'}
                   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
                   body: JSON.stringify({ to: userId, messages: pushMsgs }),
                 });
+                // 個人情報削除（下書き作成後は不要）
+                delete entry.rmCvWorkDetail;
+                delete entry.rmCvPrevDetail;
+                delete entry.rmCvQualifications;
+                delete entry.rmCvLicenseYear;
+                delete entry.rmResumeDraft;
+                await saveLineEntry(userId, entry, env);
               } catch (e) {
                 console.error(`[Resume] generate error: ${e.message}`);
               }
