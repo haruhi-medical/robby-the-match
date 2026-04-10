@@ -4386,7 +4386,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_resume_start":
       return [{
         type: "text",
-        text: "職務経歴書の下書きをAIがお手伝いします。\n担当者が清書・仕上げまでサポートします。\n\n⚠️ 個人情報について\n・施設名は伏せてOKです（「○○病院」等）\n・入力された情報はAIによる下書き作成にのみ使用し、作成後に削除します\n・お名前や住所は一切聞きません\n\n7つの質問に答えるだけでドラフトが完成します。\n\nQ1. 看護師免許を取得した年を教えてください。\n（例: 2018年）",
+        text: "職務経歴書の下書きをAIがお手伝いします。\n担当者が清書・仕上げまでサポートします。\n\n📋 個人情報について\n・入力された情報は求人紹介の目的でのみ使用します\n・施設名は伏せてOKです（「○○病院」等）\n・担当者以外に共有することはありません\n\n7つの質問に答えるだけでドラフトが完成します。\n\nQ1. 看護師免許を取得した年を教えてください。\n（例: 2018年）",
       }];
 
     case "rm_cv_q2":
@@ -4449,6 +4449,12 @@ async function buildPhaseMessage(phase, entry, env) {
             qrItem("その他", "rm_cv=reason_other"),
           ],
         },
+      }];
+
+    case "rm_cv_q8":
+      return [{
+        type: "text",
+        text: "最後に、履歴書に記載するお名前を教えてください。\n（例: 山田 花子）\n\n※個人情報は求人紹介の目的でのみ使用します。\n※担当者以外に共有することはありません。",
       }];
 
     default:
@@ -5165,7 +5171,7 @@ async function sendHandoffNotification(userId, entry, env) {
 ${handoffReasonsText}
 
 📋 *求職者サマリ*
-資格: ${qualLabel} / 経験年数: ${expLabel}
+${entry.fullName ? '👤 氏名: ' + entry.fullName + '\n' : ''}資格: ${qualLabel} / 経験年数: ${expLabel}
 現在の職場: ${workplaceLabel}
 変えたいこと: ${changeLabel}
 転職の不安: ${concernLabel}
@@ -5655,7 +5661,7 @@ function handleLinePostback(dataStr, entry) {
     else if (val.startsWith("reason_")) {
       const reasonMap = { reason_career: "キャリアアップ", reason_relation: "人間関係", reason_salary: "給与・待遇改善", reason_wlb: "ワークライフバランス", reason_family: "引越し・家庭の事情", reason_other: "その他" };
       entry.rmCvReason = reasonMap[val] || val;
-      nextPhase = "rm_resume_generate";
+      nextPhase = "rm_cv_q8"; // 氏名入力へ
     }
   }
 
@@ -5686,6 +5692,17 @@ function handleFreeTextInput(text, entry) {
     entry.rmCvQualifications = text.slice(0, 300);
     entry.unexpectedTextCount = 0;
     return "rm_cv_q7";
+  }
+
+  // === 履歴書Q8: 氏名入力 ===
+  if (phase === "rm_cv_q8") {
+    const name = text.trim();
+    if (name.length < 2) {
+      return { type: "text", text: "お名前は2文字以上でご入力ください🙏\n（例: 山田 花子）" };
+    }
+    entry.fullName = name;
+    entry.unexpectedTextCount = 0;
+    return "rm_resume_generate";
   }
 
   // === 電話番号入力（handoff_phone_number フェーズ） ===
@@ -6375,7 +6392,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "rm_new_jobs") {
           entry.phase = "rm_new_jobs";
           replyMessages = await buildPhaseMessage("rm_new_jobs", entry, env);
-        } else if (nextPhase === "rm_resume_start" || nextPhase === "rm_cv_q2" || nextPhase === "rm_cv_q3" || nextPhase === "rm_cv_q4" || nextPhase === "rm_cv_q5" || nextPhase === "rm_cv_q6" || nextPhase === "rm_cv_q7") {
+        } else if (nextPhase === "rm_resume_start" || nextPhase === "rm_cv_q2" || nextPhase === "rm_cv_q3" || nextPhase === "rm_cv_q4" || nextPhase === "rm_cv_q5" || nextPhase === "rm_cv_q6" || nextPhase === "rm_cv_q7" || nextPhase === "rm_cv_q8") {
           entry.phase = nextPhase;
           replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         } else if (nextPhase === "rm_resume_generate") {
@@ -6389,6 +6406,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                 const prompt = `以下の情報から看護師の職務経歴書のドラフトを作成してください。
 
 【本人情報】
+氏名: ${entry.fullName || '未入力'}
 看護師免許取得年: ${entry.rmCvLicenseYear || '不明'}
 直近の職場種類: ${entry.rmCvFacility || '不明'}
 直近の配属先・業務内容:
@@ -6449,12 +6467,7 @@ ${entry.rmCvQualifications || '看護師免許'}
                   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
                   body: JSON.stringify({ to: userId, messages: pushMsgs }),
                 });
-                // 個人情報削除（下書き作成後は不要）
-                delete entry.rmCvWorkDetail;
-                delete entry.rmCvPrevDetail;
-                delete entry.rmCvQualifications;
-                delete entry.rmCvLicenseYear;
-                delete entry.rmResumeDraft;
+                // 経歴データは保持（handoff時に担当者が使用）
                 await saveLineEntry(userId, entry, env);
               } catch (e) {
                 console.error(`[RichMenu] resume generate error: ${e.message}`);
@@ -7001,12 +7014,7 @@ ${entry.rmCvQualifications || '看護師免許'}
                   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
                   body: JSON.stringify({ to: userId, messages: pushMsgs }),
                 });
-                // 個人情報削除（下書き作成後は不要）
-                delete entry.rmCvWorkDetail;
-                delete entry.rmCvPrevDetail;
-                delete entry.rmCvQualifications;
-                delete entry.rmCvLicenseYear;
-                delete entry.rmResumeDraft;
+                // 経歴データは保持（handoff時に担当者が使用）
                 await saveLineEntry(userId, entry, env);
               } catch (e) {
                 console.error(`[Resume] generate error: ${e.message}`);
