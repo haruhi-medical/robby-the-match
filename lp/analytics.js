@@ -134,6 +134,16 @@
       utm_medium: utm.utm_medium || '',
       utm_campaign: utm.utm_campaign || '',
     });
+
+    // Meta Pixel: LINE CTA クリック = Lead イベント
+    if (typeof fbq === 'function') {
+      fbq('track', 'Lead', {
+        content_name: source,
+        content_category: 'line_cta_click',
+        value: 0,
+        currency: 'JPY'
+      });
+    }
   }
 
   function bindLineButtons() {
