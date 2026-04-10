@@ -332,7 +332,7 @@
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             backdrop-filter: blur(20px) saturate(180%);
             border-bottom: 1px solid rgba(26, 127, 100, 0.08);
-            padding: 14px 24px;
+            padding: 6px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -401,7 +401,7 @@
         .hero {
             position: relative;
             overflow: hidden;
-            background: #0d1117;
+            background: #fff;
             padding: 0;
             margin: 0;
         }
@@ -413,9 +413,12 @@
 
         .hero-img {
             display: block;
-            width: 100%;
-            height: auto;
-            margin: 0;
+            width: 1200px;
+            height: 560px;
+            max-width: 100%;
+            object-fit: cover;
+            object-position: center;
+            margin: 0 auto;
             padding: 0;
         }
 
@@ -1395,8 +1398,8 @@
     <!-- Hero -->
     <section class="hero" id="hero">
         <picture>
-            <source media="(max-width: 767px)" srcset="../../assets/hero-nurse-sp.jpg" width="428" height="768">
-            <img src="../../assets/hero-nurse-new.jpg" alt="看護師さんのためのAI転職サポート — 最適な求人をマッチング" class="hero-img" width="1366" height="768" fetchpriority="high">
+            <source media="(max-width: 767px)" srcset="../../assets/hero-nurse-sp.jpg" width="312" height="560">
+            <img src="../../assets/hero-nurse-new.jpg" alt="看護師さんのためのAI転職サポート — 最適な求人をマッチング" class="hero-img" width="1200" height="560" fetchpriority="high">
         </picture>
         <!-- SEO用（画像に焼き込み済みのテキスト） -->
         <div class="hero-sr-only">
