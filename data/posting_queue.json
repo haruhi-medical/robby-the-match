@@ -3564,9 +3564,9 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-10T18:21:12",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -3577,7 +3577,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.18,
-      "quality_checked": true
+      "quality_checked": true,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 178,
@@ -4616,7 +4617,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.59,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4629,7 +4630,8 @@
         ],
         "suggestion": "看護師の共感度を高めるために、より具体的な状況を描写することを検討してください"
       },
-      "scheduled_for": "2026-04-09 17:30"
+      "scheduled_for": "2026-04-09 17:30",
+      "quality_checked": true
     },
     {
       "id": 203,
@@ -4658,7 +4660,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.68,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4672,7 +4674,8 @@
         ],
         "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
       },
-      "scheduled_for": "2026-04-10 12:00"
+      "scheduled_for": "2026-04-10 12:00",
+      "quality_checked": true
     },
     {
       "id": 204,
@@ -4701,7 +4704,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 9.12,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4714,7 +4717,8 @@
         ],
         "suggestion": "フックを更に簡潔にすることで、見た目のインパクトを高めることができる"
       },
-      "scheduled_for": "2026-04-11 21:00"
+      "scheduled_for": "2026-04-11 21:00",
+      "quality_checked": true
     },
     {
       "id": 205,
@@ -4743,7 +4747,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.7,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4756,7 +4760,8 @@
         ],
         "suggestion": "スライドの重複を減らし、よりコンパクトな内容にまとめる"
       },
-      "scheduled_for": "2026-04-12 17:30"
+      "scheduled_for": "2026-04-12 17:30",
+      "quality_checked": true
     },
     {
       "id": 206,
@@ -4785,7 +4790,7 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
+      "quality_score": 8.74,
       "ai_review": {
         "score": 7,
         "persona_fit": 8,
@@ -4799,7 +4804,8 @@
         ],
         "suggestion": "フックを短くして、ソフトCTAを追加してバランスをとる"
       },
-      "scheduled_for": "2026-04-13 12:00"
+      "scheduled_for": "2026-04-13 12:00",
+      "quality_checked": true
     },
     {
       "id": 207,
