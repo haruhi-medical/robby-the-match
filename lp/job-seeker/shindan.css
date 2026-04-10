@@ -7,12 +7,12 @@
    CSS Custom Properties
    ============================ */
 :root {
-  --sd-teal: #1a7f64;
-  --sd-teal-light: #e8f5f0;
-  --sd-teal-hover: #15664f;
-  --sd-teal-glow: rgba(26, 127, 100, 0.15);
-  --sd-teal-border: rgba(26, 127, 100, 0.25);
-  --sd-bg: linear-gradient(170deg, #f0faf7 0%, #ffffff 50%, #f8fffe 100%);
+  --sd-teal: #1a9de0;
+  --sd-teal-light: #e6f4fb;
+  --sd-teal-hover: #1080c0;
+  --sd-teal-glow: rgba(26, 157, 224, 0.15);
+  --sd-teal-border: rgba(26, 157, 224, 0.25);
+  --sd-bg: linear-gradient(170deg, #f0f8fc 0%, #ffffff 50%, #f5fafd 100%);
   --sd-text: #1a1a2e;
   --sd-text-sub: #666;
   --sd-card-bg: #fff;
@@ -89,7 +89,7 @@
 
 .shindan-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--sd-teal), #2ba882);
+  background: linear-gradient(90deg, var(--sd-teal), #50b8e8);
   border-radius: 3px;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   width: 0%;
@@ -572,7 +572,7 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(90deg, var(--sd-teal), #2ba882, var(--sd-teal), #2ba882);
+  background: linear-gradient(90deg, var(--sd-teal), #50b8e8, var(--sd-teal), #50b8e8);
   background-size: 300% 100%;
   border-radius: 32px;
   z-index: -2;
