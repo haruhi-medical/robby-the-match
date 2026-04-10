@@ -1,6 +1,6 @@
 {
   "created": "2026-04-09T16:30:16.851779",
-  "updated": "2026-04-09T16:32:03.754812",
+  "updated": "2026-04-10T15:04:13.011851",
   "week_of": "2026-04-09",
   "total": 7,
   "queue_pending_at_creation": 4,
@@ -36,8 +36,8 @@
       "day": 4,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0410_01",
       "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた",
       "hook_idea": "申し送り、異常なし言った直後気づく"
     },
@@ -45,8 +45,8 @@
       "day": 5,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0410_02",
       "hint": "新人に「大丈夫？」って聞いたら「大丈夫です」。自分も5年間同じ嘘ついてた",
       "hook_idea": "新人に大丈夫？と聞いたら大丈夫の嘘"
     },
@@ -54,8 +54,8 @@
       "day": 6,
       "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_地域_0410_03",
       "hint": "川崎の大学病院と小田原の市民病院、同じ5年目で年収50万差。立地だけでこんなに違う？",
       "hook_idea": "川崎と小田原、同じ5年目で年収50万差"
     },
@@ -63,8 +63,8 @@
       "day": 7,
       "category": "業界裏側",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_業界_0410_04",
       "hint": "看護師1人の紹介で病院が払う手数料135万。その看護師の年間ボーナスより高い",
       "hook_idea": "看護師1人紹介で病院が払う135万"
     }
