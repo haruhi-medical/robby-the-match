@@ -5,10 +5,10 @@
     "competitor_analyst": "2026-04-11T10:00:12",
     "content_creator": "2026-04-11T15:04:06",
     "sns_poster": "2026-04-11T20:08:11",
-    "daily_reviewer": "2026-04-11T23:00:01",
+    "daily_reviewer": "2026-04-11T23:00:29",
     "seo_optimizer": "2026-04-11T04:00:37",
-    "weekly_content_planner": "2026-04-05T05:00:02",
-    "weekly_strategist": "2026-04-05T06:01:09",
+    "weekly_content_planner": "2026-04-12T05:00:02",
+    "weekly_strategist": "2026-04-12T06:00:00",
     "tiktok_poster": "2026-04-11T02:52:43"
   },
   "status": {
@@ -17,10 +17,10 @@
     "competitor_analyst": "completed",
     "content_creator": "completed",
     "sns_poster": "completed",
-    "daily_reviewer": "running",
+    "daily_reviewer": "completed",
     "seo_optimizer": "completed",
-    "weekly_content_planner": "pending",
-    "weekly_strategist": "completed",
+    "weekly_content_planner": "failed",
+    "weekly_strategist": "running",
     "tiktok_poster": "completed"
   },
   "pendingTasks": {
@@ -74,12 +74,12 @@
         "紹介": 0,
         "トレンド": 0
       },
-      "lastAnalysisDate": "2026-04-11"
+      "lastAnalysisDate": "2026-04-12"
     },
     "sns_poster": {
       "totalPosted": 47,
       "averageViews": 0,
-      "lastAnalysisDate": "2026-04-11"
+      "lastAnalysisDate": "2026-04-12"
     }
   }
 }

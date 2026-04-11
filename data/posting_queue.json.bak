@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-11T15:04:04.650323",
+  "updated": "2026-04-11T15:04:04.677071",
   "posts": [
     {
       "id": 1,
@@ -3669,9 +3669,9 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-11T20:08:10",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -3695,7 +3695,8 @@
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
       },
       "scheduled_for": "2026-04-04 12:00",
-      "quality_checked": true
+      "quality_checked": true,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 181,
@@ -4834,7 +4835,7 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
+      "quality_score": 8.34,
       "ai_review": {
         "score": 7,
         "persona_fit": 8,
@@ -4848,7 +4849,8 @@
         ],
         "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
       },
-      "scheduled_for": "2026-04-14 21:00"
+      "scheduled_for": "2026-04-14 21:00",
+      "quality_checked": true
     },
     {
       "id": 208,
@@ -4877,7 +4879,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.69,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -4890,7 +4892,8 @@
         ],
         "suggestion": "フックを短くして、看護師の共感を高める"
       },
-      "scheduled_for": "2026-04-15 17:30"
+      "scheduled_for": "2026-04-15 17:30",
+      "quality_checked": true
     },
     {
       "id": 209,
@@ -4936,7 +4939,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4948,7 +4951,7 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
+      "quality_score": 8.43,
       "ai_review": {
         "score": 7,
         "persona_fit": 8,
@@ -4961,7 +4964,9 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くし、ハッシュタグを4個以内に調整することで、投稿の品質を向上させることができる"
-      }
+      },
+      "scheduled_for": "2026-04-11 17:30",
+      "quality_checked": true
     },
     {
       "id": 211,
@@ -4978,7 +4983,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -4990,7 +4995,7 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
+      "quality_score": 8.15,
       "ai_review": {
         "score": 7,
         "persona_fit": 8,
@@ -5003,7 +5008,9 @@
           "キャプションが200文字以内ではない"
         ],
         "suggestion": "フックを短くし、キャプションを簡潔にすることで、看護師の関心をより引き付けられるようにする"
-      }
+      },
+      "scheduled_for": "2026-04-12 12:00",
+      "quality_checked": true
     },
     {
       "id": 212,
@@ -5020,7 +5027,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5032,7 +5039,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.62,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5044,7 +5051,9 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "看護師1人紹介で135万払う病院、本当?"
-      }
+      },
+      "scheduled_for": "2026-04-13 21:00",
+      "quality_checked": true
     },
     {
       "id": 213,
@@ -5061,7 +5070,7 @@
       ],
       "cta_type": "hard",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5086,7 +5095,8 @@
           "CTAがハードCTAのみ"
         ],
         "suggestion": "フックを短くし、ソフトCTAを追加して8:2ルールを満たすように改善する"
-      }
+      },
+      "scheduled_for": "2026-04-14 17:30"
     },
     {
       "id": 214,
@@ -5103,7 +5113,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5128,7 +5138,8 @@
           "スライド内容が冗長"
         ],
         "suggestion": "フックを短くし、スライド内容を簡潔にすることで、看護師の注意を引き付けやすくなります"
-      }
+      },
+      "scheduled_for": "2026-04-15 12:00"
     },
     {
       "id": 215,
@@ -5145,7 +5156,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5169,7 +5180,8 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを25文字以内に修正し、より具体的な数字や状況を追加して看護師の共感度を高める"
-      }
+      },
+      "scheduled_for": "2026-04-16 21:00"
     },
     {
       "id": 216,
@@ -5186,7 +5198,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5210,7 +5222,8 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
-      }
+      },
+      "scheduled_for": "2026-04-17 17:30"
     }
   ],
   "archive": [
