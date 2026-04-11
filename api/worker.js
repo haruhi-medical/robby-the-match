@@ -2785,6 +2785,9 @@ async function handleLinkSession(request, env) {
           try {
             const ans = typeof liffData.answers === 'string' ? JSON.parse(liffData.answers) : liffData.answers;
             if (ans.area) entry.area = ans.area;
+            if (ans.areaLabel) entry.areaLabel = ans.areaLabel;
+            if (ans.prefecture) entry.prefecture = ans.prefecture;
+            if (ans.facilityType) entry.facilityType = ans.facilityType;
             if (ans.workStyle || ans.workstyle) entry.workStyle = ans.workStyle || ans.workstyle;
             if (ans.urgency) entry.urgency = ans.urgency;
           } catch (e) { /* パース失敗は無視 */ }
@@ -3078,7 +3081,7 @@ function buildSessionWelcome(sessionCtx, entry) {
     chigasaki: '茅ヶ崎市', kamakura: '鎌倉市',
   };
 
-  // 診断引き継ぎ（LP内3問回答済み → intake_lightスキップ → 即matching）
+  // 診断引き継ぎ（LP内5問回答済み → intake_lightスキップ → 即matching）
   if (source === 'shindan' && entry.area && entry.workStyle && entry.urgency) {
     const areaLabel = entry.areaLabel || AREA_LABELS[entry.area] || entry.area;
     return {
@@ -5966,7 +5969,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             try {
               const ans = typeof liffSessionCtx.answers === 'string' ? JSON.parse(liffSessionCtx.answers) : liffSessionCtx.answers;
               if (ans.area) entry.area = ans.area;
-              if (ans.workStyle) entry.workStyle = ans.workStyle;
+              if (ans.areaLabel) entry.areaLabel = ans.areaLabel;
+              if (ans.prefecture) entry.prefecture = ans.prefecture;
+              if (ans.facilityType) entry.facilityType = ans.facilityType;
+              if (ans.workStyle || ans.workstyle) entry.workStyle = ans.workStyle || ans.workstyle;
               if (ans.urgency) entry.urgency = ans.urgency;
             } catch (e) { /* パース失敗は無視 */ }
           }
@@ -6616,7 +6622,9 @@ ${entry.rmCvQualifications || '看護師免許'}
               try {
                 const ans = JSON.parse(sessionCtx.answers);
                 if (ans.area) { entry.area = ans.area; entry.areaLabel = ans.areaLabel || ans.area; }
-                if (ans.workstyle) entry.workStyle = ans.workstyle;
+                if (ans.prefecture) entry.prefecture = ans.prefecture;
+                if (ans.facilityType) entry.facilityType = ans.facilityType;
+                if (ans.workStyle || ans.workstyle) entry.workStyle = ans.workStyle || ans.workstyle;
                 if (ans.urgency) entry.urgency = ans.urgency;
               } catch (e) { /* answers parse error, ignore */ }
             }

@@ -692,5 +692,14 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_地域_0402_03",
+    "content_id": "ai_地域_0402_03",
+    "timestamp": "2026-04-11T20:08:10",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]
