@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-11T02:43:55.685100",
+  "updated": "2026-04-11T15:04:04.650323",
   "posts": [
     {
       "id": 1,
@@ -3625,11 +3625,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0402_02_20260411.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -4907,11 +4907,11 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -4947,8 +4947,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを4個以内に調整することで、投稿の品質を向上させることができる"
+      }
     },
     {
       "id": 211,
@@ -4976,8 +4989,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 7,
+        "issues": [
+          "フックが25文字以内ではない",
+          "キャプションが200文字以内ではない"
+        ],
+        "suggestion": "フックを短くし、キャプションを簡潔にすることで、看護師の関心をより引き付けられるようにする"
+      }
     },
     {
       "id": 212,
@@ -5005,8 +5031,186 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "看護師1人紹介で135万払う病院、本当?"
+      }
+    },
+    {
+      "id": 213,
+      "content_id": "ai_転職_0411_01",
+      "batch": "ai_batch_20260411_1500",
+      "slide_dir": "content/generated/ai_batch_20260411_1500/ai_転職_0411_01",
+      "json_path": "content/generated/ai_batch_20260411_1500/ai_転職_0411_01.json",
+      "caption": "神奈川の看護師、夜勤明けに電車で座る暇ある？\n\n看護師の市場価値は高い。\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師"
+      ],
+      "cta_type": "hard",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 4,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "CTAがハードCTAのみ"
+        ],
+        "suggestion": "フックを短くし、ソフトCTAを追加して8:2ルールを満たすように改善する"
+      }
+    },
+    {
+      "id": 214,
+      "content_id": "ai_ある_0411_02",
+      "batch": "ai_batch_20260411_1500",
+      "slide_dir": "content/generated/ai_batch_20260411_1500/ai_ある_0411_02",
+      "json_path": "content/generated/ai_batch_20260411_1500/ai_ある_0411_02.json",
+      "caption": "神奈川の看護師5年目、コンビニと同じ時給?\n\n看護師不足は深刻で、充足率は72.6%。夜勤明けの電車で座る暇もなく、手取りは24万。横浜と小田原では年収に20-50万円の差がある\n\nこれを保存して、看護師の実態を知ってほしい",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#看護師不足",
+        "#夜勤明け"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "スライド内容が冗長"
+        ],
+        "suggestion": "フックを短くし、スライド内容を簡潔にすることで、看護師の注意を引き付けやすくなります"
+      }
+    },
+    {
+      "id": 215,
+      "content_id": "ai_業界_0411_03",
+      "batch": "ai_batch_20260411_1500",
+      "slide_dir": "content/generated/ai_batch_20260411_1500/ai_業界_0411_03",
+      "json_path": "content/generated/ai_batch_20260411_1500/ai_業界_0411_03.json",
+      "caption": "神奈川の看護師さん\n\n夜勤明けの電車、座れる？\n\nその理由、知ってた？\n\n保存しておくと役立つよ",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#転職サポート",
+        "#看護師生活"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "フックを25文字以内に修正し、より具体的な数字や状況を追加して看護師の共感度を高める"
+      }
+    },
+    {
+      "id": 216,
+      "content_id": "ai_転職_0411_04",
+      "batch": "ai_batch_20260411_1500",
+      "slide_dir": "content/generated/ai_batch_20260411_1500/ai_転職_0411_04",
+      "json_path": "content/generated/ai_batch_20260411_1500/ai_転職_0411_04.json",
+      "caption": "看護師50万も稼げるクリニックって本当？\n\n夜勤なし、土日休みの美容クリニック，看護師の転職先になる？\n\nこの情報、同僚にも教えてあげて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#美容クリニック",
+        "#夜勤なし"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
+      }
     }
   ],
   "archive": [

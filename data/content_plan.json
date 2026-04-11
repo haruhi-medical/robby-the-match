@@ -1,72 +1,72 @@
 {
-  "created": "2026-04-09T16:30:16.851779",
-  "updated": "2026-04-10T15:04:13.011851",
-  "week_of": "2026-04-09",
+  "created": "2026-04-11T15:00:16.210825",
+  "updated": "2026-04-11T15:02:48.726068",
+  "week_of": "2026-04-11",
   "total": 7,
-  "queue_pending_at_creation": 4,
+  "queue_pending_at_creation": 3,
   "plans": [
     {
       "day": 1,
-      "category": "業界裏側",
+      "category": "転職",
       "cta_type": "hard",
       "status": "generated",
-      "content_id": "ai_業界_0409_01",
-      "hint": "紹介会社経由で入職すると「すぐ辞めるな」プレッシャーが強くなる。手数料のせいで",
-      "hook_idea": "看護師5年目、紹介会社プレッシャーどう思"
+      "content_id": "ai_転職_0411_01",
+      "hint": "退職届を出したら急に「待遇改善する」と言われた。3年間の不満を無視してたくせに",
+      "hook_idea": "夜勤明け、退職届出したら待遇改善って本当"
     },
     {
       "day": 2,
-      "category": "給与",
-      "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_給与_0409_02",
-      "hint": "産業看護師（企業ナース）の年収500万。病棟5年目の自分は430万。何が違う？",
-      "hook_idea": "産業看護師と病棟、年収5万円差ある？"
-    },
-    {
-      "day": 3,
-      "category": "トレンド",
-      "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_トレ_0409_03",
-      "hint": "合コンで「看護師です」→「優しそう」。12時間立ちっぱなしで優しさ搾り出してるとは言えない",
-      "hook_idea": "優しそうって言われたら、夜勤疲れ隠せない"
-    },
-    {
-      "day": 4,
       "category": "あるある",
       "cta_type": "soft",
       "status": "generated",
-      "content_id": "ai_ある_0410_01",
-      "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた",
-      "hook_idea": "申し送り、異常なし言った直後気づく"
+      "content_id": "ai_ある_0411_02",
+      "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？",
+      "hook_idea": "先輩の『私の時代は大変だった』、その時代"
+    },
+    {
+      "day": 3,
+      "category": "業界裏側",
+      "cta_type": "soft",
+      "status": "generated",
+      "content_id": "ai_業界_0411_03",
+      "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布",
+      "hook_idea": "看護師の転職で病院が30%払ってる、誰が"
+    },
+    {
+      "day": 4,
+      "category": "転職",
+      "cta_type": "soft",
+      "status": "generated",
+      "content_id": "ai_転職_0411_04",
+      "hint": "美容クリニックに転職した同期、施術のインセンティブで月収50万。でも看護スキルは？",
+      "hook_idea": "美容クリニックの看護師、50万稼いでるっ"
     },
     {
       "day": 5,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0410_02",
-      "hint": "新人に「大丈夫？」って聞いたら「大丈夫です」。自分も5年間同じ嘘ついてた",
-      "hook_idea": "新人に大丈夫？と聞いたら大丈夫の嘘"
+      "status": "planned",
+      "content_id": null,
+      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
+      "hook_idea": "師長に退職届け出して、ロッカーにPHSス"
     },
     {
       "day": 6,
-      "category": "地域ネタ",
+      "category": "転職",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_地域_0410_03",
-      "hint": "川崎の大学病院と小田原の市民病院、同じ5年目で年収50万差。立地だけでこんなに違う？",
-      "hook_idea": "川崎と小田原、同じ5年目で年収50万差"
+      "status": "planned",
+      "content_id": null,
+      "hint": "美容クリニックに転職した同期、施術のインセンティブで月収50万。でも看護スキルは？",
+      "hook_idea": "看護師5年目で月収50万、本当の理由"
     },
     {
       "day": 7,
-      "category": "業界裏側",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_業界_0410_04",
-      "hint": "看護師1人の紹介で病院が払う手数料135万。その看護師の年間ボーナスより高い",
-      "hook_idea": "看護師1人紹介で病院が払う135万"
+      "status": "planned",
+      "content_id": null,
+      "hint": "新人に「大丈夫？」って聞いたら「大丈夫です」。自分も5年間同じ嘘ついてた",
+      "hook_idea": "新人に『大丈夫？』聞いたら『大丈夫』、嘘"
     }
   ]
 }
