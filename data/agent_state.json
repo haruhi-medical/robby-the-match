@@ -1,12 +1,12 @@
 {
   "lastRun": {
-    "ai_marketing_orchestrator": "2026-04-10T06:00:03",
-    "health_monitor": "2026-04-10T07:00:17",
-    "competitor_analyst": "2026-04-10T10:00:14",
+    "ai_marketing_orchestrator": "2026-04-11T06:00:06",
+    "health_monitor": "2026-04-11T07:00:18",
+    "competitor_analyst": "2026-04-11T10:00:00",
     "content_creator": "2026-04-10T15:04:13",
     "sns_poster": "2026-04-10T18:21:13",
     "daily_reviewer": "2026-04-10T23:00:25",
-    "seo_optimizer": "2026-04-11T04:00:01",
+    "seo_optimizer": "2026-04-11T04:00:37",
     "weekly_content_planner": "2026-04-05T05:00:02",
     "weekly_strategist": "2026-04-05T06:01:09",
     "tiktok_poster": "2026-04-11T02:52:43"
@@ -14,11 +14,11 @@
   "status": {
     "ai_marketing_orchestrator": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "sns_poster": "completed",
     "daily_reviewer": "completed",
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "weekly_content_planner": "pending",
     "weekly_strategist": "completed",
     "tiktok_poster": "completed"
@@ -50,8 +50,8 @@
     "topPerformingTags": [],
     "queueRemaining": 4,
     "totalPostsThisWeek": 46,
-    "lastMarketingPDCA": "2026-04-10 06:00:00",
-    "queuePending": 29,
+    "lastMarketingPDCA": "2026-04-11 06:00:00",
+    "queuePending": 31,
     "dailyGeneratedCount": 0
   },
   "agentMemory": {
