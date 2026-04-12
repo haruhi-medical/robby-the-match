@@ -3819,3 +3819,27 @@ SNS自動投稿: IG済36件 / 未投稿80件 (IG=0, TK=0)
    - 看護師への紹介と成約の促進
    - SEO施策の強化とKPIの目標達成に向けた取り組み
 
+
+## 2026-04-13
+
+### tiktok_post（02:30:01）
+TikTok深夜投稿: TK=0
+
+### 🔍 SEO診断（04:00:00）
+1. SEO改善が必要なページ：
+   - lp/job-seeker/area/hakone.html：説明文が短すぎるため、詳細な情報を追加する必要がある。
+   - lp/job-seeker/guide/fee-comparison.html：タイトルと説明文が重複しているため、ユニークな説明文を追加する必要がある。
+   - lp/job-seeker/area/index.html：説明文が短すぎるため、詳細な情報を追加する必要がある。
+   - lp/job-seeker/guide/day-service-nurse.html：h1タグとタイトルが微妙に異なるため、統一する必要がある。
+   - lp/job-seeker/area/kaisei.html：説明文が短すぎるため、詳細な情報を追加する必要がある。
+
+2. 不足しているテーマ/地域：
+   - 「看護師のメンタルヘルスケア」：ターゲットKW「看護師の精神衛生」
+   - 「神奈川県の看護師不足対策」：ターゲットKW「神奈川県看護師不足」
+   - 「看護師のキャリアデザイン」：ターゲットKW「看護師のキャリア開発」
+
+3. 内部リンクの改善提案：
+   - lp/job-seeker/area/index.htmlから各地域ページへのリンクを追加する。
+   - lp/job-seeker/guide/fee-comparison.htmlからlp/job-seeker/guide/fee-comparison-detail.htmlへのリンクを追加する。
+   - lp/job-seeker/area/hakone.htmlからlp/job-seeker/guide/day-service-nurse.htmlへのリンクを追加する。
+

@@ -6,10 +6,10 @@
     "content_creator": "2026-04-11T15:04:06",
     "sns_poster": "2026-04-11T20:08:11",
     "daily_reviewer": "2026-04-11T23:00:29",
-    "seo_optimizer": "2026-04-11T04:00:37",
+    "seo_optimizer": "2026-04-13T04:00:00",
     "weekly_content_planner": "2026-04-12T05:00:02",
-    "weekly_strategist": "2026-04-12T06:00:00",
-    "tiktok_poster": "2026-04-11T02:52:43"
+    "weekly_strategist": "2026-04-12T06:01:03",
+    "tiktok_poster": "2026-04-13T02:49:31"
   },
   "status": {
     "ai_marketing_orchestrator": "completed",
@@ -18,9 +18,9 @@
     "content_creator": "completed",
     "sns_poster": "completed",
     "daily_reviewer": "completed",
-    "seo_optimizer": "completed",
+    "seo_optimizer": "running",
     "weekly_content_planner": "failed",
-    "weekly_strategist": "running",
+    "weekly_strategist": "completed",
     "tiktok_poster": "completed"
   },
   "pendingTasks": {
