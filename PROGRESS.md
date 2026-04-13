@@ -3843,3 +3843,26 @@ TikTok深夜投稿: TK=0
    - lp/job-seeker/guide/fee-comparison.htmlからlp/job-seeker/guide/fee-comparison-detail.htmlへのリンクを追加する。
    - lp/job-seeker/area/hakone.htmlからlp/job-seeker/guide/day-service-nurse.htmlへのリンクを追加する。
 
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-04-13 SEO改善
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=32 ready=32 posted=47 failed=31
+  Generated today: 0
+  Quality issues: 7
+  Status: Healthy
+
+### 🔎 競合・SEOギャップ分析（10:00:01）
+1. カバレッジの穴：現在のページ数は地域別ページ22ページ、転職ガイド44ページ、ブログ19記事ですが、対象エリアである神奈川県西部のすべての地域や転職ガイドのテーマに対応しているわけではありません。特に、地域別ページでは小田原・秦野・平塚・南足柄・伊勢原・厚木・海老名・藤沢・茅ヶ崎などの地域に対応するページが不足しています。
+
+2. 改善優先度の高いアクション：
+   - 地域別ページの充実：対象エリアのすべての地域に対応するページを作成する。
+   - 転職ガイドの充実：転職ガイドのテーマを増やし、看護師の転職に役立つ情報を提供する。
+   - 内部リンク構造の改善：現在のページ同士の関連性を高めるために、内部リンクを追加する。
+
+3. 次に作るべきページの提案：
+   - 「小田原市の看護師転職ガイド」
+   - 「神奈川県看護師の年収相場と転職のヒント」
+   - 「看護師転職のための自己分析とキャリアデザイン」
+
