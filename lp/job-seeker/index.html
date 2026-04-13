@@ -39,7 +39,7 @@
     <link rel="dns-prefetch" href="https://www.clarity.ms">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- Google Analytics 4 (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
@@ -47,10 +47,20 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      // 内部トラフィック除外（開発者アクセス）
-      fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
-        if(d.ip==='210.139.65.172'){gtag('set',{'traffic_type':'internal'});}
-      }).catch(function(){});
+      // 内部トラフィック除外（開発者アクセス）—アイドル時に遅延実行
+      if (window.requestIdleCallback) {
+        requestIdleCallback(function() {
+          fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
+            if(d.ip==='210.139.65.172'){gtag('set',{'traffic_type':'internal'});}
+          }).catch(function(){});
+        });
+      } else {
+        setTimeout(function() {
+          fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
+            if(d.ip==='210.139.65.172'){gtag('set',{'traffic_type':'internal'});}
+          }).catch(function(){});
+        }, 2000);
+      }
     </script>
 
     <!-- Meta Pixel（Facebook/Instagram広告計測用） -->
