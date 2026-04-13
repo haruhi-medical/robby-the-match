@@ -29,6 +29,45 @@ if [ "$JOB_EXIT" -eq "$EXIT_CONFIG_ERROR" ]; then
   exit $EXIT_CONFIG_ERROR
 fi
 
+# === 週次SEO改善チケット集計 ===
+echo "[INFO] SEO改善チケット週次サマリ生成" >> "$LOG"
+python3 -c "
+import json, os, re
+from pathlib import Path
+from datetime import datetime, timedelta
+
+PROJECT_DIR = Path(os.path.expanduser('~/robby-the-match'))
+
+# 直近7日分のSEOバッチログから改善提案を抽出
+issues = set()
+now = datetime.now()
+for i in range(7):
+    d = (now - timedelta(days=i)).strftime('%Y-%m-%d')
+    log_path = PROJECT_DIR / 'logs' / f'pdca_seo_batch_{d}.log'
+    if log_path.exists():
+        content = log_path.read_text(encoding='utf-8', errors='ignore')
+        # 改善が必要なファイル名を抽出
+        for m in re.finditer(r'(area/\S+\.html|guide/\S+\.html|blog/\S+\.html)', content):
+            issues.add(m.group(1))
+
+if issues:
+    msg = '📋 *週次SEO改善チケット*\n\n'
+    msg += '自動修正不可の項目（要手動対応）:\n'
+    for issue in sorted(issues):
+        msg += f'- {issue}\n'
+    msg += '\n詳細: logs/pdca_seo_batch_*.log'
+
+    # Slack通知
+    import subprocess
+    subprocess.run(
+        ['python3', str(PROJECT_DIR / 'scripts' / 'notify_slack.py'), '--message', msg],
+        capture_output=True, timeout=30
+    )
+    print(f'SEO週次チケット: {len(issues)}件をSlack通知')
+else:
+    print('SEO週次チケット: 未対応項目なし')
+" >> "$LOG" 2>&1 || echo "[WARN] SEO週次チケット集計失敗" >> "$LOG"
+
 git_sync "weekly: Week${WEEK_NUM} 振り返り+来週分生成"
 update_state "週次振り返り"
 

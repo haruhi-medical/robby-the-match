@@ -24,7 +24,13 @@ if [ "$JOB_EXIT" -eq "$EXIT_CONFIG_ERROR" ]; then
   exit $EXIT_CONFIG_ERROR
 fi
 
-git_sync "seo: ${TODAY} SEO改善" "true"
+# SEO診断後に自動修正を実行
+echo "[$TODAY] SEO自動修正開始..." >> "$LOG"
+python3 "$PROJECT_DIR/scripts/pdca_ai_engine.py" --job seo_fix >> "$LOG" 2>&1
+FIX_EXIT=$?
+echo "[$TODAY] SEO自動修正完了 (exit=$FIX_EXIT)" >> "$LOG"
+
+git_sync "seo: ${TODAY} SEO診断+自動修正" "true"
 update_state "SEO朝サイクル"
 update_progress "🔍 SEO朝サイクル" "$(git log -1 --pretty=%s 2>/dev/null)"
 update_agent_state "seo_optimizer" "completed"

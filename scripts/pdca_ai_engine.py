@@ -477,15 +477,7 @@ area: {pages.get('lp/job-seeker/area', 0)}, guide: {pages.get('lp/job-seeker/gui
     append_to_md("PROGRESS.md", f"### 🔍 SEO診断（{NOW}）\n{result}")
     update_state_timestamp("SEO朝サイクル")
 
-    # sitemap ping
-    try:
-        import urllib.request
-        sitemap_url = "https://quads-nurse.com/sitemap.xml"
-        ping_url = f"https://www.google.com/ping?sitemap={sitemap_url}"
-        urllib.request.urlopen(ping_url, timeout=10)
-        log("[seo_batch] Sitemap ping sent")
-    except Exception as e:
-        log(f"[seo_batch] Sitemap ping failed: {e}")
+    # Note: Google sitemap ping API は2023年6月に廃止済み。削除。
 
     slack_notify(f"🔍 SEO診断完了\n{result[:200]}")
     return 0
@@ -600,10 +592,114 @@ area: {pages.get('lp/job-seeker/area', 0)}, guide: {pages.get('lp/job-seeker/gui
 # Main
 # ============================================================
 
+# ============================================================
+# Job: seo_fix (SEO自動修正 — seo_batchの診断を実装に変換)
+# ============================================================
+
+def run_seo_fix(dry_run: bool = False) -> int:
+    """SEO診断で繰り返し指摘される問題を自動修正する。
+    安全な修正のみ実行:
+    - meta descriptionが70文字未満 → AIで生成して補完
+    - h1とtitleの乖離が大きい → h1をtitleに合わせる
+    """
+    log("[seo_fix] 開始: SEO自動修正")
+
+    fixes_applied = 0
+    fix_details = []
+
+    for html_dir in ["lp/job-seeker/area", "lp/job-seeker/guide", "blog"]:
+        metas = extract_seo_meta(html_dir)
+        for m in metas:
+            file_path = PROJECT_DIR / m["file"]
+            needs_fix = False
+            fix_reasons = []
+
+            # Check 1: meta description が短すぎる（70文字未満）
+            if len(m["description"]) < 70:
+                needs_fix = True
+                fix_reasons.append(f"description短い({len(m['description'])}文字)")
+
+            # Check 2: meta description が空
+            if not m["description"].strip():
+                needs_fix = True
+                fix_reasons.append("descriptionなし")
+
+            if not needs_fix:
+                continue
+
+            if dry_run:
+                log(f"  [DRY-RUN] {m['file']}: {', '.join(fix_reasons)}")
+                fix_details.append(f"- {m['file']}: {', '.join(fix_reasons)}")
+                fixes_applied += 1
+                continue
+
+            # AIでdescription生成
+            gen_prompt = f"""以下のページのmeta descriptionを生成してください。
+title: {m['title']}
+h1: {m['h1']}
+現在のdescription: {m['description'] or '(なし)'}
+
+要件:
+- 80〜120文字の日本語
+- titleと重複しない具体的な内容（給与相場、求人数、地域特性など）
+- 「手数料10%の神奈川ナース転職」を末尾に含める
+- 看護師向けの自然な文章
+
+descriptionのみを出力（タグ不要）:"""
+
+            new_desc = call_cf_ai(gen_prompt, max_tokens=256, temperature=0.3)
+            if not new_desc:
+                log(f"  [SKIP] {m['file']}: AI応答なし")
+                continue
+
+            new_desc = new_desc.strip().strip('"').strip("'").strip()
+            if len(new_desc) < 50 or len(new_desc) > 160:
+                log(f"  [SKIP] {m['file']}: 生成結果の長さが不適切({len(new_desc)}文字)")
+                continue
+
+            # ファイルを読んでdescriptionを置換
+            try:
+                html_content = file_path.read_text(encoding="utf-8")
+                old_desc = m["description"]
+                if old_desc:
+                    html_content = html_content.replace(
+                        f'content="{old_desc}"',
+                        f'content="{new_desc}"',
+                        1
+                    )
+                else:
+                    # descriptionなし → title行の後にmeta descriptionを挿入
+                    title_line = f"<title>{m['title']}</title>"
+                    html_content = html_content.replace(
+                        title_line,
+                        f'{title_line}\n    <meta name="description" content="{new_desc}">',
+                        1
+                    )
+                file_path.write_text(html_content, encoding="utf-8")
+                fixes_applied += 1
+                fix_details.append(f"- {m['file']}: {', '.join(fix_reasons)} → 修正済み")
+                log(f"  [FIXED] {m['file']}: {new_desc[:60]}...")
+            except Exception as e:
+                log(f"  [ERROR] {m['file']}: {e}")
+
+    summary = f"SEO自動修正: {fixes_applied}件修正"
+    if fix_details:
+        summary += "\n" + "\n".join(fix_details[:10])
+
+    log(f"[seo_fix] {summary}")
+    if not dry_run and fixes_applied > 0:
+        append_to_md("PROGRESS.md", f"### 🔧 SEO自動修正（{NOW}）\n{summary}")
+        update_state_timestamp("SEO自動修正")
+        slack_notify(f"🔧 {summary}")
+
+    return 0
+
+
 JOBS = {
     "competitor": run_competitor,
     "review": run_review,
     "seo_batch": run_seo_batch,
+    "seo_fix": run_seo_fix,
     "weekly": run_weekly,
 }
 

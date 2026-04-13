@@ -776,6 +776,26 @@ def run_watchdog():
         else:
             suppressed.append(f"Worker: {e} ({fail_count}/3)")
 
+    # ─── 0.5. Claude CLI認証チェック（autoresearch用） ───
+    try:
+        auth_result = subprocess.run(
+            ["claude", "auth", "status"],
+            capture_output=True, text=True, timeout=10,
+            env={**os.environ, "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"}
+        )
+        auth_output = auth_result.stdout + auth_result.stderr
+        if '"loggedIn": true' in auth_output or "loggedIn" not in auth_output:
+            info.append("Claude CLI: 認証OK")
+        else:
+            issues.append(
+                "⚠️ Claude CLI 未ログイン — autoresearchが動作不能。"
+                " `claude auth login` で再認証が必要"
+            )
+    except FileNotFoundError:
+        issues.append("⚠️ Claude CLI 未インストール — autoresearch不可")
+    except Exception as e:
+        suppressed.append(f"Claude CLI認証チェック失敗: {e}")
+
     # ─── 1. 固定スケジュールジョブの監視 ───
     for job_name, (hour, minute, max_dur, script, safe) in FIXED_SCHEDULE_JOBS.items():
         status = check_heartbeat(job_name, hour, minute, max_dur)
