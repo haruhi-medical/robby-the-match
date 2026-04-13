@@ -5082,7 +5082,7 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
+      "quality_score": 8.49,
       "ai_review": {
         "score": 7,
         "persona_fit": 8,
@@ -5096,7 +5096,8 @@
         ],
         "suggestion": "フックを短くし、ソフトCTAを追加して8:2ルールを満たすように改善する"
       },
-      "scheduled_for": "2026-04-14 17:30"
+      "scheduled_for": "2026-04-14 17:30",
+      "quality_checked": true
     },
     {
       "id": 214,
@@ -5125,7 +5126,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.03,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5139,7 +5140,8 @@
         ],
         "suggestion": "フックを短くし、スライド内容を簡潔にすることで、看護師の注意を引き付けやすくなります"
       },
-      "scheduled_for": "2026-04-15 12:00"
+      "scheduled_for": "2026-04-15 12:00",
+      "quality_checked": true
     },
     {
       "id": 215,
@@ -5168,7 +5170,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.51,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5181,7 +5183,8 @@
         ],
         "suggestion": "フックを25文字以内に修正し、より具体的な数字や状況を追加して看護師の共感度を高める"
       },
-      "scheduled_for": "2026-04-16 21:00"
+      "scheduled_for": "2026-04-16 21:00",
+      "quality_checked": true
     },
     {
       "id": 216,
@@ -5210,7 +5213,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.74,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5223,7 +5226,8 @@
         ],
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
       },
-      "scheduled_for": "2026-04-17 17:30"
+      "scheduled_for": "2026-04-17 17:30",
+      "quality_checked": true
     },
     {
       "id": 217,
@@ -5252,7 +5256,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.89,
+      "quality_checked": true
     },
     {
       "id": 218,

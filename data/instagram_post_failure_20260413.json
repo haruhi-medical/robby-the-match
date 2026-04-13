@@ -1,0 +1,20 @@
+{
+  "task": "instagram-daily-post",
+  "timestamp": "2026-04-13T17:30:00+09:00",
+  "status": "failed",
+  "queue_entry": {
+    "id": 182,
+    "content_id": "ai_給与_0402_05",
+    "category": "salary",
+    "slide_count": 8,
+    "slide_dir": "content/generated/ai_batch_20260402_1500/ai_給与_0402_05"
+  },
+  "failure_reason": "Chrome MCP未接続（Chrome拡張機能が応答なし）",
+  "fallback_attempted": [
+    "Chrome MCP tabs_context_mcp × 2回 → 接続失敗",
+    "Computer Use → ブラウザはread-onlyティアのため使用不可",
+    "Slack API (curl) → サンドボックスプロキシにブロック (403 blocked-by-allowlist)"
+  ],
+  "action_required": "Chrome拡張機能の接続を確認し、タスクを手動で再実行してください",
+  "content_still_ready": true
+}

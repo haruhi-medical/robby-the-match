@@ -701,5 +701,14 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_給与_0402_05",
+    "content_id": "ai_給与_0402_05",
+    "timestamp": "2026-04-13T17:08:52",
+    "status": "error",
+    "method": "meta_business_suite",
+    "error": "Chrome接続失敗。デバッグモード(port 9223)で起動されていません。"
   }
 ]
