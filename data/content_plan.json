@@ -1,6 +1,6 @@
 {
   "created": "2026-04-11T15:00:16.210825",
-  "updated": "2026-04-11T15:02:48.726068",
+  "updated": "2026-04-13T15:02:49.305409",
   "week_of": "2026-04-11",
   "total": 7,
   "queue_pending_at_creation": 3,
@@ -45,8 +45,8 @@
       "day": 5,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0413_01",
       "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
       "hook_idea": "師長に退職届け出して、ロッカーにPHSス"
     },
@@ -54,8 +54,8 @@
       "day": 6,
       "category": "転職",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_転職_0413_02",
       "hint": "美容クリニックに転職した同期、施術のインセンティブで月収50万。でも看護スキルは？",
       "hook_idea": "看護師5年目で月収50万、本当の理由"
     },
@@ -63,8 +63,8 @@
       "day": 7,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_ある_0413_03",
       "hint": "新人に「大丈夫？」って聞いたら「大丈夫です」。自分も5年間同じ嘘ついてた",
       "hook_idea": "新人に『大丈夫？』聞いたら『大丈夫』、嘘"
     }

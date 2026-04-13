@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-13T02:49:31.726951",
+  "updated": "2026-04-13T15:02:49.294742",
   "posts": [
     {
       "id": 1,
@@ -5224,6 +5224,93 @@
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
       },
       "scheduled_for": "2026-04-17 17:30"
+    },
+    {
+      "id": 217,
+      "content_id": "ai_ある_0413_01",
+      "batch": "ai_batch_20260413_1500",
+      "slide_dir": "content/generated/ai_batch_20260413_1500/ai_ある_0413_01",
+      "json_path": "content/generated/ai_batch_20260413_1500/ai_ある_0413_01.json",
+      "caption": "看護師5年目で手取り24万って普通なの？\n\n神奈川県の看護師の実態\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 218,
+      "content_id": "ai_転職_0413_02",
+      "batch": "ai_batch_20260413_1500",
+      "slide_dir": "content/generated/ai_batch_20260413_1500/ai_転職_0413_02",
+      "json_path": "content/generated/ai_batch_20260413_1500/ai_転職_0413_02.json",
+      "caption": "看護師5年目で月収50万、本当の理由\n\n自分自身の価値を知ってあげようとする人が、本当の支援者なんだ。\n\nわかることがあったらコメントで教えて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師支援"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 219,
+      "content_id": "ai_ある_0413_03",
+      "batch": "ai_batch_20260413_1500",
+      "slide_dir": "content/generated/ai_batch_20260413_1500/ai_ある_0413_03",
+      "json_path": "content/generated/ai_batch_20260413_1500/ai_ある_0413_03.json",
+      "caption": "看護師5年目で時給1,800円、コンビニの1.2倍って本当?\n\n夜勤明け、電車の中で時給が気になる\n\n同じ状況の看護師さんに教えてあげて",
+      "hashtags": [
+        "#神奈川看護師",
+        "#看護師転職",
+        "#夜勤手当",
+        "#看護師時給"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
     }
   ],
   "archive": [

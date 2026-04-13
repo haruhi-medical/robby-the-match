@@ -3866,3 +3866,17 @@ AI Marketing PDCA:
    - 「神奈川県看護師の年収相場と転職のヒント」
    - 「看護師転職のための自己分析とキャリアデザイン」
 
+### 🔎 競合監視（10:00:00）
+   - 「小田原市の看護師転職ガイド」
+   - 「神奈川県看護師の年収相場と転職のヒント」
+   - 「看護師転職のための自己分析とキャリアデザイン」
+[pdca_ai_engine] job=competitor 完了 (exit=0)
+[INFO] commit済み（pushは日次レビューで一括）
+
+### content（15:00:01）
+コンテンツ生成:   id=217, content_id=ai_ある_0413_01, batch=ai_batch_20260413_1500, cta=soft
+  id=218, content_id=ai_転職_0413_02, batch=ai_batch_20260413_1500, cta=soft
+  id=219, content_id=ai_ある_0413_03, batch=ai_batch_20260413_1500, cta=soft
+
+[NOTE] available (35) >= threshold (7) -- --auto では生成スキップ
+
