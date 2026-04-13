@@ -439,7 +439,14 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-14T02:50:17.016360",
+      "content_id": "ai_給与_0402_05",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-04-13T02:49:31.738439"
+  "last_updated": "2026-04-14T02:50:17.016370"
 }

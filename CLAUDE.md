@@ -109,12 +109,17 @@ LINEブロック率: 15%以下 / 開封率: 50%以上
 
 コストに見合うか？→ミサキが動くか？→North Starに近づくか？→法的OK？→平島禎之に聞くべきか？
 
+## Codexレビュー
+
+Codexはあなたが完了したらあなたの出力をレビューします。
+
 ## 詳細リファレンス（必要な時だけ読め）
 
 | 何を知りたい | 読むファイル |
 |-------------|------------|
 | 現在の状態・KPI・タスク | STATE.md |
 | マーケ/ペルソナ/LINE/パイプライン/法的 | docs/strategy-*.md |
+| SEO制覇戦略（4フェーズ） | docs/strategy-seo-domination.md |
 | 過去の作業 / cron構築 | PROGRESS.md / PDCA_SETUP.md |
 | ルール/エージェント | .claude/rules/ / .claude/agents/ |
 | ブランド/デザイン/コンテンツルール | docs/brand-system.md / docs/design-tokens.css / docs/content-rules.md |

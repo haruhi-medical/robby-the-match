@@ -3891,3 +3891,37 @@ SNS自動投稿: IG済36件 / 未投稿80件 (IG=0, TK=0)
  * Claude CLIのエラーを調査して解決する
  * 広告テストと運用フェーズの進捗状況を確認し、必要な調整を行う
 
+
+## 2026-04-14
+
+### tiktok_post（02:30:01）
+TikTok深夜投稿: TK=0
+
+### 🔍 SEO診断（04:00:01）
+1. SEO改善が必要なページ：
+   - lp/job-seeker/area/atsugi.html：titleとh1が似ているため、h1を「厚木市の看護師求人情報」に変更する。
+   - lp/job-seeker/area/index.html：descriptionが短すぎるため、神奈川県の看護師求人についてより詳細に説明する。
+   - lp/job-seeker/guide/career-change.html：titleとh1が似ているため、h1を「看護師のキャリアチェンジについて」に変更する。
+   - lp/job-seeker/area/hakone.html：descriptionに特定のキーワード（温泉地、リハビリ病院など）が不足しているため追加する。
+   - lp/job-seeker/guide/fee-comparison.html：titleとh1が似ているため、h1を「看護師紹介手数料の比較について」に変更する。
+
+2. 不足しているテーマ/地域：
+   - タイトル：「看護師のメンタルヘルスケアについて」
+     ターゲットKW：メンタルヘルスケア、看護師
+   - タイトル：「神奈川県の看護師不足解決策について」
+     ターゲットKW：看護師不足、神奈川県
+   - タイトル：「看護師のキャリア開発について」
+     ターゲットKW：キャリア開発、看護師
+
+3. 内部リンクの改善提案：
+   - 現在のページ数が多いため、ユーザーが関連ページを見つけやすくなるように、内部リンクを追加する。
+   - 例えば、lp/job-seeker/area/atsugi.htmlには、lp/job-seeker/guide/career-change.htmlへのリンクを追加する。
+   - lp/job-seeker/guide/fee-comparison.htmlには、lp/job-seeker/area/index.htmlへのリンクを追加する。
+   - 関連するページ同士をリンクすることで、ユーザーの滞在時間を増やし、SEOも改善される。
+
+### 🔧 SEO自動修正（04:00:17）
+SEO自動修正: 3件修正
+- lp/job-seeker/area/kaisei.html: description短い(68文字) → 修正済み
+- lp/job-seeker/area/oiso.html: description短い(66文字) → 修正済み
+- lp/job-seeker/area/yamakita.html: description短い(66文字) → 修正済み
+
