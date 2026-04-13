@@ -776,25 +776,29 @@ def run_watchdog():
         else:
             suppressed.append(f"Worker: {e} ({fail_count}/3)")
 
-    # ─── 0.5. Claude CLI認証チェック（autoresearch用） ───
-    try:
-        auth_result = subprocess.run(
-            ["claude", "auth", "status"],
-            capture_output=True, text=True, timeout=10,
-            env={**os.environ, "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"}
-        )
-        auth_output = auth_result.stdout + auth_result.stderr
-        if '"loggedIn": true' in auth_output or "loggedIn" not in auth_output:
-            info.append("Claude CLI: 認証OK")
-        else:
-            issues.append(
-                "⚠️ Claude CLI 未ログイン — autoresearchが動作不能。"
-                " `claude auth login` で再認証が必要"
+    # ─── 0.5. Claude CLI認証チェック（autoresearch用、1日2回: 01時台と13時台） ───
+    if now.hour in (1, 13):
+        try:
+            check_env = os.environ.copy()
+            check_env["PATH"] = "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin"
+            check_env.setdefault("HOME", os.path.expanduser("~"))
+            auth_result = subprocess.run(
+                ["claude", "auth", "status"],
+                capture_output=True, text=True, timeout=10,
+                env=check_env
             )
-    except FileNotFoundError:
-        issues.append("⚠️ Claude CLI 未インストール — autoresearch不可")
-    except Exception as e:
-        suppressed.append(f"Claude CLI認証チェック失敗: {e}")
+            auth_output = auth_result.stdout + auth_result.stderr
+            if "true" in auth_output and "loggedIn" in auth_output:
+                info.append("Claude CLI: 認証OK")
+            else:
+                issues.append(
+                    "⚠️ Claude CLI 未ログイン — autoresearchが動作不能。"
+                    " `claude auth login` で再認証が必要"
+                )
+        except FileNotFoundError:
+            issues.append("⚠️ Claude CLI 未インストール — autoresearch不可")
+        except Exception as e:
+            suppressed.append(f"Claude CLI認証チェック失敗: {e}")
 
     # ─── 1. 固定スケジュールジョブの監視 ───
     for job_name, (hour, minute, max_dur, script, safe) in FIXED_SCHEDULE_JOBS.items():
