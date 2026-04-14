@@ -54,22 +54,46 @@ def url_to_file_path(url: str) -> Optional[Path]:
 def get_git_lastmod(file_path: Path) -> Optional[str]:
     """
     指定ファイルの最終 git commit 日付を YYYY-MM-DD で返す。
+
+    優先順位:
+      1. --diff-filter=M  : ファイル内容が実際に変更されたコミットの最新日付
+      2. --diff-filter=A  : 追加されたコミット（新規ファイル）
+      3. フォールバック    : git log -1（上記で取得できない場合）
+
     git 管理外 or エラーの場合は None を返す。
     """
-    try:
-        result = subprocess.run(
-            ["git", "log", "-1", "--format=%ad", "--date=short", "--", str(file_path)],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        date_str = result.stdout.strip()
-        if date_str and re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
-            return date_str
-        return None
-    except Exception:
-        return None
+    rel_path = str(file_path.relative_to(REPO_ROOT))
+
+    def _run_git_log(extra_args: list) -> Optional[str]:
+        try:
+            result = subprocess.run(
+                ["git", "log", "-1", "--format=%ad", "--date=short"]
+                + extra_args
+                + ["--", rel_path],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            date_str = result.stdout.strip()
+            if date_str and re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
+                return date_str
+            return None
+        except Exception:
+            return None
+
+    # 1. 内容変更コミット（M=modified）
+    date = _run_git_log(["--diff-filter=M"])
+    if date:
+        return date
+
+    # 2. 追加コミット（A=added）
+    date = _run_git_log(["--diff-filter=A"])
+    if date:
+        return date
+
+    # 3. フォールバック: 最新コミット（リネーム等を含む）
+    return _run_git_log([])
 
 
 def main():
