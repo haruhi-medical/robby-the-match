@@ -1,12 +1,12 @@
 {
   "lastRun": {
-    "ai_marketing_orchestrator": "2026-04-13T06:00:02",
-    "health_monitor": "2026-04-13T07:00:18",
-    "competitor_analyst": "2026-04-13T10:00:10",
+    "ai_marketing_orchestrator": "2026-04-14T06:00:06",
+    "health_monitor": "2026-04-14T07:00:18",
+    "competitor_analyst": "2026-04-14T10:00:00",
     "content_creator": "2026-04-13T15:02:49",
     "sns_poster": "2026-04-13T17:08:52",
     "daily_reviewer": "2026-04-13T23:00:24",
-    "seo_optimizer": "2026-04-14T04:00:00",
+    "seo_optimizer": "2026-04-14T04:00:27",
     "weekly_content_planner": "2026-04-12T05:00:02",
     "weekly_strategist": "2026-04-12T06:01:03",
     "tiktok_poster": "2026-04-14T02:50:17",
@@ -15,11 +15,11 @@
   "status": {
     "ai_marketing_orchestrator": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "sns_poster": "completed",
     "daily_reviewer": "completed",
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "weekly_content_planner": "pending",
     "weekly_strategist": "completed",
     "tiktok_poster": "completed",
@@ -33,6 +33,13 @@
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
         "created": "2026-04-13T07:00:18.065412",
         "status": "processing"
+      },
+      {
+        "from": "health_monitor",
+        "type": "emergency_generate",
+        "details": "キュー残り2件。緊急コンテンツ生成必要。",
+        "created": "2026-04-14T07:00:18.081649",
+        "status": "pending"
       }
     ]
   },
@@ -45,8 +52,8 @@
     "topPerformingTags": [],
     "queueRemaining": 3,
     "totalPostsThisWeek": 47,
-    "lastMarketingPDCA": "2026-04-13 06:00:00",
-    "queuePending": 32,
+    "lastMarketingPDCA": "2026-04-14 06:00:00",
+    "queuePending": 34,
     "dailyGeneratedCount": 0
   },
   "agentMemory": {
