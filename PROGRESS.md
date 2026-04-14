@@ -3948,3 +3948,20 @@ AI Marketing PDCA:
    - タイトル案2：『看護師転職のための年収相場と昇給のコツ』
    - タイトル案3：『神奈川県西部の看護師紹介サービス比較：費用やサービス内容を調べる』
 
+### 🔎 競合監視（10:00:00）
+3. 次に作るべきページ2-3本の提案：
+   - タイトル案1：『小田原市の看護師転職ガイド：魅力的な病院やクリニックを紹介』
+   - タイ
+[pdca_ai_engine] job=competitor 完了 (exit=0)
+[INFO] commit済み（pushは日次レビューで一括）
+
+### sns_post（12:00:00）
+SNS自動投稿: IG済36件 / 未投稿80件 (IG=0, TK=0)
+
+### content（15:00:00）
+コンテンツ生成:   id=226, content_id=ai_給与_0414_07, batch=ai_batch_20260414_1500, cta=soft
+  id=227, content_id=ai_業界_0414_08, batch=ai_batch_20260414_1500, cta=soft
+  ... 他 2件
+
+[NOTE] available (43) >= threshold (7) -- --auto では生成スキップ
+

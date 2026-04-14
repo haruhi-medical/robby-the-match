@@ -710,5 +710,14 @@
     "status": "error",
     "method": "meta_business_suite",
     "error": "Chrome接続失敗。デバッグモード(port 9223)で起動されていません。"
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_ある_0402_06",
+    "content_id": "ai_ある_0402_06",
+    "timestamp": "2026-04-14T12:09:53",
+    "status": "error",
+    "method": "meta_business_suite",
+    "error": "Chrome接続失敗。デバッグモード(port 9223)で起動されていません。"
   }
 ]
