@@ -457,15 +457,8 @@
     var skipped = window._shindanSkipped;
     window._shindanSkipped = false;
 
-    // 外部ブラウザ → LINE友だち追加URLに直接遷移（LIFFエラー回避）
-    // LIFF使えるLINE内ブラウザ → liff.html経由
-    var isLineApp = /Line/i.test(navigator.userAgent);
-    var ctaURL;
-    if (isLineApp) {
-      ctaURL = EP + '?session_id=' + sid + '&source=' + (skipped ? 'shindan_skip' : 'shindan') + '&intent=diagnose&answers=' + answersJson;
-    } else {
-      ctaURL = 'https://lin.ee/oUgDB3x';
-    }
+    // 全環境 → LINE友だち追加URLに直接遷移（LIFFはInstagram WebView等でログイン壁になるため廃止）
+    var ctaURL = 'https://lin.ee/oUgDB3x';
 
     var ctaText = 'LINEで診断結果を受け取る';
     var cta = el('a', 'shindan-cta', '', {

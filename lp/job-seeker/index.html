@@ -1847,12 +1847,12 @@
       }
       var sid = uuid();
       window.__lineSessionId = sid;
-      // LIFF ブリッジ経由（LIFF ID未設定時は自動でline-startにフォールバック）
-      var LIFF_BRIDGE = '/lp/job-seeker/liff.html';
+      // LINE友だち追加URL（直リンク — LIFFブリッジはInstagram WebViewでログイン壁になるため廃止）
+      var LINE_ADD_URL = 'https://lin.ee/oUgDB3x';
 
-      // CTA href書き換え
+      // CTA href: 直接LINE友だち追加URLへ（セッション追跡はGA4+Pixel側で実施）
       function lineUrl(source, intent) {
-        return LIFF_BRIDGE + '?session_id=' + sid + '&source=' + source + '&intent=' + intent;
+        return LINE_ADD_URL;
       }
 
       // Hero CTA
