@@ -8,4 +8,5 @@ Disallow: /api/
 Disallow: /dashboard.html
 Disallow: /proposal.html
 Disallow: /lp/job-seeker/index-preview.html
-Disallow: /about.html
+# about.htmlはE-E-AT信頼性のため公開（2026-04-14解除）
+# Disallow: /about.html
