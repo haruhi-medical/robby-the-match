@@ -82,6 +82,8 @@ def build_sql(jobs):
   score_emp INTEGER,
   score_wel INTEGER,
   score_loc INTEGER,
+  contract_period TEXT,
+  insurance TEXT,
   synced_at TEXT
 );""")
     lines.append("CREATE INDEX IF NOT EXISTS idx_jobs_area ON jobs(area);")
@@ -174,6 +176,8 @@ def build_sql(jobs):
             str(bd.get("emp", 0)),
             str(bd.get("wel", 0)),
             str(bd.get("loc", 0)),
+            escape_sql(j.get("contract_period", "")),
+            escape_sql(j.get("insurance", "")),
             escape_sql(synced_at),
         ]
 
@@ -182,7 +186,7 @@ def build_sql(jobs):
             "work_location,salary_form,salary_min,salary_max,salary_display,"
             "bonus_text,holidays,emp_type,station_text,shift1,shift2,"
             "description,welfare,score_sal,score_hol,score_bon,score_emp,"
-            "score_wel,score_loc,synced_at) VALUES ("
+            "score_wel,score_loc,contract_period,insurance,synced_at) VALUES ("
             + ",".join(vals) + ");"
         )
 

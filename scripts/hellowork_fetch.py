@@ -225,6 +225,7 @@ def parse_job(data_elem):
         "employment_type": t("koyokeitai_n"),        # 雇用形態
         "full_part": t("kjkbn2_n"),                  # フルタイム/パート
         "permanent_hire": t("ssintoyo_umu_n"),       # 正社員登用
+        "contract_period": t("koyokikan_sadame_n"),  # 契約期間（雇用期間の定めなし/あり）
 
         # 給与
         "salary_low": salary_low,                    # 基本給下限
@@ -262,7 +263,7 @@ def parse_job(data_elem):
         "license3": t("menkyo_skkuyohi3_n"),         # 免許・資格3
 
         # 福利厚生
-        "insurance": t("knyuhkn"),                   # 加入保険
+        "insurance": t("knyhkn"),                    # 加入保険（雇用/労災/健康/厚生等）
         "retirement": t("tskknseido_n"),             # 退職金制度
         "childcare": t("tkjshsetu_n"),               # 託児施設
         "car_commute": t("mycartsknkahi_n"),         # マイカー通勤

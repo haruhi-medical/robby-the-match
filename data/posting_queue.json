@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-15T02:55:58.507115",
+  "updated": "2026-04-15T06:00:05.424356",
   "posts": [
     {
       "id": 1,
@@ -5274,11 +5274,11 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,

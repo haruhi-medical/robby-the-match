@@ -3825,6 +3825,16 @@ async function buildPhaseMessage(phase, entry, env) {
         if (hol) {
           bodyContents.push({ type: "text", text: `🗓 ${hol}`, size: "sm", color: "#333333", margin: "xs" });
         }
+        // 契約期間
+        const ctr = job.ctr || '';
+        if (ctr) {
+          bodyContents.push({ type: "text", text: `📋 ${ctr}`, size: "sm", color: "#333333", margin: "xs" });
+        }
+        // 加入保険
+        const ins = job.ins || '';
+        if (ins) {
+          bodyContents.push({ type: "text", text: `🏥 ${ins}`, size: "xs", color: "#666666", margin: "xs", wrap: true });
+        }
         // セパレータ
         bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
         // 施設名（小さく）
@@ -5017,6 +5027,28 @@ function buildFacilityFlexBubble(job, index) {
       { type: "text", text: emp, size: "xs", color: "#333333", flex: 4 },
     ]},
   );
+
+  // 契約期間
+  const ctr = job.ctr || (job.contract_period || "");
+  if (ctr) {
+    bodyContents.push({
+      type: "box", layout: "horizontal", margin: "sm", contents: [
+        { type: "text", text: "契約期間", size: "xs", color: "#999999", flex: 3 },
+        { type: "text", text: ctr, size: "xs", color: "#333333", flex: 4, wrap: true },
+      ],
+    });
+  }
+
+  // 加入保険
+  const ins = job.ins || (job.insurance || "");
+  if (ins) {
+    bodyContents.push({
+      type: "box", layout: "horizontal", margin: "sm", contents: [
+        { type: "text", text: "加入保険", size: "xs", color: "#999999", flex: 3 },
+        { type: "text", text: ins, size: "xs", color: "#333333", flex: 4, wrap: true },
+      ],
+    });
+  }
 
   // 勤務時間があれば追加
   if (shift) {

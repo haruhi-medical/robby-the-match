@@ -88,6 +88,12 @@ def build_job_object(rj):
     if rj.get("shift2"):
         shift += " / " + rj.get("shift2", "")
 
+    # 契約期間
+    ctr = rj.get("contract_period", "") or rj.get("details", {}).get("contract_period", "")
+
+    # 加入保険
+    ins = rj.get("insurance", "") or rj.get("details", {}).get("insurance", "")
+
     # スコア内訳 (details内のスコアは再計算が必要 → ranked.jsonのscoreを使う)
     # hellowork_rank.pyのscore_job()の配点に基づいてdetailsから再構成
     # → ranked.jsonにはスコア合計のみ保存されているので、ここで内訳も出す
@@ -117,6 +123,8 @@ def build_job_object(rj):
         "desc": desc,
         "loc": loc,
         "shift": shift,
+        "ctr": ctr,
+        "ins": ins,
     }
     return obj
 
@@ -238,7 +246,7 @@ def main():
     lines = [f'// ---------- 外部公開求人データ（ハローワークAPI {today}更新） ----------']
     lines.append('// 各求人: n=事業所名, t=職種, r=ランク(S/A/B/C/D), s=スコア(100点満点),')
     lines.append('//   sal=給与, sta=最寄り駅, hol=年間休日, bon=賞与, emp=雇用形態, wel=福利厚生,')
-    lines.append('//   desc=仕事内容(80字), loc=勤務地, shift=勤務時間')
+    lines.append('//   desc=仕事内容(80字), loc=勤務地, shift=勤務時間, ctr=契約期間, ins=加入保険')
     lines.append('// スコア配点: 年収30点 + 休日20点 + 賞与15点 + 雇用安定15点 + 福利10点 + 立地10点')
     lines.append('const EXTERNAL_JOBS = {')
     lines.append('  nurse: {')
