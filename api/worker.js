@@ -46,6 +46,31 @@ async function trackFunnelEvent(eventName, userId, entry, env, ctx) {
   };
   console.log(`[Track] ${eventName}`, JSON.stringify(eventData));
 
+  // Slack通知（主要ファネルステップのみ — follow以外の進捗を可視化）
+  const slackNotifyEvents = {
+    "intake_start":          "📝 Q1回答開始",
+    "consultation_start":    "📝 Q2回答",
+    "intake_complete":       "✅ 質問3問完了→マッチング表示",
+    "matching_view":         "👀 求人一覧を閲覧中",
+    "matching_browse":       "🔍 他の求人も見たい",
+    "job_detail":            "💼 求人詳細を閲覧",
+    "consultation_complete": "📋 ヒアリング完了",
+    "resume_generate":       "📄 経歴書生成",
+    "handoff":               "🤝 担当者引き継ぎ",
+  };
+  if (env?.SLACK_BOT_TOKEN && slackNotifyEvents[eventName]) {
+    const label = slackNotifyEvents[eventName];
+    const areaInfo = entry?.area ? ` | エリア: ${entry.areaLabel || entry.area}` : '';
+    const slackMsg = `${label}\nユーザー: \`${userId ? userId.slice(0, 8) + '...' : 'unknown'}\`${areaInfo}\n時刻: ${nowJST}`;
+    try {
+      await fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: slackMsg }),
+      });
+    } catch (e) { console.error(`[Track] Slack notify error: ${e.message}`); }
+  }
+
   // KVにイベントログ保存（日次集計用）
   if (env?.LINE_SESSIONS) {
     const dateKey = new Date().toISOString().slice(0, 10);
