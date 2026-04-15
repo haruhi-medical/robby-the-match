@@ -66,6 +66,24 @@ ensure_env() {
     return 0
   fi
 
+  # Step 3.5: OAuthトークン期限切れの場合、refreshTokenで自動更新を試みる
+  # cron環境ではアクセストークンが期限切れになりやすい（~8時間有効）
+  echo "[INFO] Claude CLI未ログイン — OAuthトークンリフレッシュを試行中..." >> "$log_target"
+  local refresh_output
+  refresh_output=$(python3 "$PROJECT_DIR/scripts/refresh_claude_token.py" 2>&1)
+  local refresh_exit=$?
+  echo "[INFO] refresh_claude_token.py: $refresh_output (exit=$refresh_exit)" >> "$log_target"
+
+  if [ $refresh_exit -eq 0 ]; then
+    # リフレッシュ成功 — 再度認証状態を確認
+    auth_output=$(claude auth status 2>&1) || true
+    if echo "$auth_output" | grep -q '"loggedIn": true'; then
+      echo "[ENV_OK] OAuthトークンリフレッシュ成功 — Claude CLI認証確認済み" >> "$log_target"
+      return 0
+    fi
+    echo "[WARN] トークンリフレッシュは成功したが、claude auth statusはまだfalse" >> "$log_target"
+  fi
+
   # loggedIn:false の場合
   # ANTHROPIC_API_KEY がセットされていれば claude -p は API key モードで動く可能性がある
   if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
@@ -79,7 +97,7 @@ ensure_env() {
   echo "[CONFIG_ERROR] auth status出力: $auth_output" >> "$log_target"
 
   # Slack通知（可能であれば）
-  slack_notify "⚠️ [CONFIG_ERROR] Claude CLI 認証失敗 — cron環境でログインできません。手動で 'claude auth login' を実行するか、.envにANTHROPIC_API_KEYを設定してください。" 2>/dev/null || true
+  slack_notify "⚠️ [CONFIG_ERROR] Claude CLI 認証失敗 — OAuthリフレッシュも失敗。手動で 'claude auth login' を実行してください。" 2>/dev/null || true
 
   return $EXIT_CONFIG_ERROR
 }

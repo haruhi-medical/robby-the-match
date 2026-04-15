@@ -5490,7 +5490,7 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
+      "quality_score": 8.22,
       "ai_review": {
         "score": 7,
         "persona_fit": 8,
@@ -5504,7 +5504,8 @@
         ],
         "suggestion": "看護師の現場語をより具体的にし、フックを短くすることで、より効果的な投稿になる可能性がある"
       },
-      "scheduled_for": "2026-04-19 12:00"
+      "scheduled_for": "2026-04-19 12:00",
+      "quality_checked": true
     },
     {
       "id": 224,
@@ -5533,7 +5534,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.2,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5547,7 +5548,8 @@
         ],
         "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
       },
-      "scheduled_for": "2026-04-20 21:00"
+      "scheduled_for": "2026-04-20 21:00",
+      "quality_checked": true
     },
     {
       "id": 225,
@@ -5576,7 +5578,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.8,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5589,7 +5591,8 @@
         ],
         "suggestion": "フックを短くして、看護師の共感を高める内容に変更する"
       },
-      "scheduled_for": "2026-04-21 17:30"
+      "scheduled_for": "2026-04-21 17:30",
+      "quality_checked": true
     },
     {
       "id": 226,
@@ -5618,7 +5621,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 7.83,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5631,7 +5634,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "フックを短くして、ハッシュタグを減らしてみてください"
-      }
+      },
+      "quality_checked": true
     },
     {
       "id": 227,
@@ -5660,7 +5664,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 7.82,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5673,7 +5677,8 @@
           "ハッシュタグが4個を超えている"
         ],
         "suggestion": "看護師の市場価値を上げる転職支援サービスを提供し、病院の収入も増やせるWIN-WINの仕組みを紹介することで、看護師の転職を支援する"
-      }
+      },
+      "quality_checked": true
     },
     {
       "id": 228,
