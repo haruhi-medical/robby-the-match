@@ -100,30 +100,77 @@ def load_engage_log() -> List[Dict]:
     return []
 
 
+def _sync_chrome_cookies():
+    """Sync Instagram cookies from Chrome browser to session file."""
+    try:
+        import browser_cookie3
+        cj = browser_cookie3.chrome(domain_name='.instagram.com')
+        cookies = {c.name: c.value for c in cj}
+        sessionid = cookies.get('sessionid', '')
+        if not sessionid:
+            print("[ENGAGE] Chrome has no Instagram sessionid")
+            return False
+
+        settings = {}
+        if SESSION_FILE.exists():
+            with open(SESSION_FILE) as f:
+                settings = json.load(f)
+
+        settings.setdefault('cookies', {})
+        settings['cookies']['sessionid'] = sessionid
+        settings['cookies']['csrftoken'] = cookies.get('csrftoken', '')
+        settings['cookies']['ds_user_id'] = cookies.get('ds_user_id', '')
+        settings['cookies']['mid'] = cookies.get('mid', '')
+        settings['cookies']['rur'] = cookies.get('rur', '')
+        settings.setdefault('authorization_data', {})
+        settings['authorization_data']['ds_user_id'] = cookies.get('ds_user_id', '')
+        settings['authorization_data']['sessionid'] = sessionid
+
+        with open(SESSION_FILE, 'w') as f:
+            json.dump(settings, f, indent=2)
+        print("[ENGAGE] Chrome cookies synced to session file")
+        return True
+    except Exception as e:
+        print(f"[ENGAGE] Chrome cookie sync failed: {e}")
+        return False
+
+
 def instagram_login():
-    """Login with session reuse (shares session with auto_post.py)."""
+    """Login with Chrome cookie sync + session reuse (shares session with auto_post.py)."""
     from instagrapi import Client
 
     cl = Client()
     cl.delay_range = [2, 5]
-    username = os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse")
-    password = os.environ.get("INSTAGRAM_PASSWORD", "")
 
+    # Step 1: Sync fresh cookies from Chrome (Googleログイン対応)
+    _sync_chrome_cookies()
+
+    # Step 2: Load session with synced cookies
     if SESSION_FILE.exists():
         try:
             cl.load_settings(str(SESSION_FILE))
-            cl.login(username, password)
+            # Don't call cl.login() — Googleログインではパスワードがない
+            # Cookieベースのセッションで直接APIを叩く
+            cl.user_id  # This triggers session validation
+            print(f"[ENGAGE] Session loaded via Chrome cookies. User ID: {cl.user_id}")
             return cl
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[ENGAGE] Chrome cookie session failed: {e}")
 
-    cl.set_settings({
-        "user_agent": "Instagram 302.1.0.36.111 Android (34/14; 420dpi; 1080x2400; Google/google; Pixel 8; shiba; shiba; en_JP; 533450710)",
-        "country": "JP", "country_code": 81, "locale": "ja_JP", "timezone_offset": 32400,
-    })
-    cl.login(username, password)
-    cl.dump_settings(str(SESSION_FILE))
-    return cl
+    # Step 3: Fallback — try password login if available
+    username = os.environ.get("INSTAGRAM_USERNAME", "robby.for.nurse")
+    password = os.environ.get("INSTAGRAM_PASSWORD", "")
+    if password:
+        cl.set_settings({
+            "user_agent": "Instagram 302.1.0.36.111 Android (34/14; 420dpi; 1080x2400; Google/google; Pixel 8; shiba; shiba; en_JP; 533450710)",
+            "country": "JP", "country_code": 81, "locale": "ja_JP", "timezone_offset": 32400,
+        })
+        cl.login(username, password)
+        cl.dump_settings(str(SESSION_FILE))
+        print(f"[ENGAGE] Password login. User: {cl.username}")
+        return cl
+
+    raise Exception("No valid session. Login to Instagram in Chrome first.")
 
 
 def daily_engagement(dry_run: bool = False) -> Dict:

@@ -235,8 +235,8 @@ def upload_video(video_path: str, caption: str, headless: bool = False, timeout:
             print("[TikTok Upload] ✅ 投稿成功！")
             return True
         else:
-            print("[TikTok Upload] ⚠️ 投稿結果不明。スクショを確認してください。")
-            return True  # 楽観的に成功とみなす
+            print("[TikTok Upload] ⚠️ 投稿結果不明。スクショを確認してください: /tmp/tiktok_upload_result.png")
+            return False
 
 
 def test_connection():

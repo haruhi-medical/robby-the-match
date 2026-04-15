@@ -753,6 +753,7 @@ def run_watchdog():
         import urllib.request
         worker_url = "https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/health"
         req = urllib.request.Request(worker_url, method="GET")
+        req.add_header("User-Agent", "watchdog/3.1")
         with urllib.request.urlopen(req, timeout=10) as resp:
             if resp.status == 200:
                 info.append("Worker: OK")
@@ -764,11 +765,10 @@ def run_watchdog():
         fail_count = 1
         try:
             if wh_path.exists():
-                import json as _json
-                wh = _json.loads(wh_path.read_text())
+                wh = json.loads(wh_path.read_text())
                 if wh.get("date") == now.strftime("%Y-%m-%d"):
                     fail_count = wh.get("fail_count", 0) + 1
-            wh_path.write_text(_json.dumps({"date": now.strftime("%Y-%m-%d"), "fail_count": fail_count, "last_error": str(e)[:100]}))
+            wh_path.write_text(json.dumps({"date": now.strftime("%Y-%m-%d"), "fail_count": fail_count, "last_error": str(e)[:100]}))
         except Exception:
             pass
         if fail_count >= 3:

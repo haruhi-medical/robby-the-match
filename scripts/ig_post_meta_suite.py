@@ -47,25 +47,81 @@ class CDPClient:
         self.msg_id = 0
 
     def connect(self):
-        """Connect to Chrome's debug port."""
-        try:
-            r = requests.get(f"http://localhost:{self.port}/json")
-            tabs = r.json()
-            # Find the first non-devtools tab
-            target = None
-            for tab in tabs:
-                if tab.get("type") == "page" and "devtools" not in tab.get("url", ""):
-                    target = tab
-                    break
-            if not target:
-                target = tabs[0]
+        """Connect to Chrome's debug port.
 
+        Recovery logic:
+        - If Chrome is not running on the debug port, fail immediately with clear message.
+        - If Chrome is running but has 0 tabs, create a new tab automatically and retry.
+        """
+        # Preflight: check Chrome debug port is responding
+        try:
+            r = requests.get(f"http://localhost:{self.port}/json/version", timeout=5)
+            r.raise_for_status()
+            print(f"[CDP] Chrome debug port {self.port} is alive")
+        except requests.ConnectionError:
+            print(f"[CDP] Chrome is NOT running on port {self.port}. Start Chrome with --remote-debugging-port={self.port}")
+            return False
+        except Exception as e:
+            print(f"[CDP] Preflight check failed: {e}")
+            return False
+
+        # Get tab list
+        try:
+            r = requests.get(f"http://localhost:{self.port}/json", timeout=5)
+            tabs = r.json()
+        except Exception as e:
+            print(f"[CDP] Failed to get tab list: {e}")
+            return False
+
+        # Find a usable page tab
+        target = None
+        for tab in tabs:
+            if tab.get("type") == "page" and "devtools" not in tab.get("url", ""):
+                target = tab
+                break
+
+        # If no page tab found, try any tab
+        if not target and tabs:
+            target = tabs[0]
+
+        # If still no tab: auto-recover by creating a new one
+        if not target:
+            print(f"[CDP] No tabs found (0 tabs). Creating a new tab...")
+            try:
+                new_tab_url = f"http://localhost:{self.port}/json/new?{MBS_COMPOSER_URL}"
+                r = requests.get(new_tab_url, timeout=10)
+                r.raise_for_status()
+                target = r.json()
+                print(f"[CDP] New tab created: {target.get('url', 'unknown')}")
+                time.sleep(5)
+            except Exception as e:
+                print(f"[CDP] Failed to create new tab: {e}")
+                # Last attempt: retry /json/list after a short wait
+                time.sleep(3)
+                try:
+                    r2 = requests.get(f"http://localhost:{self.port}/json", timeout=5)
+                    tabs2 = r2.json()
+                    if tabs2:
+                        target = tabs2[0]
+                        print(f"[CDP] Recovered tab on retry: {target.get('title', 'unknown')}")
+                    else:
+                        print(f"[CDP] Chrome is running (port {self.port}) but has 0 tabs and tab creation failed.")
+                        return False
+                except Exception as e2:
+                    print(f"[CDP] All recovery attempts failed: {e2}")
+                    return False
+
+        # Connect via WebSocket
+        try:
             ws_url = target["webSocketDebuggerUrl"]
             self.ws = websocket.create_connection(ws_url, timeout=30)
             print(f"[CDP] Connected to: {target.get('title', 'unknown')}")
             return True
+        except KeyError:
+            print(f"[CDP] Tab has no webSocketDebuggerUrl. Tab data: {json.dumps(target, ensure_ascii=False)[:200]}")
+            return False
         except Exception as e:
-            print(f"[CDP] Connection failed: {e}")
+            print(f"[CDP] WebSocket connection failed: {e}")
             return False
 
     def send(self, method, params=None):
@@ -571,7 +627,7 @@ def main():
     # Connect to Chrome
     cdp = CDPClient(CDP_PORT)
     if not cdp.connect():
-        error_msg = "Chrome接続失敗。デバッグモード(port 9223)で起動されていません。"
+        error_msg = "Chrome CDP接続失敗。詳細はログを確認。port 9223未起動 or タブ0個の可能性。"
         print(f"[MBS] FAILED: {error_msg}")
         notify_slack_error(error_msg)
         log_post(content_id, slide_dir, "error", error_msg)
