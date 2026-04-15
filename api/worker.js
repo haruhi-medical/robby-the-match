@@ -4341,7 +4341,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_contact_intro":
       return [{
         type: "text",
-        text: "転職について担当スタッフに相談できます。\n\n・希望に合う求人を探してほしい\n・気になる病院の内部情報を知りたい\n・履歴書や面接のアドバイスがほしい\n・転職するか迷っている\n\n✅ 電話なし・LINEで完結\n✅ 相談だけでもOK\n\n相談したい内容を教えてください👇",
+        text: "スタッフにお繋ぎしました。\n\nスタッフに追加でお伝えしたい内容があれば\nお選びください\n・希望に合う求人を探してほしい\n・気になる病院の内部情報を知りたい\n・履歴書や面接のアドバイスがほしい\n・転職するか迷っている\n\n✅ 簡単LINE相談\n✅ 採用経験1000名以上のスタッフのみが対応いたします。\n\n相談したい内容を教えてください👇",
         quickReply: {
           items: [
             qrItem("求人を探してほしい", "rm_contact=job_search"),
