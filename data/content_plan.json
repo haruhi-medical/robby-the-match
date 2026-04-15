@@ -1,72 +1,72 @@
 {
-  "created": "2026-04-11T15:00:16.210825",
-  "updated": "2026-04-14T15:09:10.827043",
-  "week_of": "2026-04-11",
+  "created": "2026-04-15T15:00:18.343203",
+  "updated": "2026-04-15T15:00:18.343252",
+  "week_of": "2026-04-15",
   "total": 7,
-  "queue_pending_at_creation": 3,
+  "queue_pending_at_creation": 11,
   "plans": [
     {
       "day": 1,
-      "category": "転職",
+      "category": "給与",
       "cta_type": "hard",
-      "status": "generated",
-      "content_id": "ai_転職_0411_01",
-      "hint": "退職届を出したら急に「待遇改善する」と言われた。3年間の不満を無視してたくせに",
-      "hook_idea": "夜勤明け、退職届出したら待遇改善って本当"
+      "status": "planned",
+      "content_id": null,
+      "hint": "応援ナースの時給3,000円。同じ病棟で常勤の自分は時給換算1,800円。同じ仕事なのになぜ？",
+      "hook_idea": "同じ仕事なのになぜ時給差がある"
     },
     {
       "day": 2,
-      "category": "あるある",
+      "category": "業界裏側",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0411_02",
-      "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？",
-      "hook_idea": "先輩の『私の時代は大変だった』、その時代"
+      "status": "planned",
+      "content_id": null,
+      "hint": "紹介会社経由で入職すると「すぐ辞めるな」プレッシャーが強くなる。手数料のせいで",
+      "hook_idea": "紹介会社の紹介で入ったら辞められない"
     },
     {
       "day": 3,
-      "category": "業界裏側",
+      "category": "転職",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_業界_0411_03",
-      "hint": "手数料30%の紹介会社が「看護師に寄り添う」と言う矛盾。寄り添ってるのは病院の財布",
-      "hook_idea": "看護師の転職で病院が30%払ってる、誰が"
+      "status": "planned",
+      "content_id": null,
+      "hint": "転職サイトに登録した瞬間、知らない番号から17件。看護師の個人情報はいくら？",
+      "hook_idea": "転職サイトに登録したら17件の電話"
     },
     {
       "day": 4,
       "category": "転職",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_転職_0411_04",
-      "hint": "美容クリニックに転職した同期、施術のインセンティブで月収50万。でも看護スキルは？",
-      "hook_idea": "美容クリニックの看護師、50万稼いでるっ"
+      "status": "planned",
+      "content_id": null,
+      "hint": "「3年は続けなさい」。それ、誰のための3年？病院の離職率のための3年だった",
+      "hook_idea": "3年続けろとは誰が言っているの"
     },
     {
       "day": 5,
-      "category": "あるある",
+      "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0413_01",
-      "hint": "師長に退職届を出した日、ロッカーに3年分のPHSストラップが溜まってた",
-      "hook_idea": "師長に退職届け出して、ロッカーにPHSス"
+      "status": "planned",
+      "content_id": null,
+      "hint": "県西部の病院は紹介会社に135万払えない。だから看護師が来ない。この悪循環",
+      "hook_idea": "県西部の病院は看護師を得ることができない"
     },
     {
       "day": 6,
-      "category": "転職",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_転職_0413_02",
-      "hint": "美容クリニックに転職した同期、施術のインセンティブで月収50万。でも看護スキルは？",
-      "hook_idea": "看護師5年目で月収50万、本当の理由"
+      "status": "planned",
+      "content_id": null,
+      "hint": "休憩室のカップ麺を3分待てたことがない。2分40秒で戻るのがデフォルト",
+      "hook_idea": "休憩室で3分待つことができない"
     },
     {
       "day": 7,
       "category": "あるある",
       "cta_type": "soft",
-      "status": "generated",
-      "content_id": "ai_ある_0413_03",
-      "hint": "新人に「大丈夫？」って聞いたら「大丈夫です」。自分も5年間同じ嘘ついてた",
-      "hook_idea": "新人に『大丈夫？』聞いたら『大丈夫』、嘘"
+      "status": "planned",
+      "content_id": null,
+      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
+      "hook_idea": "向いてないかもとこの仕事しかないと思った"
     }
   ]
 }

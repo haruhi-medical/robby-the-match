@@ -457,6 +457,8 @@ def main():
             "bonus_detail": job.get("bonus_detail", ""),
             "childcare": job.get("childcare", ""),
             "retirement": job.get("retirement", ""),
+            "contract_period": job.get("contract_period", ""),
+            "insurance": job.get("insurance", ""),
             "shift1": job.get("shift1", ""),
             "shift2": job.get("shift2", ""),
             "job_description": job.get("job_description", "")[:150],

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-15T06:00:05.424356",
+  "updated": "2026-04-15T15:02:43.410656",
   "posts": [
     {
       "id": 1,
@@ -5304,7 +5304,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5315,9 +5315,23 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 8.25,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが少し長い",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを25文字以内に短縮し、ハッシュタグを4個以内に絞り込むとさらに効果的になる"
+      },
+      "scheduled_for": "2026-04-15 17:30"
     },
     {
       "id": 220,
@@ -5334,7 +5348,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5345,9 +5359,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 8.79,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "CTAの8:2ルールが厳密に守られていない"
+        ],
+        "suggestion": "ハードCTAの頻度を減らし、ソフトCTAを増やすことで8:2ルールを遵守する"
+      },
+      "scheduled_for": "2026-04-16 12:00"
     },
     {
       "id": 221,
@@ -5364,7 +5391,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5375,9 +5402,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 7.85,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 9,
+        "issues": [
+          "CTAの8:2ルールが厳密に守られていない"
+        ],
+        "suggestion": "ソフトCTAを追加して8:2ルールを満たすようにし、看護師の共感度をさらに高める"
+      },
+      "scheduled_for": "2026-04-17 21:00"
     },
     {
       "id": 222,
@@ -5394,7 +5434,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5405,9 +5445,23 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 8,
       "quality_score": 8.29,
-      "quality_checked": true
+      "quality_checked": true,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      },
+      "scheduled_for": "2026-04-18 17:30"
     },
     {
       "id": 223,
@@ -5424,7 +5478,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5435,8 +5489,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 9,
+        "cta_quality": 8,
+        "empathy": 7,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "看護師の現場語をより具体的にし、フックを短くすることで、より効果的な投稿になる可能性がある"
+      },
+      "scheduled_for": "2026-04-19 12:00"
     },
     {
       "id": 224,
@@ -5453,7 +5521,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5464,8 +5532,22 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを減らして看護師の共感度を高める"
+      },
+      "scheduled_for": "2026-04-20 21:00"
     },
     {
       "id": 225,
@@ -5482,7 +5564,7 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -5493,8 +5575,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "フックを短くして、看護師の共感を高める内容に変更する"
+      },
+      "scheduled_for": "2026-04-21 17:30"
     },
     {
       "id": 226,
@@ -5522,8 +5617,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 7,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くして、ハッシュタグを減らしてみてください"
+      }
     },
     {
       "id": 227,
@@ -5551,8 +5659,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "看護師の市場価値を上げる転職支援サービスを提供し、病院の収入も増やせるWIN-WINの仕組みを紹介することで、看護師の転職を支援する"
+      }
     },
     {
       "id": 228,
@@ -5580,8 +5701,21 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 7,
+        "persona_fit": 8,
+        "hook_strength": 6,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "CTAがソフトCTAのみ"
+        ],
+        "suggestion": "フックを短くし、ハードCTAを追加してみてください"
+      }
     },
     {
       "id": 229,
@@ -5609,8 +5743,20 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
+      }
     }
   ],
   "archive": [
