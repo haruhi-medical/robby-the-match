@@ -423,13 +423,21 @@
 
         .hero-img {
             display: block;
-            width: 1200px;
-            height: 560px;
-            max-width: 100%;
-            object-fit: cover;
-            object-position: center;
-            margin: 0 auto;
+            width: 100%;
+            height: auto;
+            margin: 0;
             padding: 0;
+        }
+
+        @media (min-width: 768px) {
+            .hero-img {
+                width: 1200px;
+                height: 560px;
+                max-width: 100%;
+                object-fit: cover;
+                object-position: center;
+                margin: 0 auto;
+            }
         }
 
         /* SEO用: h1等は画像に焼き込み済みなのでvisually hidden */
@@ -1411,7 +1419,7 @@
     <!-- Hero -->
     <section class="hero" id="hero">
         <picture>
-            <source media="(max-width: 767px)" srcset="../../assets/hero-nurse-sp-v2.jpg" width="1080" height="1530">
+            <source media="(max-width: 767px)" srcset="../../assets/hero-nurse-sp-v2.jpg" width="1080" height="1522">
             <img src="../../assets/hero-nurse-new.jpg" alt="看護師さんのためのAI転職サポート — 最適な求人をマッチング" class="hero-img" width="1200" height="560" fetchpriority="high">
         </picture>
         <!-- SEO用（画像に焼き込み済みのテキスト） -->
