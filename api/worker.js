@@ -1609,6 +1609,176 @@ function sanitizeChatMessage(content) {
   return cleaned.trim();
 }
 
+// ---------- Chat AI 多段フォールバック（OpenAI → Anthropic → Gemini → Workers AI） ----------
+// 各プロバイダを順次試行し、最初に成功したテキストを返す。全失敗時は { aiText: "", provider: null }。
+// env.AI_PROVIDER で優先プロバイダを変更可能（openai / anthropic / gemini / workers）。
+async function callChatAIWithFallback(systemPrompt, sanitizedMessages, env) {
+  const TIMEOUT_MS = 15000; // 各段階15秒上限
+  const maxTokens = 1024;
+
+  // ---- 個別プロバイダ呼び出し（失敗時は null を返す） ----
+  async function tryOpenAI() {
+    if (!env.OPENAI_API_KEY) return null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: env.CHAT_MODEL || "gpt-4o-mini",
+          max_tokens: maxTokens,
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...sanitizedMessages,
+          ],
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        console.error("[Chat] OpenAI API error:", res.status, errText.slice(0, 200));
+        return null;
+      }
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content || "";
+      return text || null;
+    } catch (err) {
+      console.error("[Chat] OpenAI exception:", err.name, err.message);
+      return null;
+    }
+  }
+
+  async function tryAnthropic() {
+    if (!env.ANTHROPIC_API_KEY) return null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: maxTokens,
+          system: systemPrompt,
+          messages: sanitizedMessages,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        console.error("[Chat] Anthropic API error:", res.status, errText.slice(0, 200));
+        return null;
+      }
+      const data = await res.json();
+      const text = data.content?.[0]?.text || "";
+      return text || null;
+    } catch (err) {
+      console.error("[Chat] Anthropic exception:", err.name, err.message);
+      return null;
+    }
+  }
+
+  async function tryGemini() {
+    if (!env.GOOGLE_AI_KEY) return null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      const geminiMessages = sanitizedMessages.map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.GOOGLE_AI_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: geminiMessages,
+            generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
+          }),
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        console.error("[Chat] Gemini API error:", res.status, errText.slice(0, 200));
+        return null;
+      }
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      return text || null;
+    } catch (err) {
+      console.error("[Chat] Gemini exception:", err.name, err.message);
+      return null;
+    }
+  }
+
+  async function tryWorkersAI() {
+    if (!env.AI) return null;
+    try {
+      const workersMessages = [
+        { role: "system", content: String(systemPrompt).slice(0, 4000) },
+        ...sanitizedMessages,
+      ];
+      const aiPromise = env.AI.run(
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        { messages: workersMessages, max_tokens: maxTokens }
+      );
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Workers AI timeout (15s)")), TIMEOUT_MS)
+      );
+      const aiResult = await Promise.race([aiPromise, timeoutPromise]);
+      const text = aiResult?.response || "";
+      return text || null;
+    } catch (err) {
+      console.error("[Chat] Workers AI exception:", err.name || "", err.message || err);
+      return null;
+    }
+  }
+
+  // ---- 優先順位の決定（env.AI_PROVIDER で優先順位を変更可能） ----
+  const provider = env.AI_PROVIDER || "openai";
+  const defaultOrder = [
+    { name: "openai", fn: tryOpenAI },
+    { name: "anthropic", fn: tryAnthropic },
+    { name: "gemini", fn: tryGemini },
+    { name: "workers", fn: tryWorkersAI },
+  ];
+  let order = defaultOrder;
+  if (provider === "anthropic") {
+    order = [defaultOrder[1], defaultOrder[0], defaultOrder[2], defaultOrder[3]];
+  } else if (provider === "workers") {
+    order = [defaultOrder[3], defaultOrder[0], defaultOrder[1], defaultOrder[2]];
+  } else if (provider === "gemini") {
+    order = [defaultOrder[2], defaultOrder[0], defaultOrder[1], defaultOrder[3]];
+  }
+
+  // ---- 順次試行 ----
+  for (const step of order) {
+    const text = await step.fn();
+    if (text && text.length >= 1) {
+      console.log(`[Chat] AI provider success: ${step.name}, length=${text.length}`);
+      return { aiText: text, provider: step.name };
+    }
+    console.warn(`[Chat] AI provider ${step.name} failed, trying next`);
+  }
+
+  console.error("[Chat] All AI providers failed");
+  return { aiText: "", provider: null };
+}
+
 async function handleChat(request, env) {
   const allowedOrigin = getResponseOrigin(request, env);
 
@@ -1772,87 +1942,27 @@ async function handleChat(request, env) {
       console.log(`[Chat] Session: ${sessionId}, Messages: ${sanitizedMessages.length}, UserMsgs: ${userMsgCount}`);
     }
 
-    // AI呼び出し: OpenAI (優先) / Anthropic / Workers AI (フォールバック)
-    let aiText = "";
-    const aiProvider = env.AI_PROVIDER || "openai";
+    // AI呼び出し: 多段フォールバック（OpenAI → Anthropic → Gemini → Workers AI）
+    // 各プロバイダを順次試行し、最初に成功したテキストを使用する。
+    const { aiText: aiTextResult, provider: usedProvider } = await callChatAIWithFallback(
+      systemPrompt,
+      sanitizedMessages,
+      env
+    );
+    let aiText = aiTextResult;
 
-    if (aiProvider === "openai" && env.OPENAI_API_KEY) {
-      // ---------- OpenAI GPT-4o-mini ----------
-      const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: env.CHAT_MODEL || "gpt-4o-mini",
-          max_tokens: 1024,
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...sanitizedMessages,
-          ],
-        }),
-      });
-
-      if (!openaiRes.ok) {
-        const errText = await openaiRes.text();
-        console.error("[Chat] OpenAI API error:", openaiRes.status, errText);
-        return jsonResponse({ error: "AI応答の取得に失敗しました" }, 502, allowedOrigin);
-      }
-
-      const openaiData = await openaiRes.json();
-      aiText = openaiData.choices?.[0]?.message?.content || "";
-    } else if (aiProvider === "anthropic" && env.ANTHROPIC_API_KEY) {
-      // ---------- Anthropic Claude API ----------
-      const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": env.ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: env.CHAT_MODEL || "claude-haiku-4-5-20251001",
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages: sanitizedMessages,
-        }),
-      });
-
-      if (!anthropicRes.ok) {
-        const errText = await anthropicRes.text();
-        console.error("[Chat] Anthropic API error:", anthropicRes.status, errText);
-        return jsonResponse({ error: "AI応答の取得に失敗しました" }, 502, allowedOrigin);
-      }
-
-      const aiData = await anthropicRes.json();
-      aiText = aiData.content?.[0]?.text || "";
-    } else {
-      // ---------- Cloudflare Workers AI (無料・フォールバック) ----------
-      if (!env.AI) {
-        return jsonResponse({ error: "AI service not configured" }, 503, allowedOrigin);
-      }
-
-      const workersMessages = [
-        { role: "system", content: systemPrompt },
-        ...sanitizedMessages,
-      ];
-
-      try {
-        const aiResult = await env.AI.run(
-          "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-          { messages: workersMessages, max_tokens: 1024 }
-        );
-        aiText = aiResult.response || "";
-      } catch (aiErr) {
-        console.error("[Chat] Workers AI error:", aiErr);
-        return jsonResponse({ error: "AI応答の取得に失敗しました" }, 502, allowedOrigin);
-      }
+    // 全プロバイダ失敗時の最終フォールバック（LINE担当者への誘導）
+    if (!aiText) {
+      console.error("[Chat] All AI providers failed, returning canned fallback message");
+      aiText = "申し訳ございません、ただいま混み合っておりAIがお返事できません。LINE担当者におつなぎしますので、画面下部のLINEボタンからご連絡ください。";
+    } else if (aiText.length < 5 || aiText.startsWith("{") || aiText.startsWith("[")) {
+      // Response validation: reject suspiciously short or JSON-like responses
+      aiText = "ありがとうございます。もう少し詳しく教えていただけますか？";
     }
 
-    // Response validation: reject suspiciously short or JSON-like responses
-    if (aiText.length < 5 || aiText.startsWith("{") || aiText.startsWith("[")) {
-      aiText = "ありがとうございます。もう少し詳しく教えていただけますか？";
+    // 使用プロバイダをログに残す（デバッグ用）
+    if (sessionId && usedProvider) {
+      console.log(`[Chat] Session ${sessionId} answered by provider=${usedProvider}`);
     }
 
     const rateLimitHeaders = { "X-RateLimit-Remaining": String(rateLimitRemaining) };
@@ -3145,14 +3255,22 @@ function buildSessionWelcome(sessionCtx, entry) {
   }
 
   // 全入口共通メッセージ（shindan/area_page以外）
+  // #6 welcome QR 3択化 / #13 welcomeコピー短縮（約50文字）
+  const nowHour = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo", hour: "numeric", hour12: false });
+  const hr = parseInt(nowHour, 10);
+  let greet = 'こんにちは';
+  if (hr >= 5 && hr < 11) greet = 'おはようございます';
+  else if (hr >= 18 || hr < 5) greet = 'こんばんは';
   return {
     nextPhase: 'welcome',
     messages: [{
       type: 'text',
-      text: '「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n名前も聞きません。\n\nLINEで静かに、転職活動。',
+      text: `${greet}、ナースロビーです。\nまずはどのエリアで働きたいですか？`,
       quickReply: {
         items: [
-          qrItem('求人を見てみる', 'welcome=see_jobs'),
+          qrItem('求人を見る', 'welcome=see_jobs'),
+          qrItem('相場が知りたい', 'welcome=see_salary'),
+          qrItem('相談したい', 'welcome=consult'),
         ],
       },
     }],
@@ -4716,10 +4834,27 @@ async function generateLineMatching(entry, env, offset = 0) {
         sql += " AND (title LIKE '%夜勤%' OR title LIKE '%二交代%')";
       }
 
-      // 診療科フィルタ
-      if (entry.department) {
+      // 診療科フィルタ（#19 クリニックは診療科データ不足のためbypass）
+      const skipDeptFilter = entry.facilityType === 'clinic' || entry._isClinic;
+      if (entry.department && !skipDeptFilter) {
         sql += " AND (title LIKE ? OR description LIKE ?)";
         params.push(`%${entry.department}%`, `%${entry.department}%`);
+      }
+
+      // #18 Dランク低品質求人除外: 同一エリア15件以上ある時のみ除外
+      // まず件数カウント（rank条件なし）
+      let enableDrankFilter = false;
+      try {
+        const countSql = sql.replace(/^SELECT [\s\S]+? FROM jobs/, 'SELECT COUNT(*) as cnt FROM jobs');
+        const countRes = await env.DB.prepare(countSql).bind(...params).first();
+        if (countRes && countRes.cnt >= 15) {
+          enableDrankFilter = true;
+        }
+      } catch (e) {
+        console.error(`[Matching] Drank件数カウントエラー: ${e.message}`);
+      }
+      if (enableDrankFilter) {
+        sql += " AND (rank IS NULL OR rank != 'D')";
       }
 
       sql += ' ORDER BY score DESC LIMIT 15 OFFSET ?';
@@ -4886,7 +5021,9 @@ async function generateLineMatching(entry, env, offset = 0) {
         extraFilters += ' AND sub_type = ?';
         extraParams.push(entry.hospitalSubType);
       }
-      if (entry.department) {
+      // #19 クリニック検索時 departments フィルタbypass
+      const skipDeptFilterFacility = entry.facilityType === 'clinic' || entry._isClinic;
+      if (entry.department && !skipDeptFilterFacility) {
         extraFilters += ' AND departments LIKE ?';
         extraParams.push(`%${entry.department}%`);
       }
@@ -6054,13 +6191,20 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.welcomeSource = 'none';
           await saveLineEntry(userId, entry, env);
 
-          // 全入口共通ウェルカムメッセージ
+          // 全入口共通ウェルカムメッセージ（#13 短縮版 + #6 3択QR）
+          const fbNowHour = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo", hour: "numeric", hour12: false });
+          const fbHr = parseInt(fbNowHour, 10);
+          let fbGreet = 'こんにちは';
+          if (fbHr >= 5 && fbHr < 11) fbGreet = 'おはようございます';
+          else if (fbHr >= 18 || fbHr < 5) fbGreet = 'こんばんは';
           const msgs = [{
             type: "text",
-            text: "「職場を変えたい」は、\n「もっと自分らしく働きたい」の裏返しだと思う。\n\n5つタップするだけ。\n名前も聞きません。\n\nLINEで静かに、転職活動。",
+            text: `${fbGreet}、ナースロビーです。\nまずはどのエリアで働きたいですか？`,
             quickReply: {
               items: [
-                qrItem("求人を見てみる", "welcome=see_jobs"),
+                qrItem("求人を見る", "welcome=see_jobs"),
+                qrItem("相場が知りたい", "welcome=see_salary"),
+                qrItem("相談したい", "welcome=consult"),
               ],
             },
           }];
@@ -6819,8 +6963,9 @@ ${entry.rmCvQualifications || '看護師免許'}
         }
 
         // === 緊急キーワード検出（全フェーズ共通） ===
-        const EMERGENCY_KEYWORDS = ['死にたい', '自殺', '限界', 'もう無理', 'パワハラ', 'いじめ', 'セクハラ', '暴力', '被災'];
-        const URGENT_KEYWORDS = ['辞めたい', '退職したい', '今すぐ辞めたい', '明日から行けない', '体調崩した'];
+        // #26 「限界」は多義的（仕事限界/体力限界/我慢の限界等）で過検知のため除外
+        const EMERGENCY_KEYWORDS = ['死にたい', '自殺', 'もう無理', 'パワハラ', 'いじめ', 'セクハラ', '暴力', '被災'];
+        const URGENT_KEYWORDS = ['辞めたい', '退職したい', '今すぐ辞めたい', '明日から行けない', '体調崩した', '限界'];
         const textForEmergencyCheck = userText;
         const isEmergency = EMERGENCY_KEYWORDS.some(kw => textForEmergencyCheck.includes(kw));
         const isUrgent = URGENT_KEYWORDS.some(kw => textForEmergencyCheck.includes(kw));
