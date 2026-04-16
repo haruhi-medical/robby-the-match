@@ -1972,6 +1972,7 @@
     </script>
 
     <!-- Meta Pixel: LINE CTAクリック = Lead イベント（インライン） -->
+    <!-- session_id を event_id として送信することで、Worker側CAPIのLeadイベントと dedup される -->
     <script>
     (function() {
       'use strict';
@@ -1983,10 +1984,14 @@
           btn.dataset.leadTracked = 'true';
           btn.addEventListener('click', function() {
             if (typeof fbq === 'function') {
+              // window.__lineSessionId は /api/line-start に送る session_id と同じ値
+              // これを event_id として指定することで、Worker側CAPIのLeadイベントと
+              // Meta側で自動dedupされ、Lead計測の二重カウントを防ぐ
+              var eid = window.__lineSessionId || '';
               fbq('track', 'Lead', {
                 content_name: btn.className || 'line_cta',
                 content_category: 'line_cta_click'
-              });
+              }, eid ? { eventID: eid } : undefined);
             }
           });
         });

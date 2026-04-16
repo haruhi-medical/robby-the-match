@@ -27,9 +27,11 @@ database_id = "d147e3ef-ff45-413f-8e21-c3e813a5f504"
 # wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
 # wrangler secret put ALLOWED_ORIGIN
 
-# Cron Trigger: ナーチャリング配信（1日1回）+ ハンドオフフォロー（2時間おき）
+# Cron Trigger:
+#   - ナーチャリング配信（1日1回 / 01:00 UTC = 10:00 JST）
+#   - ハンドオフフォロー（15分おき / Phase1 #14 M-05 15分受付確認+2h再通知+24h SLAリマインダー）
 [triggers]
-crons = ["0 1 * * *", "0 */2 * * *"]
+crons = ["0 1 * * *", "*/15 * * * *"]
 
 [vars]
 # 非機密の環境変数はここに記載可能

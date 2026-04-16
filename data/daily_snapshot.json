@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "snapshots": {
+    "2026-04-16": {
+      "date": "2026-04-16",
+      "generated_at": "2026-04-17T07:25:51",
+      "ga4": {
+        "activeUsers": 19.0,
+        "sessions": 25.0,
+        "screenPageViews": 25.0,
+        "newUsers": 3.0,
+        "averageSessionDuration": 43.4654878,
+        "bounceRate": 1.0,
+        "top_sources": [
+          {
+            "source": "(not set)",
+            "sessions": 17,
+            "active_users": 13
+          },
+          {
+            "source": "(direct)",
+            "sessions": 9,
+            "active_users": 6
+          },
+          {
+            "source": "meta",
+            "sessions": 8,
+            "active_users": 7
+          }
+        ]
+      },
+      "meta_ads": {
+        "impressions": 161,
+        "clicks": 5,
+        "spend_jpy": 867.0,
+        "cpc_jpy": 173.4,
+        "ctr_pct": 3.10559,
+        "reach": 131,
+        "actions_by_type": {
+          "link_click": 3,
+          "page_engagement": 26,
+          "landing_page_view": 3,
+          "omni_landing_page_view": 3,
+          "post_engagement": 26,
+          "post_interaction_gross": 1,
+          "post_interaction_net": 1,
+          "onsite_conversion.post_net_like": 1,
+          "video_view": 22,
+          "post_reaction": 1
+        },
+        "leads": 0,
+        "cpa_lead_jpy": null
+      },
+      "hellowork": {
+        "date": "2026-04-16",
+        "fetched_at": "2026-04-16T06:48:57.717897",
+        "total_all": 0,
+        "total_nurse": 3698,
+        "_source_file": "data/hellowork_history/2026-04-16.json"
+      },
+      "worker": {
+        "ads_report_log_bytes": 738,
+        "ads_report_ok": false,
+        "ga4_report_log_bytes": 605,
+        "ga4_report_sc_403": true
+      }
+    }
+  },
+  "last_updated": "2026-04-17T07:25:52"
+}

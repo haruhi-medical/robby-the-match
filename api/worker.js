@@ -104,19 +104,49 @@ async function trackFunnelEvent(eventName, userId, entry, env, ctx) {
   }
 }
 
-async function sendMetaConversionEvent(env, eventName, userId, data) {
+async function sendMetaConversionEvent(env, eventName, userId, data, opts) {
   try {
+    if (!env?.META_ACCESS_TOKEN || !env?.META_PIXEL_ID) return;
+    opts = opts || {};
     const url = `https://graph.facebook.com/v19.0/${env.META_PIXEL_ID}/events?access_token=${env.META_ACCESS_TOKEN}`;
-    const payload = {
-      data: [{
-        event_name: eventName,
-        event_time: Math.floor(Date.now() / 1000),
-        action_source: "system_generated",
-        user_data: { external_id: userId ? [userId] : [] },
-        custom_data: { area: data.area, work_style: data.workStyle },
-      }],
+    const userData = { external_id: userId ? [userId] : [] };
+    // fbp/fbc/ua/ip を付けて match quality を上げつつ、Browser Pixel と dedup する
+    if (opts.fbp) userData.fbp = opts.fbp;
+    if (opts.fbc) userData.fbc = opts.fbc;
+    if (opts.clientIp) userData.client_ip_address = opts.clientIp;
+    if (opts.userAgent) userData.client_user_agent = opts.userAgent;
+
+    const eventPayload = {
+      event_name: eventName,
+      event_time: Math.floor(Date.now() / 1000),
+      action_source: opts.actionSource || "system_generated",
+      user_data: userData,
+      custom_data: {
+        ...(data?.area ? { area: data.area } : {}),
+        ...(data?.workStyle ? { work_style: data.workStyle } : {}),
+        ...(data?.source ? { source: data.source } : {}),
+        ...(data?.intent ? { intent: data.intent } : {}),
+        ...(data?.pageType ? { page_type: data.pageType } : {}),
+      },
     };
-    await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    // event_id があれば付与（Browser Pixel Lead との dedup に必須）
+    if (opts.eventId) eventPayload.event_id = opts.eventId;
+    if (opts.eventSourceUrl) eventPayload.event_source_url = opts.eventSourceUrl;
+
+    const payload = { data: [eventPayload] };
+    if (env.META_TEST_EVENT_CODE) payload.test_event_code = env.META_TEST_EVENT_CODE;
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      console.error(`[Meta CAPI] HTTP ${resp.status}: ${text.slice(0, 200)}`);
+    } else {
+      console.log(`[Meta CAPI] ${eventName} sent event_id=${opts.eventId || "-"}`);
+    }
   } catch (e) {
     console.error(`[Meta CAPI] ${e.message}`);
   }
@@ -1315,13 +1345,13 @@ ${MARKET_DATA}
 }
 
 export default {
-  // ===== Cron Trigger: ナーチャリング配信（1日1回）+ ハンドオフフォロー（2時間おき） =====
+  // ===== Cron Trigger: ナーチャリング配信（1日1回）+ ハンドオフフォロー（15分おき） =====
   async scheduled(event, env, ctx) {
     // ナーチャリング配信は1日1回のcronのみ（01:00 UTC = 10:00 JST）
     if (event.cron === "0 1 * * *") {
       ctx.waitUntil(handleScheduledNurture(env));
     }
-    // ハンドオフフォローは全cronで実行（2時間おき）
+    // ハンドオフフォローは15分おきに実行（15min受付確認 / 2h再通知 / 24h SLAリマインダー）
     ctx.waitUntil(handleScheduledHandoffFollowup(env));
   },
 
@@ -1405,7 +1435,7 @@ export default {
     // 全CTAからここを経由してLINEへ。session_id + source + intent をKVに保存し、
     // dm_text付きでLINE友だち追加URLへ302リダイレクト（LIFF非対応端末フォールバック）
     if (url.pathname === "/api/line-start" && request.method === "GET") {
-      return handleLineStart(url, env);
+      return handleLineStart(url, env, request, ctx);
     }
 
     // ========== LIFF セッション紐付けエンドポイント ==========
@@ -2092,7 +2122,7 @@ async function handleChatComplete(request, env) {
     const slackText =
       `${channelNotify}\u{1F916} *AIチャット完了*\n\n` +
       `*温度感: ${scoreEmoji[temperatureScore] || "\u26AA"} ${temperatureScore} (${scoreLabel[temperatureScore] || "不明"})*\n\n` +
-      `*電話番号*: ${sanitize(displayPhone)}\n` +
+      `*電話番号*: ${sanitize(maskPhone(displayPhone))}\n` +
       `*職種*: ${professionDisplay}\n` +
       `*希望エリア*: ${areaDisplay}\n` +
       `*メッセージ数*: ${userMsgCount}往復\n` +
@@ -2190,6 +2220,29 @@ function formatPhoneDisplay(digits) {
     return `${digits.slice(0, 2)}-${digits.slice(2, 6)}-${digits.slice(6)}`;
   }
   return digits;
+}
+
+// Mask phone number for Slack/logs (keep only last 4 digits). M-04 個人情報露出防止
+// 例: "090-1234-5678" → "090-****-5678" / "09012345678" → "090-****-5678"
+// 無効値（"未取得"等）はそのまま返す
+function maskPhone(value) {
+  if (value === null || value === undefined) return "";
+  const s = String(value);
+  const digits = s.replace(/[\s\-()]/g, "");
+  if (!/^\d{10,11}$/.test(digits)) {
+    // 非電話番号文字列（"未取得"等）はそのまま返す
+    return s;
+  }
+  // 携帯 (11桁: 090/080/070 + 4 + 4)
+  if (digits.length === 11 && /^0[789]0/.test(digits)) {
+    return `${digits.slice(0, 3)}-****-${digits.slice(7)}`;
+  }
+  // 固定 (10桁: 03-XXXX-XXXX 等) → 末尾4桁のみ露出
+  if (digits.length === 10) {
+    return `${digits.slice(0, 2)}-****-${digits.slice(6)}`;
+  }
+  // フォールバック: 末尾4桁のみ
+  return `****${digits.slice(-4)}`;
 }
 
 // ---------- Slack通知ハンドラ（チャットサマリー用） ----------
@@ -2390,7 +2443,7 @@ async function sendToSlack(data, urgency, env) {
     `資格：${sanitize(data.profession || "未回答")}\n` +
     `経験：${sanitize(data.experience)}\n` +
     `現在：${sanitize(data.currentStatus)}\n` +
-    `連絡先：${sanitize(data.phone)} / ${sanitize(data.email)}\n\n` +
+    `連絡先：${sanitize(maskPhone(data.phone))} / ${sanitize(data.email)}\n\n` +
     `*希望条件*\n` +
     `給与：${sanitize(data.desiredSalary)}\n` +
     `転職時期：${sanitize(data.transferTiming)}\n` +
@@ -2791,7 +2844,7 @@ async function handleWebSession(request, env) {
 const LINE_START_OA_URL = 'https://line.me/R/ti/p/@174cxnev';
 const LINE_START_FALLBACK = 'https://line.me/R/ti/p/@174cxnev';
 
-async function handleLineStart(url, env) {
+async function handleLineStart(url, env, request, ctx) {
   try {
     const sessionId = url.searchParams.get('session_id') || '';
     const source = url.searchParams.get('source') || 'none';
@@ -2800,6 +2853,8 @@ async function handleLineStart(url, env) {
     const area = url.searchParams.get('area') || '';
     // shindan 3問の回答（LP内ミニ診断から来た場合）
     const answers = url.searchParams.get('answers') || '';
+    // Meta Browser Pixel 由来の fbclid（広告クリック識別子）。CAPI dedup の match quality 向上用
+    const fbclid = url.searchParams.get('fbclid') || '';
 
     // session_idなしの場合は自動生成（広告リンク等）
     const effectiveSessionId = sessionId || crypto.randomUUID();
@@ -2824,6 +2879,47 @@ async function handleLineStart(url, env) {
     }
     // インメモリフォールバック
     webSessionMap.set(`session:${effectiveSessionId}`, sessionData);
+
+    // ===== Meta Conversion API: Lead イベントを非同期送信 =====
+    // LP側で fbq('track', 'Lead', { event_id: sessionId }) を同時発火しているため、
+    // event_id 共有で Browser Pixel と dedup される（Meta側で自動マージ）。
+    // 失敗しても302リダイレクトは止めない（ctx.waitUntil で fire-and-forget）。
+    if (env?.META_ACCESS_TOKEN && env?.META_PIXEL_ID && ctx) {
+      try {
+        // _fbp クッキーを Cookie ヘッダから抽出（Browser Pixel が設定した first-party cookie）
+        const cookieHeader = request?.headers?.get('Cookie') || '';
+        const fbpMatch = cookieHeader.match(/(?:^|;\s*)_fbp=([^;]+)/);
+        const fbcMatch = cookieHeader.match(/(?:^|;\s*)_fbc=([^;]+)/);
+        let fbp = fbpMatch ? fbpMatch[1] : null;
+        let fbc = fbcMatch ? fbcMatch[1] : null;
+        // fbclid があれば _fbc 形式に変換（fb.1.{timestamp}.{fbclid}）
+        if (!fbc && fbclid) {
+          fbc = `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}`;
+        }
+        const clientIp = request?.headers?.get('CF-Connecting-IP')
+          || request?.headers?.get('X-Forwarded-For')
+          || '';
+        const userAgent = request?.headers?.get('User-Agent') || '';
+
+        ctx.waitUntil(sendMetaConversionEvent(
+          env,
+          'Lead',
+          effectiveSessionId, // external_id に session_id を使う（LP側も同じ）
+          { area, source, intent, pageType },
+          {
+            eventId: effectiveSessionId,      // ★ Browser Pixel と dedup するキー
+            actionSource: 'website',          // LP経由クリックなので website
+            eventSourceUrl: request?.headers?.get('Referer') || '',
+            fbp,
+            fbc,
+            clientIp,
+            userAgent,
+          },
+        ));
+      } catch (e) {
+        console.error('[LineStart] CAPI dispatch error:', e.message);
+      }
+    }
 
     // dm_text にsession_idを埋め込んでLINE友だち追加URLへリダイレクト
     const dmText = encodeURIComponent(effectiveSessionId);
@@ -3643,7 +3739,7 @@ async function sendApplyNotification(userId, entry, env) {
   const text = `🎯 *紹介候補（匿名打診依頼）*\n\n` +
     `【社内管理用 — 病院には開示しない】\n` +
     `👤 ${entry.fullName || "未取得"}（${entry.birthDate || ""}）\n` +
-    `📞 ${entry.phone || "未取得"}\n` +
+    `📞 ${entry.phone ? maskPhone(entry.phone) : "未取得"}\n` +
     `🏥 現職: ${entry.currentWorkplace || "未取得"}\n\n` +
     `【打診先】${facilityNames || "未選択"}\n\n` +
     `【病院打診用 匿名プロフィール】\n` +
@@ -4409,22 +4505,26 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "handoff_phone_time": {
+      // #27 希望時間帯QR: 看護師のシフト実態に合わせた選択肢（夜勤明け午前/週末のみ等）を追加
       return [{
         type: "text",
         text: "ありがとうございます！\nご都合の良い時間帯はありますか？",
         quickReply: {
           items: [
+            qrItem("いつでもOK", "phone_time=anytime"),
+            qrItem("夜勤明けの午前", "phone_time=post_night_morning"),
+            qrItem("週末のみ", "phone_time=weekend_only"),
+            qrItem("平日18時以降", "phone_time=weekday_evening"),
             qrItem("午前中", "phone_time=morning"),
             qrItem("午後", "phone_time=afternoon"),
             qrItem("夕方以降", "phone_time=evening"),
-            qrItem("いつでもOK", "phone_time=anytime"),
           ],
         },
       }];
     }
 
     case "handoff_phone_number": {
-      const timeLabel = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK' };
+      const timeLabel = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK', post_night_morning: '夜勤明けの午前', weekend_only: '週末のみ', weekday_evening: '平日18時以降' };
       const timeText = timeLabel[entry.preferredCallTime] || entry.preferredCallTime || '';
       return [{
         type: "text",
@@ -4440,7 +4540,7 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
       if (entry.phonePreference === "phone_ok") {
-        const timeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK' };
+        const timeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK', post_night_morning: '夜勤明けの午前', weekend_only: '週末のみ', weekday_evening: '平日18時以降' };
         const timeText = entry.preferredCallTime ? timeLabels[entry.preferredCallTime] || '' : '';
         return [{
           type: "text",
@@ -5355,10 +5455,10 @@ async function sendHandoffNotification(userId, entry, env) {
 
   // 電話連絡希望
   const phoneLabels = { line_only: "LINEのみ希望", phone_ok: "電話OK" };
-  const timeLabels = { morning: "午前中", afternoon: "午後", evening: "夕方以降", anytime: "いつでもOK" };
+  const timeLabels = { morning: "午前中", afternoon: "午後", evening: "夕方以降", anytime: "いつでもOK", post_night_morning: "夜勤明けの午前", weekend_only: "週末のみ", weekday_evening: "平日18時以降" };
   const phonePrefText = phoneLabels[entry.phonePreference] || "未確認";
   const phoneTimeText = entry.preferredCallTime ? timeLabels[entry.preferredCallTime] || entry.preferredCallTime : "";
-  const phoneNumberText = entry.phoneNumber ? `\n📱 電話番号: ${entry.phoneNumber}` : '';
+  const phoneNumberText = entry.phoneNumber ? `\n📱 電話番号: ${maskPhone(entry.phoneNumber)}` : '';
   const phoneInfoLine = phoneTimeText ? `${phonePrefText}（${phoneTimeText}）${phoneNumberText}` : `${phonePrefText}${phoneNumberText}`;
 
   const slackText = `🎯 *LINE相談 → 人間対応リクエスト*
@@ -6691,7 +6791,7 @@ ${entry.rmCvQualifications || '看護師免許'}
           }
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
-          const handoffTimeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK' };
+          const handoffTimeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK', post_night_morning: '夜勤明けの午前', weekend_only: '週末のみ', weekday_evening: '平日18時以降' };
           const handoffTimeText = entry.preferredCallTime ? handoffTimeLabels[entry.preferredCallTime] || entry.preferredCallTime : '';
           replyMessages = [
             { type: "text", text: entry.phonePreference === "phone_ok"
@@ -6700,11 +6800,14 @@ ${entry.rmCvQualifications || '看護師免許'}
           ];
           await sendHandoffNotification(userId, entry, env);
           // KVにハンドオフインデックス登録（Cron Triggerでフォロー用）
+          // マイルストーン: 15min (受付確認Push) / 2h (再通知+Slack) / 24h (SLAリマインダーSlack)
           if (env?.LINE_SESSIONS) {
             env.LINE_SESSIONS.put(`handoff:${userId}`, JSON.stringify({
               userId,
               handoffAt: entry.handoffAt,
+              followUpSent15min: false,
               followUpSent: false,
+              reminder24hSent: false,
             }), { expirationTtl: 604800 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); }); // 7日TTL
           }
         } else if (nextPhase) {
@@ -7918,11 +8021,19 @@ async function handleScheduledNurture(env) {
 }
 
 // ========== Cron Trigger: ハンドオフBot補助（2時間おき） ==========
+// マイルストーン:
+//   - 15分経過: 「担当者に転送しました。24時間以内にLINEでお返事します」LINE Push
+//   - 2時間経過 (legacy): 「担当者に再度連絡しました」LINE Push + Slackリマインダー
+//   - 24時間経過: Slack #ロビー小田原人材紹介 に「24時間リマインダー」
+// 各マイルストーンは個別フラグ(followUpSent15min / followUpSent / reminder24hSent)で冪等性確保
 async function handleScheduledHandoffFollowup(env) {
   if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN) return;
   const token = env.LINE_CHANNEL_ACCESS_TOKEN;
+  const slackChannel = env.SLACK_CHANNEL_ID || "C0AEG626EUW";
   const now = Date.now();
-  let handoffCount = 0;
+  let handoff15min = 0;
+  let handoff2h = 0;
+  let handoff24h = 0;
 
   try {
     const handoffKeys = await kvListAll(env.LINE_SESSIONS, "handoff:");
@@ -7932,11 +8043,38 @@ async function handleScheduledHandoffFollowup(env) {
         if (!raw) continue;
         const data = JSON.parse(raw);
         const userId = data.userId;
-        if (!userId || data.followUpSent) continue;
+        if (!userId) continue;
 
         const hoursSinceHandoff = (now - data.handoffAt) / 3600000;
+        const minutesSinceHandoff = (now - data.handoffAt) / 60000;
+        let dirty = false;
 
-        if (hoursSinceHandoff >= 2) {
+        // --- Milestone 1: 15分経過の初動LINE Push（受付確認） ---
+        // NOTE: cronは2時間おき起動のため「即時15分」は保証できないが、初回cron起床時に送信される
+        // ハンドオフ成立後30分以内の最初のcronで到達する想定。ユーザ体験上「受付済」を早期に保証するのが目的。
+        if (!data.followUpSent15min && minutesSinceHandoff >= 15) {
+          const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({
+              to: userId,
+              messages: [{
+                type: "text",
+                text: "担当者に転送しました。\n24時間以内にこのLINEでお返事しますので、少々お待ちください。\n\n気になることがあれば\nいつでもメッセージくださいね。",
+              }],
+            }),
+          });
+          if (pushRes.ok) {
+            data.followUpSent15min = true;
+            dirty = true;
+            handoff15min++;
+          } else {
+            console.error(`[Cron] Handoff 15min push failed: ${pushRes.status}`);
+          }
+        }
+
+        // --- Milestone 2: 2時間経過の再通知（既存） ---
+        if (!data.followUpSent && hoursSinceHandoff >= 2) {
           const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -7951,20 +8089,49 @@ async function handleScheduledHandoffFollowup(env) {
 
           if (pushRes.ok) {
             data.followUpSent = true;
-            await env.LINE_SESSIONS.put(key.name, JSON.stringify(data), { expirationTtl: 604800 });
-            handoffCount++;
+            dirty = true;
+            handoff2h++;
 
             if (env.SLACK_BOT_TOKEN) {
               fetch("https://slack.com/api/chat.postMessage", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
                 body: JSON.stringify({
-                  channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                  channel: slackChannel,
                   text: `⏰ *ハンドオフ2時間経過 — 未対応*\nユーザー: \`${userId.slice(0, 8)}...\`\n引継ぎ時刻: ${new Date(data.handoffAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}\n\n💬 返信: \`!reply ${userId} メッセージ\``,
                 }),
               }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
             }
           }
+        }
+
+        // --- Milestone 3: 24時間経過のSlackリマインダー（SLA超過警告） ---
+        if (!data.reminder24hSent && hoursSinceHandoff >= 24) {
+          if (env.SLACK_BOT_TOKEN) {
+            const slackRes = await fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: slackChannel,
+                text: `🚨 *ハンドオフ24時間経過 — SLA超過*\nユーザー: \`${userId.slice(0, 8)}...\`\n引継ぎ時刻: ${new Date(data.handoffAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}\n経過: ${hoursSinceHandoff.toFixed(1)}時間\n\n⚠️ 「24時間以内にLINEで返事」の約束期限が過ぎました。至急対応してください。\n\n💬 返信: \`!reply ${userId} メッセージ\``,
+              }),
+            });
+            if (slackRes.ok) {
+              data.reminder24hSent = true;
+              dirty = true;
+              handoff24h++;
+            } else {
+              console.error(`[Cron] Handoff 24h Slack reminder failed: ${slackRes.status}`);
+            }
+          } else {
+            // Slack未設定でもフラグは立てる（無限ループ防止）
+            data.reminder24hSent = true;
+            dirty = true;
+          }
+        }
+
+        if (dirty) {
+          await env.LINE_SESSIONS.put(key.name, JSON.stringify(data), { expirationTtl: 604800 });
         }
       } catch (e) {
         console.error(`[Cron] Handoff error for ${key.name}: ${e.message}`);
@@ -7974,7 +8141,7 @@ async function handleScheduledHandoffFollowup(env) {
     console.error(`[Cron] Handoff list error: ${e.message}`);
   }
 
-  console.log(`[Cron] Handoff followup completed: sent=${handoffCount}`);
+  console.log(`[Cron] Handoff followup completed: 15min=${handoff15min} 2h=${handoff2h} 24h=${handoff24h}`);
 }
 
 // JSON レスポンス生成

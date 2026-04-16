@@ -118,6 +118,119 @@ AREA_PREF_REVERSE = {
 }
 
 
+# ========= 市区町村 → ハローワーク area 逆引きマップ（Phase1 #22） =========
+# prefecture は埋まっているが area が空欄になっている 167件 (5.6%) を救済する。
+# ハローワーク16エリアと同名の市区町村（「横浜」「川崎」「千葉」等）は上位判定を優先。
+# 重複する場合は「より狭いエリア」が先に来るよう辞書順に並べる（Python 3.7+ は挿入順を保持）。
+CITY_AREA_REVERSE = {
+    # --- 神奈川県 ---
+    # 政令市・中核市（ハローワーク area と市名が一致する場合はそのまま）
+    "横浜市": "横浜", "川崎市": "川崎", "相模原市": "相模原",
+    "横須賀市": "横須賀",
+    "三浦市": "横須賀", "葉山町": "横須賀",  # 横須賀ハローワーク管轄
+    "鎌倉市": "鎌倉", "逗子市": "鎌倉",  # 鎌倉所管
+    "藤沢市": "藤沢", "寒川町": "藤沢",
+    "茅ヶ崎市": "茅ヶ崎",
+    "平塚市": "平塚", "二宮町": "平塚",
+    "大磯町": "大磯",
+    "秦野市": "秦野",
+    "伊勢原市": "伊勢原",
+    "厚木市": "厚木", "愛川町": "厚木", "清川村": "厚木",
+    "海老名市": "海老名", "座間市": "海老名", "綾瀬市": "海老名",
+    "大和市": "大和",
+    "小田原市": "小田原", "箱根町": "小田原", "真鶴町": "小田原",
+    "湯河原町": "小田原", "中井町": "小田原", "大井町": "小田原",
+    "松田町": "小田原", "山北町": "小田原",
+    "南足柄市": "南足柄・開成", "開成町": "南足柄・開成",
+    # --- 東京都 ---
+    # 23区（TOKYO_23_WARDS と同じ集合）
+    "千代田区": "23区", "中央区": "23区", "港区": "23区", "新宿区": "23区",
+    "文京区": "23区", "台東区": "23区", "墨田区": "23区", "江東区": "23区",
+    "品川区": "23区", "目黒区": "23区", "大田区": "23区", "世田谷区": "23区",
+    "渋谷区": "23区", "中野区": "23区", "杉並区": "23区", "豊島区": "23区",
+    "北区": "23区", "荒川区": "23区", "板橋区": "23区", "練馬区": "23区",
+    "足立区": "23区", "葛飾区": "23区", "江戸川区": "23区",
+    # 多摩地域（東京市部+西多摩郡+南多摩郡+北多摩郡）
+    "八王子市": "多摩", "立川市": "多摩", "武蔵野市": "多摩",
+    "三鷹市": "多摩", "青梅市": "多摩", "昭島市": "多摩",
+    "調布市": "多摩", "町田市": "多摩", "小金井市": "多摩",
+    "小平市": "多摩", "日野市": "多摩", "東村山市": "多摩",
+    "国分寺市": "多摩", "国立市": "多摩", "福生市": "多摩",
+    "狛江市": "多摩", "東大和市": "多摩", "清瀬市": "多摩",
+    "東久留米市": "多摩", "武蔵村山市": "多摩", "多摩市": "多摩",
+    "稲城市": "多摩", "羽村市": "多摩", "あきる野市": "多摩",
+    "西東京市": "多摩", "府中市": "多摩",
+    "瑞穂町": "多摩", "日の出町": "多摩", "檜原村": "多摩",
+    "奥多摩町": "多摩",
+    # --- 千葉県 ---
+    "千葉市": "千葉", "市原市": "千葉",  # 千葉ハローワーク所管
+    "船橋市": "船橋・市川", "市川市": "船橋・市川", "浦安市": "船橋・市川",
+    "習志野市": "船橋・市川", "八千代市": "船橋・市川",
+    "柏市": "柏・松戸", "松戸市": "柏・松戸", "我孫子市": "柏・松戸",
+    "流山市": "柏・松戸", "野田市": "柏・松戸", "鎌ケ谷市": "柏・松戸",
+    "白井市": "柏・松戸",
+    # 千葉その他（成田・印旛・外房・内房等の広域）
+    "成田市": "千葉その他", "印西市": "千葉その他", "四街道市": "千葉その他",
+    "佐倉市": "千葉その他", "八街市": "千葉その他", "富里市": "千葉その他",
+    "袖ケ浦市": "千葉その他", "木更津市": "千葉その他", "君津市": "千葉その他",
+    "富津市": "千葉その他", "茂原市": "千葉その他", "東金市": "千葉その他",
+    "大網白里市": "千葉その他", "勝浦市": "千葉その他", "いすみ市": "千葉その他",
+    "館山市": "千葉その他", "鴨川市": "千葉その他", "南房総市": "千葉その他",
+    "旭市": "千葉その他", "銚子市": "千葉その他",
+    # --- 埼玉県 ---
+    "さいたま市": "さいたま",
+    "川口市": "川口・戸田", "戸田市": "川口・戸田", "蕨市": "川口・戸田",
+    "所沢市": "所沢・入間", "入間市": "所沢・入間", "狭山市": "所沢・入間",
+    "飯能市": "所沢・入間", "日高市": "所沢・入間",
+    "川越市": "川越・東松山", "東松山市": "川越・東松山",
+    "坂戸市": "川越・東松山", "鶴ヶ島市": "川越・東松山",
+    "越谷市": "越谷・草加", "草加市": "越谷・草加", "八潮市": "越谷・草加",
+    "三郷市": "越谷・草加", "吉川市": "越谷・草加",
+    # 埼玉その他（北部・中部の広域）
+    "春日部市": "埼玉その他", "熊谷市": "埼玉その他", "上尾市": "埼玉その他",
+    "朝霞市": "埼玉その他", "志木市": "埼玉その他", "新座市": "埼玉その他",
+    "和光市": "埼玉その他", "富士見市": "埼玉その他", "ふじみ野市": "埼玉その他",
+    "桶川市": "埼玉その他", "北本市": "埼玉その他", "久喜市": "埼玉その他",
+    "加須市": "埼玉その他", "羽生市": "埼玉その他", "行田市": "埼玉その他",
+    "蓮田市": "埼玉その他", "幸手市": "埼玉その他", "白岡市": "埼玉その他",
+    "本庄市": "埼玉その他", "深谷市": "埼玉その他",
+    "伊奈町": "埼玉その他", "三芳町": "埼玉その他", "毛呂山町": "埼玉その他",
+}
+
+
+def resolve_area(loc: str, pref: str, current_area: str) -> str:
+    """area が空欄の場合、loc の市区町村名から逆引きしてハローワーク area 値を補完する。
+
+    Args:
+        loc: 住所文字列
+        pref: resolve_prefecture で決定済みの都道府県（""可）
+        current_area: 既存の area 値。非空ならそのまま返す
+
+    Returns:
+        area 値（空欄解消に成功した場合のみ変更、失敗時は current_area をそのまま返す）
+    """
+    area = (current_area or "").strip()
+    if area:
+        return area
+    loc = (loc or "").strip()
+    if not loc:
+        return area
+    # 23区チェック（loc に「○○区」が含まれる場合）
+    for ward in TOKYO_23_WARDS:
+        if ward in loc:
+            return "23区"
+    # 市区町村逆引き
+    for city, mapped_area in CITY_AREA_REVERSE.items():
+        if city in loc:
+            return mapped_area
+    # 都道府県が埋まっていれば「その他」カテゴリにフォールバック（ハローワーク区分に準拠）
+    if pref == "千葉県":
+        return "千葉その他"
+    if pref == "埼玉県":
+        return "埼玉その他"
+    return area
+
+
 def resolve_prefecture(loc: str, area: str) -> str:
     """都道府県を3段階で解決する。
 
@@ -276,6 +389,9 @@ def build_sql(jobs):
         # 都道府県を3段階で解決（loc直接抽出 → 市区町村逆引き → area逆引き）
         pref = resolve_prefecture(loc, j.get("area", ""))
 
+        # #22 area 空欄救済: 市区町村逆引きで area を補完（既にある場合は保持）
+        resolved_area = resolve_area(loc, pref, j.get("area", ""))
+
         # 年間休日数値
         holidays_str = j.get("annual_holidays", "")
         holidays_num = 0
@@ -301,7 +417,7 @@ def build_sql(jobs):
             escape_sql(j.get("job_title", "")),
             escape_sql(j.get("rank", "")),
             str(j.get("score", 0)),
-            escape_sql(j.get("area", "")),
+            escape_sql(resolved_area),
             escape_sql(pref),
             escape_sql(loc),
             escape_sql(sal_form),
@@ -388,12 +504,17 @@ def deploy_to_local(sql_text):
 
 
 def print_prefecture_stats(jobs):
-    """resolve_prefecture を全レコードに適用して統計を表示（DB更新なし）"""
+    """resolve_prefecture / resolve_area を全レコードに適用して統計を表示（DB更新なし）"""
     total = len(jobs)
     filled = 0
     empty = 0
     pref_counts = {}
     empty_samples = []
+    # #22 area解消統計
+    area_was_empty = 0
+    area_resolved_from_empty = 0
+    area_still_empty = 0
+    area_still_empty_samples = []
     for j in jobs:
         loc = (j.get("work_location") or "").strip()
         if not loc:
@@ -412,6 +533,21 @@ def print_prefecture_stats(jobs):
                     "area": j.get("area", ""),
                     "loc": loc[:60],
                 })
+        # area解消
+        orig_area = (j.get("area") or "").strip()
+        if not orig_area:
+            area_was_empty += 1
+            new_area = resolve_area(loc, pref, orig_area)
+            if new_area:
+                area_resolved_from_empty += 1
+            else:
+                area_still_empty += 1
+                if len(area_still_empty_samples) < 10:
+                    area_still_empty_samples.append({
+                        "kjno": j.get("kjno", ""),
+                        "pref": pref,
+                        "loc": loc[:60],
+                    })
     print(f"\n=== prefecture 解決統計 ===")
     print(f"  total: {total}")
     print(f"  filled: {filled} ({filled/total*100:.1f}%)")
@@ -422,6 +558,14 @@ def print_prefecture_stats(jobs):
         print(f"\n未解決サンプル（最大10件）:")
         for s in empty_samples:
             print(f"  kjno={s['kjno']} area={s['area']!r} loc={s['loc']!r}")
+    print(f"\n=== area 空欄救済統計 (#22) ===")
+    print(f"  元々 area 空欄: {area_was_empty}件")
+    print(f"  逆引きで埋まった: {area_resolved_from_empty}件 ({area_resolved_from_empty/max(1,area_was_empty)*100:.1f}%)")
+    print(f"  まだ空欄: {area_still_empty}件")
+    if area_still_empty_samples:
+        print(f"\n逆引き失敗サンプル（最大10件）:")
+        for s in area_still_empty_samples:
+            print(f"  kjno={s['kjno']} pref={s['pref']!r} loc={s['loc']!r}")
 
 
 def main():
