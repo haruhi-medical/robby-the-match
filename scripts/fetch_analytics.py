@@ -180,7 +180,7 @@ def format_slack_blocks(github, kv, sns):
 
 def send_slack(text, env):
     token = env.get("SLACK_BOT_TOKEN", "")
-    channel = env.get("SLACK_CHANNEL_ID", "C09A7U4TV4G")
+    channel = env.get("SLACK_CHANNEL_ID", "C0AEG626EUW")
     if not token:
         print("SLACK_BOT_TOKEN not set", file=sys.stderr)
         return

@@ -47,7 +47,7 @@ load_dotenv(project_root / ".env")
 
 # Slack設定
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C09A7U4TV4G")
+SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "C0AEG626EUW")
 # LINE引き継ぎ通知チャンネル（Worker側がhandoffメッセージを送る先）
 SLACK_LINE_CHANNEL_ID = "C0AEG626EUW"  # #ロビー小田原人材紹介
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN", "")

@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN", "")
-SLACK_CHANNEL = os.getenv("SLACK_CHANNEL_ID", "C09A7U4TV4G")
+SLACK_CHANNEL = os.getenv("SLACK_CHANNEL_ID", "C0AEG626EUW")
 META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN", "")
 META_AD_ACCOUNT = "act_907937825198755"
 CLARITY_PROJECT = "vmaobifgm0"
