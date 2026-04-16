@@ -7,7 +7,7 @@
   'use strict';
 
   /* ── Constants ── */
-  var LINE_URL = 'https://lin.ee/oUgDB3x';
+  var LINE_URL = 'https://line.me/R/ti/p/@174cxnev';
   var D = null;
   var A = { pref: '', area: '', ft: '', ws: '', urg: '' };
   var C;
@@ -458,7 +458,7 @@
     window._shindanSkipped = false;
 
     // 全環境 → LINE友だち追加URLに直接遷移（LIFFはInstagram WebView等でログイン壁になるため廃止）
-    var ctaURL = 'https://lin.ee/oUgDB3x';
+    var ctaURL = 'https://line.me/R/ti/p/@174cxnev';
 
     var ctaText = 'LINEで診断結果を受け取る';
     var cta = el('a', 'shindan-cta', '', {

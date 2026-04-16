@@ -2679,7 +2679,7 @@ async function handleWebSession(request, env) {
 // session context をKVに保存し、LINE友だち追加URLへ302リダイレクト。
 // LINE Bot側はfollow/messageイベントでsession_idを検出してwelcome分岐する。
 const LINE_START_OA_URL = 'https://line.me/R/ti/p/@174cxnev';
-const LINE_START_FALLBACK = 'https://lin.ee/oUgDB3x';
+const LINE_START_FALLBACK = 'https://line.me/R/ti/p/@174cxnev';
 
 async function handleLineStart(url, env) {
   try {
