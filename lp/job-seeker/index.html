@@ -1934,12 +1934,19 @@
       }
       var sid = uuid();
       window.__lineSessionId = sid;
-      // LINE友だち追加URL（直リンク — LIFFブリッジはInstagram WebViewでログイン壁になるため廃止）
+      // LINE友だち追加URL（/api/line-start が落ちた時のフォールバック用）
       var LINE_ADD_URL = 'https://line.me/R/ti/p/@174cxnev';
+      // 共通LINE送客EP: Worker側でKV保存→LINE 302リダイレクト
+      var WORKER_BASE = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev';
 
-      // CTA href: 直接LINE友だち追加URLへ（セッション追跡はGA4+Pixel側で実施）
+      // CTA href: Worker経由でsession_idをKVに保存してからLINEへ
+      // /api/line-start は単純な302リダイレクトなのでInstagram WebViewでも動く
       function lineUrl(source, intent) {
-        return LINE_ADD_URL;
+        return WORKER_BASE + '/api/line-start'
+          + '?source=' + encodeURIComponent(source)
+          + '&intent=' + encodeURIComponent(intent)
+          + '&session_id=' + encodeURIComponent(sid)
+          + '&page_type=paid_lp';
       }
 
       // Hero CTA

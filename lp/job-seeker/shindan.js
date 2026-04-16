@@ -8,6 +8,7 @@
 
   /* ── Constants ── */
   var LINE_URL = 'https://line.me/R/ti/p/@174cxnev';
+  var WORKER_BASE = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev';
   var D = null;
   var A = { pref: '', area: '', ft: '', ws: '', urg: '' };
   var C;
@@ -457,8 +458,13 @@
     var skipped = window._shindanSkipped;
     window._shindanSkipped = false;
 
-    // 全環境 → LINE友だち追加URLに直接遷移（LIFFはInstagram WebView等でログイン壁になるため廃止）
-    var ctaURL = 'https://line.me/R/ti/p/@174cxnev';
+    // 共通LINE送客EP /api/line-start 経由で session_id + 診断回答をWorkerに渡す
+    // Worker側がKVにセッション保存→dm_text付きでLINE友だち追加URLへ302リダイレクト
+    // LIFFではないので Instagram WebView でもログイン壁が出ない
+    var ctaURL = WORKER_BASE + '/api/line-start?source=shindan&intent=diagnose'
+      + '&session_id=' + encodeURIComponent(sid || '')
+      + '&area=' + encodeURIComponent(A.area || '')
+      + '&answers=' + answersJson;
 
     var ctaText = 'LINEで診断結果を受け取る';
     var cta = el('a', 'shindan-cta', '', {
