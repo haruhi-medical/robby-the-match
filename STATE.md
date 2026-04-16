@@ -11,23 +11,44 @@
 - North Star: 看護師1名をA病院に紹介して成約
 - 状態: **総点検完了（2026-04-17）→ Phase 1 実行待ち（社長承認3件）**
 
-## 🔴 2026-04-17 総点検結果（最優先）
+## 🟢 2026-04-17 総点検 + Phase 1 完遂
 - 詳細: `docs/audit/2026-04-17/report.md`
 - 3分要約: `docs/audit/2026-04-17/executive_summary.md`
 - **82阻害要因 → 68独立項目 → Phase 1=28 / P2=22 / P3=13**
-- **24時間以内ゲートキーパー5件**:
-  1. LP診断→LINE引き継ぎ復活（2-3h）
-  2. AI応答 try/catchフォールバック実装（3h）
-  3. Meta Pixel Lead復旧+CAPI（0.5+4h）
-  4. SNS投稿パイプライン復旧（4-6h）
-  5. prefecture空欄877件修正（3h）
-- **社長承認依頼3件**: S-01 Claude CLI認証復旧 / S-02 TikTok bio / S-07 SC API権限付与
 
-## ⚠️ 点検で判明した STATE.md 上の虚偽・古い記述（要修正）
-- 「LINE登録0」→ 実際: 4/14 3人, 4/15 15人
-- 「AI応答 4段フォールバック」→ 実際: worker.js L1779-1851 は排他1段分岐
-- 「診療科100%」→ 実際: 病院1,498件サブセットのみ（DB全体24,488件では 6.1%）
-- 「prefecture空欄修正済」→ 実際: 877件残存（29.6%）
+### ✅ Phase 1 実装完了（2026-04-17、ゲートキーパー5+残り23）
+- #1 LP診断→LINE引き継ぎ復活（shindan.js/index.html→/api/line-start経由、session_id+5問の答え引継ぎ）
+- #2 AI応答4段フォールバック（OpenAI→Claude Haiku→Gemini→Workers AI、15秒タイムアウト、日本語定型フォールバック）
+- #3 Meta Pixel Lead+CAPI復旧（event_id dedup、テストevents_received:1成功、META_ACCESS_TOKEN + META_PIXEL_ID Worker secret登録）
+- #5 prefecture 877件→0件（CITY_PREF_MAP 128件+東京23区追加、神奈川469→814件）
+- #9 scripts/deploy_worker.sh 新設（secrets 7件検証+Slack通知）
+- #10 SLACK_CHANNEL_ID 7ファイル C0AEG626EUW に統一
+- #11 scripts/daily_snapshot_merge.py 新設（GA4/Meta/HW/Worker統合）
+- #12-#28 LP CTA/welcome QR/派遣除外/保育園除外/電話マスク/area空欄/UTM/handoff自動フォロー等
+
+### ⚠️ 社長手動対応（Phase 1 関連）
+- S-01: `claude auth login` 実行（autoresearch復旧）
+- S-02: TikTok bio差し替え承認
+- S-04: Instagram 投稿頻度 3→2
+- S-05: Meta広告 Lead目的継続の判断
+- S-07: Search Console API 権限付与（odawara-nurse-jobs サービスアカウントに）
+- S-08-10: 広告コピー3件差し替え（ミサキテスト通過率15-43%）
+
+### 📊 期待される変化（48h以内に検証）
+- Lead/LINE登録数の乖離 7.5倍→1-2倍
+- AI応答成功率 85-95%→99.9%
+- 求人ヒット率 神奈川+73.6%（翌朝06:30 cron反映）
+- handoff 24h以内連絡の信頼性向上
+
+### 📋 Phase 2（48h）/ Phase 3（1週間）残項目
+- Phase 2: 22項目（facilities↔jobs リンク、CAPI完全実装、訪問看護ST追加、GBP登録等）
+- Phase 3: 13項目（D1 phase遷移ログ、非公開求人、LCP改善、E-E-AT強化等）
+
+### 📝 点検で判明した古い記述の訂正
+- 「LINE登録0」→ 4/14 3人, 4/15 15人, 4/16 不明
+- 「AI応答 4段フォールバック」→ 旧: 排他1段 / 新: 実装済み
+- 「診療科100%」→ 病院1,498件サブセットのみ（DB全体24,488件では6.1%）
+- 「prefecture空欄修正済」→ 旧: 877件残存 / 新: 0件
 - 「area/21 + guide/41」→ 実際: area/32 + guide/48
 
 ## 2026-04-03 実施内容（1日で30+コミット）
