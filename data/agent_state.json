@@ -4,8 +4,8 @@
     "health_monitor": "2026-04-16T07:00:19",
     "competitor_analyst": "2026-04-16T10:00:15",
     "content_creator": "2026-04-16T15:03:50",
-    "sns_poster": "2026-04-15T21:12:23",
-    "daily_reviewer": "2026-04-15T23:00:29",
+    "sns_poster": "2026-04-16T17:15:03",
+    "daily_reviewer": "2026-04-16T23:00:01",
     "seo_optimizer": "2026-04-16T04:00:22",
     "weekly_content_planner": "2026-04-12T05:00:02",
     "weekly_strategist": "2026-04-12T06:01:03",
@@ -18,7 +18,7 @@
     "competitor_analyst": "completed",
     "content_creator": "completed",
     "sns_poster": "completed",
-    "daily_reviewer": "completed",
+    "daily_reviewer": "running",
     "seo_optimizer": "completed",
     "weekly_content_planner": "pending",
     "weekly_strategist": "completed",
@@ -29,14 +29,14 @@
     "content_creator": []
   },
   "sharedContext": {
-    "lastAnalysis": "2026-04-15T23:00:15",
+    "lastAnalysis": "2026-04-16T23:00:16",
     "recommendations": [
       "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
     ],
     "topPerformingTags": [],
-    "queueRemaining": 4,
-    "totalPostsThisWeek": 47,
+    "queueRemaining": 0,
+    "totalPostsThisWeek": 48,
     "lastMarketingPDCA": "2026-04-16 06:00:00",
     "queuePending": 40,
     "dailyGeneratedCount": 0
@@ -61,12 +61,12 @@
         "紹介": 0,
         "トレンド": 0
       },
-      "lastAnalysisDate": "2026-04-15"
+      "lastAnalysisDate": "2026-04-16"
     },
     "sns_poster": {
-      "totalPosted": 47,
+      "totalPosted": 48,
       "averageViews": 0,
-      "lastAnalysisDate": "2026-04-15"
+      "lastAnalysisDate": "2026-04-16"
     }
   }
 }
