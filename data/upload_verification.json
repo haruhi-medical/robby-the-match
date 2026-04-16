@@ -460,7 +460,14 @@
       "success": false,
       "method": "tiktokautouploader",
       "error": "all_upload_methods_failed"
+    },
+    {
+      "timestamp": "2026-04-17T03:00:55.754640",
+      "content_id": "ai_ある_0404_02",
+      "success": false,
+      "method": "tiktokautouploader",
+      "error": "all_upload_methods_failed"
     }
   ],
-  "last_updated": "2026-04-16T02:54:57.972288"
+  "last_updated": "2026-04-17T03:00:55.754654"
 }
