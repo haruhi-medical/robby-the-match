@@ -1,45 +1,45 @@
 {
-  "created": "2026-04-15T15:00:18.343203",
-  "updated": "2026-04-15T15:00:18.343252",
-  "week_of": "2026-04-15",
+  "created": "2026-04-16T15:00:25.076245",
+  "updated": "2026-04-16T15:02:57.883507",
+  "week_of": "2026-04-16",
   "total": 7,
-  "queue_pending_at_creation": 11,
+  "queue_pending_at_creation": 3,
   "plans": [
     {
       "day": 1,
-      "category": "給与",
+      "category": "転職",
       "cta_type": "hard",
-      "status": "planned",
-      "content_id": null,
-      "hint": "応援ナースの時給3,000円。同じ病棟で常勤の自分は時給換算1,800円。同じ仕事なのになぜ？",
-      "hook_idea": "同じ仕事なのになぜ時給差がある"
+      "status": "generated",
+      "content_id": "ai_転職_0416_01",
+      "hint": "応援ナースを1年やって貯金300万。常勤3年で貯められなかった額を1年で超えた",
+      "hook_idea": "看護師5年目、手取り24万"
     },
     {
       "day": 2,
-      "category": "業界裏側",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
-      "hint": "紹介会社経由で入職すると「すぐ辞めるな」プレッシャーが強くなる。手数料のせいで",
-      "hook_idea": "紹介会社の紹介で入ったら辞められない"
+      "status": "generated",
+      "content_id": "ai_ある_0416_02",
+      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
+      "hook_idea": "夜勤明け、電車で座れない"
     },
     {
       "day": 3,
-      "category": "転職",
+      "category": "あるある",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
-      "hint": "転職サイトに登録した瞬間、知らない番号から17件。看護師の個人情報はいくら？",
-      "hook_idea": "転職サイトに登録したら17件の電話"
+      "status": "generated",
+      "content_id": "ai_ある_0416_03",
+      "hint": "ナースコール鳴らない夜勤が一番怖い。静かすぎる病棟は何かが起きる前兆",
+      "hook_idea": "ナースコール鳴らない夜勤最悪"
     },
     {
       "day": 4,
-      "category": "転職",
+      "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
-      "hint": "「3年は続けなさい」。それ、誰のための3年？病院の離職率のための3年だった",
-      "hook_idea": "3年続けろとは誰が言っているの"
+      "status": "generated",
+      "content_id": "ai_地域_0416_04",
+      "hint": "川崎の大学病院と小田原の市民病院、同じ5年目で年収50万差。立地だけでこんなに違う？",
+      "hook_idea": "神奈川の看護師、50万年収差"
     },
     {
       "day": 5,
@@ -47,26 +47,26 @@
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "県西部の病院は紹介会社に135万払えない。だから看護師が来ない。この悪循環",
-      "hook_idea": "県西部の病院は看護師を得ることができない"
+      "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い",
+      "hook_idea": "応援ナースで手取り35万"
     },
     {
       "day": 6,
-      "category": "あるある",
+      "category": "給与",
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "休憩室のカップ麺を3分待てたことがない。2分40秒で戻るのがデフォルト",
-      "hook_idea": "休憩室で3分待つことができない"
+      "hint": "美容クリニックに転職した同期が月収40万。急性期5年目の自分は24万",
+      "hook_idea": "同期が美容クリニックで月40万"
     },
     {
       "day": 7,
-      "category": "あるある",
+      "category": "転職",
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "「看護師向いてないかも」と思う日と「この仕事しかない」と思う日が同じ日に来る",
-      "hook_idea": "向いてないかもとこの仕事しかないと思った"
+      "hint": "応援ナースを1年やって貯金300万。常勤3年で貯められなかった額を1年で超えた",
+      "hook_idea": "看護師5年目、1年で300万貯めた"
     }
   ]
 }

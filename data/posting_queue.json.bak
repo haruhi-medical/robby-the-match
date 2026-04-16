@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-16T02:43:44.811779",
+  "updated": "2026-04-16T15:03:48.857575",
   "posts": [
     {
       "id": 1,
@@ -3843,11 +3843,11 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_地域_0402_07_20260416.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -5609,11 +5609,11 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -5761,6 +5761,172 @@
           "フックが25文字以内ではない"
         ],
         "suggestion": "フックを短くして、より具体的な数字や状況を盛り込むと効果的"
+      }
+    },
+    {
+      "id": 230,
+      "content_id": "ai_転職_0416_01",
+      "batch": "ai_batch_20260416_1500",
+      "slide_dir": "content/generated/ai_batch_20260416_1500/ai_転職_0416_01",
+      "json_path": "content/generated/ai_batch_20260416_1500/ai_転職_0416_01.json",
+      "caption": "看護師5年目で手取り24万って普通なの?\n\n神奈川県の看護師の実態\n\n気になる人はプロフのリンクから",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースジョブ",
+        "#看護師"
+      ],
+      "cta_type": "hard",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 7,
+        "empathy": 8,
+        "issues": [
+          "CTAの8:2ルールが厳密に守られていない"
+        ],
+        "suggestion": "ソフトCTAを追加して8:2ルールを満たすようにし、看護師の共感度をさらに高めるために具体的なデータや事例を追加する"
+      }
+    },
+    {
+      "id": 231,
+      "content_id": "ai_ある_0416_02",
+      "batch": "ai_batch_20260416_1500",
+      "slide_dir": "content/generated/ai_batch_20260416_1500/ai_ある_0416_02",
+      "json_path": "content/generated/ai_batch_20260416_1500/ai_ある_0416_02.json",
+      "caption": "神奈川の看護師さん、夜勤明けの電車で座れる？\n\n看護師の時給、コンビニバイトと同じレベルなんだ。\n\nこの投稿、保存しておいてね",
+      "hashtags": [
+        "#看護師",
+        "#神奈川",
+        "#ナース転職",
+        "#看護師不足"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない"
+        ],
+        "suggestion": "フックを25文字以内に短縮し、より具体的な数字や状況を含めることで、見る人の興味を引きつけることができる"
+      }
+    },
+    {
+      "id": 232,
+      "content_id": "ai_ある_0416_03",
+      "batch": "ai_batch_20260416_1500",
+      "slide_dir": "content/generated/ai_batch_20260416_1500/ai_ある_0416_03",
+      "json_path": "content/generated/ai_batch_20260416_1500/ai_ある_0416_03.json",
+      "caption": "神奈川の看護師5年目、夜勤8回の時給って?\n\n看護師の時給は низい\n\nこの投稿を保存してくれた人が100人もいるんだ。みんな気になってるんだね。",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#看護師不足",
+        "#夜勤看護師"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 8,
+        "empathy": 9,
+        "issues": [
+          "フックが25文字以内ではない",
+          "CTAがハードCTAとソフトCTAの8:2ルールに厳密に従っていない"
+        ],
+        "suggestion": "フックを短くし、CTAを8:2ルールに従ったソフトCTAとハードCTAに分けて改善する"
+      }
+    },
+    {
+      "id": 233,
+      "content_id": "ai_地域_0416_04",
+      "batch": "ai_batch_20260416_1500",
+      "slide_dir": "content/generated/ai_batch_20260416_1500/ai_地域_0416_04",
+      "json_path": "content/generated/ai_batch_20260416_1500/ai_地域_0416_04.json",
+      "caption": "神奈川の看護師さん、50万年収差って本当?\n\n看護師の免許は同じなのに、働く場所によって50万も年収が違う\n\nこの情報、役に立つと思う人は保存しておいて。",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#年収差",
+        "#ナース転職支援"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": 8,
+      "quality_score": 8,
+      "ai_review": {
+        "score": 8,
+        "persona_fit": 9,
+        "hook_strength": 8,
+        "legal_compliance": 10,
+        "cta_quality": 9,
+        "empathy": 8,
+        "issues": [
+          "フックが25文字以内ではない",
+          "ハッシュタグが4個を超えている"
+        ],
+        "suggestion": "フックを短くし、ハッシュタグを4個以内に調整することで、より効果的な投稿になる可能性がある"
       }
     }
   ],
