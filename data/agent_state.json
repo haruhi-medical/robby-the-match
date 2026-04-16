@@ -1,12 +1,12 @@
 {
   "lastRun": {
-    "ai_marketing_orchestrator": "2026-04-15T06:00:07",
-    "health_monitor": "2026-04-15T07:00:20",
-    "competitor_analyst": "2026-04-15T10:00:18",
+    "ai_marketing_orchestrator": "2026-04-16T06:00:07",
+    "health_monitor": "2026-04-16T07:00:19",
+    "competitor_analyst": "2026-04-16T10:00:00",
     "content_creator": "2026-04-15T15:02:44",
     "sns_poster": "2026-04-15T21:12:23",
     "daily_reviewer": "2026-04-15T23:00:29",
-    "seo_optimizer": "2026-04-16T04:00:01",
+    "seo_optimizer": "2026-04-16T04:00:22",
     "weekly_content_planner": "2026-04-12T05:00:02",
     "weekly_strategist": "2026-04-12T06:01:03",
     "tiktok_poster": "2026-04-16T02:54:58",
@@ -15,26 +15,18 @@
   "status": {
     "ai_marketing_orchestrator": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "sns_poster": "completed",
     "daily_reviewer": "completed",
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "weekly_content_planner": "pending",
     "weekly_strategist": "completed",
     "tiktok_poster": "completed",
     "autoresearch": "config_error"
   },
   "pendingTasks": {
-    "content_creator": [
-      {
-        "from": "health_monitor",
-        "type": "emergency_generate",
-        "details": "キュー残り2件。緊急コンテンツ生成必要。",
-        "created": "2026-04-14T07:00:18.081649",
-        "status": "processing"
-      }
-    ]
+    "content_creator": []
   },
   "sharedContext": {
     "lastAnalysis": "2026-04-15T23:00:15",
@@ -45,8 +37,8 @@
     "topPerformingTags": [],
     "queueRemaining": 4,
     "totalPostsThisWeek": 47,
-    "lastMarketingPDCA": "2026-04-15 06:00:00",
-    "queuePending": 42,
+    "lastMarketingPDCA": "2026-04-16 06:00:00",
+    "queuePending": 40,
     "dailyGeneratedCount": 0
   },
   "agentMemory": {
