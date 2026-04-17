@@ -1,55 +1,59 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-04-17 10:00 by 競合監視
+# 最終更新: 2026-04-17 作業終了時点
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
-- 作業完了後にこのファイルを更新する（次サイクルへ引き継ぎ）
+- 次回セッションは `docs/audit/2026-04-17/HANDOFF.md` を必ず読め
 - PROGRESS.mdには履歴として追記（こちらは状態のスナップショット）
 
 ## 現在のフェーズ
 - マイルストーン: **Week 6**（2026-04-03〜）
 - North Star: 看護師1名をA病院に紹介して成約
-- 状態: **総点検完了（2026-04-17）→ Phase 1 実行待ち（社長承認3件）**
+- 状態: **総点検+Phase1-3+優先度A手動対応 全完了 → 効果検証フェーズ**
 
-## 🟢 2026-04-17 総点検 + Phase 1 完遂
-- 詳細: `docs/audit/2026-04-17/report.md`
+## 🏁 2026-04-17 総点検 + Phase 1-3 + 社長優先度A全完了
+
+### 引き継ぎ資料
+- **次回必読**: `docs/audit/2026-04-17/HANDOFF.md`
+- 詳細レポート: `docs/audit/2026-04-17/report.md`
 - 3分要約: `docs/audit/2026-04-17/executive_summary.md`
-- **82阻害要因 → 68独立項目 → Phase 1=28 / P2=22 / P3=13**
+- 82阻害要因 → 68独立項目 → **66項目実装完了**
 
-### ✅ Phase 1 実装完了（2026-04-17、ゲートキーパー5+残り23）
-- #1 LP診断→LINE引き継ぎ復活（shindan.js/index.html→/api/line-start経由、session_id+5問の答え引継ぎ）
-- #2 AI応答4段フォールバック（OpenAI→Claude Haiku→Gemini→Workers AI、15秒タイムアウト、日本語定型フォールバック）
-- #3 Meta Pixel Lead+CAPI復旧（event_id dedup、テストevents_received:1成功、META_ACCESS_TOKEN + META_PIXEL_ID Worker secret登録）
-- #5 prefecture 877件→0件（CITY_PREF_MAP 128件+東京23区追加、神奈川469→814件）
-- #9 scripts/deploy_worker.sh 新設（secrets 7件検証+Slack通知）
-- #10 SLACK_CHANNEL_ID 7ファイル C0AEG626EUW に統一
-- #11 scripts/daily_snapshot_merge.py 新設（GA4/Meta/HW/Worker統合）
-- #12-#28 LP CTA/welcome QR/派遣除外/保育園除外/電話マスク/area空欄/UTM/handoff自動フォロー等
+### ✅ 社長手動完了（優先度A）
+- S-01 Claude CLI auth ✅
+- S-07 Search Console API 権限付与 ✅（GA4レポート403解消確認済）
+- S-02 TikTok bio 差し替え ✅
+- UptimeRobot 3モニター5分間隔稼働 ✅
 
-### ⚠️ 社長手動対応（Phase 1 関連）
-- S-01: `claude auth login` 実行（autoresearch復旧）
-- S-02: TikTok bio差し替え承認
-- S-04: Instagram 投稿頻度 3→2
-- S-05: Meta広告 Lead目的継続の判断
-- S-07: Search Console API 権限付与（odawara-nurse-jobs サービスアカウントに）
-- S-08-10: 広告コピー3件差し替え（ミサキテスト通過率15-43%）
+### 🟡 社長判断待ち（優先度B・急がない）
+- S-04 Instagram投稿頻度 3→2
+- S-05 Meta広告 Lead目的継続判断
+- S-06 LINE Bot内「10%」訴求非表示判断
+- S-08-10 広告コピー3本差し替え（ミサキテスト結果: implementations/misaki_test.md）
 
-### 📊 期待される変化（48h以内に検証）
-- Lead/LINE登録数の乖離 7.5倍→1-2倍
-- AI応答成功率 85-95%→99.9%
-- 求人ヒット率 神奈川+73.6%（翌朝06:30 cron反映）
-- handoff 24h以内連絡の信頼性向上
+### ⏳ 保留（優先度C・任意）
+- #33 訪問看護STデータ投入（要データソース調査、8-12h）
+- #37 GBP登録申請（社長対応、認証葉書2週間）
 
-### 📋 Phase 2（48h）/ Phase 3（1週間）残項目
-- Phase 2: 22項目（facilities↔jobs リンク、CAPI完全実装、訪問看護ST追加、GBP登録等）
-- Phase 3: 13項目（D1 phase遷移ログ、非公開求人、LCP改善、E-E-AT強化等）
+### 📊 48時間以内に検証する数字
+- Meta Lead vs LINE登録 乖離: 7.5倍 → 1-2倍に収束見込み
+- AI応答成功率: 85-95% → 99.9% 見込み
+- 求人ヒット率（神奈川）: 469 → 814件（+73.6%）、明日06:30 cron反映
+- Search Console データ取得: 明日08:05で復活
+- autoresearch: 明日02:00で復活
 
-### 📝 点検で判明した古い記述の訂正
+### 📝 点検で判明した古い記述の訂正（本セッションで修正済）
 - 「LINE登録0」→ 4/14 3人, 4/15 15人, 4/16 不明
-- 「AI応答 4段フォールバック」→ 旧: 排他1段 / 新: 実装済み
+- 「AI応答 4段フォールバック」→ 旧: 排他1段 / 新: 実装済み（OpenAI→Claude→Gemini→Workers AI）
 - 「診療科100%」→ 病院1,498件サブセットのみ（DB全体24,488件では6.1%）
-- 「prefecture空欄修正済」→ 旧: 877件残存 / 新: 0件
+- 「prefecture空欄修正済」→ 旧: 877件残存 / 新: 0件（814件、神奈川+73.6%）
 - 「area/21 + guide/41」→ 実際: area/32 + guide/48
+
+### 🚀 本番反映済み
+- Worker Version: 54957ab3（/api/health?deep=1 で AI稼働確認済）
+- D1 スキーマ: confidential_jobs + phase_transitions + 7インデックス追加
+- git: main / master 両branch 最新（commit b12d098）
+- cron: */15 15min handoff follow-up 追加
 
 ## 2026-04-03 実施内容（1日で30+コミット）
 
