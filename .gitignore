@@ -36,6 +36,7 @@ TK_cookies_*.json
 data/egov/
 data/byosho/
 data/hellowork_history/
+data/shitei_vn/
 data/nurse_robby_db.sql
 data/nurse_robby_db.sqlite
 content/ready/
