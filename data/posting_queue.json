@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-17T03:00:55.742925",
+  "updated": "2026-04-17T15:02:42.155677",
   "posts": [
     {
       "id": 1,
@@ -5941,6 +5941,93 @@
         "suggestion": "フックを短くし、ハッシュタグを4個以内に調整することで、より効果的な投稿になる可能性がある"
       },
       "scheduled_for": "2026-04-22 17:30"
+    },
+    {
+      "id": 234,
+      "content_id": "ai_地域_0417_01",
+      "batch": "ai_batch_20260417_1500",
+      "slide_dir": "content/generated/ai_batch_20260417_1500/ai_地域_0417_01",
+      "json_path": "content/generated/ai_batch_20260417_1500/ai_地域_0417_01.json",
+      "caption": "神奈川で看護師をやってる人は\n\nこの情報、知らなかった人いる？\n\n保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師市場価値",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 235,
+      "content_id": "ai_給与_0417_02",
+      "batch": "ai_batch_20260417_1500",
+      "slide_dir": "content/generated/ai_batch_20260417_1500/ai_給与_0417_02",
+      "json_path": "content/generated/ai_batch_20260417_1500/ai_給与_0417_02.json",
+      "caption": "看護師の時給、コンビニと同じって本当？\n\n横浜市の看護師平均年収は546万円。全国平均より高いんだ\n\n同じ状況の看護師さんに送ってあげて",
+      "hashtags": [
+        "#横浜ナース",
+        "#看護師転職",
+        "#神奈川就職",
+        "#ナース転職"
+      ],
+      "cta_type": "soft",
+      "content_type": "salary",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 236,
+      "content_id": "ai_転職_0417_03",
+      "batch": "ai_batch_20260417_1500",
+      "slide_dir": "content/generated/ai_batch_20260417_1500/ai_転職_0417_03",
+      "json_path": "content/generated/ai_batch_20260417_1500/ai_転職_0417_03.json",
+      "caption": "看護師5年目で1年で300万貯めたら、普通?\n\n横浜市内の看護師平均年収は546万円。\n\n自分の市場価値を知って、自由に選んでみて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースライフ",
+        "#自由と安定"
+      ],
+      "cta_type": "soft",
+      "content_type": "career",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
     }
   ],
   "archive": [

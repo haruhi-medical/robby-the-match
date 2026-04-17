@@ -1,6 +1,6 @@
 {
   "created": "2026-04-16T15:00:25.076245",
-  "updated": "2026-04-16T15:02:57.883507",
+  "updated": "2026-04-17T15:02:42.167697",
   "week_of": "2026-04-16",
   "total": 7,
   "queue_pending_at_creation": 3,
@@ -45,8 +45,8 @@
       "day": 5,
       "category": "地域ネタ",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_地域_0417_01",
       "hint": "応援ナースが神奈川に来る理由。寮付き・交通費全額で手取り35万。地元ナースより高い",
       "hook_idea": "応援ナースで手取り35万"
     },
@@ -54,8 +54,8 @@
       "day": 6,
       "category": "給与",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_給与_0417_02",
       "hint": "美容クリニックに転職した同期が月収40万。急性期5年目の自分は24万",
       "hook_idea": "同期が美容クリニックで月40万"
     },
@@ -63,8 +63,8 @@
       "day": 7,
       "category": "転職",
       "cta_type": "soft",
-      "status": "planned",
-      "content_id": null,
+      "status": "generated",
+      "content_id": "ai_転職_0417_03",
       "hint": "応援ナースを1年やって貯金300万。常勤3年で貯められなかった額を1年で超えた",
       "hook_idea": "看護師5年目、1年で300万貯めた"
     }

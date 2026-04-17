@@ -48,6 +48,13 @@
       "status": "recovered",
       "last_error": "",
       "last_alert_ts": ""
+    },
+    "claude_cli_auth": {
+      "date": "2026-04-17",
+      "retries": 0,
+      "status": "config_error",
+      "last_error": "not logged in",
+      "last_alert_ts": "2026-04-17T13:00:02.019101"
     }
   }
 }

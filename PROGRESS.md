@@ -4228,3 +4228,10 @@ AI Marketing PDCA:
 [pdca_ai_engine] job=competitor 完了 (exit=0)
 [INFO] commit済み（pushは日次レビューで一括）
 
+### content（15:00:00）
+コンテンツ生成:   id=234, content_id=ai_地域_0417_01, batch=ai_batch_20260417_1500, cta=soft
+  id=235, content_id=ai_給与_0417_02, batch=ai_batch_20260417_1500, cta=soft
+  id=236, content_id=ai_転職_0417_03, batch=ai_batch_20260417_1500, cta=soft
+
+[NOTE] available (44) >= threshold (7) -- --auto では生成スキップ
+
