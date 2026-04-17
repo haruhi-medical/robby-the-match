@@ -4005,9 +4005,9 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-17T18:23:47",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -4032,7 +4032,8 @@
         ],
         "suggestion": "看護師の共感を深め、フックを強化し、キャプションを短くすることでより効果的な投稿になる可能性がある"
       },
-      "scheduled_for": "2026-04-07 12:00"
+      "scheduled_for": "2026-04-07 12:00",
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 189,
@@ -5926,7 +5927,7 @@
         "comments": null
       },
       "ai_score": 8,
-      "quality_score": 8,
+      "quality_score": 8.85,
       "ai_review": {
         "score": 8,
         "persona_fit": 9,
@@ -5940,7 +5941,8 @@
         ],
         "suggestion": "フックを短くし、ハッシュタグを4個以内に調整することで、より効果的な投稿になる可能性がある"
       },
-      "scheduled_for": "2026-04-22 17:30"
+      "scheduled_for": "2026-04-22 17:30",
+      "quality_checked": true
     },
     {
       "id": 234,
@@ -5969,7 +5971,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.91,
+      "quality_checked": true
     },
     {
       "id": 235,
@@ -5998,7 +6001,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.98,
+      "quality_checked": true
     },
     {
       "id": 236,
@@ -6027,7 +6031,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.12,
+      "quality_checked": true
     }
   ],
   "archive": [

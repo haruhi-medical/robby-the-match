@@ -1,0 +1,28 @@
+{
+  "task": "instagram-daily-post",
+  "timestamp": "2026-04-17T17:30:00+09:00",
+  "status": "failed",
+  "queue_entry": {
+    "id": 189,
+    "content_id": "ai_ある_0404_04",
+    "category": "aruaru",
+    "slide_count": 8,
+    "slide_dir": "content/generated/ai_batch_20260404_1500/ai_ある_0404_04",
+    "scheduled_for": "2026-04-08 21:00",
+    "selection_rule": "lowest queue_id among status=ready carousel posts"
+  },
+  "failure_reason": "Chrome MCP未接続（Chrome拡張機能が応答なし）",
+  "fallback_attempted": [
+    "Chrome MCP tabs_context_mcp × 3回（5秒／15秒待機含む） → 接続失敗",
+    "Slack API (Python urllib + scripts/notify_slack.py) → サンドボックスプロキシで 403 Forbidden",
+    "scripts/ig_post_meta_suite.py (CDP:9223) → ホスト側Chrome debug portが必要でサンドボックスから到達不可"
+  ],
+  "action_required": [
+    "Mac Mini M4 で Chrome拡張 (Claude in Chrome) のサインイン/接続を確認",
+    "Meta Business Suite のログインセッションが有効か確認",
+    "タスクを手動で再実行（あるいは scripts/ig_post_meta_suite.py をホストから直接実行）"
+  ],
+  "ready_backlog_total": 40,
+  "content_still_ready": true,
+  "notes": "同一原因の失敗が4/13にも記録されている (instagram_post_failure_20260413.json)。Chrome拡張接続がスケジュールタスク実行時に継続的に失敗している可能性が高い。恒久対応の検討を推奨。"
+}

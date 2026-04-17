@@ -1,0 +1,11 @@
+[
+  {
+    "channel": "C09A7U4TV4G",
+    "text": "test: network check from sandbox",
+    "blocks": null,
+    "thread_ts": null,
+    "enqueued_at": "2026-04-17T12:12:47",
+    "retries": 0,
+    "last_error": "exception_ProxyError"
+  }
+]
