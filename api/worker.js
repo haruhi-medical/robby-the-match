@@ -167,6 +167,42 @@ async function sendMetaConversionEvent(env, eventName, userId, data, opts) {
   }
 }
 
+// ========== #51 Phase 3: フェーズ遷移ログ ==========
+// LINE Bot のフェーズ遷移をD1 phase_transitions テーブルに記録。
+// どの phase で離脱が多いかを週次レポート（scripts/phase_transition_weekly_report.py）で可視化。
+// ctx.waitUntil で非同期書き込み（レイテンシ影響なし）。
+async function logPhaseTransition(userId, prevPhase, nextPhase, eventType, entry, env, ctx) {
+  if (!env?.DB || !userId || !nextPhase) return;
+  if (prevPhase === nextPhase) return; // 同一phase遷移は記録しない
+  try {
+    const writePromise = env.DB.prepare(`
+      INSERT INTO phase_transitions
+        (user_hash, prev_phase, next_phase, event_type, area, prefecture, urgency, work_style, facility_type, source, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      (userId || '').slice(0, 12),
+      prevPhase || null,
+      nextPhase,
+      eventType || null,
+      entry?.area || null,
+      entry?.prefecture || null,
+      entry?.urgency || null,
+      entry?.workStyle || null,
+      entry?.facilityType || null,
+      entry?.welcomeSource || null,
+      new Date().toISOString(),
+    ).run();
+
+    if (ctx && typeof ctx.waitUntil === 'function') {
+      ctx.waitUntil(writePromise.catch(e => console.error(`[PhaseLog] write error: ${e.message}`)));
+    } else {
+      await writePromise;
+    }
+  } catch (e) {
+    console.error(`[PhaseLog] ${e.message}`);
+  }
+}
+
 async function sendGA4Event(env, eventName, userId, data) {
   try {
     const url = `https://www.google-analytics.com/mp/collect?measurement_id=${env.GA4_MEASUREMENT_ID}&api_secret=${env.GA4_API_SECRET}`;
@@ -1362,14 +1398,16 @@ ${MARKET_DATA}
 }
 
 export default {
-  // ===== Cron Trigger: ナーチャリング配信（1日1回）+ ハンドオフフォロー（15分おき） =====
+  // ===== Cron Trigger: ナーチャリング配信（1日1回）+ ハンドオフフォロー（15分おき）+ 失敗Push再送（15分おき） =====
   async scheduled(event, env, ctx) {
     // ナーチャリング配信は1日1回のcronのみ（01:00 UTC = 10:00 JST）
     if (event.cron === "0 1 * * *") {
       ctx.waitUntil(handleScheduledNurture(env));
     }
-    // ハンドオフフォローは15分おきに実行（15min受付確認 / 2h再通知 / 24h SLAリマインダー）
+    // ハンドオフフォロー + 失敗Push再送は15分おき
     ctx.waitUntil(handleScheduledHandoffFollowup(env));
+    // #41 Phase2 Group J: 失敗Push再送（30分以上前のものを対象、最大3回試行）
+    ctx.waitUntil(handleScheduledFailedPushRetry(env));
   },
 
   async fetch(request, env, ctx) {
@@ -1468,9 +1506,65 @@ export default {
       return handleFacilitiesSearch(url, env, request);
     }
 
-    // ヘルスチェック
+    // ヘルスチェック（#62 Phase 3: ai_ok フィールド追加）
+    // クエリ ?deep=1 で OpenAI / Workers AI への軽量疎通確認を実施
+    // 通常は設定値の有無のみ返す（レート/コスト考慮）
     if (url.pathname === "/api/health" && request.method === "GET") {
-      return jsonResponse({ status: "ok", timestamp: new Date().toISOString() });
+      const deep = url.searchParams.get('deep') === '1';
+      const ai_ok = {
+        openai: null,        // true/false/null(未設定)
+        workers_ai: null,
+      };
+
+      // 設定値の有無チェック（軽量）
+      ai_ok.openai = env?.OPENAI_API_KEY ? (deep ? null : true) : false;
+      ai_ok.workers_ai = env?.AI ? (deep ? null : true) : false;
+
+      // deep=1 時のみ実際に呼び出して疎通確認（3秒タイムアウト）
+      if (deep) {
+        const probe = async (provider) => {
+          try {
+            if (provider === 'openai' && env?.OPENAI_API_KEY) {
+              const controller = new AbortController();
+              const timer = setTimeout(() => controller.abort(), 3000);
+              const r = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: "ok" }], max_tokens: 1 }),
+                signal: controller.signal,
+              });
+              clearTimeout(timer);
+              return r.ok;
+            }
+            if (provider === 'workers_ai' && env?.AI) {
+              const r = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
+                messages: [{ role: "user", content: "ok" }], max_tokens: 1,
+              });
+              return !!(r && (r.response !== undefined || r.result !== undefined));
+            }
+            return false;
+          } catch (e) {
+            console.error(`[Health] ${provider} probe error: ${e.message}`);
+            return false;
+          }
+        };
+
+        const [openaiOk, workersOk] = await Promise.all([
+          probe('openai'),
+          probe('workers_ai'),
+        ]);
+        if (ai_ok.openai !== false) ai_ok.openai = openaiOk;
+        if (ai_ok.workers_ai !== false) ai_ok.workers_ai = workersOk;
+      }
+
+      const overall_ok = (ai_ok.openai === true || ai_ok.workers_ai === true);
+      return jsonResponse({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        ai_ok,
+        overall_ok,
+        deep,
+      });
     }
 
     // デバッグ: AI相談テスト
@@ -2797,6 +2891,84 @@ async function lineReply(replyToken, messages, channelAccessToken) {
   }
 }
 
+// ========== #41 Phase2 Group J: LINE Push with失敗キュー ==========
+// follow / LinkSession / その他 Push 送信の共通ラッパー。
+// 失敗時は Slack 通知 + KV `failedPush:{userId}:{ts}` に保存し、
+// scheduled cron で 30分おきに再送する。
+//
+// オプション:
+//   - tag: ログ上のソース識別子（"follow_liff", "nurture", "handoff_15min" など）
+//   - maxAttempts: 既に何回試行したか（KVから取り出して再送する時に指定）
+//   - ctx: ctx.waitUntil を使える場合に Slack 通知を非同期化
+async function linePushWithFallback(userId, messages, env, opts = {}) {
+  const tag = opts.tag || 'push';
+  const maxAttempts = opts.maxAttempts || 0;
+
+  if (!env?.LINE_CHANNEL_ACCESS_TOKEN) {
+    console.error(`[Push:${tag}] LINE_CHANNEL_ACCESS_TOKEN not set`);
+    return { ok: false, status: 0, error: 'no_token' };
+  }
+
+  let res, errBody = '', status = 0;
+  try {
+    res = await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({ to: userId, messages }),
+    });
+    status = res.status;
+    if (res.ok) {
+      console.log(`[Push:${tag}] OK userId=${userId.slice(0, 8)} ${res.status}`);
+      return { ok: true, status: res.status };
+    }
+    errBody = await res.text().catch(() => '');
+  } catch (e) {
+    errBody = e.message || 'fetch_error';
+    status = -1;
+  }
+
+  console.error(`[Push:${tag}] FAILED userId=${userId.slice(0, 8)} status=${status} body=${errBody.slice(0, 200)}`);
+
+  // KV にキュー登録（1時間TTL; cron で拾って再送）
+  // ユーザーブロック(400 "invalid user" など）は再送不要なので 403/400 だけスキップ
+  const isBlocked = status === 400 || status === 403;
+  if (!isBlocked && env?.LINE_SESSIONS) {
+    try {
+      const qKey = `failedPush:${userId}:${Date.now()}`;
+      await env.LINE_SESSIONS.put(qKey, JSON.stringify({
+        userId,
+        messages,
+        tag,
+        attempts: maxAttempts + 1,
+        lastError: errBody.slice(0, 200),
+        lastStatus: status,
+        enqueuedAt: Date.now(),
+      }), { expirationTtl: 3600 });
+    } catch (e) {
+      console.error(`[Push:${tag}] KV queue error: ${e.message}`);
+    }
+  }
+
+  // Slack 通知（Bot Token あれば）
+  if (env?.SLACK_BOT_TOKEN) {
+    const nowJST = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+    const slackMsg = `🚨 *LINE Push失敗* [${tag}]\nユーザー: \`${userId.slice(0, 8)}...\`\nHTTP: ${status}\nエラー: \`${errBody.slice(0, 150)}\`\n時刻: ${nowJST}\n${isBlocked ? '⚠️ ブロック判定で再送スキップ' : '♻️ 30分以内に再送予定（失敗キューに保存）'}`;
+    const slackPromise = fetch('https://slack.com/api/chat.postMessage', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${env.SLACK_BOT_TOKEN}`, 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || 'C0AEG626EUW', text: slackMsg }),
+    }).catch((e) => { console.error(`[Push:${tag}] Slack notify failed: ${e.message}`); });
+    if (opts.ctx && typeof opts.ctx.waitUntil === 'function') {
+      opts.ctx.waitUntil(slackPromise);
+    }
+  }
+
+  return { ok: false, status, error: errBody.slice(0, 200), queued: !isBlocked };
+}
+
 // ---------- Web→LINE セッション橋渡し ----------
 
 function generateHandoffCode() {
@@ -2949,6 +3121,78 @@ async function handleLineStart(url, env, request, ctx) {
       }
     }
 
+    // ===== #42 Phase2 Group J: shindan引き継ぎ待機短縮（事前マッチング生成） =====
+    // LP診断の回答が揃っている場合、ctx.waitUntil で裏でマッチングを事前生成する。
+    // 結果を preMatching:{sessionId} KV に15分TTLで保存。
+    // follow時 handleLineWebhook が liff/session ルートでキャッシュヒットすれば
+    // generateLineMatching を skip できる（LP→LINE遷移中の数秒〜数十秒を短縮）。
+    if (ctx && answers && env?.DB) {
+      ctx.waitUntil((async () => {
+        try {
+          let ans = null;
+          try {
+            ans = typeof answers === 'string' ? JSON.parse(answers) : answers;
+          } catch (e) {
+            console.warn(`[LineStart] preMatching: answers parse failed: ${e.message}`);
+            return;
+          }
+          // 必要最小3条件（area, workStyle, urgency）のうち area だけでも生成可能
+          if (!ans || !ans.area) {
+            console.log(`[LineStart] preMatching: skip (no area in answers)`);
+            return;
+          }
+
+          // 仮想 entry を作って generateLineMatching に渡す
+          const virtualEntry = {
+            area: ans.area,
+            areaLabel: ans.areaLabel || '',
+            prefecture: ans.prefecture || null,
+            workStyle: ans.workStyle || ans.workstyle || null,
+            urgency: ans.urgency || null,
+            facilityType: ans.facilityType || null,
+            hospitalSubType: ans.hospitalSubType || null,
+            department: ans.department || null,
+            qualification: ans.qualification || 'nurse',
+            browsedJobIds: [],
+          };
+          const results = await generateLineMatching(virtualEntry, env, 0);
+
+          if (results && results.length > 0) {
+            // matchingResults はサイズが大きいので saveLineEntry と同じ圧縮版で保存
+            const compact = results.slice(0, 5).map(r => ({
+              n: r.n || r.name || null,
+              sal: r.sal || r.salary || null,
+              hol: r.hol || null,
+              loc: r.loc || null,
+              r: r.r || null,
+              s: r.s || null,
+              t: r.t || null,
+              sta: r.sta || null,
+              bon: r.bon || null,
+              emp: r.emp || null,
+              reasons: r.reasons || null,
+              matchCount: r.matchCount || null,
+              matchFlags: r.matchFlags || null,
+              isFallback: !!r.isFallback,
+              isD1Job: !!r.isD1Job,
+            }));
+            if (env?.LINE_SESSIONS) {
+              await env.LINE_SESSIONS.put(`preMatching:${effectiveSessionId}`, JSON.stringify({
+                results: compact,
+                answers: ans,
+                generatedAt: Date.now(),
+              }), { expirationTtl: 900 }); // 15分
+              console.log(`[LineStart] preMatching cached: sid=${effectiveSessionId.slice(0, 8)} count=${compact.length}`);
+            }
+          } else {
+            console.log(`[LineStart] preMatching: 0 results for area=${ans.area}`);
+          }
+        } catch (e) {
+          console.error(`[LineStart] preMatching error: ${e.message}`);
+        }
+      })());
+    }
+
     // dm_text にsession_idを埋め込んでLINE友だち追加URLへリダイレクト
     const dmText = encodeURIComponent(effectiveSessionId);
     const redirectUrl = `${LINE_START_OA_URL}?dm_text=${dmText}`;
@@ -3082,14 +3326,8 @@ async function handleLinkSession(request, env) {
               },
             }];
 
-        await fetch('https://api.line.me/v2/bot/message/push', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
-          },
-          body: JSON.stringify({ to: user_id, messages: pushMsgs }),
-        });
+        // #41 Phase2 Group J: 失敗時Slack通知+KVキュー+cron再送
+        await linePushWithFallback(user_id, pushMsgs, env, { tag: 'liff_already_friend' });
 
         console.log(`[LinkSession] Push sent to already-friend ${user_id.slice(0, 8)}`);
 
@@ -3110,6 +3348,162 @@ async function handleLinkSession(request, env) {
     console.error('[LinkSession] Error:', err);
     return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
+  }
+}
+
+// ========== #32 Phase2 Group J: LP側 施設検索API ==========
+// chat.js の findMatchingHospitals から呼ばれる。
+// 旧: CHAT_CONFIG.hospitals（212施設）ハードコード
+// 新: D1 facilities テーブル（24,488件）から軽量SELECT + Haversine距離スコア
+//
+// クエリパラメータ:
+//   - area: chat.js のエリア値（yokohama, kawasaki, sagamihara, yokosuka_miura,
+//           shonan_east, shonan_west, kenoh, kensei, undecided）
+//   - limit: 返却件数（デフォルト10, 最大30）
+//   - category: 施設カテゴリ（病院/クリニック/訪問看護ST/介護施設 — 省略時=病院）
+//
+// レスポンス形式（chat.js の既存フィールドに合わせる）:
+//   { results: [{ displayName, type, city, address, bed_count, lat, lng, ... }], total, source }
+//
+// 距離計算: chat.js のエリア中心座標から Haversine 距離を計算し、
+//   「同一エリア内 → 距離昇順」「エリア外 → 除外」で並べる。
+// D1 未設定時は空配列を返す（chat.js 側でハードコード fallback に任せる）。
+const CHATJS_AREA_CITIES_KANAGAWA = {
+  yokohama: ['横浜市'],
+  kawasaki: ['川崎市'],
+  sagamihara: ['相模原市'],
+  yokosuka_miura: ['横須賀市', '鎌倉市', '逗子市', '三浦市', '葉山町'],
+  shonan_east: ['藤沢市', '茅ヶ崎市', '寒川町'],
+  shonan_west: ['平塚市', '秦野市', '伊勢原市', '大磯町', '二宮町'],
+  kenoh: ['厚木市', '海老名市', '座間市', '綾瀬市', '大和市', '愛川町'],
+  kensei: ['小田原市', '南足柄市', '開成町', '大井町', '中井町', '松田町', '山北町', '箱根町', '真鶴町', '湯河原町'],
+  undecided: [],
+};
+
+// エリア中心座標（Haversine 距離の起点）
+const CHATJS_AREA_CENTER = {
+  yokohama:       { lat: 35.4437, lng: 139.6380 }, // 横浜駅
+  kawasaki:       { lat: 35.5308, lng: 139.7030 }, // 川崎駅
+  sagamihara:     { lat: 35.5711, lng: 139.3733 }, // 相模原駅
+  yokosuka_miura: { lat: 35.2815, lng: 139.6724 }, // 横須賀中央駅付近
+  shonan_east:    { lat: 35.3390, lng: 139.4907 }, // 藤沢駅
+  shonan_west:    { lat: 35.3274, lng: 139.3495 }, // 平塚駅
+  kenoh:          { lat: 35.4390, lng: 139.3654 }, // 本厚木駅
+  kensei:         { lat: 35.2561, lng: 139.1550 }, // 小田原駅
+  undecided:      { lat: 35.4478, lng: 139.6425 }, // 神奈川県中央付近
+};
+
+async function handleFacilitiesSearch(url, env, request) {
+  const allowedOrigin = getResponseOrigin(request, env);
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
+  try {
+    const area = url.searchParams.get('area') || 'undecided';
+    const limitRaw = parseInt(url.searchParams.get('limit') || '10', 10);
+    const limit = Math.min(Math.max(limitRaw, 1), 30); // 1〜30でクランプ
+    const category = url.searchParams.get('category') || '病院';
+
+    // D1 未設定 → 空配列を返す（chat.js 側フォールバック）
+    if (!env?.DB) {
+      return new Response(JSON.stringify({ results: [], total: 0, source: 'no_db' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders },
+      });
+    }
+
+    const cities = CHATJS_AREA_CITIES_KANAGAWA[area] || [];
+    const center = CHATJS_AREA_CENTER[area] || CHATJS_AREA_CENTER.undecided;
+
+    // SQL構築: 病床数の多い順 + 最新同期順（Haversine はJS側で並び替え）
+    const baseFields = `id, name, category, sub_type, prefecture, city, address,
+      lat, lng, nearest_station, station_minutes, bed_count, departments,
+      COALESCE(has_active_jobs, 0) AS has_active_jobs,
+      COALESCE(active_job_count, 0) AS active_job_count`;
+
+    let sql, params;
+    if (cities.length > 0) {
+      const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
+      sql = `SELECT ${baseFields} FROM facilities
+             WHERE prefecture = ? AND category = ? AND (${whereClauses})
+             ORDER BY COALESCE(bed_count, 0) DESC LIMIT ?`;
+      params = ['神奈川県', category, ...cities.map(c => `%${c}%`), limit * 3];
+    } else {
+      // area=undecided or 未知のエリア → 神奈川全域
+      sql = `SELECT ${baseFields} FROM facilities
+             WHERE prefecture = ? AND category = ?
+             ORDER BY COALESCE(bed_count, 0) DESC LIMIT ?`;
+      params = ['神奈川県', category, limit * 3];
+    }
+
+    const result = await env.DB.prepare(sql).bind(...params).all();
+    const rows = (result && result.results) ? result.results : [];
+
+    // Haversine 距離スコアで並び替え（緯度経度あるものだけ）
+    const withDistance = rows.map(r => {
+      let distanceKm = null;
+      if (r.lat && r.lng && center) {
+        distanceKm = haversineDistance(center.lat, center.lng, r.lat, r.lng);
+      }
+      return { ...r, distanceKm };
+    });
+
+    withDistance.sort((a, b) => {
+      if (a.distanceKm == null && b.distanceKm == null) return 0;
+      if (a.distanceKm == null) return 1;
+      if (b.distanceKm == null) return -1;
+      return a.distanceKm - b.distanceKm;
+    });
+
+    const topN = withDistance.slice(0, limit);
+
+    // chat.js 既存フィールド形式に変換
+    const mapped = topN.map(r => {
+      const bedText = r.bed_count ? `${r.bed_count}床` : '';
+      const cityText = r.city || '';
+      const meta = [cityText, bedText].filter(Boolean).join('・');
+      const displayName = meta ? `${r.name}（${meta}）` : r.name;
+      return {
+        displayName,
+        name: r.name,
+        type: r.sub_type || r.category || '',
+        category: r.category || '',
+        subType: r.sub_type || '',
+        city: r.city || '',
+        address: r.address || '',
+        beds: r.bed_count || null,
+        bedCount: r.bed_count || null,
+        lat: r.lat || null,
+        lng: r.lng || null,
+        nearestStation: r.nearest_station || '',
+        stationMinutes: r.station_minutes || null,
+        distanceKm: r.distanceKm != null ? Math.round(r.distanceKm * 10) / 10 : null,
+        hasActiveJobs: !!r.has_active_jobs,
+        activeJobCount: r.active_job_count || 0,
+        departments: r.departments || '',
+        referral: false,
+        dataSource: 'quads-nurse.com D1',
+      };
+    });
+
+    return new Response(JSON.stringify({
+      results: mapped,
+      total: mapped.length,
+      area,
+      source: 'd1_facilities',
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders },
+    });
+  } catch (err) {
+    console.error('[FacilitiesSearch] Error:', err.message);
+    return new Response(JSON.stringify({ results: [], total: 0, error: err.message }), {
+      status: 200, // chat.js側で全体停止を防ぐため200+空配列で返す
+      headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders },
     });
   }
 }
@@ -3833,6 +4227,11 @@ async function buildPhaseMessage(phase, entry, env) {
       const PREF_LABELS = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県', other: 'その他の地域' };
       const prefLabel = PREF_LABELS[entry.prefecture] || entry.prefecture;
       const countLine = `━━━━━━━━━━━━━━━\n📊 候補: ${prefCount.facilities.toLocaleString()}件\n━━━━━━━━━━━━━━━`;
+      // #40 Phase2 Group J: 「前に戻る / 最初からやり直す」QR
+      const backItems = [
+        qrItem("← 前に戻る", "il_back=pref"),
+        qrItem("最初からやり直す", "il_back=restart"),
+      ];
 
       if (entry.prefecture === 'tokyo') {
         return [{
@@ -3843,6 +4242,7 @@ async function buildPhaseMessage(phase, entry, env) {
               qrItem("23区", "il_area=tokyo_23ku"),
               qrItem("多摩地域", "il_area=tokyo_tama"),
               qrItem("どこでもOK", "il_area=tokyo_included"),
+              ...backItems,
             ],
           },
         }];
@@ -3859,6 +4259,7 @@ async function buildPhaseMessage(phase, entry, env) {
               qrItem("横須賀・三浦", "il_area=yokosuka_miura"),
               qrItem("小田原・県西", "il_area=odawara_kensei"),
               qrItem("どこでもOK", "il_area=kanagawa_all"),
+              ...backItems,
             ],
           },
         }];
@@ -3891,6 +4292,7 @@ async function buildPhaseMessage(phase, entry, env) {
               qrItem("成田・印旛", "il_area=chiba_inba"),
               qrItem("外房・房総", "il_area=chiba_sotobo"),
               qrItem("どこでもOK", "il_area=chiba_all"),
+              ...backItems,
             ],
           },
         }];
@@ -3907,6 +4309,7 @@ async function buildPhaseMessage(phase, entry, env) {
               qrItem("西部・川越・所沢", "il_area=saitama_west"),
               qrItem("北部・熊谷", "il_area=saitama_north"),
               qrItem("どこでもOK", "il_area=saitama_all"),
+              ...backItems,
             ],
           },
         }];
@@ -3924,6 +4327,7 @@ async function buildPhaseMessage(phase, entry, env) {
             qrItem("訪問看護", "il_ft=visiting"),
             qrItem("介護施設", "il_ft=care"),
             qrItem("こだわりなし", "il_ft=any"),
+            ...backItems,
           ],
         },
       }];
@@ -3932,6 +4336,7 @@ async function buildPhaseMessage(phase, entry, env) {
     // 診療科選択（病院選択後のみ表示）
     case "il_department": {
       const subLabelD = entry.hospitalSubType || '病院';
+      // #40 Phase2 Group J: 「前に戻る」→ 施設タイプ選択
       return [{
         type: "text",
         text: `${subLabelD}ですね！\n希望の診療科はありますか？`,
@@ -3947,6 +4352,8 @@ async function buildPhaseMessage(phase, entry, env) {
             qrItem("リハビリ", "il_dept=リハビリテーション科"),
             qrItem("救急", "il_dept=救急"),
             qrItem("こだわりなし", "il_dept=any"),
+            qrItem("← 前に戻る", "il_back=ft"),
+            qrItem("最初からやり直す", "il_back=restart"),
           ],
         },
       }];
@@ -3957,6 +4364,12 @@ async function buildPhaseMessage(phase, entry, env) {
       const ftLabelsWS = {hospital: subLabel || "病院", clinic: "クリニック", visiting: "訪問看護", care: "介護施設", any: "こだわりなし"};
       const ftLabelWS = ftLabelsWS[entry.facilityType] || "";
       const nowCount = await countCandidatesD1(entry, env);
+      // #40 Phase2 Group J: 「前に戻る」→ 病院なら診療科、その他なら施設タイプ
+      const wsBackTarget = (entry.facilityType === 'hospital' && !entry._isClinic) ? "dept" : "ft";
+      const wsBackItems = [
+        qrItem("← 前に戻る", `il_back=${wsBackTarget}`),
+        qrItem("最初からやり直す", "il_back=restart"),
+      ];
       return [{
         type: "text",
         text: `${ftLabelWS}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(nowCount.facilities + nowCount.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\n希望の働き方は？`,
@@ -3965,12 +4378,14 @@ async function buildPhaseMessage(phase, entry, env) {
             ? [
                 qrItem("常勤（日勤）", "il_ws=day"),
                 qrItem("パート・非常勤", "il_ws=part"),
+                ...wsBackItems,
               ]
             : [
                 qrItem("日勤のみ", "il_ws=day"),
                 qrItem("夜勤ありOK", "il_ws=twoshift"),
                 qrItem("パート・非常勤", "il_ws=part"),
                 qrItem("夜勤専従", "il_ws=night"),
+                ...wsBackItems,
               ],
         },
       }];
@@ -3978,6 +4393,7 @@ async function buildPhaseMessage(phase, entry, env) {
 
     case "il_urgency": {
       if (entry._isClinic) delete entry._isClinic;
+      // #40 Phase2 Group J: 「前に戻る」→ 働き方
       return [{
         type: "text",
         text: "今の転職への気持ちは？",
@@ -3986,6 +4402,8 @@ async function buildPhaseMessage(phase, entry, env) {
             qrItem("すぐにでも転職したい", "il_urg=urgent"),
             qrItem("いい求人があれば", "il_urg=good"),
             qrItem("まずは情報収集", "il_urg=info"),
+            qrItem("← 前に戻る", "il_back=ws"),
+            qrItem("最初からやり直す", "il_back=restart"),
           ],
         },
       }];
@@ -3994,6 +4412,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "il_facility_type": {
       const areaLabelFT = entry.areaLabel || entry.area || "";
       const currentCountF = await countCandidatesD1(entry, env);
+      // #40 Phase2 Group J: 「前に戻る」→ サブエリア選択
       return [{
         type: "text",
         text: `${areaLabelFT}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nどんな職場が気になりますか？`,
@@ -4006,6 +4425,8 @@ async function buildPhaseMessage(phase, entry, env) {
             qrItem("訪問看護", "il_ft=visiting"),
             qrItem("介護施設", "il_ft=care"),
             qrItem("こだわりなし", "il_ft=any"),
+            qrItem("← 前に戻る", "il_back=subarea"),
+            qrItem("最初からやり直す", "il_back=restart"),
           ],
         },
       }];
@@ -4258,18 +4679,61 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "matching_browse": {
+      // #44 Phase2 Group J: 求人3件未満 + 隣接エリア定義あり → 「隣接エリアも含める」QR
+      const currentCount = (entry.matchingResults || []).length;
+      const baseAreaForAdj = (entry.area || '').replace('_il', '');
+      const adjacentAreas = ADJACENT_AREAS[baseAreaForAdj] || [];
+      const hasAdjacent = adjacentAreas.length > 0 && !entry.adjacentExpanded;
+
       if (!entry.matchingResults || entry.matchingResults.length === 0) {
+        const zeroQr = [];
+        if (hasAdjacent) {
+          // 隣接エリア1つ目を最初の候補として提示
+          const adjLabels = {
+            yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
+            sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦',
+            odawara_kensei: '小田原・県西', kanagawa_all: '神奈川全域',
+            tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_tama: '多摩地域',
+            saitama_south: 'さいたま南部', saitama_east: '埼玉東部', saitama_west: '埼玉西部', saitama_north: '埼玉北部', saitama_all: '埼玉全域',
+            chiba_tokatsu: '船橋・松戸', chiba_uchibo: '千葉・内房', chiba_inba: '成田・印旛', chiba_sotobo: '外房', chiba_all: '千葉全域',
+          };
+          zeroQr.push(qrItem(`隣接エリアも探す(${adjLabels[adjacentAreas[0]] || adjacentAreas[0]})`, `matching_browse=expand_adjacent`));
+        }
+        zeroQr.push(qrItem("条件を変えて探す", "matching_browse=change"));
+        zeroQr.push(qrItem("直接相談する", "consult=handoff"));
+        zeroQr.push(qrItem("新着を待つ", "matching_browse=done"));
         return [{
           type: "text",
           text: "今ある求人は全てお見せしました。\n条件を変えて探すか、担当者に直接相談もできます。",
-          quickReply: {
-            items: [
-              qrItem("条件を変えて探す", "matching_browse=change"),
-              qrItem("直接相談する", "consult=handoff"),
-              qrItem("新着を待つ", "matching_browse=done"),
-            ],
-          },
+          quickReply: { items: zeroQr },
         }];
+      }
+
+      // 3件未満 + 隣接エリアあり → 既存結果 + 越境QRを末尾に追加
+      if (currentCount < 3 && hasAdjacent) {
+        const adjLabels = {
+          yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
+          sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦',
+          odawara_kensei: '小田原・県西', kanagawa_all: '神奈川全域',
+          tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_tama: '多摩地域',
+          saitama_south: 'さいたま南部', saitama_east: '埼玉東部', saitama_west: '埼玉西部', saitama_north: '埼玉北部', saitama_all: '埼玉全域',
+          chiba_tokatsu: '船橋・松戸', chiba_uchibo: '千葉・内房', chiba_inba: '成田・印旛', chiba_sotobo: '外房', chiba_all: '千葉全域',
+        };
+        const baseMsgs = buildPhaseMessage("matching_preview", entry, env);
+        const prompt = [];
+        for (const adj of adjacentAreas.slice(0, 2)) {
+          prompt.push(qrItem(`${adjLabels[adj] || adj}も含める`, `matching_browse=expand_adjacent&adj=${adj}`));
+        }
+        prompt.push(qrItem("条件を変える", "matching_browse=change"));
+        prompt.push(qrItem("担当者に相談", "consult=handoff"));
+        // 末尾に「隣接エリアも探せます」案内テキスト
+        const advMsg = {
+          type: "text",
+          text: `求人が少ないですね🤔\n隣接エリア（${adjacentAreas.slice(0, 2).map(a => adjLabels[a] || a).join('・')}）も含めて探してみますか？`,
+          quickReply: { items: prompt },
+        };
+        // LINE Reply API は 5メッセージ上限
+        return (Array.isArray(baseMsgs) ? baseMsgs : [baseMsgs]).concat([advMsg]).slice(0, 5);
       }
 
       // matching_browseもFlexカルーセルで表示（matching_previewと同じ形式）
@@ -5192,7 +5656,7 @@ async function generateLineMatching(entry, env, offset = 0) {
         COALESCE(has_active_jobs, 0) DESC,
         COALESCE(active_job_count, 0) DESC,
         RANDOM()`;
-      const baseFields = `name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime,
+      const baseFields = `id, name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime,
         COALESCE(has_active_jobs, 0) AS has_active_jobs,
         COALESCE(active_job_count, 0) AS active_job_count,
         COALESCE(is_partner, 0) AS is_partner`;
@@ -5223,6 +5687,7 @@ async function generateLineMatching(entry, env, offset = 0) {
       const d1Result = await env.DB.prepare(sql).bind(...params).all();
       if (d1Result && d1Result.results && d1Result.results.length > 0) {
         allJobs = d1Result.results.map(f => ({
+          facility_id: f.id, // #52 confidential_jobs 紐付け用
           n: f.name,
           t: f.sub_type || '病院',
           loc: f.address || '',
@@ -5259,11 +5724,56 @@ async function generateLineMatching(entry, env, offset = 0) {
   } else {
     entry.matchingResults = allJobs.slice(offset, offset + 5);
   }
+
+  // --- Phase 3 #52: 非公開求人バッジ判定 ---
+  // 該当エリア/施設に confidential_jobs があれば「🔒 非公開求人あり」バッジを出せるよう
+  // entry.confidentialJobCount / entry.confidentialFacilityIds を設定する。
+  // D1テーブル未作成 or 0件の場合はフラグを立てず、既存UIに何も影響させない。
+  entry.confidentialJobCount = 0;
+  entry.confidentialFacilityIds = [];
+  if (env?.DB) {
+    try {
+      const baseArea = (entry.area || '').replace('_il', '');
+      const D1_AREA_PREF_CONF = {
+        chiba_all: '千葉県', saitama_all: '埼玉県',
+        tokyo_included: '東京都', kanagawa_all: '神奈川県',
+        tokyo_23ku: '東京都', tokyo_tama: '東京都',
+      };
+      const prefFilter = D1_AREA_PREF_CONF[baseArea] || null;
+      let sql = `SELECT COUNT(*) AS cnt, GROUP_CONCAT(facility_id) AS ids
+                 FROM confidential_jobs
+                 WHERE status = 'active'`;
+      const params = [];
+      if (baseArea) {
+        sql += ' AND (area_tag = ? OR area_tag IS NULL';
+        params.push(baseArea);
+        if (prefFilter) {
+          sql += ' OR prefecture = ?';
+          params.push(prefFilter);
+        }
+        sql += ')';
+      } else if (prefFilter) {
+        sql += ' AND (prefecture = ? OR area_tag IS NULL)';
+        params.push(prefFilter);
+      }
+      const row = await env.DB.prepare(sql).bind(...params).first();
+      if (row && row.cnt) {
+        entry.confidentialJobCount = row.cnt;
+        entry.confidentialFacilityIds = (row.ids || '').split(',').filter(Boolean).map(n => parseInt(n, 10));
+        console.log(`[Matching] 非公開求人: ${row.cnt}件 (area=${baseArea})`);
+      }
+    } catch (e) {
+      // confidential_jobs テーブル未作成なら何もしない（既存動作を維持）
+      console.log(`[Matching] confidential_jobs未使用: ${e.message}`);
+    }
+  }
+
   return entry.matchingResults;
 }
 
 // ---------- Flex Message: 求人カード（ハローワーク求人） ----------
-function buildFacilityFlexBubble(job, index) {
+function buildFacilityFlexBubble(job, index, opts) {
+  const hasConfidential = !!(opts && opts.hasConfidential);
   const name = job.n || "求人情報";
   const title = job.t || "";
   const salary = job.sal || "要確認";
@@ -5378,16 +5888,29 @@ function buildFacilityFlexBubble(job, index) {
     bodyContents.push({ type: "text", text: desc, size: "xxs", color: "#666666", margin: "md", wrap: true, maxLines: 3 });
   }
 
+  const headerContents = [
+    { type: "text", text: rankLabel, size: "xxs", color: "#FFFFFF", weight: "bold" },
+    { type: "text", text: name, weight: "bold", size: "md", wrap: true, color: "#FFFFFF", margin: "sm" },
+  ];
+  // #52: 同施設に非公開求人がある場合のバッジ
+  if (hasConfidential) {
+    headerContents.push({
+      type: "text",
+      text: "🔒 非公開求人あり",
+      size: "xxs",
+      color: "#FFFFFF",
+      weight: "bold",
+      margin: "sm",
+    });
+  }
+
   return {
     type: "bubble",
     size: "mega",
     header: {
       type: "box",
       layout: "vertical",
-      contents: [
-        { type: "text", text: rankLabel, size: "xxs", color: "#FFFFFF", weight: "bold" },
-        { type: "text", text: name, weight: "bold", size: "md", wrap: true, color: "#FFFFFF", margin: "sm" },
-      ],
+      contents: headerContents,
       backgroundColor: headerColor,
       paddingAll: "16px",
     },
@@ -5414,6 +5937,8 @@ function buildFacilityFlexBubble(job, index) {
 
 function buildMatchingMessages(entry) {
   const results = entry.matchingResults || [];
+  const confidentialCount = entry.confidentialJobCount || 0;
+
   if (results.length === 0) {
     return [{
       type: "text",
@@ -5432,17 +5957,23 @@ function buildMatchingMessages(entry) {
   const messages = [];
 
   // Flexカルーセル
+  // #52: 施設IDが非公開求人リストに含まれていれば buildFacilityFlexBubble 側で🔒バッジを出す
+  const confidentialIds = new Set(entry.confidentialFacilityIds || []);
   messages.push({
     type: "flex",
     altText: `あなたの条件に合う求人${topJobs.length}件を見つけました！`,
     contents: {
       type: "carousel",
-      contents: topJobs.map((f, i) => buildFacilityFlexBubble(f, i)),
+      contents: topJobs.map((f, i) => buildFacilityFlexBubble(f, i, { hasConfidential: f.facility_id ? confidentialIds.has(f.facility_id) : false })),
     },
   });
 
   // 補足テキスト + 逆指名案内
-  let supplementText = "気になる施設はありますか？\n\nこの中の施設について、もっと詳しい内部情報をお伝えできます。\n実際にこの地域を担当しているスタッフが、あなたの気になることにお答えします。\n\n✓ お電話はしません\n✓ このLINEだけでやり取りします\n✓ 応募を強制することは一切ありません";
+  // #52: 非公開求人がある場合はバッジ文言を追加（件数のみ、施設名は出さない）
+  const confidentialBadge = confidentialCount > 0
+    ? `\n\n🔒 このエリアには非公開求人が ${confidentialCount}件 あります（担当者経由でご紹介可能）`
+    : "";
+  let supplementText = "気になる施設はありますか？\n\nこの中の施設について、もっと詳しい内部情報をお伝えできます。\n実際にこの地域を担当しているスタッフが、あなたの気になることにお答えします。" + confidentialBadge + "\n\n✓ お電話はしません\n✓ このLINEだけでやり取りします\n✓ 応募を強制することは一切ありません";
 
   messages.push({
     type: "text",
@@ -5694,6 +6225,55 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "matching_preview";
     }
   }
+  // #40 Phase2 Group J: intake_light フェーズ「前に戻る / 最初からやり直す」
+  // il_back=<target> で特定フェーズに戻る。戻る先の関連フィールドをリセット。
+  // il_back=restart は全フィールドをリセットして il_area（都道府県選択）から。
+  else if (params.has("il_back")) {
+    const target = params.get("il_back");
+    entry.unexpectedTextCount = 0;
+    delete entry.matchingResults;
+    delete entry.browsedJobIds;
+    entry.matchingOffset = 0;
+    if (target === "pref" || target === "il_area") {
+      // 都道府県選択へ戻る（全部やり直し相当）
+      delete entry.prefecture;
+      delete entry.area; delete entry.areaLabel;
+      delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
+      delete entry.workStyle; delete entry.urgency; delete entry._isClinic;
+      nextPhase = "il_area";
+    } else if (target === "subarea" || target === "il_subarea") {
+      // サブエリア選択へ戻る（prefecture 残して area以降リセット）
+      delete entry.area; delete entry.areaLabel;
+      delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
+      delete entry.workStyle; delete entry.urgency; delete entry._isClinic;
+      nextPhase = "il_subarea";
+    } else if (target === "ft" || target === "il_facility_type") {
+      // 施設タイプ選択へ戻る（area まで残す）
+      delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
+      delete entry.workStyle; delete entry.urgency; delete entry._isClinic;
+      nextPhase = "il_facility_type";
+    } else if (target === "ws" || target === "il_workstyle") {
+      // 働き方選択へ戻る（facilityType まで残す）
+      delete entry.workStyle; delete entry.urgency;
+      nextPhase = "il_workstyle";
+    } else if (target === "dept" || target === "il_department") {
+      // 診療科選択へ戻る（病院サブタイプまで残す）
+      delete entry.department; delete entry.workStyle; delete entry.urgency;
+      nextPhase = "il_department";
+    } else if (target === "urg" || target === "il_urgency") {
+      delete entry.urgency;
+      nextPhase = "il_urgency";
+    } else if (target === "restart") {
+      // 最初からやり直す（全リセット）
+      delete entry.prefecture;
+      delete entry.area; delete entry.areaLabel;
+      delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
+      delete entry.workStyle; delete entry.urgency; delete entry._isClinic;
+      nextPhase = "il_area";
+    } else {
+      nextPhase = "il_area";
+    }
+  }
   // #30 Phase 2: info_detour の2択
   else if (params.has("info_detour")) {
     const val = params.get("info_detour");
@@ -5735,6 +6315,34 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "matching"; // 既存詳細フロー
     } else if (val === "done") {
       nextPhase = "nurture_warm";
+    } else if (val === "expand_adjacent") {
+      // #44 Phase2 Group J: 隣接エリア越境同意
+      // 指定された adj（またはADJACENT_AREAS[base]の1つ目）に area を切り替えて再検索
+      const baseAreaEx = (entry.area || '').replace('_il', '');
+      const adjacents = ADJACENT_AREAS[baseAreaEx] || [];
+      const adjParam = params.get("adj");
+      const targetAdj = (adjParam && adjacents.includes(adjParam)) ? adjParam : adjacents[0];
+      if (targetAdj) {
+        entry._originalArea = entry.area;   // 元のエリアを保持（復元用）
+        entry.adjacentExpanded = true;       // 再度QRを出さないフラグ
+        entry.area = `${targetAdj}_il`;
+        const IL_LABEL_FALLBACK = {
+          yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
+          sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦',
+          odawara_kensei: '小田原・県西', kanagawa_all: '神奈川全域',
+          tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_tama: '多摩地域',
+          saitama_south: 'さいたま南部', saitama_east: '埼玉東部', saitama_west: '埼玉西部', saitama_north: '埼玉北部', saitama_all: '埼玉全域',
+          chiba_tokatsu: '船橋・松戸', chiba_uchibo: '千葉・内房', chiba_inba: '成田・印旛', chiba_sotobo: '外房', chiba_all: '千葉全域',
+        };
+        entry.areaLabel = (typeof IL_AREA_LABELS !== 'undefined' && IL_AREA_LABELS[targetAdj])
+          || IL_LABEL_FALLBACK[targetAdj] || targetAdj;
+        // 再マッチング必要なのでキャッシュクリア
+        delete entry.matchingResults;
+        entry.matchingOffset = 0;
+        nextPhase = "matching_preview";
+      } else {
+        nextPhase = "matching_browse";
+      }
     }
   }
   // 条件部分変更
@@ -6396,6 +7004,26 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               if (ans.urgency) entry.urgency = ans.urgency;
             } catch (e) { /* パース失敗は無視 */ }
           }
+          // #42 Phase2 Group J: preMatching キャッシュヒット時はマッチング生成を skip
+          // handleLineStart で事前生成されていれば 15分TTL で preMatching:{sessionId} に入っている
+          const preMatchingSid = liffSessionCtx.sessionId;
+          if (preMatchingSid && env?.LINE_SESSIONS) {
+            try {
+              const pmRaw = await env.LINE_SESSIONS.get(`preMatching:${preMatchingSid}`, { cacheTtl: 30 });
+              if (pmRaw) {
+                const pm = JSON.parse(pmRaw);
+                if (pm && pm.results && pm.results.length > 0) {
+                  entry.matchingResults = pm.results;
+                  entry._preMatchingHit = true;
+                  console.log(`[LINE] preMatching HIT userId=${userId.slice(0, 8)} sid=${preMatchingSid.slice(0, 8)} count=${pm.results.length}`);
+                }
+                // 使用済みキャッシュは削除
+                await env.LINE_SESSIONS.delete(`preMatching:${preMatchingSid}`).catch(() => {});
+              }
+            } catch (e) {
+              console.error(`[LINE] preMatching cache lookup error: ${e.message}`);
+            }
+          }
           // セッション復元ウェルカム
           const sessionWelcome = buildSessionWelcome(liffSessionCtx, entry);
           if (sessionWelcome && sessionWelcome.nextPhase) {
@@ -6438,6 +7066,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         // ファネルイベント: LINE友達追加
         ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.LINE_FOLLOW, userId, entry, env, ctx));
+        // #51 Phase 3: フェーズ遷移ログ（follow → welcome/matching_preview 等）
+        ctx.waitUntil(logPhaseTransition(userId, null, entry.phase, "follow", entry, env, ctx));
         // リッチメニュー: デフォルト設定
         ctx.waitUntil(switchRichMenu(userId, RICH_MENU_STATES.default, env));
 
@@ -6515,6 +7145,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         if (nextPhase) {
           entry.phase = nextPhase;
+        }
+
+        // #51 Phase 3: フェーズ遷移ログ（postback経由）
+        if (nextPhase && nextPhase !== prevPhase) {
+          ctx.waitUntil(logPhaseTransition(userId, prevPhase, nextPhase, "postback", entry, env, ctx));
         }
 
         // フェーズに応じたメッセージ送信
@@ -7081,6 +7716,24 @@ ${entry.rmCvQualifications || '看護師免許'}
               entry.areaLabel = IL_AREA_LABELS[sessionCtx.area] || POSTBACK_LABELS[`q3_${sessionCtx.area}`] || sessionCtx.area;
             }
 
+            // #42 Phase2 Group J: preMatching キャッシュヒット時は matching 生成 skip
+            if (sessionCandidate && env?.LINE_SESSIONS) {
+              try {
+                const pmRaw = await env.LINE_SESSIONS.get(`preMatching:${sessionCandidate}`, { cacheTtl: 30 });
+                if (pmRaw) {
+                  const pm = JSON.parse(pmRaw);
+                  if (pm && pm.results && pm.results.length > 0) {
+                    entry.matchingResults = pm.results;
+                    entry._preMatchingHit = true;
+                    console.log(`[LINE] preMatching HIT (dm_text) userId=${userId.slice(0, 8)} sid=${sessionCandidate.slice(0, 8)} count=${pm.results.length}`);
+                  }
+                  await env.LINE_SESSIONS.delete(`preMatching:${sessionCandidate}`).catch(() => {});
+                }
+              } catch (e) {
+                console.error(`[LINE] preMatching cache lookup error (dm_text): ${e.message}`);
+              }
+            }
+
             // source別welcome分岐
             const welcomeMsgs = buildSessionWelcome(sessionCtx, entry);
             entry.phase = welcomeMsgs.nextPhase;
@@ -7275,6 +7928,11 @@ ${entry.rmCvQualifications || '看護師免許'}
           await saveLineEntry(userId, entry, env);
           await lineReply(event.replyToken, [nextPhase], channelAccessToken);
           continue;
+        }
+
+        // #51 Phase 3: フェーズ遷移ログ（text経由）
+        if (nextPhase && typeof nextPhase === "string" && nextPhase !== prevPhase) {
+          ctx.waitUntil(logPhaseTransition(userId, prevPhase, nextPhase, "text", entry, env, ctx));
         }
 
         // handoff中: Bot完全沈黙 → Slackに転送のみ（フォールバック）
@@ -8287,6 +8945,75 @@ async function handleScheduledHandoffFollowup(env) {
   }
 
   console.log(`[Cron] Handoff followup completed: 15min=${handoff15min} 2h=${handoff2h} 24h=${handoff24h}`);
+}
+
+// ========== #41 Phase2 Group J: 失敗Push再送cron ==========
+// failedPush:{userId}:{ts} キーを KV から取得し、enqueue から30分以上経過したものを再送。
+// 成功 → KV削除 / 失敗 → attempts++ で書き戻し。maxAttempts (3) を超えたら諦めてSlack通知+削除。
+async function handleScheduledFailedPushRetry(env) {
+  if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN) return;
+
+  const now = Date.now();
+  const MIN_RETRY_DELAY_MS = 30 * 60 * 1000; // 30分
+  const MAX_ATTEMPTS = 3;
+  let retried = 0, succeeded = 0, abandoned = 0;
+
+  try {
+    const keys = await kvListAll(env.LINE_SESSIONS, 'failedPush:');
+    for (const key of keys) {
+      try {
+        const raw = await env.LINE_SESSIONS.get(key.name, { cacheTtl: 60 });
+        if (!raw) continue;
+        const data = JSON.parse(raw);
+
+        // 30分未満なら待機
+        if (now - (data.enqueuedAt || 0) < MIN_RETRY_DELAY_MS) continue;
+
+        // 最大試行回数到達 → 諦めてSlack通知+削除
+        if ((data.attempts || 0) >= MAX_ATTEMPTS) {
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+            fetch('https://slack.com/api/chat.postMessage', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${env.SLACK_BOT_TOKEN}`, 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || 'C0AEG626EUW',
+                text: `❌ *LINE Push 再送断念* [${data.tag || 'push'}]\nユーザー: \`${(data.userId || '').slice(0, 8)}...\`\n試行回数: ${data.attempts}\n最終エラー: \`${(data.lastError || '').slice(0, 150)}\`\n時刻: ${nowJST}`,
+              }),
+            }).catch(() => {});
+          }
+          await env.LINE_SESSIONS.delete(key.name);
+          abandoned++;
+          continue;
+        }
+
+        // 再送
+        retried++;
+        const result = await linePushWithFallback(data.userId, data.messages, env, {
+          tag: `retry_${data.tag || 'push'}`,
+          maxAttempts: data.attempts || 0,
+        });
+
+        if (result.ok) {
+          await env.LINE_SESSIONS.delete(key.name);
+          succeeded++;
+          console.log(`[Cron] FailedPush retry SUCCESS userId=${(data.userId || '').slice(0, 8)} tag=${data.tag}`);
+        }
+        // 失敗時は linePushWithFallback が新しいKVキーで書き込むので、古いキーは削除
+        else {
+          await env.LINE_SESSIONS.delete(key.name).catch(() => {});
+        }
+      } catch (e) {
+        console.error(`[Cron] FailedPush retry error for ${key.name}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    console.error(`[Cron] FailedPush retry list error: ${e.message}`);
+  }
+
+  if (retried > 0 || abandoned > 0) {
+    console.log(`[Cron] FailedPush retry completed: retried=${retried} succeeded=${succeeded} abandoned=${abandoned}`);
+  }
 }
 
 // JSON レスポンス生成

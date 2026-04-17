@@ -96,12 +96,13 @@
 }
 
 .shindan-progress-label {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--sd-text-sub);
   font-weight: 600;
   white-space: nowrap;
-  min-width: 36px;
+  min-width: 64px;
   text-align: right;
+  letter-spacing: 0.02em;
 }
 
 /* Step Dots */

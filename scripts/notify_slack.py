@@ -148,6 +148,7 @@ def send_slack_notification(json_path: Path = None, message: str = None):
         sys.exit(1)
 
     # Slackに送信（Bot Token使用）
+    last_error = ""
     try:
         headers = {
             "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
@@ -171,13 +172,27 @@ def send_slack_notification(json_path: Path = None, message: str = None):
             if json_path:
                 print(f"   ID: {content_id}")
             return True
-        else:
-            print(f"❌ Slack通知失敗: {data.get('error', 'unknown')}")
-            return False
+        last_error = f"slack_api_{data.get('error', 'unknown')}"
+        print(f"❌ Slack通知失敗: {data.get('error', 'unknown')}")
 
     except Exception as e:
+        last_error = f"exception_{type(e).__name__}"
         print(f"❌ エラー: {type(e).__name__}: {e}")
-        return False
+
+    # Phase 3 #63: 送信失敗時は alert_queue.json にキュー（slack_retry.py が再送）
+    try:
+        from slack_utils import _enqueue_alert  # type: ignore
+        text_for_queue = payload.get("text") or "(台本通知)"
+        _enqueue_alert(
+            payload.get("channel") or SLACK_CHANNEL_ID,
+            text_for_queue,
+            blocks=payload.get("blocks"),
+            thread_ts=None,
+            last_error=last_error,
+        )
+    except Exception as e:
+        print(f"alert_queue.json enqueue 失敗: {e}")
+    return False
 
 
 def main():

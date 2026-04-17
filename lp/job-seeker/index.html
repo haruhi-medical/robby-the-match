@@ -8,7 +8,9 @@
     <meta name="description" content="看護師の転職ならナースロビー。紹介手数料は業界最安水準の10%だから、病院に負担をかけずに好条件の求人をご紹介。AI×元病院人事のハイブリッドであなたにぴったりの職場を見つけます。相談無料・電話なし。">
 <link rel="canonical" href="https://quads-nurse.com/lp/job-seeker/">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
-    <meta name="author" content="ナースロビー">
+    <meta name="author" content="神奈川ナース転職編集部">
+    <link rel="author" href="https://quads-nurse.com/about/editorial-policy.html">
+    <meta name="publisher" content="ナースロビー">
     <meta name="geo.region" content="JP-14">
     <meta name="geo.placename" content="神奈川県">
     <meta name="format-detection" content="telephone=no">
@@ -93,21 +95,25 @@
     }
     </script>
 
-    <!-- JSON-LD: Organization -->
+    <!-- JSON-LD: Organization（Phase 3 #57: E-E-AT強化） -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "ナースロビー",
+      "alternateName": "神奈川ナース転職",
       "url": "https://quads-nurse.com/",
       "logo": "https://quads-nurse.com/assets/ogp.png",
       "description": "看護師の転職をAI×人のハイブリッドでサポートするナースロビー。手数料10%の有料職業紹介事業者です。",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "岩倉市",
-        "addressRegion": "愛知県",
-        "streetAddress": "大地新町3丁目",
-        "addressCountry": "JP"
+      "hasCredential": {
+        "@type": "EducationalOccupationalCredential",
+        "name": "有料職業紹介事業許可",
+        "credentialCategory": "license",
+        "identifier": "23-ユ-302928",
+        "recognizedBy": {
+          "@type": "GovernmentOrganization",
+          "name": "厚生労働省"
+        }
       },
       "contactPoint": {
         "@type": "ContactPoint",
@@ -115,6 +121,8 @@
         "contactType": "customer service",
         "availableLanguage": "Japanese"
       },
+      "publishingPrinciples": "https://quads-nurse.com/about/editorial-policy.html",
+      "ethicsPolicy": "https://quads-nurse.com/about/editorial-policy.html",
       "sameAs": [
         "https://www.tiktok.com/@nurse_robby",
         "https://www.instagram.com/robby.for.nurse/",
@@ -440,7 +448,7 @@
             }
         }
 
-        /* SEO用: h1等は画像に焼き込み済みなのでvisually hidden */
+        /* SEO用: h1等は画像に焼き込み済みなのでvisually hidden（Phase 3 #55 以前の遺産・互換用） */
         .hero-sr-only {
             position: absolute;
             width: 1px;
@@ -451,6 +459,57 @@
             clip: rect(0, 0, 0, 0);
             white-space: nowrap;
             border: 0;
+        }
+
+        /* ===== Hero Text Overlay (Phase 3 #55) ===== */
+        /* 画像に焼き込んだテキストを HTMLテキストで再現。フォント・色は既存デザインに揃える */
+        .hero-text-overlay {
+            padding: 20px 24px 4px;
+            text-align: center;
+            background: #fff;
+        }
+        .hero-headline {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.35;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .hero-subhead {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 8px;
+            letter-spacing: 0.06em;
+        }
+        .hero-meta {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            letter-spacing: 0.04em;
+        }
+        @media (min-width: 768px) {
+            .hero-headline { font-size: 2rem; }
+            .hero-subhead { font-size: 1.1rem; }
+        }
+
+        /* ===== Trust Bar (Phase 3 #55 refactor) ===== */
+        .trust-bar {
+            background: var(--primary-light);
+            text-align: center;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.04em;
+            line-height: 1.6;
+        }
+        .trust-bar-item { font-weight: 600; }
+        .trust-bar-permit {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: 6px;
         }
 
         .hero-cta-overlay {
@@ -515,873 +574,12 @@
             border-color: var(--primary-dark);
         }
 
-        /* ===== CTA Buttons ===== */
-        .cta-primary {
-            display: inline-block;
-            background: linear-gradient(135deg, #06C755 0%, #05b34c 100%);
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 700;
-            padding: 18px 44px;
-            border-radius: var(--radius-full);
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            margin-top: 28px;
-            min-height: 48px;
-            letter-spacing: 0.04em;
-            position: relative;
-            z-index: 1;
-            transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out);
-            box-shadow: 0 4px 16px var(--line-glow), 0 1px 3px rgba(0,0,0,0.08);
-            animation: ctaPulse 3s ease-in-out infinite;
-        }
-
-        .cta-primary::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: var(--radius-full);
-            background: linear-gradient(135deg, #06C755, #04d95e, #06C755);
-            background-size: 300% 300%;
-            animation: gradientShift 4s ease infinite;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .cta-primary:hover::before {
-            opacity: 1;
-        }
-
-        .cta-primary:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 28px var(--line-glow-strong), 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .cta-primary:active {
-            transform: translateY(-1px) scale(0.99);
-        }
-
-        @keyframes ctaPulse {
-            0%, 100% { box-shadow: 0 4px 16px var(--line-glow), 0 1px 3px rgba(0,0,0,0.08); }
-            50% { box-shadow: 0 6px 24px var(--line-glow-strong), 0 2px 6px rgba(0,0,0,0.1); }
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .cta-line {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #06C755 0%, #05b34c 100%);
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 700;
-            padding: 16px 36px;
-            border-radius: var(--radius-full);
-            text-decoration: none;
-            min-height: 48px;
-            letter-spacing: 0.03em;
-            transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out);
-            box-shadow: 0 4px 16px var(--line-glow), 0 1px 3px rgba(0,0,0,0.08);
-        }
-
-        .cta-line:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 28px var(--line-glow-strong), 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .cta-secondary {
-            display: inline-block;
-            color: var(--primary);
-            font-size: 0.95rem;
-            font-weight: 600;
-            padding: 14px 32px;
-            border: 2px solid var(--primary);
-            border-radius: var(--radius-full);
-            text-decoration: none;
-            min-height: 48px;
-            letter-spacing: 0.02em;
-            transition: background 0.3s var(--ease-out), color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
-        }
-
-        .cta-secondary:hover {
-            background: var(--primary);
-            color: #fff;
-            box-shadow: var(--shadow-md);
-        }
-
-        /* ===== Sections ===== */
-        section {
-            padding: 80px 24px;
-            position: relative;
-        }
-
-        section.hero {
-            padding: 0;
-        }
-
-        .section-inner {
-            max-width: 880px;
-            margin: 0 auto;
-        }
-
-        .section-label {
-            display: inline-block;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--primary);
-            background: var(--primary-glass);
-            padding: 6px 16px;
-            border-radius: var(--radius-full);
-            margin-bottom: 16px;
-        }
-
-        .section-title {
-            font-size: clamp(1.4rem, 4vw, 1.9rem);
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 16px;
-            color: var(--text-primary);
-            line-height: 1.45;
-            letter-spacing: -0.02em;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 48px;
-            font-size: 0.92rem;
-            line-height: 1.7;
-            letter-spacing: 0.02em;
-        }
-
-        /* ===== Features ===== */
-        .features {
-            background: var(--bg-white);
-            padding-top: 100px;
-            padding-bottom: 100px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .feature-card {
-            background: var(--bg-white);
-            border: 1px solid rgba(26, 157, 224, 0.08);
-            border-radius: var(--radius-md);
-            padding: 40px 28px 36px;
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            opacity: 0;
-            transition: opacity 0.4s var(--ease-out);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-lg), var(--shadow-glow);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            font-size: 2.8rem;
-            margin-bottom: 20px;
-            display: inline-block;
-            line-height: 1;
-        }
-
-        .feature-label {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 12px;
-            letter-spacing: 0.04em;
-        }
-
-        .feature-desc {
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-            line-height: 1.85;
-        }
-
-        /* ===== Shindan ===== */
-        .shindan {
-            background:
-                radial-gradient(ellipse 70% 50% at 30% 80%, rgba(26,157,224,0.04) 0%, transparent 60%),
-                linear-gradient(175deg, var(--bg-tint), var(--bg-white));
-            padding-top: 16px;
-            padding-bottom: 100px;
-        }
-
-        #shindan-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* ===== Comparison ===== */
-        .comparison {
-            background: var(--bg-white);
-            padding-top: 100px;
-            padding-bottom: 100px;
-        }
-
-        .comparison-table-wrap {
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-            border: 1px solid rgba(26,157,224,0.08);
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0;
-            font-size: 0.9rem;
-        }
-
-        .comparison-table thead {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #fff;
-        }
-
-        .comparison-table th {
-            padding: 16px 12px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-align: center;
-            letter-spacing: 0.04em;
-        }
-
-        .comparison-table th:first-child {
-            text-align: left;
-            padding-left: 20px;
-        }
-
-        .comparison-table th:last-child {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .comparison-table td {
-            padding: 16px 12px;
-            text-align: center;
-            border-bottom: 1px solid rgba(0,0,0,0.04);
-            transition: background 0.2s;
-        }
-
-        .comparison-table td:first-child {
-            text-align: left;
-            padding-left: 20px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .comparison-table td:last-child {
-            background: rgba(26,157,224,0.03);
-        }
-
-        .comparison-table tbody tr:hover {
-            background: rgba(26,157,224,0.02);
-        }
-
-        .comparison-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .comparison-highlight {
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .comparison-dim {
-            color: var(--text-light);
-        }
-
-        .comparison-note {
-            text-align: center;
-            margin-top: 32px;
-            padding: 28px 24px;
-            background: linear-gradient(135deg, var(--bg-tint) 0%, rgba(26,157,224,0.04) 100%);
-            border-radius: var(--radius-md);
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            line-height: 1.9;
-            border: 1px solid rgba(26,157,224,0.08);
-            box-shadow: var(--shadow-xs);
-        }
-
-        .comparison-note strong {
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        /* ===== Flow ===== */
-        .flow {
-            background:
-                radial-gradient(ellipse 60% 40% at 70% 30%, rgba(26,157,224,0.04) 0%, transparent 60%),
-                linear-gradient(175deg, var(--bg-tint), var(--bg-white));
-            padding-top: 100px;
-            padding-bottom: 100px;
-        }
-
-        .flow-steps {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0;
-            max-width: 600px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .flow-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            background: var(--bg-white);
-            padding: 28px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            position: relative;
-            margin-bottom: 12px;
-            border: 1px solid rgba(26,157,224,0.06);
-            transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
-        }
-
-        .flow-step:hover {
-            transform: translateX(6px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .flow-step:last-child {
-            margin-bottom: 0;
-        }
-
-        /* Connector line between steps */
-        .flow-connector {
-            display: flex;
-            justify-content: center;
-            padding: 0;
-            height: 24px;
-            position: relative;
-        }
-
-        .flow-connector::before {
-            content: '';
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(180deg, var(--primary), rgba(26,157,224,0.2));
-            border-radius: 1px;
-            position: absolute;
-            left: 43px;
-        }
-
-        .flow-step-num {
-            width: 48px;
-            height: 48px;
-            min-width: 48px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 12px rgba(26,157,224,0.25);
-            position: relative;
-            z-index: 2;
-        }
-
-        .flow-step-content {
-            flex: 1;
-            padding-top: 2px;
-        }
-
-        .flow-step-icon {
-            font-size: 1.2rem;
-            margin-right: 4px;
-        }
-
-        .flow-step-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-            letter-spacing: 0.01em;
-        }
-
-        .flow-step-desc {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-        }
-
-        /* ===== FAQ ===== */
-        .faq {
-            background: var(--bg-white);
-            padding-top: 100px;
-            padding-bottom: 100px;
-        }
-
-        .faq-list {
-            max-width: 640px;
-            margin: 0 auto;
-            list-style: none;
-        }
-
-        .faq-item {
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-        }
-
-        .faq-question {
-            width: 100%;
-            background: none;
-            border: none;
-            padding: 24px 48px 24px 0;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            text-align: left;
-            cursor: pointer;
-            position: relative;
-            font-family: var(--font-base);
-            line-height: 1.65;
-            letter-spacing: 0.01em;
-            transition: color 0.3s;
-        }
-
-        .faq-question:hover {
-            color: var(--primary);
-        }
-
-        .faq-question::before {
-            content: 'Q.';
-            color: var(--primary);
-            font-weight: 800;
-            margin-right: 10px;
-            font-size: 1.05rem;
-        }
-
-        .faq-question::after {
-            content: '';
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            width: 10px;
-            height: 10px;
-            border-right: 2.5px solid var(--primary);
-            border-bottom: 2.5px solid var(--primary);
-            transform: translateY(-70%) rotate(45deg);
-            transition: transform 0.4s var(--ease-out);
-        }
-
-        .faq-item.active .faq-question::after {
-            transform: translateY(-30%) rotate(-135deg);
-        }
-
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s var(--ease-out), padding 0.5s var(--ease-out);
-        }
-
-        .faq-item.active .faq-answer {
-            max-height: 300px;
-        }
-
-        .faq-answer-inner {
-            padding: 0 0 24px 32px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            line-height: 1.9;
-        }
-
-        /* ===== Trust Badge ===== */
-        .trust-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 20px 28px;
-            background: var(--bg-white);
-            border: 1px solid rgba(26,157,224,0.1);
-            border-radius: var(--radius-md);
-            margin: 48px auto 0;
-            max-width: 420px;
-            box-shadow: var(--shadow-xs);
-        }
-
-        .trust-badge-icon {
-            font-size: 2rem;
-            line-height: 1;
-        }
-
-        .trust-badge-text {
-            text-align: left;
-        }
-
-        .trust-badge-label {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            letter-spacing: 0.08em;
-            font-weight: 500;
-        }
-
-        .trust-badge-value {
-            font-size: 0.88rem;
-            color: var(--text-primary);
-            font-weight: 700;
-            letter-spacing: 0.02em;
-        }
-
-        /* ===== Final CTA ===== */
-        .final-cta {
-            background:
-                radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26,157,224,0.95), transparent),
-                linear-gradient(170deg, var(--primary) 0%, var(--primary-deeper) 100%);
-            color: #fff;
-            text-align: center;
-            padding: 100px 24px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .final-cta::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.03) 0%, transparent 50%);
-            pointer-events: none;
-        }
-
-        .final-cta .section-title {
-            color: #fff;
-            position: relative;
-        }
-
-        .final-cta .cta-primary {
-            font-size: 1.15rem;
-            padding: 20px 48px;
-            animation: ctaPulse 3s ease-in-out infinite;
-        }
-
-        .final-cta-or {
-            margin: 24px 0;
-            font-size: 0.88rem;
-            color: rgba(255, 255, 255, 0.6);
-            letter-spacing: 0.05em;
-            position: relative;
-        }
-
-        .final-cta .cta-line {
-            background: rgba(255, 255, 255, 0.12);
-            border: 1.5px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            -webkit-backdrop-filter: blur(8px);
-            backdrop-filter: blur(8px);
-        }
-
-        .final-cta .cta-line:hover {
-            background: rgba(255, 255, 255, 0.22);
-            box-shadow: 0 8px 28px rgba(0,0,0,0.2);
-        }
-
-        /* ===== Footer ===== */
-        .site-footer {
-            background: var(--primary-light);
-            color: var(--text-secondary);
-            border-top: 1px solid rgba(26,157,224,0.12);
-            text-align: center;
-            padding: 56px 24px 40px;
-        }
-
-        .footer-brand {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 8px;
-            letter-spacing: 0.04em;
-        }
-
-        .footer-permit {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            margin-bottom: 28px;
-            letter-spacing: 0.02em;
-        }
-
-        .footer-links {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px 28px;
-            margin-bottom: 28px;
-        }
-
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.84rem;
-            letter-spacing: 0.02em;
-            transition: color 0.3s;
-        }
-
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-
-        .footer-copy {
-            font-size: 0.73rem;
-            color: var(--text-muted);
-            letter-spacing: 0.03em;
-        }
-
-        /* ===== Blurred card (used by shindan) ===== */
-        .blurred-card {
-            filter: blur(4px);
-            user-select: none;
-            pointer-events: none;
-        }
-
-        /* ===== Progress bar (used by shindan) ===== */
-        .progress-bar-track {
-            width: 100%;
-            height: 6px;
-            background: rgba(0,0,0,0.06);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 24px;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            border-radius: 3px;
-            transition: width 0.5s var(--ease-out);
-        }
-
-        /* ===== Mobile Sticky CTA ===== */
-        .mobile-sticky-cta {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 999;
-            background: rgba(255,255,255,0.92);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            backdrop-filter: blur(20px) saturate(180%);
-            padding: 12px 20px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-            border-top: 1px solid rgba(26,157,224,0.1);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
-            transform: translateY(100%);
-            transition: transform 0.4s var(--ease-out);
-            display: none;
-        }
-
-        .mobile-sticky-cta.visible {
-            transform: translateY(0);
-        }
-
-        .mobile-sticky-cta a {
-            display: block;
-            text-align: center;
-            background: linear-gradient(135deg, #06C755 0%, #05b34c 100%);
-            color: #fff;
-            font-weight: 700;
-            font-size: 1rem;
-            padding: 14px 20px;
-            border-radius: var(--radius-full);
-            text-decoration: none;
-            letter-spacing: 0.03em;
-            box-shadow: 0 4px 16px var(--line-glow);
-        }
-
-        /* ===== Desktop Breakpoint ===== */
-        @media (min-width: 768px) {
-            section {
-                padding: 120px 48px;
-            }
-
-            .hero {
-                padding: 0;
-            }
-
-            .section-title {
-                margin-bottom: 20px;
-            }
-
-            .features {
-                padding-top: 120px;
-                padding-bottom: 120px;
-            }
-
-            .features-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 28px;
-            }
-
-            .feature-card {
-                padding: 44px 28px 40px;
-            }
-
-            .flow-steps {
-                max-width: 560px;
-            }
-
-            .header-nav {
-                gap: 28px;
-            }
-
-            .comparison-table {
-                font-size: 1rem;
-            }
-
-            .comparison-table th {
-                padding: 18px 16px;
-            }
-
-            .comparison-table td {
-                padding: 18px 16px;
-            }
-
-            .final-cta {
-                padding: 120px 48px;
-            }
-        }
-
-        /* === Tablet (768-1023px) === */
-        @media (min-width: 768px) and (max-width: 1023px) {
-            section {
-                padding: 100px 48px;
-            }
-
-            .flow-steps {
-                max-width: 680px;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .section-inner {
-                max-width: 960px;
-            }
-
-            .features-grid {
-                gap: 32px;
-            }
-        }
-
-        .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #333;
-            padding: 4px 8px;
-        }
-
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1100;
-        }
-        .mobile-nav.open { display: block; }
-        .mobile-nav-inner {
-            background: #fff;
-            width: 260px;
-            height: 100%;
-            padding: 24px 20px;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
-        }
-        .mobile-nav-inner a {
-            display: block;
-            padding: 14px 0;
-            color: #333;
-            text-decoration: none;
-            font-size: 1rem;
-            border-bottom: 1px solid #eee;
-        }
-        .mobile-nav-close {
-            background: none; border: none;
-            font-size: 1.5rem; cursor: pointer;
-            float: right; color: #666;
-        }
-
-        @media (max-width: 767px) {
-            .header-nav {
-                display: none;
-            }
-            .hamburger {
-                display: block;
-            }
-
-            .mobile-sticky-cta {
-                display: block;
-            }
-
-            .hero-img {
-                width: 100%;
-                height: auto;
-                object-fit: contain;
-            }
-
-            .hero-cta-overlay {
-                text-align: center;
-                padding: 16px 16px 24px;
-                background: #fff;
-            }
-
-            .cta-line-hero {
-                font-size: 1rem;
-                padding: 16px 32px;
-                width: 80%;
-                justify-content: center;
-            }
-            .cta-secondary-hero {
-                font-size: 0.85rem;
-            }
-
-            .hero-sub-title::before,
-            .hero-sub-title::after {
-                display: none;
-            }
-
-            .flow-connector::before {
-                left: 39px;
-            }
-        }
+        /* Deferred CSS: see index-deferred.css (Phase 3 #54). */
     </style>
+    <!-- Phase 3 #54: 非クリティカルCSSを非同期ロード（LCP改善） -->
+    <link rel="preload" href="index-deferred.css?v=1.0" as="style" onload="this.rel='stylesheet'">
+    <link rel="stylesheet" href="index-deferred.css?v=1.0" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="index-deferred.css?v=1.0"></noscript>
     <link rel="stylesheet" href="shindan.css?v=6.0">
 
 <!-- Microsoft Clarity -->
@@ -1420,17 +618,17 @@
         </div>
     </div>
 
-    <!-- Hero -->
+    <!-- Hero (Phase 3 #55: 画像の文字焼き込み → HTMLオーバーレイ化。背景画像は装飾、<h1>はSEO/A11y向けテキスト) -->
     <section class="hero" id="hero">
         <picture>
             <source media="(max-width: 767px)" srcset="../../assets/hero-nurse-sp-v2.jpg" width="1080" height="1522">
-            <img src="../../assets/hero-nurse-new.jpg" alt="看護師さんのためのAI転職サポート — 最適な求人をマッチング" class="hero-img" width="1200" height="560" fetchpriority="high">
+            <img src="../../assets/hero-nurse-new.jpg" alt="" role="presentation" class="hero-img" width="1200" height="560" fetchpriority="high">
         </picture>
-        <!-- SEO用（画像に焼き込み済みのテキスト） -->
-        <div class="hero-sr-only">
-            <h1>夜勤の休憩中に、転職が決まる。</h1>
-            <p>早い × 簡単 × 24時間</p>
-            <p>看護師専門・完全無料・電話なし</p>
+        <!-- HTMLテキストオーバーレイ: <h1>をインデックス対象にする。フォント・色は既存デザインを維持 -->
+        <div class="hero-text-overlay">
+            <h1 class="hero-headline">夜勤の休憩中に、転職が決まる。</h1>
+            <p class="hero-subhead">早い × 簡単 × 24時間</p>
+            <p class="hero-meta">看護師専門・完全無料・電話なし</p>
         </div>
         <!-- CTAオーバーレイ -->
         <div class="hero-cta-overlay">
@@ -1442,8 +640,9 @@
     </section>
 
     <!-- 安心バー（Hero直下） -->
-    <div style="background:var(--primary-light);text-align:center;padding:8px 16px;font-size:0.82rem;color:var(--text-secondary);letter-spacing:0.04em;line-height:1.6;">
-        <span style="font-weight:600;">完全無料</span> ・ <span style="font-weight:600;">電話なし</span> ・ 個人情報不要で開始 <span aria-label="有料職業紹介事業許可番号 23-ユ-302928" style="font-size:0.68rem;color:var(--text-muted);font-weight:400;margin-left:6px;">（許可 23-ユ-302928）</span>
+    <div class="trust-bar" role="note" aria-label="サービス概要・事業許可">
+        <span class="trust-bar-item">完全無料</span> ・ <span class="trust-bar-item">電話なし</span> ・ 個人情報不要で開始
+        <span class="trust-bar-permit" aria-label="有料職業紹介事業許可番号 23-ユ-302928">（許可 23-ユ-302928）</span>
     </div>
 
     <!-- Shindan（安心バー直下 — FVから最短でアクション） -->
@@ -1612,14 +811,19 @@
                 <strong style="color:var(--text-primary);">あなたの希望条件に合う求人だけを厳選</strong>してお届けします。<br>
             </p>
 
-            <!-- 逆指名カード -->
+            <!-- 逆指名カード（#53 Phase 3: フェーズB層=まだ情報収集中の人にこそ、向け） -->
             <div style="background:linear-gradient(135deg, #e8f5e9, #f1f8e9);border-radius:16px;padding:24px 20px;border:1px solid rgba(6,199,85,0.2);">
-                <p style="font-size:1.05rem;font-weight:700;color:#1a7f64;margin-bottom:8px;">気になる病院に「逆指名」もできます</p>
+                <p style="font-size:0.78rem;color:#1a7f64;font-weight:700;letter-spacing:0.05em;margin-bottom:6px;">まだ情報収集中の人にこそ</p>
+                <p style="font-size:1.05rem;font-weight:700;color:#1a7f64;margin-bottom:10px;">気になる病院を「逆指名」できます</p>
                 <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.7;">
-                    「あの病院で働きたい」——そんな希望にも対応。<br>
-                    あなたのキャリアをしっかりまとめて、<br>
-                    <strong style="color:var(--text-primary);">病院への逆指名オファー</strong>をお送りします。<br>
-                    手数料10%だから、病院側も受け入れやすい。
+                    「今すぐ転職する気はない。でも<strong style="color:var(--text-primary);">あの病院の求人が出たら動きたい</strong>」——<br>
+                    そんな温度感でもOK。施設名を教えてもらえれば、<br>
+                    <strong style="color:var(--text-primary);">求人が公開された時だけLINEでお知らせ</strong>します。<br>
+                    手数料10%だから、病院側も受け入れやすく、オファーが成立しやすいです。
+                </p>
+                <p style="font-size:0.78rem;color:var(--text-secondary);margin-top:10px;line-height:1.6;">
+                    ※ 登録は無料。LINEで施設名を送るだけ。<br>
+                    ※ 気が変わったらいつでもキャンセルできます。
                 </p>
             </div>
         </div>
@@ -1820,11 +1024,13 @@
         <div class="footer-links">
             <a href="/privacy.html">プライバシーポリシー</a>
             <a href="/terms.html">利用規約</a>
+            <a href="/about/editorial-policy.html">編集方針</a>
             <a href="/blog/">ブログ</a>
             <a href="/lp/job-seeker/area/">地域別求人</a>
             <a href="/lp/job-seeker/guide/">転職ガイド</a>
             <a href="/salary-check/">給与診断</a>
         </div>
+        <p class="footer-editorial" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;line-height:1.6;">執筆: <a href="/about/editorial-policy.html" style="color:var(--text-muted);text-decoration:underline;">神奈川ナース転職編集部</a> / 厚生労働省許可 23-ユ-302928</p>
         <p class="footer-copy">&copy; 2026 ナースロビー All Rights Reserved.</p>
     </footer>
 

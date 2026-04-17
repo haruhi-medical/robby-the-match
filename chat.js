@@ -569,45 +569,57 @@
 
   // --------------------------------------------------
   // 診断結果: 年収 + 3施設 + インサイト + LINE CTA
+  // #32 Phase2 Group J: findMatchingHospitalsAsync（D1 24,488件）を優先的に使用。
+  // 失敗時は findMatchingHospitals の同期版にフォールバック（CHAT_CONFIG.hospitals = 212件）。
   // --------------------------------------------------
   function deliverTeaser() {
-    var matches = findMatchingHospitals(chatState.area);
     var areaName = getAreaDisplayName(chatState.area);
     var salaryRange = calculateSalaryRange(chatState.area);
 
-    showTyping();
-    setTimeout(function () {
-      hideTyping();
-
-      // 診断結果ヘッダー
-      addMessage("ai", "診断結果が出ました！");
-
+    function render(matches) {
+      showTyping();
       setTimeout(function () {
-        // 年収レンジカード（ティーザー版）
-        showSalaryRangeCard(areaName, salaryRange);
+        hideTyping();
+
+        // 診断結果ヘッダー
+        addMessage("ai", "診断結果が出ました！");
 
         setTimeout(function () {
-          // 関心事に合わせたインサイト
-          var insight = CONCERN_INSIGHTS[chatState.concern] || "";
-          addMessage("ai", insight);
+          // 年収レンジカード（ティーザー版）
+          showSalaryRangeCard(areaName, salaryRange);
 
           setTimeout(function () {
-            // 施設3件カード表示（ここが「すげー！」ポイント）
-            showFacilityCards(matches);
+            // 関心事に合わせたインサイト
+            var insight = CONCERN_INSIGHTS[chatState.concern] || "";
+            addMessage("ai", insight);
 
             setTimeout(function () {
-              // LINE CTA
-              addMessage("ai", "ここまでの情報は一般的なデータからの分析です。\n\nLINEでは、経験年数やライフスタイルに合わせて、AIがもっと正確にマッチングします。あなた専用の結果をお届けしますよ。");
+              // 施設3件カード表示（ここが「すげー！」ポイント）
+              showFacilityCards(matches);
 
               setTimeout(function () {
-                showTeaserCTA();
-                saveState();
-              }, 800);
-            }, 1000);
+                // LINE CTA
+                addMessage("ai", "ここまでの情報は一般的なデータからの分析です。\n\nLINEでは、経験年数やライフスタイルに合わせて、AIがもっと正確にマッチングします。あなた専用の結果をお届けしますよ。");
+
+                setTimeout(function () {
+                  showTeaserCTA();
+                  saveState();
+                }, 800);
+              }, 1000);
+            }, 800);
           }, 800);
-        }, 800);
+        }, 600);
       }, 600);
-    }, 600);
+    }
+
+    var asyncPromise = (typeof Promise !== 'undefined') ? findMatchingHospitalsAsync(chatState.area, 10) : null;
+    if (asyncPromise && typeof asyncPromise.then === 'function') {
+      asyncPromise.then(render).catch(function () {
+        render(findMatchingHospitals(chatState.area));
+      });
+    } else {
+      render(findMatchingHospitals(chatState.area));
+    }
   }
 
   // --------------------------------------------------
@@ -1015,7 +1027,67 @@
 
   // --------------------------------------------------
   // Hospital Matching
+  // #32 Phase2 Group J: D1 24,488件対応
+  // Worker /api/facilities/search 経由で神奈川全域の施設DBにアクセス。
+  // 取得失敗時は下の同期版 findMatchingHospitals（212件ハードコード）にフォールバック。
   // --------------------------------------------------
+  var WORKER_FACILITIES_API = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/facilities/search';
+
+  function fetchFacilitiesFromWorker(area, limit, cb) {
+    var params = 'area=' + encodeURIComponent(area || 'undecided') + '&limit=' + (limit || 10);
+    var url = WORKER_FACILITIES_API + '?' + params;
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timeoutId = null;
+    if (controller) {
+      timeoutId = setTimeout(function () { controller.abort(); }, 4000); // 4秒タイムアウト
+    }
+    var fetchOpts = { method: 'GET', credentials: 'omit' };
+    if (controller) fetchOpts.signal = controller.signal;
+
+    fetch(url, fetchOpts)
+      .then(function (res) {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (!res.ok) return { results: [] };
+        return res.json();
+      })
+      .then(function (json) {
+        var results = (json && json.results) ? json.results : [];
+        cb(results, null);
+      })
+      .catch(function (err) {
+        if (timeoutId) clearTimeout(timeoutId);
+        cb([], err);
+      });
+  }
+
+  function postprocessHospitalsFromApi(hospitals) {
+    // API 側で Haversine 距離順に並び替え済み。
+    // 同距離ならベッド数多い順で再ソート（念のため）
+    hospitals.sort(function (a, b) {
+      var ad = (a.distanceKm == null) ? 999 : a.distanceKm;
+      var bd = (b.distanceKm == null) ? 999 : b.distanceKm;
+      if (ad !== bd) return ad - bd;
+      return (b.beds || 0) - (a.beds || 0);
+    });
+    return hospitals;
+  }
+
+  // 非同期版: Worker API 呼び出し + 失敗時の同期fallback
+  function findMatchingHospitalsAsync(area, limit) {
+    if (typeof Promise === 'undefined') {
+      return null;
+    }
+    return new Promise(function (resolve) {
+      fetchFacilitiesFromWorker(area, limit || 10, function (results, err) {
+        if (err || !results || results.length === 0) {
+          resolve(findMatchingHospitals(area));
+          return;
+        }
+        resolve(postprocessHospitalsFromApi(results));
+      });
+    });
+  }
+
   function findMatchingHospitals(area) {
     var hospitals = CHAT_CONFIG.hospitals;
     if (!hospitals || hospitals.length === 0) {

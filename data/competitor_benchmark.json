@@ -1,0 +1,108 @@
+{
+  "generated_at": "2026-04-17T11:26:24",
+  "competitors": [
+    {
+      "name": "レバウェル看護",
+      "domain": "kango-oshigoto.jp",
+      "url": "https://kango-oshigoto.jp/",
+      "category": "major_agent",
+      "fetched_at": "2026-04-17T11:26:12",
+      "site_index_count": {
+        "status": "not_available",
+        "reason": "pattern_not_found"
+      },
+      "seo_hygiene": {
+        "robots_txt": {
+          "status_code": 200,
+          "exists": true,
+          "size_bytes": 3424
+        },
+        "sitemap_xml": {
+          "status_code": 200,
+          "exists": true,
+          "url_count_estimate": 25
+        }
+      },
+      "homepage": {
+        "status": "ok",
+        "http_status": 200,
+        "html_size_bytes": 148531,
+        "title": "看護師の求人/転職/募集【レバウェル看護｜旧 看護のお仕事】&lt;&lt;公式&gt;&gt;",
+        "description": "【公式】看護師の求人・転職・募集情報なら『レバウェル看護｜旧:看護のお仕事』。正看護師・准看護師・日勤常勤・夜勤専従パート・高給与など豊富な条件から理想の看護師求人を検索できます！全国の病院・クリニック・介護施設・企業の求人情報は毎日更新！【レバウェル看護｜旧:看護のお仕事】",
+        "permit_number_on_top": "13-ユ-309623"
+      }
+    },
+    {
+      "name": "マイナビ看護師",
+      "domain": "kango.mynavi.jp",
+      "url": "https://kango.mynavi.jp/",
+      "category": "major_agent",
+      "fetched_at": "2026-04-17T11:26:17",
+      "site_index_count": {
+        "status": "not_available",
+        "reason": "pattern_not_found"
+      },
+      "seo_hygiene": {
+        "robots_txt": {
+          "status_code": 200,
+          "exists": true,
+          "size_bytes": 1122
+        },
+        "sitemap_xml": {
+          "status_code": 404,
+          "exists": false,
+          "url_count_estimate": null
+        }
+      },
+      "homepage": {
+        "status": "ok",
+        "http_status": 200,
+        "html_size_bytes": 395867,
+        "title": "【マイナビ看護師】≪公式≫ 看護師の求人・転職・募集",
+        "description": "【マイナビ看護師】看護師の求人、転職、募集。全国106778件（2026年4月17日更新）の求人を掲載中。病院の求人はもちろん、「クリニック」「検診・健診」「一般企業」の求人など、豊富な求人をご用意しています。",
+        "permit_number_on_top": null
+      }
+    },
+    {
+      "name": "ナース人材バンク",
+      "domain": "nursejinzaibank.com",
+      "url": "https://www.nursejinzaibank.com/",
+      "category": "major_agent",
+      "fetched_at": "2026-04-17T11:26:20",
+      "site_index_count": {
+        "status": "not_available",
+        "reason": "pattern_not_found"
+      },
+      "seo_hygiene": {
+        "robots_txt": {
+          "status_code": 200,
+          "exists": true,
+          "size_bytes": 1060
+        },
+        "sitemap_xml": {
+          "status_code": 404,
+          "exists": false,
+          "url_count_estimate": null
+        }
+      },
+      "homepage": {
+        "status": "ok",
+        "http_status": 200,
+        "html_size_bytes": 887785,
+        "title": "看護師の転職・求人なら【ナース専科 転職】｜4年連続オリコン顧客満足度ⓇNo.1",
+        "description": "2005年創業の看護師専門転職サイト【ナース専科 転職】が看護師さんの転職を強力にバックアップ！毎日更新される求人情報と、累計100万人以上の対応経験をもとに、ご要望に合わせた求人情報/転職ノウハウを提供します",
+        "permit_number_on_top": "13-ユ-190019"
+      }
+    }
+  ],
+  "notes": [
+    "SimilarWeb / Ahrefs 相当のデータは有料APIのため取得していない。",
+    "ドメインレーティング相当の指標は未取得 = not_available で明記。",
+    "Google `site:` 検索件数は日/時間で揺らぐ参考値。トレンド比較にのみ使うこと。"
+  ],
+  "manual_check_queue": [
+    "- レバウェル看護 — Google site:検索件数（手動で `site:kango-oshigoto.jp` を検索）",
+    "- マイナビ看護師 — Google site:検索件数（手動で `site:kango.mynavi.jp` を検索）",
+    "- ナース人材バンク — Google site:検索件数（手動で `site:nursejinzaibank.com` を検索）"
+  ]
+}

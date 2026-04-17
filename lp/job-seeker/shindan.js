@@ -192,26 +192,31 @@
     setTimeout(function () { if (ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 500);
   }
 
-  /* ── Progress bar ── */
+  /* ── Progress bar (Phase 3 #56: ARIA + 明示ラベル) ── */
   function buildProgress(stepIdx) {
+    var current = stepIdx + 1;
     var wrap = el('div', 'shindan-progress-wrap');
     wrap.setAttribute('role', 'progressbar');
-    wrap.setAttribute('aria-valuenow', String(stepIdx + 1));
+    wrap.setAttribute('aria-valuenow', String(current));
     wrap.setAttribute('aria-valuemin', '1');
     wrap.setAttribute('aria-valuemax', String(totalSteps));
-    wrap.setAttribute('aria-label', '質問 ' + (stepIdx + 1) + ' / ' + totalSteps);
+    wrap.setAttribute('aria-valuetext', '質問 ' + current + ' / ' + totalSteps);
+    wrap.setAttribute('aria-label', '診断の進捗: 質問 ' + current + ' / ' + totalSteps);
 
     var track = el('div', 'shindan-progress');
+    track.setAttribute('aria-hidden', 'true');
     var bar = el('div', 'shindan-progress-bar');
     track.appendChild(bar);
     wrap.appendChild(track);
 
-    var label = el('div', 'shindan-progress-label', (stepIdx + 1) + ' / ' + totalSteps);
+    // 明示ラベル: "質問 X/5" を視覚的にも表示。スクリーンリーダ向けには aria-live で更新を通知。
+    var label = el('div', 'shindan-progress-label', '質問 ' + current + '/' + totalSteps);
+    label.setAttribute('aria-live', 'polite');
     wrap.appendChild(label);
 
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        bar.style.width = Math.round((stepIdx + 1) / totalSteps * 100) + '%';
+        bar.style.width = Math.round(current / totalSteps * 100) + '%';
       });
     });
 

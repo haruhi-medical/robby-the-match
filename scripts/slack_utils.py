@@ -31,8 +31,42 @@ def _headers():
     }
 
 
-def send_message(channel: str, text: str, blocks: list = None, thread_ts: str = None) -> dict:
-    """Slack Bot Tokenでメッセージ送信。失敗時はWebhookフォールバック。tsを返す。"""
+ALERT_QUEUE_FILE = PROJECT_ROOT / "data" / "alert_queue.json"
+ALERT_QUEUE_MAX_RETRIES = 3
+
+
+def _enqueue_alert(channel: str, text: str, blocks: list = None, thread_ts: str = None, last_error: str = "") -> None:
+    """Phase 3 #63: Slack送信失敗時に alert_queue.json にキュー。
+    scripts/slack_retry.py が30分おきに再送を試み、3回失敗で諦めて削除する。"""
+    try:
+        ALERT_QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        queue = []
+        if ALERT_QUEUE_FILE.exists():
+            try:
+                queue = json.loads(ALERT_QUEUE_FILE.read_text() or "[]")
+                if not isinstance(queue, list):
+                    queue = []
+            except json.JSONDecodeError:
+                queue = []
+        queue.append({
+            "channel": channel,
+            "text": text,
+            "blocks": blocks,
+            "thread_ts": thread_ts,
+            "enqueued_at": datetime.now().isoformat(timespec="seconds"),
+            "retries": 0,
+            "last_error": last_error,
+        })
+        ALERT_QUEUE_FILE.write_text(json.dumps(queue, ensure_ascii=False, indent=2))
+    except Exception as e:
+        print(f"alert_queue.json 書き込み失敗: {e}", file=sys.stderr)
+
+
+def send_message(channel: str, text: str, blocks: list = None, thread_ts: str = None, _from_retry: bool = False) -> dict:
+    """Slack Bot Tokenでメッセージ送信。失敗時はWebhookフォールバック。tsを返す。
+    Phase 3 #63: 最終的に失敗した場合 alert_queue.json にキューする（retry経由の場合は除く）。
+    """
+    last_error = ""
     if SLACK_BOT_TOKEN:
         payload = {"channel": channel, "text": text}
         if blocks:
@@ -49,8 +83,10 @@ def send_message(channel: str, text: str, blocks: list = None, thread_ts: str = 
             data = resp.json()
             if data.get("ok"):
                 return {"ok": True, "ts": data.get("ts", "")}
+            last_error = f"slack_api_{data.get('error', 'unknown')}"
             print(f"Slack Bot送信エラー: {data.get('error')}", file=sys.stderr)
         except Exception as e:
+            last_error = f"bot_exception_{type(e).__name__}"
             print(f"Slack Bot接続エラー: {e}", file=sys.stderr)
 
     # Webhookフォールバック
@@ -60,10 +96,15 @@ def send_message(channel: str, text: str, blocks: list = None, thread_ts: str = 
             resp = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=15)
             if resp.status_code == 200:
                 return {"ok": True, "ts": ""}
+            last_error = last_error or f"webhook_{resp.status_code}"
         except Exception as e:
+            last_error = last_error or f"webhook_exception_{type(e).__name__}"
             print(f"Webhook送信エラー: {e}", file=sys.stderr)
 
-    return {"ok": False, "ts": ""}
+    # 最終失敗 → alert_queue.json に保存（retry経由で呼ばれた時は二重enqueue防止）
+    if not _from_retry:
+        _enqueue_alert(channel, text, blocks, thread_ts, last_error)
+    return {"ok": False, "ts": "", "error": last_error, "queued": not _from_retry}
 
 
 def get_thread_replies(channel: str, thread_ts: str) -> list:
