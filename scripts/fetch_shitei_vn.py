@@ -41,7 +41,9 @@ TARGET_PREF_CODES = {
 UA = "nurse-robby data ingestion (+https://quads-nurse.com)"
 
 PREF_NAME_RE = re.compile(r"(東京都|神奈川県|千葉県|埼玉県)")
-CITY_RE = re.compile(r"(?:東京都|神奈川県|千葉県|埼玉県)?([^区市町村]+?[区市町村])")
+# 先頭が「市」「区」で始まる名称（市川市、市原市、千代田区等）も拾えるよう
+# 数字・ハイフン以外を最長一致で市区町村末尾まで取る
+CITY_RE = re.compile(r"^([^0-9\-ー－\s]+?[市区町村])")
 ZIP_RE = re.compile(r"〒\s*[0-9０-９]{3}[-－][0-9０-９]{4}")
 
 
@@ -147,7 +149,7 @@ def parse_xlsx(xlsx_bytes: bytes, pref_code: str) -> list:
 
 
 def fetch_all(version: str) -> list:
-    """関東4都県分を取得してマージ"""
+    """関東4都県分を取得してマージ + (name, address) でdedup"""
     zip_cache = DATA_DIR / f"hshitei_{version}.zip"
     zip_bytes = download_zip(version, zip_cache)
 
@@ -163,8 +165,17 @@ def fetch_all(version: str) -> list:
             with z.open(xlsx_name) as f:
                 xlsx_bytes = f.read()
             facs = parse_xlsx(xlsx_bytes, pref_code)
-            print(f"  {TARGET_PREF_CODES[pref_code]}: {len(facs)}件（現存のみ）")
-            all_facilities.extend(facs)
+            # (name, address) で重複排除、指定日が最新のものを残す
+            seen = {}
+            for f in facs:
+                key = (f["name"], f["address"])
+                if key not in seen or (f["shitei_date"] or "") > (seen[key]["shitei_date"] or ""):
+                    seen[key] = f
+            deduped = list(seen.values())
+            dup = len(facs) - len(deduped)
+            dup_note = f" (dedup -{dup})" if dup else ""
+            print(f"  {TARGET_PREF_CODES[pref_code]}: {len(deduped)}件（現存のみ）{dup_note}")
+            all_facilities.extend(deduped)
     return all_facilities
 
 
@@ -190,10 +201,12 @@ def write_sql(facilities: list):
         for fac in facilities:
             name = fac["name"].replace("'", "''")
             address = fac["address"].replace("'", "''")
+            # sub_type='訪問看護'（カルーセル職種名欄に表示される）
+            # 指定番号は departments 経由の識別ではなくJSON側に保持（D1には出さない）
             f.write(
                 "INSERT INTO facilities (name, category, sub_type, prefecture, city, address, "
                 "lat, lng, bed_count, departments, source, last_synced_at) VALUES "
-                f"('{name}', '訪問看護ST', '{fac['shitei_no']}', '{fac['prefecture']}', "
+                f"('{name}', '訪問看護ST', '訪問看護', '{fac['prefecture']}', "
                 f"'{fac['city']}', '{address}', NULL, NULL, NULL, '訪問看護', "
                 "'kouseikyoku_vn', datetime('now'));\n"
             )
