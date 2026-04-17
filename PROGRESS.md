@@ -18,6 +18,74 @@
 
 ---
 
+## 2026-04-17（金）Meta広告 徹底分析 + 計測修復 + 1週間計測スタート
+
+### セッション内容
+Meta広告 ¥21,946 累計投下の実態を分析 → 計測欠陥判明 → 修復実装 → 1週間計測体制確立。
+
+### 📊 明らかになった5キャンペーン全実績 (ライフタイム)
+| キャンペーン | 期間 | 消化 | Lead |
+|-------------|------|-----:|----:|
+| NR_2026-04_lead_v7 (現行) | 4/12〜 | ¥9,660 | 12 |
+| NR_2026-04_line_direct_v6 | 4/7-14 | ¥6,031 | 0 |
+| 神奈川ナース転職_トラフィック_0318 (A) | 3/19〜 | ¥3,010 | 0 |
+| 神奈川ナース転職_トラフィック_0318 (B) | 3/19〜 | ¥3,125 | 2 |
+| NR_2026-03_traffic_test | 3/8-13 | ¥120 | 0 |
+| **合計** | | **¥21,946** | **14** |
+
+### 🚨 衝撃の発見（段階的に判明）
+1. Advantage+ Audience暴走 — 24-65F指定で35-44男性に¥5,617流出、Lead偽発火8件
+2. 6人パネル討論で悪魔の代弁者「Lead偽物疑惑」指摘
+3. LINE登録者15人調査で看護師確定1人、会話率33%のみ
+4. **社長告白**: 「LINEヘビーユーザーは私」「15人全員私の友人」→ 広告経由の本物登録**ゼロ**確定
+
+### 🔧 実装完了
+- **ターゲティング修正** (API): Advantage+ OFF / 年齢25-49F / 関東4都県 / IG 3面
+- **LP計測修復** (commit 3b5c599):
+  - session_id LocalStorage 7日永続化
+  - utm_source/campaign/content/ad_id 継承
+  - Pixel Lead発火 session_idごと1回制限 (14倍乱発解消)
+- **自動判定ループ** (commit 3b5c599): meta_ads_report.py に `_auto_judge()` 追加、毎朝08:00 Slack閾値アラート
+- **LP改善** (commit 56121ea, 4459e81):
+  - hero-text-overlay削除 (FVにCTA復元)
+  - CTA文言 "1分で診断する"→"LINEで求人を見る(無料)"+LINEロゴ
+
+### 📋 社長決定
+- **1週間計測期間** (2026-04-17〜04-24) に入る
+- 設定変更なし、現状維持
+- 4/24 判定基準: 本物Lead(CompleteRegistration)7日累計
+  - 0件 → 🔴 広告停止
+  - 1-3件 → 🟡 調整継続
+  - 4件以上 → 🟢 スケール検討
+
+### 🗂 成果物 (docs/audit/2026-04-17-meta/)
+- META-ADS-REPORT.md (46項目監査)
+- ALL-CAMPAIGNS-REPORT.md (5キャンペーン実績)
+- PANEL-DISCUSSION.md (6人パネル討論)
+- INVESTIGATION-RESULTS.md (調査4件結果)
+- DESIGN-FLAWS-DEEP.md (欠陥3点詳細+コード該当箇所)
+- CLARITY-ANALYSIS.md (録画23セッション分析)
+- lp_hero_check.png, lp_full.png, clarity_dashboard.png
+
+### 🧠 永続メモリ追加
+- project_meta_ads_1week_test.md (1週間計測の全設定+判断基準)
+- project_meta_ads_v7.md 更新 (IG限定化+再アップロードの副作用)
+- feedback_ad_target_age.md (ターゲ年齢25-49F/ミサキは中心ペルソナ)
+- feedback_lp_hero_fv_cta.md (ヒーローにテキスト要素追加禁止)
+
+### 🔴 未完 (4/24以降に再検討)
+- 設計欠陥2 (dm_text LIFF化、工数2h)
+- Ads最適化目標 Lead→CompleteRegistration 変更
+- Custom Audience / Lookalike 構築 (ToS承諾後)
+- クリエイティブ刷新 (具体病院名+月給訴求)
+
+### 💡 学んだこと
+- 数字が良く見えても、中身を検証しないと実態ゼロだった
+- 「誰がLead発火させたか」を最初に確認すべき
+- 計測壊れた状態では判断不能 → 修復が全戦略の前提
+
+---
+
 ## 2026-02-24（月）
 
 ### 今日やったこと

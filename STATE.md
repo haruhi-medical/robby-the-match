@@ -1,5 +1,5 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-04-17 15:02 by コンテンツ生成
+# 最終更新: 2026-04-17 16:30 Meta広告徹底分析+計測修復+1週間計測スタート
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
@@ -18,10 +18,18 @@
 - 判定日: 2026-04-24
 
 ### 今日実装完了 (計測修復)
-- LP修正: session_id 永続化 / utm継承 / Lead発火1回制限 (commit 3b5c599)
-- meta_ads_report.py: 自動判定アラート追加 (毎朝08:00 cron)
+- LP修正 commit 3b5c599: session_id永続化 / utm継承 / Lead発火1回制限
+- LP修正 commit 56121ea: hero-text-overlay削除 (FVにCTA復元)
+- LP修正 commit 4459e81: CTA "LINEで求人を見る(無料)" + LINEロゴ
+- meta_ads_report.py: 自動判定 _auto_judge() 追加 (毎朝08:00 cron)
 - ターゲティング: 25-49F / 関東4都県 / Advantage+ OFF / IG 3面
 - 監査レポート: `docs/audit/2026-04-17-meta/` 6本
+
+### 未完 (4/24判定後に再検討)
+- 設計欠陥2 dm_text LIFF化 (工数2h)
+- Ads最適化目標 Lead→CompleteRegistration 変更
+- Custom Audience / Lookalike (ToS承諾後)
+- クリエイティブ刷新 (具体病院名+月給訴求)
 
 ### 判断基準 (7日累計CompleteRegistration)
 - 0件 → 🔴 広告停止 → ¥60,000/月を別投資
