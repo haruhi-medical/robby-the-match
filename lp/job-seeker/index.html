@@ -461,39 +461,6 @@
             border: 0;
         }
 
-        /* ===== Hero Text Overlay (Phase 3 #55) ===== */
-        /* 画像に焼き込んだテキストを HTMLテキストで再現。フォント・色は既存デザインに揃える */
-        .hero-text-overlay {
-            padding: 20px 24px 4px;
-            text-align: center;
-            background: #fff;
-        }
-        .hero-headline {
-            font-size: 1.6rem;
-            font-weight: 700;
-            line-height: 1.35;
-            letter-spacing: 0.02em;
-            color: var(--text-primary);
-            margin: 0;
-        }
-        .hero-subhead {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-top: 8px;
-            letter-spacing: 0.06em;
-        }
-        .hero-meta {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            margin-top: 6px;
-            letter-spacing: 0.04em;
-        }
-        @media (min-width: 768px) {
-            .hero-headline { font-size: 2rem; }
-            .hero-subhead { font-size: 1.1rem; }
-        }
-
         /* ===== Trust Bar (Phase 3 #55 refactor) ===== */
         .trust-bar {
             background: var(--primary-light);
@@ -618,19 +585,14 @@
         </div>
     </div>
 
-    <!-- Hero (Phase 3 #55: 画像の文字焼き込み → HTMLオーバーレイ化。背景画像は装飾、<h1>はSEO/A11y向けテキスト) -->
+    <!-- Hero (画像内にFV訴求を焼き込み + CTAをFV内に表示。h1はSEO/A11y用にvisually-hiddenで配置) -->
     <section class="hero" id="hero">
+        <h1 class="hero-sr-only">ナースロビー｜看護師専門のAI転職サポート（完全無料・電話なし）</h1>
         <picture>
             <source media="(max-width: 767px)" srcset="../../assets/hero-nurse-sp-v2.jpg" width="1080" height="1522">
             <img src="../../assets/hero-nurse-new.jpg" alt="" role="presentation" class="hero-img" width="1200" height="560" fetchpriority="high">
         </picture>
-        <!-- HTMLテキストオーバーレイ: <h1>をインデックス対象にする。フォント・色は既存デザインを維持 -->
-        <div class="hero-text-overlay">
-            <h1 class="hero-headline">夜勤の休憩中に、転職が決まる。</h1>
-            <p class="hero-subhead">早い × 簡単 × 24時間</p>
-            <p class="hero-meta">看護師専門・完全無料・電話なし</p>
-        </div>
-        <!-- CTAオーバーレイ -->
+        <!-- CTAオーバーレイ（FV内にCTAボタン表示） -->
         <div class="hero-cta-overlay">
             <a href="https://line.me/R/ti/p/@174cxnev" class="cta-line-hero" target="_blank" rel="noopener">
                 1分で診断する（電話なし）
