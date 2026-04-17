@@ -394,9 +394,122 @@ def _cron_daily_report():
         f"_各行の ✅=100imp以上(信頼可) ⚠️=30-99(傾向のみ) ❌=30未満(判断不可)_"
     }})
 
+    # ── 自動判定（閾値ベース警告）──
+    alerts = _auto_judge(account, yesterday)
+    if alerts:
+        blocks.append({"type": "divider"})
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text":
+            "*🤖 自動判定アラート*\n" + "\n".join(alerts)
+        }})
+
     fb = f"📊 Meta広告 {yesterday}: ¥{t['spend']:,.0f} / {t['impressions']:,}imp / CTR {t['ctr']:.2f}%"
     result = send_message(SLACK_CHANNEL_REPORT, fb, blocks=blocks)
     print(f"[{'OK' if result['ok'] else 'ERROR'}] Slack送信")
+
+
+def _auto_judge(account, yesterday):
+    """自動判定: CPA異常/クリエイティブ疲労/配信異常を検知してアラート返す
+
+    閾値設計（CLAUDE.md準拠）:
+      CPA > ¥69,200: 🔴 停止推奨
+      CPA > ¥10,000: 🟡 要確認
+      CPA < ¥2,000 (3日連続): 🟢 増額候補
+      CTR 14日 → 7日で -20%以上: 🟡 クリエイティブ疲労
+      Lead (CompleteRegistration) 0件が3日連続: 🔴 計測 or 配信異常
+    """
+    alerts = []
+
+    # 過去7日と過去14日の CPA/CTR を比較
+    def _fetch_range(start, end, level='account', extra_fields=None):
+        fields = ['impressions', 'clicks', 'spend', 'ctr', 'actions']
+        if extra_fields:
+            fields.extend(extra_fields)
+        params = {
+            'fields': ','.join(fields),
+            'time_range': json.dumps({'since': start, 'until': end}),
+            'level': level,
+        }
+        return api_get(f'{account}/insights', params).get('data', [])
+
+    def _extract_reg(row):
+        """CompleteRegistration (本物のLINE登録) 取得"""
+        for a in row.get('actions', []):
+            if a.get('action_type') in ('complete_registration', 'offsite_conversion.fb_pixel_complete_registration'):
+                return int(a.get('value', 0))
+        return 0
+
+    def _extract_lead(row):
+        for a in row.get('actions', []):
+            if a.get('action_type') in ('lead', 'offsite_conversion.fb_pixel_lead'):
+                return int(a.get('value', 0))
+        return 0
+
+    end_7d = yesterday
+    start_7d = (datetime.strptime(yesterday, '%Y-%m-%d') - timedelta(days=6)).strftime('%Y-%m-%d')
+    end_14d = (datetime.strptime(yesterday, '%Y-%m-%d') - timedelta(days=7)).strftime('%Y-%m-%d')
+    start_14d = (datetime.strptime(yesterday, '%Y-%m-%d') - timedelta(days=13)).strftime('%Y-%m-%d')
+
+    try:
+        d7 = _fetch_range(start_7d, end_7d)
+        d14 = _fetch_range(start_14d, end_14d)
+    except Exception as e:
+        return [f'⚠️ 自動判定エラー: {e}']
+
+    # 7日サマリ
+    if d7:
+        r7 = d7[0]
+        imp7 = int(r7.get('impressions', 0))
+        clk7 = int(r7.get('clicks', 0))
+        sp7 = float(r7.get('spend', 0))
+        reg7 = _extract_reg(r7)
+        lead7 = _extract_lead(r7)
+        cpa_reg = sp7 / reg7 if reg7 > 0 else None
+        cpa_lead = sp7 / lead7 if lead7 > 0 else None
+        ctr7 = float(r7.get('ctr', 0))
+
+        # CPA判定 (本物Lead = CompleteRegistration優先)
+        if cpa_reg is not None:
+            if cpa_reg > 69200:
+                alerts.append(f'🔴 CPA(登録) ¥{cpa_reg:,.0f} > ¥69,200 — 停止推奨ライン')
+            elif cpa_reg > 10000:
+                alerts.append(f'🟡 CPA(登録) ¥{cpa_reg:,.0f} > ¥10,000 — 要確認')
+            elif cpa_reg < 2000:
+                alerts.append(f'🟢 CPA(登録) ¥{cpa_reg:,.0f} < ¥2,000 — 増額候補')
+        else:
+            if sp7 >= 10000 and reg7 == 0:
+                alerts.append(f'🔴 7日間 ¥{sp7:,.0f} 消化で登録0件 — 計測 or 配信異常')
+            elif reg7 == 0 and sp7 > 0:
+                alerts.append(f'🟡 CompleteRegistration イベント未観測 (¥{sp7:,.0f} 消化)')
+
+        # Pixel Lead (CTAクリック) も参考表示
+        if cpa_lead is not None:
+            alerts.append(f'ℹ️ CPL(Pixel Lead = CTAクリック) ¥{cpa_lead:,.0f} / {lead7}件 — 参考値')
+
+        # CTR疲労検知
+        if d14:
+            r14 = d14[0]
+            ctr14 = float(r14.get('ctr', 0))
+            if ctr14 > 0 and ctr7 < ctr14 * 0.8:
+                drop_pct = (1 - ctr7 / ctr14) * 100
+                alerts.append(f'🟡 CTR疲労検知 7日 {ctr7:.2f}% < 先週 {ctr14:.2f}% ({drop_pct:.0f}%↓) — クリエイティブ差し替え検討')
+
+    # 直近3日連続でCompleteRegistration 0件か確認
+    zero_days = 0
+    for i in range(3):
+        d = (datetime.strptime(yesterday, '%Y-%m-%d') - timedelta(days=i)).strftime('%Y-%m-%d')
+        try:
+            rows = _fetch_range(d, d)
+            if rows and _extract_reg(rows[0]) == 0 and float(rows[0].get('spend', 0)) > 500:
+                zero_days += 1
+        except Exception:
+            pass
+    if zero_days >= 3:
+        alerts.append('🔴 3日連続 CompleteRegistration=0 (¥500以上消化) — 計測壊れ or ターゲティング破綻の可能性')
+
+    if not alerts:
+        alerts.append('✅ 閾値内 — 現状維持でOK')
+
+    return alerts
 
 
 def main():

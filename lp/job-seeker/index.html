@@ -1130,58 +1130,80 @@
     })();
     </script>
 
-    <!-- 共通LINE送客EP: session_id生成 + CTA href書き換え -->
+    <!-- 共通LINE送客EP: session_id永続化 + utm継承 + CTA href書き換え -->
     <script>
     (function() {
       'use strict';
-      // UUID v4 生成
       function uuid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           var r = Math.random() * 16 | 0;
           return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
         });
       }
-      var sid = uuid();
+      // session_id永続化: LocalStorageで7日保持（同一ユーザー複数訪問を同一session扱い）
+      var SID_KEY = '__nr_sid';
+      var SID_TS_KEY = '__nr_sid_ts';
+      var SID_TTL_MS = 7 * 24 * 3600 * 1000; // 7日
+      var now = Date.now();
+      var storedSid = null, storedTs = 0;
+      try {
+        storedSid = localStorage.getItem(SID_KEY);
+        storedTs = parseInt(localStorage.getItem(SID_TS_KEY) || '0', 10);
+      } catch (e) { /* Safari プライベート等 */ }
+      var sid;
+      if (storedSid && now - storedTs < SID_TTL_MS) {
+        sid = storedSid;
+      } else {
+        sid = uuid();
+        try {
+          localStorage.setItem(SID_KEY, sid);
+          localStorage.setItem(SID_TS_KEY, now.toString());
+        } catch (e) { /* 書き込み失敗時もsidは有効 */ }
+      }
       window.__lineSessionId = sid;
-      // LINE友だち追加URL（/api/line-start が落ちた時のフォールバック用）
-      var LINE_ADD_URL = 'https://line.me/R/ti/p/@174cxnev';
-      // 共通LINE送客EP: Worker側でKV保存→LINE 302リダイレクト
+
+      // utm継承: URL paramから utm_* を取得し、CTA source/campaign に引き継ぎ
+      var urlParams = new URLSearchParams(window.location.search);
+      var utmSource = urlParams.get('utm_source') || '';
+      var utmCampaign = urlParams.get('utm_campaign') || '';
+      var utmContent = urlParams.get('utm_content') || '';
+      var utmId = urlParams.get('utm_id') || '';
+
       var WORKER_BASE = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev';
 
-      // CTA href: Worker経由でsession_idをKVに保存してからLINEへ
-      // /api/line-start は単純な302リダイレクトなのでInstagram WebViewでも動く
-      function lineUrl(source, intent) {
-        return WORKER_BASE + '/api/line-start'
-          + '?source=' + encodeURIComponent(source)
+      function lineUrl(defaultSource, intent) {
+        // utm_source があれば優先、なければ位置ベースの既定
+        var actualSource = utmSource || defaultSource;
+        var qs = '?source=' + encodeURIComponent(actualSource)
           + '&intent=' + encodeURIComponent(intent)
           + '&session_id=' + encodeURIComponent(sid)
           + '&page_type=paid_lp';
+        if (utmCampaign) qs += '&campaign=' + encodeURIComponent(utmCampaign);
+        if (utmContent) qs += '&ad_id=' + encodeURIComponent(utmContent);
+        if (utmId) qs += '&adset_id=' + encodeURIComponent(utmId);
+        return WORKER_BASE + '/api/line-start' + qs;
       }
 
-      // Hero CTA
       var heroCta = document.querySelector('.cta-line-hero');
       if (heroCta) heroCta.href = lineUrl('hero', 'see_jobs');
-
-      // Mobile Sticky CTA
       var stickyCta = document.querySelector('.mobile-sticky-line');
       if (stickyCta) stickyCta.href = lineUrl('sticky', 'see_jobs');
-
-      // Bottom CTA
       var bottomLine = document.querySelector('.final-cta .cta-line');
       if (bottomLine) bottomLine.href = lineUrl('bottom', 'consult');
 
-      // session_idをGA4に連携
       if (typeof gtag === 'function') {
         gtag('set', { 'user_id': sid });
       }
     })();
     </script>
 
-    <!-- Meta Pixel: LINE CTAクリック = Lead イベント（インライン） -->
-    <!-- session_id を event_id として送信することで、Worker側CAPIのLeadイベントと dedup される -->
+    <!-- Meta Pixel: LINE CTAクリック = Lead イベント（session_idごと1回のみ） -->
     <script>
     (function() {
       'use strict';
+      var SID_KEY = '__nr_sid';
+      var LEAD_FIRED_PREFIX = '__nr_lead_';
+
       function fireLeadOnLineClick() {
         var selectors = '.cta-line-hero, .cta-line, .mobile-sticky-line, a[href*="lin.ee"], a[href*="line.me"], a[href*="line-start"], a[href*="liff.html"]';
         var buttons = document.querySelectorAll(selectors);
@@ -1189,15 +1211,19 @@
           if (btn.dataset.leadTracked) return;
           btn.dataset.leadTracked = 'true';
           btn.addEventListener('click', function() {
+            var sid = window.__lineSessionId || '';
+            if (!sid) return;
+            // session_idごと1回のみ発火（重複Lead防止）
+            var firedKey = LEAD_FIRED_PREFIX + sid;
+            try {
+              if (localStorage.getItem(firedKey)) return;
+              localStorage.setItem(firedKey, Date.now().toString());
+            } catch (e) { /* LocalStorage不可でも発火は続行 */ }
             if (typeof fbq === 'function') {
-              // window.__lineSessionId は /api/line-start に送る session_id と同じ値
-              // これを event_id として指定することで、Worker側CAPIのLeadイベントと
-              // Meta側で自動dedupされ、Lead計測の二重カウントを防ぐ
-              var eid = window.__lineSessionId || '';
               fbq('track', 'Lead', {
                 content_name: btn.className || 'line_cta',
                 content_category: 'line_cta_click'
-              }, eid ? { eventID: eid } : undefined);
+              }, { eventID: sid });
             }
           });
         });
