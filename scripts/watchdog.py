@@ -777,7 +777,11 @@ def run_watchdog():
             suppressed.append(f"Worker: {e} ({fail_count}/3)")
 
     # ─── 0.5. Claude CLI認証チェック（autoresearch用、1日2回: 01時台と13時台） ───
+    # v3.1 修正: Slack重複排除（4時間 + 日次リセット）ロジックを適用。
+    # 従来は issues/suppressed を条件なしで追加していたため30分毎の連続通知が発生していた。
+    # get_job_recovery で日付変更時に自動リセットされ、should_send_alert で既存ロジックと統合される。
     if now.hour in (1, 13):
+        cli_entry = get_job_recovery(recovery, "claude_cli_auth")
         try:
             check_env = os.environ.copy()
             check_env["PATH"] = "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin"
@@ -790,13 +794,34 @@ def run_watchdog():
             auth_output = auth_result.stdout + auth_result.stderr
             if "true" in auth_output and "loggedIn" in auth_output:
                 info.append("Claude CLI: 認証OK")
+                # 認証回復時はステータスをリセット（翌日の初回アラートを許可）
+                if cli_entry.get("status") != "ok":
+                    cli_entry["status"] = "ok"
+                    cli_entry["last_error"] = ""
+                    save_recovery_log(recovery)
             else:
-                issues.append(
+                msg = (
                     "⚠️ Claude CLI 未ログイン — autoresearchが動作不能。"
                     " `claude auth login` で再認証が必要"
                 )
+                cli_entry["status"] = "config_error"
+                cli_entry["last_error"] = "not logged in"
+                if should_send_alert(recovery, "claude_cli_auth"):
+                    issues.append(msg)
+                    mark_alert_sent(recovery, "claude_cli_auth")
+                else:
+                    suppressed.append(msg)
+                save_recovery_log(recovery)
         except FileNotFoundError:
-            issues.append("⚠️ Claude CLI 未インストール — autoresearch不可")
+            msg = "⚠️ Claude CLI 未インストール — autoresearch不可"
+            cli_entry["status"] = "config_error"
+            cli_entry["last_error"] = "claude CLI not installed"
+            if should_send_alert(recovery, "claude_cli_auth"):
+                issues.append(msg)
+                mark_alert_sent(recovery, "claude_cli_auth")
+            else:
+                suppressed.append(msg)
+            save_recovery_log(recovery)
         except Exception as e:
             suppressed.append(f"Claude CLI認証チェック失敗: {e}")
 

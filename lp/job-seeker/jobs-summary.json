@@ -1,13 +1,13 @@
 {
-  "updated": "2026-03-16",
-  "total_qualified": 385,
+  "updated": "2026-04-17",
+  "total_qualified": 386,
   "areas": {
     "yokohama_kawasaki": {
       "name": "横浜・川崎",
-      "count": 218,
-      "salary_min": 240,
-      "salary_max": 500,
-      "holidays_avg": 118,
+      "count": 203,
+      "salary_min": 148,
+      "salary_max": 720,
+      "holidays_avg": 119,
       "sample": {
         "title": "訪問看護ステーション　管理者候補",
         "salary": "月給34〜40万円",
@@ -18,7 +18,7 @@
       "blurred": [
         {
           "title": "訪問看護師／南舞岡",
-          "salary": "月給24〜30万円",
+          "salary": "月給22〜30万円",
           "holidays": "123日",
           "bonus": true,
           "type": "正社員"
@@ -29,36 +29,21 @@
           "holidays": "126日",
           "bonus": true,
           "type": "正社員"
+        },
+        {
+          "title": "看護師　特別養護老人ホーム　白寿荘",
+          "salary": "月給17〜31万円",
+          "holidays": "125日",
+          "bonus": true,
+          "type": "正社員"
         }
-      ],
-      "by_workstyle": {
-        "day_only": {
-          "count": 35,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "with_night": {
-          "count": 85,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "parttime": {
-          "count": 91,
-          "salary_min": 1500,
-          "salary_max": 2500
-        },
-        "night_only": {
-          "count": 7,
-          "salary_min": 240,
-          "salary_max": 500
-        }
-      }
+      ]
     },
     "shonan_kamakura": {
       "name": "湘南・鎌倉",
       "count": 62,
-      "salary_min": 240,
-      "salary_max": 500,
+      "salary_min": 204,
+      "salary_max": 800,
       "holidays_avg": 117,
       "sample": {
         "title": "地域包括ケア病棟看護師　年間休日１２１日",
@@ -81,101 +66,78 @@
           "holidays": "121日",
           "bonus": true,
           "type": "正社員"
+        },
+        {
+          "title": "【急募】看護師（透析室）　駅から徒歩３分",
+          "salary": "月給20〜35万円",
+          "holidays": "121日",
+          "bonus": true,
+          "type": "正社員"
         }
-      ],
-      "by_workstyle": {
-        "day_only": {
-          "count": 10,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "with_night": {
-          "count": 24,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "parttime": {
-          "count": 26,
-          "salary_min": 1500,
-          "salary_max": 2500
-        },
-        "night_only": {
-          "count": 2,
-          "salary_min": 240,
-          "salary_max": 500
-        }
-      }
+      ]
     },
     "odawara_seisho": {
       "name": "小田原・県西",
-      "count": 13,
-      "salary_min": 240,
-      "salary_max": 500,
-      "holidays_avg": 114,
+      "count": 22,
+      "salary_min": 210,
+      "salary_max": 576,
+      "holidays_avg": 116,
       "sample": {
         "title": "病棟看護師　　＊駅近２分　＊年間休日１２",
-        "salary": "月給24〜35万円",
+        "salary": "月給20〜35万円",
         "holidays": "122日",
         "bonus": true,
         "type": "正社員"
       },
       "blurred": [
         {
+          "title": "看護師",
+          "salary": "月給21〜34万円",
+          "holidays": "119日",
+          "bonus": true,
+          "type": "正社員"
+        },
+        {
           "title": "看護職員＜まほろばの家＞",
-          "salary": "月給24〜35万円",
+          "salary": "月給21〜35万円",
           "holidays": "113日",
           "bonus": true,
           "type": "正社員"
         },
         {
-          "title": "看護師　あすなろクリニック",
-          "salary": "月給24〜28万円",
-          "holidays": "125日",
-          "bonus": true,
+          "title": "訪問看護師（マナマーレ訪問看護ステーショ",
+          "salary": "月給33〜36万円",
+          "holidays": "123日",
+          "bonus": false,
           "type": "正社員"
         }
-      ],
-      "by_workstyle": {
-        "day_only": {
-          "count": 2,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "with_night": {
-          "count": 5,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "parttime": {
-          "count": 5,
-          "salary_min": 1500,
-          "salary_max": 2300
-        },
-        "night_only": {
-          "count": 1,
-          "salary_min": 262,
-          "salary_max": 500
-        }
-      }
+      ]
     },
     "sagamihara_kenoh": {
       "name": "相模原・県央",
-      "count": 61,
-      "salary_min": 240,
-      "salary_max": 500,
+      "count": 68,
+      "salary_min": 198,
+      "salary_max": 604,
       "holidays_avg": 116,
       "sample": {
         "title": "看護師　【年間休日数１２１日】",
-        "salary": "月給24〜36万円",
+        "salary": "月給22〜36万円",
         "holidays": "121日",
         "bonus": true,
         "type": "正社員"
       },
       "blurred": [
         {
-          "title": "看護師／特別養護老人ホーム",
-          "salary": "月給30〜34万円",
+          "title": "保健師（看護師でも相談可）年間休日は充実",
+          "salary": "月給25〜30万円",
           "holidays": "127日",
+          "bonus": true,
+          "type": "正社員"
+        },
+        {
+          "title": "看護師（病棟）",
+          "salary": "月給23〜30万円",
+          "holidays": "124日",
           "bonus": true,
           "type": "正社員"
         },
@@ -186,87 +148,50 @@
           "bonus": true,
           "type": "正社員"
         }
-      ],
-      "by_workstyle": {
-        "day_only": {
-          "count": 10,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "with_night": {
-          "count": 24,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "parttime": {
-          "count": 25,
-          "salary_min": 1500,
-          "salary_max": 2400
-        },
-        "night_only": {
-          "count": 2,
-          "salary_min": 240,
-          "salary_max": 500
-        }
-      }
+      ]
     },
     "yokosuka_miura": {
       "name": "横須賀・三浦",
       "count": 31,
-      "salary_min": 240,
-      "salary_max": 500,
-      "holidays_avg": 120,
+      "salary_min": 219,
+      "salary_max": 640,
+      "holidays_avg": 119,
       "sample": {
         "title": "看護師（手術室）",
         "salary": "月給28〜38万円",
-        "holidays": "126日",
+        "holidays": "127日",
         "bonus": true,
         "type": "正社員"
       },
       "blurred": [
-        {
-          "title": "看護師（夜勤専従）",
-          "salary": "月給24〜34万円",
-          "holidays": "127日",
-          "bonus": true,
-          "type": "正社員"
-        },
         {
           "title": "看護師（病棟）",
           "salary": "月給27〜34万円",
           "holidays": "127日",
           "bonus": true,
           "type": "正社員"
+        },
+        {
+          "title": "看護師（追浜駅前眼科）",
+          "salary": "月給30〜40万円",
+          "holidays": "120日",
+          "bonus": true,
+          "type": "正社員"
+        },
+        {
+          "title": "看護師",
+          "salary": "月給28〜35万円",
+          "holidays": "134日",
+          "bonus": true,
+          "type": "正社員"
         }
-      ],
-      "by_workstyle": {
-        "day_only": {
-          "count": 5,
-          "salary_min": 241,
-          "salary_max": 500
-        },
-        "with_night": {
-          "count": 12,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "parttime": {
-          "count": 13,
-          "salary_min": 1500,
-          "salary_max": 2400
-        },
-        "night_only": {
-          "count": 1,
-          "salary_min": 263,
-          "salary_max": 500
-        }
-      }
+      ]
     },
     "all": {
       "name": "神奈川県全域",
-      "count": 385,
-      "salary_min": 240,
-      "salary_max": 500,
+      "count": 386,
+      "salary_min": 148,
+      "salary_max": 800,
       "holidays_avg": 118,
       "sample": {
         "title": "地域包括ケア病棟看護師　年間休日１２１日",
@@ -278,7 +203,7 @@
       "blurred": [
         {
           "title": "訪問看護師／南舞岡",
-          "salary": "月給24〜30万円",
+          "salary": "月給22〜30万円",
           "holidays": "123日",
           "bonus": true,
           "type": "正社員"
@@ -289,30 +214,15 @@
           "holidays": "126日",
           "bonus": true,
           "type": "正社員"
+        },
+        {
+          "title": "看護師　特別養護老人ホーム　白寿荘",
+          "salary": "月給17〜31万円",
+          "holidays": "125日",
+          "bonus": true,
+          "type": "正社員"
         }
-      ],
-      "by_workstyle": {
-        "day_only": {
-          "count": 62,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "with_night": {
-          "count": 150,
-          "salary_min": 240,
-          "salary_max": 500
-        },
-        "parttime": {
-          "count": 160,
-          "salary_min": 1500,
-          "salary_max": 2500
-        },
-        "night_only": {
-          "count": 13,
-          "salary_min": 240,
-          "salary_max": 500
-        }
-      }
+      ]
     }
   }
 }

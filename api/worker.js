@@ -85,13 +85,28 @@ async function trackFunnelEvent(eventName, userId, entry, env, ctx) {
   }
 
   // Meta Conversion API（トークン設定時のみ発火）
+  // #31 Phase 2: line_follow → CompleteRegistration にリネームし、event_id で Browser Pixel と dedup
+  // fbp/fbc は entry.webSessionData 経由で引き継がれる（handleLineStart で Cookie 抽出済みなら流用）
   if (env?.META_ACCESS_TOKEN && env?.META_PIXEL_ID) {
     const metaEvents = ["line_follow", "intake_complete", "handoff"];
     if (metaEvents.includes(eventName)) {
-      const metaEventName = eventName === "intake_complete" ? "CompleteRegistration"
-        : eventName === "handoff" ? "Lead" : "Lead";
+      // line_follow → CompleteRegistration（LINE友達追加＝登録完了）
+      // intake_complete → CompleteRegistration（診断完了 = さらに上の KPI）
+      // handoff → Lead（担当者に引き継ぎ＝リード獲得）
+      const metaEventName = eventName === "handoff" ? "Lead" : "CompleteRegistration";
       if (ctx) {
-        ctx.waitUntil(sendMetaConversionEvent(env, metaEventName, userId, eventData));
+        // event_id: sessionId > userId の順（LP側 Browser Pixel と dedup）
+        // LP の fbq('track','Lead', {...}, {eventID: sid}) と同じ sid を使うのが理想
+        const eventId = entry?.webSessionData?.sessionId || userId || "";
+        // fbp/fbc は handleLineStart で session に保存されていれば流用
+        const fbp = entry?.webSessionData?.fbp || undefined;
+        const fbc = entry?.webSessionData?.fbc || undefined;
+        ctx.waitUntil(sendMetaConversionEvent(env, metaEventName, userId, eventData, {
+          eventId,
+          actionSource: "chat",   // LINE Bot = chat
+          fbp,
+          fbc,
+        }));
       }
     }
   }
@@ -179,6 +194,8 @@ const STATE_CATEGORIES = {
   MATCHING:      ["matching_preview", "matching_browse", "matching", "condition_change"],
   // 4. AI相談
   AI_CONSULT:    ["ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"],
+  // 4.5 情報収集層の一時寄り道（#30 Phase 2）
+  INFO_DETOUR:   ["info_detour"],
   // 5. 応募フロー
   APPLY:         ["apply_info", "apply_consent", "apply_confirm"],
   // 6. 面接準備
@@ -1442,6 +1459,13 @@ export default {
     // LIFF経由でuserIdとsession_idを紐付け。follow時に即マッチング表示する。
     if (url.pathname === "/api/link-session" && request.method === "POST") {
       return handleLinkSession(request, env);
+    }
+
+    // #32 Phase2 Group J: LP側（chat.js）D1 24,488件施設検索
+    // chat.js の findMatchingHospitals が参照する軽量API。
+    // area（chat.js側のエリア値）+ 件数指定で D1 facilities テーブルから返す。
+    if (url.pathname === "/api/facilities/search" && request.method === "GET") {
+      return handleFacilitiesSearch(url, env, request);
     }
 
     // ヘルスチェック
@@ -2859,6 +2883,17 @@ async function handleLineStart(url, env, request, ctx) {
     // session_idなしの場合は自動生成（広告リンク等）
     const effectiveSessionId = sessionId || crypto.randomUUID();
 
+    // ===== fbp / fbc クッキー抽出（CAPI dedup + match quality 向上用） =====
+    // #31 Phase 2: follow イベント時にも CAPI を発火するため、KV にも保存して引き継ぐ
+    const _cookieHeaderForSession = request?.headers?.get('Cookie') || '';
+    const _fbpMatchSession = _cookieHeaderForSession.match(/(?:^|;\s*)_fbp=([^;]+)/);
+    const _fbcMatchSession = _cookieHeaderForSession.match(/(?:^|;\s*)_fbc=([^;]+)/);
+    let _fbpSession = _fbpMatchSession ? _fbpMatchSession[1] : null;
+    let _fbcSession = _fbcMatchSession ? _fbcMatchSession[1] : null;
+    if (!_fbcSession && fbclid) {
+      _fbcSession = `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}`;
+    }
+
     // KVにセッション情報を保存（24h TTL）
     const sessionData = {
       sessionId: effectiveSessionId,
@@ -2867,6 +2902,8 @@ async function handleLineStart(url, env, request, ctx) {
       pageType,
       area: area || null,
       answers: answers || null,
+      fbp: _fbpSession || null,   // #31 CAPI dedup用
+      fbc: _fbcSession || null,   // #31 CAPI dedup用
       createdAt: Date.now(),
     };
 
@@ -2886,16 +2923,7 @@ async function handleLineStart(url, env, request, ctx) {
     // 失敗しても302リダイレクトは止めない（ctx.waitUntil で fire-and-forget）。
     if (env?.META_ACCESS_TOKEN && env?.META_PIXEL_ID && ctx) {
       try {
-        // _fbp クッキーを Cookie ヘッダから抽出（Browser Pixel が設定した first-party cookie）
-        const cookieHeader = request?.headers?.get('Cookie') || '';
-        const fbpMatch = cookieHeader.match(/(?:^|;\s*)_fbp=([^;]+)/);
-        const fbcMatch = cookieHeader.match(/(?:^|;\s*)_fbc=([^;]+)/);
-        let fbp = fbpMatch ? fbpMatch[1] : null;
-        let fbc = fbcMatch ? fbcMatch[1] : null;
-        // fbclid があれば _fbc 形式に変換（fb.1.{timestamp}.{fbclid}）
-        if (!fbc && fbclid) {
-          fbc = `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}`;
-        }
+        // #31 上で抽出済の _fbpSession / _fbcSession を再利用
         const clientIp = request?.headers?.get('CF-Connecting-IP')
           || request?.headers?.get('X-Forwarded-For')
           || '';
@@ -2910,8 +2938,8 @@ async function handleLineStart(url, env, request, ctx) {
             eventId: effectiveSessionId,      // ★ Browser Pixel と dedup するキー
             actionSource: 'website',          // LP経由クリックなので website
             eventSourceUrl: request?.headers?.get('Referer') || '',
-            fbp,
-            fbc,
+            fbp: _fbpSession,
+            fbc: _fbcSession,
             clientIp,
             userAgent,
           },
@@ -3781,11 +3809,12 @@ async function buildPhaseMessage(phase, entry, env) {
       ];
     // ===== intake_light フロー（アキネーター型: 候補数リアルタイム表示） =====
     // ステップ1: 都道府県選択（2段階の1段目）
+    // #43 Phase 2: 「◯件の中から」訴求＋実際の質問数（4問）を正直表記
     case "il_area": {
       const totalCount = await countCandidatesD1({}, env);
       return [{
         type: "text",
-        text: `${totalCount.facilities.toLocaleString()}件の医療機関の中から\nあなたにぴったりの職場を見つけます。\n\nまず、どのエリアで働きたいですか？`,
+        text: `${totalCount.facilities.toLocaleString()}件の医療機関から、あなたにぴったりの職場を一緒に探します。\n\nタップで答えるだけ・4つの質問です（1〜2分）。\n\nまず、どのエリアで働きたいですか？`,
         quickReply: {
           items: [
             qrItem("東京都", "il_pref=tokyo"),
@@ -3835,6 +3864,7 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
       // その他の地域 → エリア外対応（正直に伝える）
+      // #38 Phase 2: 「相場だけ見たい」選択肢を追加して早期離脱を救済
       if (entry.prefecture === 'other') {
         return [{
           type: "text",
@@ -3843,6 +3873,7 @@ async function buildPhaseMessage(phase, entry, env) {
             items: [
               qrItem("関東の求人を見る", "il_other=see_kanto"),
               qrItem("エリア拡大時に通知", "il_other=notify_optin"),
+              qrItem("相場だけ見たい", "il_other=see_salary"),
               qrItem("スタッフに相談", "il_other=consult_staff"),
             ],
           },
@@ -4303,6 +4334,24 @@ async function buildPhaseMessage(phase, entry, env) {
         text: "ありがとうございます！\n対応エリアが拡大したらこのLINEでお知らせしますね。\n\nそれまでの間、転職に役立つ情報をお届けします。",
       }];
 
+    // ===== #30 Phase 2: 情報収集層の寄り道（給与相場マップ導線） =====
+    // 「まずは情報収集」を選んだユーザーに、マッチング前に相場マップを案内する。
+    // 離脱を防ぎつつ、将来のマッチングに繋げる（転職意欲が高まったら戻れる）。
+    case "info_detour":
+      return [{
+        type: "text",
+        text: "情報収集中ですね！\n無理に転職を急ぐ必要はないです。\n\nまずは「今の自分の年収が相場通りか」だけでも見ておくと、\n転職のタイミングを判断しやすくなります。\n\n神奈川県212施設の年収マップが無料で見れます👇",
+        quickReply: {
+          items: [
+            qrItem("相場マップを見る", "info_detour=salary_map"),
+            qrItem("やっぱり求人も見る", "info_detour=see_jobs"),
+          ],
+        },
+      }, {
+        type: "text",
+        text: "▼ 神奈川県 看護師求人マップ（無料・匿名）\nhttps://quads-nurse.com/lp/job-seeker/salary-map.html\n\n最寄駅を入れるだけで、通勤30分圏内の求人を年収順に表示できます。",
+      }];
+
     // ===== 転職アドバイスFAQ（5問） =====
     case "faq_free":
     case "faq_salary":
@@ -4569,16 +4618,24 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_contact_intro":
       return [{
         type: "text",
-        text: "スタッフにお繋ぎしました。\n\nスタッフに追加でお伝えしたい内容があれば\nお選びください\n・希望に合う求人を探してほしい\n・気になる病院の内部情報を知りたい\n・履歴書や面接のアドバイスがほしい\n・転職するか迷っている\n\n✅ 簡単LINE相談\n✅ 採用経験1000名以上のスタッフのみが対応いたします。\n\n相談したい内容を教えてください👇",
+        text: "スタッフにお繋ぎしました。\n\nスタッフに追加でお伝えしたい内容があれば\nお選びください\n・希望に合う求人を探してほしい\n・気になる病院の内部情報を知りたい\n・この病院で働きたい（逆指名）\n・履歴書や面接のアドバイスがほしい\n・転職するか迷っている\n\n✅ 簡単LINE相談\n✅ 採用経験1000名以上のスタッフのみが対応いたします。\n\n相談したい内容を教えてください👇",
         quickReply: {
           items: [
             qrItem("求人を探してほしい", "rm_contact=job_search"),
             qrItem("病院の情報が知りたい", "rm_contact=hospital_info"),
+            qrItem("この病院で働きたい", "rm_contact=reverse_nom"),
             qrItem("面接・履歴書", "rm_contact=interview"),
             qrItem("迷っている", "rm_contact=undecided"),
             qrItem("その他", "rm_contact=other"),
           ],
         },
+      }];
+
+    // ===== 逆指名フロー: 施設名入力プロンプト =====
+    case "reverse_nomination_input":
+      return [{
+        type: "text",
+        text: "✅ 逆指名リクエスト受付\n\n「ここで働きたい」という病院名・施設名を\nメッセージで送ってください。\n\n例）\n・横浜市立大学附属病院\n・聖マリアンナ医科大学病院\n・小田原市立病院\n\n※ 担当者が24時間以内に採用可能性をお調べしてご連絡します。\n※ お名前や連絡先は先方に開示しません。",
       }];
 
     // ===== リッチメニュー: 新着求人 =====
@@ -5127,28 +5184,40 @@ async function generateLineMatching(entry, env, offset = 0) {
         extraFilters += ' AND departments LIKE ?';
         extraParams.push(`%${entry.department}%`);
       }
+      // #29/#34 Phase 2: 求人あり施設 + 提携病院を優先表示
+      // ORDER BY: is_partner DESC, has_active_jobs DESC, RANDOM()
+      // カラム未作成の D1 環境でも動くよう COALESCE で 0 フォールバック
+      const priorityOrder = `
+        COALESCE(is_partner, 0) DESC,
+        COALESCE(has_active_jobs, 0) DESC,
+        COALESCE(active_job_count, 0) DESC,
+        RANDOM()`;
+      const baseFields = `name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime,
+        COALESCE(has_active_jobs, 0) AS has_active_jobs,
+        COALESCE(active_job_count, 0) AS active_job_count,
+        COALESCE(is_partner, 0) AS is_partner`;
       let sql, params;
       if (cities.length > 0) {
         const whereClauses = cities.map(() => 'address LIKE ?').join(' OR ');
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND (${whereClauses})${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+        sql = `SELECT ${baseFields} FROM facilities WHERE category = ? AND (${whereClauses})${extraFilters} ORDER BY ${priorityOrder} LIMIT 5`;
         params = [d1Category, ...cities.map(c => `%${c}%`), ...extraParams];
       } else if (prefFilter) {
         // 都市リストがない場合はprefectureでフィルタ（千葉全域/埼玉全域等）
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+        sql = `SELECT ${baseFields} FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY ${priorityOrder} LIMIT 5`;
         params = [d1Category, prefFilter, ...extraParams];
       } else if (entry.prefecture) {
         // エリア未選択だがprefecureがある場合
         const PREF_NAME = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県' };
         const pn = PREF_NAME[entry.prefecture];
         if (pn) {
-          sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+          sql = `SELECT ${baseFields} FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY ${priorityOrder} LIMIT 5`;
           params = [d1Category, pn, ...extraParams];
         } else {
-          sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+          sql = `SELECT ${baseFields} FROM facilities WHERE category = ?${extraFilters} ORDER BY ${priorityOrder} LIMIT 5`;
           params = [d1Category, ...extraParams];
         }
       } else {
-        sql = `SELECT name, category, sub_type, address, lat, lng, bed_count, nearest_station, station_minutes, nurse_fulltime FROM facilities WHERE category = ?${extraFilters} ORDER BY RANDOM() LIMIT 5`;
+        sql = `SELECT ${baseFields} FROM facilities WHERE category = ?${extraFilters} ORDER BY ${priorityOrder} LIMIT 5`;
         params = [d1Category, ...extraParams];
       }
       const d1Result = await env.DB.prepare(sql).bind(...params).all();
@@ -5461,7 +5530,12 @@ async function sendHandoffNotification(userId, entry, env) {
   const phoneNumberText = entry.phoneNumber ? `\n📱 電話番号: ${maskPhone(entry.phoneNumber)}` : '';
   const phoneInfoLine = phoneTimeText ? `${phonePrefText}（${phoneTimeText}）${phoneNumberText}` : `${phonePrefText}${phoneNumberText}`;
 
-  const slackText = `🎯 *LINE相談 → 人間対応リクエスト*
+  // 逆指名の特別ヘッダー
+  const reverseNomHeader = entry.reverseNominationHospital
+    ? `\n🎯🎯 *逆指名リクエスト*\n希望施設: *${entry.reverseNominationHospital}*\n⏰ 24時間以内に採用可能性を回答してください\n`
+    : "";
+
+  const slackText = `🎯 *LINE相談 → 人間対応リクエスト*${reverseNomHeader}
 温度感: ${tempEmoji} ${temperature} / 緊急度: ${urgLabel}
 📞 連絡方法: ${phoneInfoLine}
 
@@ -5559,6 +5633,10 @@ function handleLinePostback(dataStr, entry) {
       // エリア拡大時に通知 → オプトイン記録 → ナーチャリング
       entry.areaNotifyOptIn = true;
       nextPhase = "area_notify_optin";
+    } else if (val === "see_salary") {
+      // #38 Phase 2: 相場だけ見たい → info_detour（相場マップ案内）→ ナーチャリング
+      entry.urgency = entry.urgency || "info";
+      nextPhase = "info_detour";
     } else if (val === "consult_staff") {
       // スタッフに相談 → ハンドオフ
       nextPhase = "handoff_phone_check";
@@ -5605,10 +5683,31 @@ function handleLinePostback(dataStr, entry) {
     nextPhase = "il_urgency";
   }
   // intake_light: 温度感
+  // #30 Phase 2: 「まずは情報収集」選択時は給与相場PDF導線を挟む（info_detour）
   else if (params.has("il_urg")) {
     entry.urgency = params.get("il_urg");
     entry.unexpectedTextCount = 0;
-    nextPhase = "matching_preview";
+    // info（情報収集）層はマッチングの前に「相場マップを見る or そのまま求人を見る」選択肢を提示
+    if (entry.urgency === "info") {
+      nextPhase = "info_detour";
+    } else {
+      nextPhase = "matching_preview";
+    }
+  }
+  // #30 Phase 2: info_detour の2択
+  else if (params.has("info_detour")) {
+    const val = params.get("info_detour");
+    entry.unexpectedTextCount = 0;
+    if (val === "salary_map") {
+      // 相場マップ閲覧 → ナーチャリング（温度低層を保持）
+      nextPhase = "nurture_warm";
+    } else if (val === "see_jobs") {
+      // やっぱり求人を見る → matching_preview
+      nextPhase = "matching_preview";
+    } else if (val === "both") {
+      // 求人は見ながら相場も案内（matching優先、後でナーチャ）
+      nextPhase = "matching_preview";
+    }
   }
   // matching_preview選択
   else if (params.has("matching_preview")) {
@@ -5931,9 +6030,16 @@ function handleLinePostback(dataStr, entry) {
       undecided: "転職するか迷っている",
       other: "その他の相談",
     };
-    entry.consultTopic = contactLabels[val] || val;
-    entry.handoffRequestedByUser = true;
-    nextPhase = "handoff_phone_check";
+    // 逆指名: 施設名入力フローへ分岐
+    if (val === "reverse_nom") {
+      entry.consultTopic = "逆指名（希望施設の採用可能性を確認）";
+      entry.handoffRequestedByUser = true;
+      nextPhase = "reverse_nomination_input";
+    } else {
+      entry.consultTopic = contactLabels[val] || val;
+      entry.handoffRequestedByUser = true;
+      nextPhase = "handoff_phone_check";
+    }
   }
   // リッチメニュー履歴書: 7問フロー
   else if (params.has("rm_cv")) {
@@ -6001,6 +6107,25 @@ function handleFreeTextInput(text, entry) {
     entry.fullName = name;
     entry.unexpectedTextCount = 0;
     return "rm_resume_generate";
+  }
+
+  // === 逆指名: 施設名テキスト入力 → Slack通知 → handoff_phone_check ===
+  if (phase === "reverse_nomination_input") {
+    const facility = (text || "").trim();
+    // バリデーション: 2文字以上、長すぎるテキストは拒否
+    if (facility.length < 2) {
+      return { type: "text", text: "施設名は2文字以上でご入力ください。\n例: 横浜市立大学附属病院" };
+    }
+    if (facility.length > 80) {
+      entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
+      return { type: "text", text: "施設名は80文字以内でご入力ください。\n候補が複数ある場合は1施設ずつご連絡ください。" };
+    }
+    entry.reverseNominationHospital = facility;
+    entry.reverseNomination = true;
+    entry.reverseNominationAt = Date.now();
+    entry.handoffRequestedByUser = true;
+    entry.unexpectedTextCount = 0;
+    return "handoff_phone_check"; // 電話確認 → handoff（Slack通知で24h回答指示を含む）
   }
 
   // === 電話番号入力（handoff_phone_number フェーズ） ===
@@ -6395,8 +6520,21 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // フェーズに応じたメッセージ送信
         let replyMessages = null;
 
+        // ===== #30 Phase 2: info_detour（「まずは情報収集」層の給与相場マップ寄り道） =====
+        if (nextPhase === "info_detour") {
+          replyMessages = await buildPhaseMessage("info_detour", entry, env);
+          // Slack通知: 情報収集層に寄り道フロー提示
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST_i = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📊 *info_detour（情報収集層）*\n診断Q5「まずは情報収集」選択\nエリア: ${entry.areaLabel || entry.area || "不明"}\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST_i}` }),
+            }).catch((e) => { console.error(`[Slack] info_detour notify failed: ${e.message}`); });
+          }
+        }
         // ===== intake_light → matching_preview =====
-        if (nextPhase === "matching_preview") {
+        else if (nextPhase === "matching_preview") {
           // 常に再生成（KV復元後の旧形式データを上書き）
           await generateLineMatching(entry, env);
           console.log(`[LINE] matching_preview: area=${entry.area}, workStyle=${entry.workStyle}, results=${(entry.matchingResults||[]).length}, first=${JSON.stringify((entry.matchingResults||[])[0]||{}).slice(0,100)}`);
@@ -6840,7 +6978,10 @@ ${entry.rmCvQualifications || '看護師免許'}
           if (pbParams.get("match") === "detail") {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.JOB_DETAIL, userId, entry, env, ctx));
           }
-          // (reverse_nomination removed - was tracked here)
+          // reverse_nomination: 施設名入力完了時（reverse_nomination_input → handoff_phone_check）
+          if (prevPhase === "reverse_nomination_input" && entry.reverseNominationHospital) {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.REVERSE_NOMINATION, userId, entry, env, ctx));
+          }
           // intake完了 → matching_preview
           if (entry.phase === "matching_preview" && prevPhase !== "matching_preview") {
             ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.INTAKE_COMPLETE, userId, entry, env, ctx));
@@ -7417,6 +7558,10 @@ ${entry.rmCvQualifications || '看護師免許'}
           const eventName = phaseEventMap[entry.phase];
           if (eventName) {
             ctx.waitUntil(trackFunnelEvent(eventName, userId, entry, env, ctx));
+          }
+          // 逆指名: テキスト入力パス経由（reverse_nomination_input → handoff_phone_check）
+          if (prevPhase === "reverse_nomination_input" && entry.reverseNominationHospital) {
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.REVERSE_NOMINATION, userId, entry, env, ctx));
           }
         }
         // matching_preview表示時

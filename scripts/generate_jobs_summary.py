@@ -253,23 +253,62 @@ def main():
                 all_best_score = best_score
                 all_best_sample = sample
 
-        # Blurred teaser cards (2nd and 3rd best jobs)
+        # Blurred teaser cards — #39 guarantee 3 cards minimum
+        # 上位4件を取り sample(=1位)を除いた2,3,4位を blurred とする。
+        # グループに十分な件数がない場合は group_jobs 全体から S/A/B を補充して3枚埋める。
         blurred = []
         top_jobs.sort(key=lambda x: -x[0])
-        for _, bj in top_jobs[1:3]:
+        seen_titles = set()
+        if best_sample_job:
+            seen_titles.add(truncate(best_sample_job.get("job_title", ""), 20))
+        # まず top_jobs（S/A）から採用
+        for _, bj in top_jobs[1:]:
+            if len(blurred) >= 3:
+                break
+            t = truncate(bj.get("job_title", ""), 20)
+            if not t or t in seen_titles:
+                continue
+            seen_titles.add(t)
             bsf = bj.get("salary_form", "月給")
             bsl = normalize_to_monthly(parse_int(bj.get("salary_low")), bsf)
             bsh = normalize_to_monthly(parse_int(bj.get("salary_high")), bsf)
             bs = ""
             if bsl and bsh:
                 bs = f"月給{bsl // 10000}〜{bsh // 10000}万円"
+            elif bsl:
+                bs = f"月給{bsl // 10000}万円〜"
             blurred.append({
-                "title": truncate(bj.get("job_title", ""), 20),
+                "title": t,
                 "salary": bs,
                 "holidays": str(parse_holidays(bj.get("annual_holidays")) or "") + "日" if parse_holidays(bj.get("annual_holidays")) else "",
                 "bonus": has_bonus(bj.get("bonus_detail")),
                 "type": bj.get("employment_type", ""),
             })
+        # 不足時: group_jobs全体から B/C も含めて補充（#39 最低3枚保証）
+        if len(blurred) < 3:
+            by_score = sorted(group_jobs, key=lambda j: -(j.get("score", 0) or 0))
+            for bj in by_score:
+                if len(blurred) >= 3:
+                    break
+                t = truncate(bj.get("job_title", ""), 20)
+                if not t or t in seen_titles:
+                    continue
+                seen_titles.add(t)
+                bsf = bj.get("salary_form", "月給")
+                bsl = normalize_to_monthly(parse_int(bj.get("salary_low")), bsf)
+                bsh = normalize_to_monthly(parse_int(bj.get("salary_high")), bsf)
+                bs = ""
+                if bsl and bsh:
+                    bs = f"月給{bsl // 10000}〜{bsh // 10000}万円"
+                elif bsl:
+                    bs = f"月給{bsl // 10000}万円〜"
+                blurred.append({
+                    "title": t,
+                    "salary": bs,
+                    "holidays": str(parse_holidays(bj.get("annual_holidays")) or "") + "日" if parse_holidays(bj.get("annual_holidays")) else "",
+                    "bonus": has_bonus(bj.get("bonus_detail")),
+                    "type": bj.get("employment_type", ""),
+                })
 
         areas_output[group_key] = {
             "name": group_info["name"],
@@ -288,12 +327,50 @@ def main():
     all_salary_max = round(max(all_salary_maxs) * 16 / 10000) if all_salary_maxs else None
     all_holidays_avg = round(sum(all_holidays) / len(all_holidays)) if all_holidays else None
 
-    # Collect blurred for "all" from first area that has them
-    all_blurred = None
+    # Collect blurred for "all" — #39 集約して3枚保証
+    # 全エリアの blurred をマージし、ユニーク化して先頭3件を使う
+    all_blurred = []
+    seen_all_titles = set()
     for gk in areas_output:
-        if areas_output[gk].get("blurred"):
-            all_blurred = areas_output[gk]["blurred"]
+        for b in (areas_output[gk].get("blurred") or []):
+            t = b.get("title", "")
+            if t and t not in seen_all_titles:
+                seen_all_titles.add(t)
+                all_blurred.append(b)
+            if len(all_blurred) >= 3:
+                break
+        if len(all_blurred) >= 3:
             break
+    # 補充: 全求人からさらに埋める
+    if len(all_blurred) < 3:
+        combined = []
+        for group_jobs_list in grouped.values():
+            combined.extend(group_jobs_list)
+        combined.sort(key=lambda j: -(j.get("score", 0) or 0))
+        for bj in combined:
+            if len(all_blurred) >= 3:
+                break
+            t = truncate(bj.get("job_title", ""), 20)
+            if not t or t in seen_all_titles:
+                continue
+            seen_all_titles.add(t)
+            bsf = bj.get("salary_form", "月給")
+            bsl = normalize_to_monthly(parse_int(bj.get("salary_low")), bsf)
+            bsh = normalize_to_monthly(parse_int(bj.get("salary_high")), bsf)
+            bs = ""
+            if bsl and bsh:
+                bs = f"月給{bsl // 10000}〜{bsh // 10000}万円"
+            elif bsl:
+                bs = f"月給{bsl // 10000}万円〜"
+            all_blurred.append({
+                "title": t,
+                "salary": bs,
+                "holidays": str(parse_holidays(bj.get("annual_holidays")) or "") + "日" if parse_holidays(bj.get("annual_holidays")) else "",
+                "bonus": has_bonus(bj.get("bonus_detail")),
+                "type": bj.get("employment_type", ""),
+            })
+    if not all_blurred:
+        all_blurred = None
 
     areas_output["all"] = {
         "name": "神奈川県全域",
