@@ -617,40 +617,41 @@ section {
 }
 @media (min-width: 900px) { .letter-grid { grid-template-columns: 260px 1fr; gap: 64px; } }
 
-.robby-card {
+.pillar-card {
   background: var(--bg);
   border: 1px solid var(--rule);
-  padding: 30px 26px;
+  padding: 32px 28px;
   position: relative;
 }
-.robby-avatar {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-soft) 100%);
-  display: grid; place-items: center;
-  color: #fff;
-  font-size: 1.4rem;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 20px rgba(62, 115, 136, 0.28);
+.pillar-card::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 20px; height: 20px;
+  border-top: 2px solid var(--gold);
+  border-left: 2px solid var(--gold);
 }
-.robby-name {
+.pillar-card__num {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.8rem;
+  font-weight: 500;
   color: var(--ink);
-  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin-bottom: 6px;
 }
-.robby-role {
+.pillar-card__sub {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
   color: var(--ink-quiet);
   text-transform: uppercase;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
-.robby-bio {
-  font-size: 0.84rem;
+.pillar-card__body {
+  font-size: 0.86rem;
   color: var(--ink-soft);
-  line-height: 1.9;
+  line-height: 1.95;
 }
 
 .letter-body p {
@@ -960,13 +961,99 @@ section {
 
 /* Mobile adjustments */
 @media (max-width: 699px) {
-  .nav-cta { padding: 8px 14px; font-size: 0.76rem; }
-  .breadcrumb { font-size: 0.64rem; padding: 12px 24px; }
-  .hero { padding: 32px 0 72px; }
-  .hero-masthead { margin-bottom: 28px; }
-  .story-header { margin-bottom: 32px; gap: 18px; }
-  .story-number { font-size: 2.6rem; }
+  .container { padding: 0 20px; }
+  .site-nav__inner { padding: 14px 20px; }
+  .brand { font-size: 1rem; gap: 10px; }
+  .brand::before { width: 8px; height: 8px; }
+  .brand-tagline { display: none; }
+  .nav-cta { padding: 9px 14px; font-size: 0.74rem; }
+
+  .breadcrumb { font-size: 0.66rem; padding: 12px 20px; letter-spacing: 0.06em; }
+  .breadcrumb__sep { margin: 0 6px; }
+
+  .hero { padding: 32px 0 64px; }
+  .hero-masthead { margin-bottom: 24px; gap: 12px; }
+  .hero-masthead__num { font-size: 0.7rem; letter-spacing: 0.1em; }
+  .hero-masthead__date { display: none; }
+
+  .hero-grid { gap: 36px; }
+  .hero-title { font-size: 2rem; line-height: 1.4; letter-spacing: 0.02em; margin-bottom: 22px; }
+  .hero-title .mark::after { height: 8px; bottom: 3px; }
+  .hero-lead { font-size: 0.92rem; line-height: 1.9; margin-bottom: 28px; }
+
+  .promises { gap: 7px; margin-bottom: 28px; }
+  .promise { padding: 7px 13px; font-size: 0.74rem; }
+  .promise svg { width: 12px; height: 12px; }
+
+  .cta { padding: 15px 28px; font-size: 0.95rem; }
+  .cta__meta { font-size: 0.68rem; margin-top: 12px; }
+
+  .hero-card { padding: 24px 22px; }
+  .hero-card dd { font-size: 0.95rem; }
+  .hero-card dt { font-size: 0.72rem; }
+
   section { padding: 64px 0; }
+  .story-header { margin-bottom: 32px; gap: 16px; align-items: flex-start; }
+  .story-number { font-size: 2.4rem; line-height: 0.95; }
+  .story-meta { font-size: 0.66rem; letter-spacing: 0.14em; margin-bottom: 6px; }
+  .section-head { font-size: 1.4rem; line-height: 1.5; }
+
+  .stats { margin-top: 28px; }
+  .stat { padding: 20px 14px; }
+  .stat__label { font-size: 0.6rem; margin-bottom: 6px; }
+  .stat__value { font-size: 1.5rem; }
+  .stat__unit { font-size: 0.7rem; margin-left: 3px; }
+
+  .facility { padding: 20px 0; gap: 14px; grid-template-columns: 32px 1fr; grid-template-rows: auto auto; row-gap: 6px; }
+  .facility:hover { padding-left: 0; }
+  .facility__num { font-size: 0.68rem; padding-top: 2px; }
+  .facility__name { font-size: 0.98rem; margin-bottom: 3px; }
+  .facility__sub { font-size: 0.78rem; }
+  .facility__tag { grid-column: 2; justify-self: start; font-size: 0.64rem; padding: 4px 9px; }
+
+  .salary-table { font-size: 0.82rem; display: block; overflow-x: auto; }
+  .salary-table th, .salary-table td { padding: 12px 14px; white-space: nowrap; }
+  .salary-table td.num { font-size: 0.9rem; }
+  .source { font-size: 0.66rem; line-height: 1.75; }
+
+  .letter-body p { font-size: 0.96rem; line-height: 2; letter-spacing: 0.03em; margin-bottom: 18px; }
+  .pillar-card { padding: 26px 22px; }
+  .pillar-card__num { font-size: 1.6rem; }
+
+  .steps { margin-top: 20px; }
+  .step { padding: 28px 0; }
+  .step:last-child { border-bottom: none; padding-bottom: 0; }
+  .step__num { font-size: 2rem; margin-bottom: 12px; }
+  .step__title { font-size: 1.1rem; }
+  .step__desc { font-size: 0.84rem; }
+  .step__time { font-size: 0.64rem; margin-top: 12px; }
+
+  .faq-item summary { padding: 20px 0; font-size: 0.94rem; gap: 14px; line-height: 1.6; }
+  .faq-item summary::before { font-size: 0.76rem; }
+  .faq-item summary::after { font-size: 1.2rem; }
+  .faq-body { padding: 0 0 22px 26px; font-size: 0.86rem; }
+
+  .final-cta { padding: 72px 0; }
+  .final-cta h2 { font-size: 1.55rem; line-height: 1.6; }
+  .final-cta p { font-size: 0.88rem; margin-bottom: 36px; }
+  .final-cta__meta { gap: 18px; font-size: 0.66rem; margin-top: 24px; }
+
+  .next-reads { padding: 64px 0 32px; }
+  .next-card { padding: 22px 20px; }
+  .next-card__title { font-size: 0.98rem; }
+  .next-card__label { font-size: 0.62rem; }
+
+  .footer { padding: 48px 0 28px; }
+  .footer__grid { gap: 28px; }
+  .legal { font-size: 0.64rem; margin-top: 32px; padding-top: 20px; }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .hero-title { font-size: 1.8rem; }
+  .section-head { font-size: 1.25rem; }
+  .story-number { font-size: 2.1rem; }
+  .stat__value { font-size: 1.35rem; }
 }
 </style>
 </head>
@@ -1177,34 +1264,32 @@ section {
   </div>
 </section>
 
-<!-- 04. Letter -->
+<!-- 04. Quiet promise -->
 <section class="story-section letter-section" aria-labelledby="ch04">
   <div class="container">
     <div class="story-header">
       <span class="story-number" style="color: var(--gold);">04</span>
       <div>
-        <div class="story-meta">A letter from Robby</div>
+        <div class="story-meta">A quiet promise</div>
         <h2 class="section-head" id="ch04">電話より、LINE のほうが気楽なはず。</h2>
       </div>
     </div>
 
     <div class="letter-grid">
-      <aside class="robby-card" aria-label="AIコンシェルジュ ロビー">
-        <div class="robby-avatar" aria-hidden="true">🤖</div>
-        <div class="robby-name">ロビー</div>
-        <div class="robby-role">AI concierge</div>
-        <div class="robby-bio">
-          神奈川の看護師転職に特化した AI アシスタント。
-          24時間 LINE で、エリア・働き方・気持ちを 5 つタップするだけで、
-          あなたに合う求人を静かに届けます。
+      <aside class="pillar-card" aria-label="ナースロビーの考え方">
+        <div class="pillar-card__num">手数料 10%</div>
+        <div class="pillar-card__sub">業界平均 20〜30% の約 1/3</div>
+        <div class="pillar-card__body">
+          病院側の負担が軽いから、こちらから強引に電話でせかす必要がありません。
+          だから、看護師さんの側も静かに検討できます。
         </div>
       </aside>
 
       <div class="letter-body">
-        <p>はじめまして、ロビーです。<br>夜勤明けの朝、スマホが鳴り続けるの、もうつらいですよね。</p>
-        <p>ナースロビーは、<strong>手数料を 10%</strong>まで下げたから、病院側も喜んで使ってくれて、こちらから電話でせかす必要がないんです。</p>
+        <p>夜勤明けの朝、スマホが鳴り続けるの、もうつらいですよね。</p>
+        <p>ナースロビーは <strong>手数料を 10% まで下げました</strong>。病院側の負担が軽いから、こちらから電話でせかす必要がありません。</p>
         <p>LINE で 5 つタップするだけ。気が向いたときだけ返信。<br>いつでもブロックで終わり。それで充分です。</p>
-        <p class="signature">— Robby, from 神奈川</p>
+        <p class="signature">— 神奈川ナース転職 編集部</p>
       </div>
     </div>
   </div>
