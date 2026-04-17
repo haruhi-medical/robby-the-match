@@ -95,8 +95,6 @@ curl -s https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/health 
 - **instagram_engage**: 12:00-14:00の範囲外は翌日回し（アカウント安全策）
 - **pdca_hellowork**: 失敗しても求人データは前日分が残る。当日再実行しても冪等
 - **autoresearch**: Claude CLI認証切れが恒常的な原因。社長に `claude auth login` 依頼（S-01）
-  - ⚠️ **watchdog管理外**（heartbeat未送出）— `data/heartbeats/autoresearch.json` は存在しない。失敗検知は `logs/autoresearch_YYYY-MM-DD.log` の目視確認のみ
-  - 代替復旧: `.env` に `ANTHROPIC_API_KEY` を追加すると、Keychain非依存でclaude CLIが動作可能（`ensure_env` がフォールバック対応済）
 
 ### エスカレーション先
 - 3連続リトライ失敗 + CONFIG_ERROR: 社長に Slack で認証情報確認依頼
@@ -167,12 +165,10 @@ cat ~/robby-the-match/data/recovery_log.json | python3 -m json.tool
    ```
    失効なら社長にキー再発行依頼
 4. **AI応答フォールバック**: Phase 1 #2 で try/catch 実装後は OpenAI → Workers AI に自動切替。未実装時はOpenAIが落ちると沈黙
-5. **handoff後の沈黙**: Phase 1 #14 の自動フォロー未実装時は担当者待ち。`scripts/slack_commander.py` の常駐状況を確認
+5. **handoff後の沈黙**: Phase 1 #14 の自動フォロー未実装時は担当者待ち。`scripts/slack_commander.py` が常駐しているか確認
    ```bash
    launchctl list | grep slack_commander
    ```
-   - **現状**: LaunchAgent 未登録が正常（STATE.md 315行目参照、`slack_bridge.py` 手動実行で代替運用中）
-   - handoff後の返信は `!reply` コマンドをSlackスレッド内で打つ運用。`!reply` が届かない時のみ Worker の `/api/line-webhook` を疑う
 
 ### エスカレーション先
 - LINE側障害: <https://developers.line.biz/> の Status ページ
