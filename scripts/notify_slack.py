@@ -3,6 +3,11 @@
 Slack通知スクリプト
 台本JSONの内容をSlackに通知（承認依頼）
 Bot Token使用版
+
+【DEPRECATED】(Phase 3 #60 判定)
+このスクリプトは 11+ のスクリプトから subprocess 経由で呼ばれているため、
+完全統合は影響範囲が広すぎる（NS寄与度2に対してコストが高い）。
+新規開発では scripts/slack_utils.py の send_message() を直接使うこと。
 """
 
 import argparse
