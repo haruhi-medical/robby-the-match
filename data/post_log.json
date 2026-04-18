@@ -746,5 +746,14 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_業界_0404_05",
+    "content_id": "ai_業界_0404_05",
+    "timestamp": "2026-04-18T20:19:01",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]

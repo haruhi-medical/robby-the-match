@@ -4094,9 +4094,9 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-18T20:19:01",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -4121,7 +4121,8 @@
         "suggestion": "フックを25文字以内に短縮し、ハッシュタグを4個以内に調整する"
       },
       "scheduled_for": "2026-04-09 17:30",
-      "quality_checked": true
+      "quality_checked": true,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 191,
@@ -6061,7 +6062,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.66,
+      "quality_checked": true
     },
     {
       "id": 238,
@@ -6090,7 +6092,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.71,
+      "quality_checked": true
     },
     {
       "id": 239,
@@ -6119,7 +6122,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.21,
+      "quality_checked": true
     },
     {
       "id": 240,
@@ -6148,7 +6152,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.91,
+      "quality_checked": true
     },
     {
       "id": 241,
@@ -6177,7 +6182,8 @@
         "comments": null
       },
       "ai_score": null,
-      "quality_score": 8
+      "quality_score": 8.31,
+      "quality_checked": true
     },
     {
       "id": 242,
