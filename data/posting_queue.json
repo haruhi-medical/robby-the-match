@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-18T06:00:05.789840",
+  "updated": "2026-04-18T15:11:04.364226",
   "posts": [
     {
       "id": 1,
@@ -6033,6 +6033,296 @@
       "ai_score": null,
       "quality_score": 8.12,
       "quality_checked": true
+    },
+    {
+      "id": 237,
+      "content_id": "ai_ある_0418_01",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_ある_0418_01",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_ある_0418_01.json",
+      "caption": "看護師5年目で手取り24万って普通なの？\n\n手数料20-30%が看護師の収入から減額されてる。\n\n手数料10%で転職サポートしてるんだ。プロフ見てみて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナース転職",
+        "#看護師"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 238,
+      "content_id": "ai_ある_0418_02",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_ある_0418_02",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_ある_0418_02.json",
+      "caption": "夜勤明けの電車で何してる？\n\n看護師の市場価値を上げることが、病院に利益をもたらす\n\n気になる人はプロフのリンクから相談できるよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナース転職",
+        "#看護師"
+      ],
+      "cta_type": "hard",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 239,
+      "content_id": "ai_ある_0418_03",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_ある_0418_03",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_ある_0418_03.json",
+      "caption": "看護師5年目でコンビニと同じ時給、本当?\n\n神奈川の看護師は平均年収546万円。同じ時給でも、月収は違う\n\n同じ時給でも、働き方によって給与は大きく違う。看護師の給与は単純でない",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#コンビニバイト",
+        "#ナース給与"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 240,
+      "content_id": "ai_ある_0418_04",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_ある_0418_04",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_ある_0418_04.json",
+      "caption": "神奈川の看護師さん\n\n夜勤8回の時給、コンビニと同じ？\n\n保存しておくと、転職する時に役立つよ",
+      "hashtags": [
+        "#看護師転職",
+        "#神奈川ナース",
+        "#夜勤看護師",
+        "#看護師年収"
+      ],
+      "cta_type": "soft",
+      "content_type": "aruaru",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 241,
+      "content_id": "ai_業界_0418_05",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_業界_0418_05",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_業界_0418_05.json",
+      "caption": "神奈川の看護師は夜勤手当で月にいくら増える？\n\n看護師の市場価値を上げるために、手数料10%にした。\n\nこの情報、保存しておくと転職する時に役立つよ",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師転職",
+        "#ナースライフ",
+        "#看護師"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 242,
+      "content_id": "ai_業界_0418_06",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_業界_0418_06",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_業界_0418_06.json",
+      "caption": "神奈川の看護師、紹介会社の手数料に驚いた\n\n看護師の価値、自分で知っておこう\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師の価値",
+        "#紹介会社"
+      ],
+      "cta_type": "soft",
+      "content_type": "industry",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 243,
+      "content_id": "ai_地域_0418_07",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_地域_0418_07",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_地域_0418_07.json",
+      "caption": "夜勤の看護師さん\n\n夜勤手当を考慮すると、実質時給は1,800-2,200円って知ってた?\n\nこの表、保存しといて損ないよ",
+      "hashtags": [
+        "#秦野ナース",
+        "#夜勤看護師",
+        "#看護師年収",
+        "#神奈川県"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 244,
+      "content_id": "ai_地域_0418_08",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_地域_0418_08",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_地域_0418_08.json",
+      "caption": "神奈川の看護師、年収50万差って?\n\n同じ看護師でも、働く場所が違うだけで収入が違う。\n\nこの情報、保存しておくと役立つよ。",
+      "hashtags": [
+        "#神奈川看護師",
+        "#ナース転職",
+        "#看護師年収",
+        "#地域格差"
+      ],
+      "cta_type": "soft",
+      "content_type": "local",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 245,
+      "content_id": "ai_トレ_0418_09",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_トレ_0418_09",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_トレ_0418_09.json",
+      "caption": "看護師5年目で夜勤8回、神奈川と東京で年収差って?\n\n同じ仕事をして同じ給与を受ける権利がある。\n\nこの情報、知らなかった人いる?",
+      "hashtags": [
+        "#神奈川ナース",
+        "#看護師年収",
+        "#夜勤手当",
+        "#看護師不足"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
+    },
+    {
+      "id": 246,
+      "content_id": "ai_トレ_0418_10",
+      "batch": "ai_batch_20260418_1500",
+      "slide_dir": "content/generated/ai_batch_20260418_1500/ai_トレ_0418_10",
+      "json_path": "content/generated/ai_batch_20260418_1500/ai_トレ_0418_10.json",
+      "caption": "夜勤明けの電車、看護師は座れる?\n\n夜勤看護師の時給、コンビニと比べたら?\n\n同じ状況の看護師さんにシェアしてあげて",
+      "hashtags": [
+        "#神奈川ナース",
+        "#夜勤看護師",
+        "#看護師転職",
+        "#ナースジョブ"
+      ],
+      "cta_type": "soft",
+      "content_type": "trend",
+      "status": "pending",
+      "video_path": null,
+      "posted_at": null,
+      "tiktok_url": null,
+      "error": null,
+      "performance": {
+        "views": null,
+        "likes": null,
+        "saves": null,
+        "comments": null
+      },
+      "ai_score": null,
+      "quality_score": 8
     }
   ],
   "archive": [
