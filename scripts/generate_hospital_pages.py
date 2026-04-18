@@ -27,7 +27,8 @@ from scripts.apply_editorial_guide import GUIDE_COMPAT_CSS  # type: ignore
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 HOSPITALS_DIR = ROOT / "lp/job-seeker/hospitals"
-DATA_JSON = ROOT / "data/hospitals_top30.json"
+DATA_JSON = ROOT / "data/hospitals_top30_4pref.json"
+FALLBACK_JSON = ROOT / "data/hospitals_top30.json"
 TEMPLATE_SRC = ROOT / "lp/job-seeker/area/yokohama-naka.html"  # v2適用済み
 BASE_URL = "https://quads-nurse.com"
 SOURCE_URL = "https://www.iryou.teikyouseido.mhlw.go.jp/"
@@ -38,9 +39,18 @@ def load_v2_style():
     return m.group(1) if m else ""
 
 
+PREF_SLUG = {
+    "神奈川県": "kana",
+    "東京都": "tokyo",
+    "千葉県": "chiba",
+    "埼玉県": "saitama",
+}
+
+
 def slugify(h):
-    """id ベースの slug（日本語ローマ字化ライブラリ不要）"""
-    return f"hospital-kana-{h['id']}"
+    """都県 × id ベースの slug（日本語ローマ字化ライブラリ不要）"""
+    pref = PREF_SLUG.get(h.get("prefecture"), "other")
+    return f"hospital-{pref}-{h['id']}"
 
 
 def format_departments(raw, limit=10):
@@ -197,10 +207,7 @@ src="https://www.facebook.com/tr?id=2326210157891886&ev=PageView&noscript=1"/></
       <h2>周辺エリアの看護師求人</h2>
       <p>{city}エリアには{hospital_name}以外にも多くの医療機関があります。地域中核病院・回復期病院・クリニック・訪問看護ステーションまで、キャリアや生活スタイルに合わせて選べます。</p>
       <div class="related-links">
-        <a href="/lp/job-seeker/area/{area_link}.html">{city}の看護師求人</a>
-        <a href="/lp/job-seeker/area/{area_link}-nikkin.html">{city}の日勤求人</a>
-        <a href="/lp/job-seeker/area/{area_link}-yakin.html">{city}の夜勤求人</a>
-        <a href="/lp/job-seeker/guide/fee-comparison.html">手数料10%について</a>
+        {area_links}
       </div>
     </div>
   </section>
@@ -250,7 +257,7 @@ src="https://www.facebook.com/tr?id=2326210157891886&ev=PageView&noscript=1"/></
 </html>
 """
 
-# 市 → 既存 area slug（ロングテールとのリンク）
+# 市 → 既存 area slug（ロングテールとのリンク、神奈川のみ）
 CITY_TO_AREA = {
     "横浜市": "yokohama", "川崎市": "kawasaki", "相模原市": "sagamihara",
     "藤沢市": "fujisawa", "小田原市": "odawara", "横須賀市": "yokosuka",
@@ -260,15 +267,38 @@ CITY_TO_AREA = {
 }
 
 
+def area_links_html(h):
+    """都県別 内部リンク生成"""
+    pref = h.get("prefecture")
+    city = h.get("city") or ""
+    if pref == "神奈川県":
+        area_link = CITY_TO_AREA.get(city)
+        if area_link:
+            return (
+                f'<a href="/lp/job-seeker/area/{area_link}.html">{html.escape(city)}の看護師求人</a>'
+                f'<a href="/lp/job-seeker/area/{area_link}-nikkin.html">{html.escape(city)}の日勤求人</a>'
+                f'<a href="/lp/job-seeker/area/{area_link}-yakin.html">{html.escape(city)}の夜勤求人</a>'
+                f'<a href="/lp/job-seeker/guide/fee-comparison.html">手数料10%について</a>'
+            )
+    # 神奈川以外または該当市なし → 汎用リンク
+    return (
+        '<a href="/lp/job-seeker/area/">全エリアの看護師求人</a>'
+        '<a href="/lp/job-seeker/hospitals/">他の主要病院一覧</a>'
+        '<a href="/lp/job-seeker/guide/fee-comparison.html">手数料10%について</a>'
+        '<a href="/lp/job-seeker/guide/career-change.html">キャリアチェンジガイド</a>'
+    )
+
+
 def build_page(h, v2_style, compat_css):
     slug = slugify(h)
     canonical = f"{BASE_URL}/lp/job-seeker/hospitals/{slug}.html"
     title = f"{h['name']}の看護師求人・基本情報｜ナースロビー"
     description = f"{h['name']}（{h['city']} / {h['bed_count']}床）の公表情報と、周辺エリアの看護師求人をLINEで静かにご案内。手数料10%・電話なし・完全無料。"
     h1 = f"{h['name']}"
-    city = h["city"] or "神奈川県"
+    city = h["city"] or h.get("prefecture") or "—"
     area_link = CITY_TO_AREA.get(city, "yokohama")
     subtitle = f"{city}・{h['bed_count']}床の医療機関の基本情報と周辺求人。"
+    area_links = area_links_html(h)
 
     bc_payload = {
         "@context": "https://schema.org",
@@ -331,6 +361,7 @@ def build_page(h, v2_style, compat_css):
         city=html.escape(city),
         type_desc=html.escape(type_desc),
         area_link=area_link,
+        area_links=area_links,
         v2_style=v2_style,
         compat_css=compat_css,
     )
@@ -361,28 +392,37 @@ def main():
         print(f"  ✓ {slug}.html {h['name']} ({h['city']} / {h['bed_count']}床)")
         generated.append(slug)
 
-    # index ページ
+    # index ページ（都県別セクション）
     idx_items = []
+    by_pref = {}
     for h in hospitals:
-        slug = slugify(h)
-        idx_items.append(
-            f'<article class="facility"><span class="facility__num">{h["bed_count"]}床</span>'
-            f'<div><h3 class="facility__name"><a href="/lp/job-seeker/hospitals/{slug}.html">{html.escape(h["name"])}</a></h3>'
-            f'<div class="facility__sub">{html.escape(h.get("city") or "")} / {html.escape(h.get("sub_type") or "総合病院")}</div></div>'
-            f'<span class="facility__tag">{html.escape(h.get("sub_type") or "総合")}</span></article>'
-        )
+        by_pref.setdefault(h.get("prefecture") or "その他", []).append(h)
+    pref_order = ["神奈川県", "東京都", "千葉県", "埼玉県"]
+    for pref in pref_order + [p for p in by_pref if p not in pref_order]:
+        if pref not in by_pref:
+            continue
+        idx_items.append(f'<h3 style="margin-top:36px;border-top:1px solid var(--rule);padding-top:24px;">{html.escape(pref)}（{len(by_pref[pref])}件）</h3>')
+        for h in by_pref[pref]:
+            slug = slugify(h)
+            idx_items.append(
+                f'<article class="facility"><span class="facility__num">{h["bed_count"]}床</span>'
+                f'<div><h3 class="facility__name"><a href="/lp/job-seeker/hospitals/{slug}.html">{html.escape(h["name"])}</a></h3>'
+                f'<div class="facility__sub">{html.escape(h.get("city") or "")} / {html.escape(h.get("sub_type") or "総合病院")}</div></div>'
+                f'<span class="facility__tag">{html.escape(h.get("sub_type") or "総合")}</span></article>'
+            )
     idx_html = HEADER.format(
-        title=html.escape("神奈川県の主要病院一覧｜ナースロビー", quote=True),
-        description=html.escape("神奈川県の病床数上位30病院の基本情報を一覧で。住所・最寄駅・病床数・看護師数・標榜診療科。厚労省公表データに基づく。", quote=True),
+        title=html.escape("関東4都県の主要病院一覧｜ナースロビー", quote=True),
+        description=html.escape("東京・神奈川・千葉・埼玉の病床数上位病院の基本情報を一覧で。住所・最寄駅・病床数・看護師数・標榜診療科。厚労省公表データに基づく。", quote=True),
         canonical=f"{BASE_URL}/lp/job-seeker/hospitals/",
         bc_json=json.dumps({"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"トップ","item":f"{BASE_URL}/"},{"@type":"ListItem","position":2,"name":"主要病院","item":f"{BASE_URL}/lp/job-seeker/hospitals/"}]}, ensure_ascii=False),
-        faq_json=json.dumps({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"どの病院を掲載していますか？","acceptedAnswer":{"@type":"Answer","text":"神奈川県の病床数上位30件（公的データ）の基本情報を掲載しています。順次拡充予定です。"}}]}, ensure_ascii=False),
-        hospital_name="神奈川県の主要病院",
-        h1="神奈川県の主要病院一覧",
+        faq_json=json.dumps({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"どの病院を掲載していますか？","acceptedAnswer":{"@type":"Answer","text":"関東4都県（東京・神奈川・千葉・埼玉）の病床数上位各30件（公的データ）の基本情報を掲載しています。順次拡充予定です。"}}]}, ensure_ascii=False),
+        hospital_name="関東4都県の主要病院",
+        h1="関東4都県の主要病院一覧",
         subtitle="病床数100床以上 / 公表データ準拠。",
         address="—", station="—", bed_count="—", nurse_count="—", nurse_count_p="100",
-        sub_type="—", departments="—", city="神奈川県", type_desc="主要病院",
+        sub_type="—", departments="—", city="関東4都県", type_desc="主要病院",
         area_link="yokohama",
+        area_links='<a href="/lp/job-seeker/area/">全エリアの看護師求人</a><a href="/lp/job-seeker/guide/fee-comparison.html">手数料10%について</a>',
         v2_style=v2_style, compat_css=GUIDE_COMPAT_CSS,
     )
     # index 本文だけ差し替え
