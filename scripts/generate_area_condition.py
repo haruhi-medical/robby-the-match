@@ -31,11 +31,39 @@ def load_v2_style():
 
 
 AREAS = [
+    # Phase 1 (既存)
     ("yokohama", "横浜市", "関内・元町・みなとみらい", "横浜市立大学附属市民総合医療センター"),
     ("kawasaki", "川崎市", "川崎駅・溝の口", "川崎市立川崎病院"),
     ("sagamihara", "相模原市", "橋本・町田境", "北里大学病院"),
     ("fujisawa", "藤沢市", "藤沢駅・湘南台", "藤沢市民病院"),
     ("odawara", "小田原市", "小田原駅周辺", "小田原市立病院"),
+    # Phase 2 (新規: 残り26エリア)
+    ("atsugi", "厚木市", "本厚木駅周辺", "厚木市立病院"),
+    ("chigasaki", "茅ヶ崎市", "茅ヶ崎駅周辺", "茅ヶ崎市立病院"),
+    ("ebina", "海老名市", "海老名駅周辺", "海老名総合病院"),
+    ("hadano", "秦野市", "秦野駅周辺", "秦野赤十字病院"),
+    ("hakone", "箱根町", "箱根湯本駅周辺", "神奈川県立足柄上病院"),
+    ("hiratsuka", "平塚市", "平塚駅周辺", "平塚市民病院"),
+    ("isehara", "伊勢原市", "伊勢原駅周辺", "東海大学医学部付属病院"),
+    ("kaisei", "開成町", "開成駅周辺", "神奈川県立足柄上病院"),
+    ("kamakura", "鎌倉市", "鎌倉駅周辺", "湘南鎌倉総合病院"),
+    ("matsuda", "松田町", "松田駅周辺", "神奈川県立足柄上病院"),
+    ("minamiashigara", "南足柄市", "大雄山駅周辺", "神奈川県立足柄上病院"),
+    ("ninomiya", "二宮町", "二宮駅周辺", "平塚市民病院"),
+    ("oiso", "大磯町", "大磯駅周辺", "東海大学医学部付属大磯病院"),
+    ("yamakita", "山北町", "山北駅周辺", "神奈川県立足柄上病院"),
+    ("yamato", "大和市", "大和駅周辺", "大和市立病院"),
+    ("yokosuka", "横須賀市", "横須賀中央駅周辺", "横須賀共済病院"),
+    ("yokohama-aoba", "横浜市青葉区", "あざみ野駅周辺", "昭和大学横浜市北部病院"),
+    ("yokohama-asahi", "横浜市旭区", "二俣川駅周辺", "聖マリアンナ医科大学横浜市西部病院"),
+    ("yokohama-kanagawa", "横浜市神奈川区", "東神奈川駅周辺", "神奈川県警友会けいゆう病院"),
+    ("yokohama-kohoku", "横浜市港北区", "新横浜駅周辺", "新横浜記念病院"),
+    ("yokohama-konan", "横浜市港南区", "上大岡駅周辺", "横浜市立市民病院"),
+    ("yokohama-minami", "横浜市南区", "弘明寺駅周辺", "横浜市立大学附属市民総合医療センター"),
+    ("yokohama-naka", "横浜市中区", "関内・元町・本牧", "横浜市立大学附属市民総合医療センター"),
+    ("yokohama-nishi", "横浜市西区", "横浜駅周辺", "横浜市立みなと赤十字病院"),
+    ("yokohama-totsuka", "横浜市戸塚区", "戸塚駅周辺", "横浜市立戸塚病院"),
+    ("yokohama-tsurumi", "横浜市鶴見区", "鶴見駅周辺", "済生会横浜市東部病院"),
 ]
 
 CONDITIONS = {
@@ -334,10 +362,14 @@ def main():
 
     v2_style = load_v2_style()
     generated = []
+    skipped = 0
     for area_tuple in AREAS:
         for cond_slug, cond in CONDITIONS.items():
             slug, content = build_page(area_tuple, cond_slug, cond, v2_style, GUIDE_COMPAT_CSS)
             path = AREA_DIR / f"{slug}.html"
+            if path.exists():
+                skipped += 1
+                continue
             if args.apply:
                 path.write_text(content, encoding="utf-8")
                 print(f"  ✓ {slug}.html ({len(content)} bytes)")
@@ -345,7 +377,7 @@ def main():
                 print(f"  [dry] {slug}.html ({len(content)} bytes)")
             generated.append(slug)
 
-    print(f"\n合計 {len(generated)} ページ")
+    print(f"\n新規生成 {len(generated)} ページ / 既存スキップ {skipped}")
 
 
 if __name__ == "__main__":
