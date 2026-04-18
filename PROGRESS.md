@@ -4387,3 +4387,53 @@ AI Marketing PDCA:
 
 [NOTE] available (51) >= threshold (7) -- --auto では生成スキップ
 
+
+## 📅 2026-04-18 セッション（SEO大展開デー）
+
+### 成果物
+- **commit 48664ff**: 訪問看護ST取得スクリプト + D1投入（+5,061件, facilities 24,488→29,549）
+- **commit d18554a**: 訪問看護ST UXバグ修正（sub_type正規化, 重複除去, city補完）
+- **commit b82cc27**: GBP 登録ガイド revert（社長「やらない」決定）
+- **commit d4ac8ce**: runbook不整合2箇所修正
+- **commit 78f50ac**: 訪問看護ST調査ドキュメント
+- **commit 853236e**: Editorial Calm Japan v2試作 + ロビー裏方化 + モバイル調整
+- **commit 3363dfa**: area 31ページ v2展開 (scripts/apply_editorial_template.py)
+- **commit 508555d**: guide 47ページ 外装v2統一 (scripts/apply_editorial_guide.py)
+- **commit 10fc25d**: 新規ロングテールguide 10本追加 (scripts/generate_new_guides.py)
+- **commit 92946d9**: sitemap.xml 87→97 URL
+
+### デザイン刷新: Editorial Calm Japan
+- 明朝×サンセリフ×モノスペースの三段タイポ（Shippori Mincho B1 + Noto Sans JP + JetBrains Mono）
+- warm cream + teal + gold + LINE緑のパレット
+- 番号付き章構成（雑誌感）、モバイル2段ブレイクポイント
+- ロビー裏方ルール（🤖禁止, キャラ一人称禁止, 署名=編集部）
+
+### SEO強化
+- LP配下 **88ページ**（area 32 + guide 58）全て v2 外装統一
+- JSON-LD 4種（Breadcrumb + FAQ + Article + Organization）全ページ完備
+- 許可番号 23-ユ-302928 フッター掲載
+- sitemap.xml: 87 → **97 URL**
+- IndexNow ping 113 URL Bing/Yandex に送信済み
+- セマンティックHTML5 + aria完備 + CWV配慮（preconnect, display=swap）
+
+### 新規ロングテール（未カバー検索意図）
+1. 看護師 辞めたい
+2. 看護師 転職 バレない
+3. ママナース 働き方
+4. 看護師 人間関係 トラブル
+5. 美容クリニック 看護師 転職
+6. 企業看護師 / 産業看護師
+7. 看護師 年収1000万
+8. 看護師 給料安い 原因
+9. 看護師 パワハラ 相談
+10. 看護師 退職届 書き方
+
+### 確認済み
+- **pdca_seo_batch.sh の seo_fix**: 「0件修正」は**全ページdescription 70字以上で修正不要=仕様通り動作**。実装上の欠陥ではない
+- **Worker health**: /api/health?deep=1 で openai + workers_ai 両方稼働
+
+### 次回セッション候補
+- area × 条件（日勤/夜勤/パート/訪問）×主要10エリア = +40ページ生成（D1データ動的注入）
+- blog 新規追加（週次継続）
+- Search Console での新規97URLインデックス登録リクエスト（社長手動）
+- autoresearch 復旧（claude auth login 手動）
