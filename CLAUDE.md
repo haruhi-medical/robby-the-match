@@ -40,6 +40,7 @@ Step 6: STATE.md更新 + PROGRESS.md追記
 | /status | プロジェクト全状態表示 |
 | /slack-report | Slackレポート送信 |
 | /ads-report | Meta広告パフォーマンスレポート |
+| /autoresearch | SNS台本プロンプト改善ループ1ラウンド（手動実行、API課金なし） |
 
 ## カスタムエージェント
 
