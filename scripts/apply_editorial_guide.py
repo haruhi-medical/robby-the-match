@@ -25,9 +25,11 @@ from bs4 import BeautifulSoup
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GUIDE = ROOT / "lp/job-seeker/guide"
-BACKUP = GUIDE / "_backup_20260418"
+BLOG = ROOT / "blog"
 TEMPLATE_SRC = ROOT / "lp/job-seeker/area/yokohama-naka-v2.html"
 SKIP = {"index.html"}
+
+TARGET_DIRS = {"guide": GUIDE, "blog": BLOG}
 
 
 def load_v2_style() -> str:
@@ -403,37 +405,40 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="1ページ出力、差分のみ")
     ap.add_argument("--apply", action="store_true", help="全ページ書き換え + バックアップ")
     ap.add_argument("--sample", default="career-change.html", help="dry-run 対象")
+    ap.add_argument("--target", choices=list(TARGET_DIRS.keys()), default="guide", help="対象ディレクトリ")
     args = ap.parse_args()
 
     if not (args.dry_run or args.apply):
         print("--dry-run または --apply を指定してください", file=sys.stderr)
         sys.exit(1)
 
+    target_dir = TARGET_DIRS[args.target]
+    backup_dir = target_dir / "_backup_20260418"
     v2_style = load_v2_style()
 
     if args.dry_run:
-        path = GUIDE / args.sample
+        path = target_dir / args.sample
         if not path.exists():
             print(f"not found: {path}", file=sys.stderr)
             sys.exit(1)
         src = path.read_text(encoding="utf-8")
         out = process_page(src, v2_style)
-        out_path = GUIDE / (path.stem + "-v2preview.html")
+        out_path = target_dir / (path.stem + "-v2preview.html")
         out_path.write_text(out, encoding="utf-8")
         print(f"preview written: {out_path}")
         print(f"  input: {len(src)} bytes / output: {len(out)} bytes")
         return
 
     # apply
-    BACKUP.mkdir(exist_ok=True)
-    pages = sorted([p for p in GUIDE.glob("*.html") if p.name not in SKIP and not p.name.startswith("_") and "v2preview" not in p.name])
-    print(f"対象: {len(pages)} ページ")
+    backup_dir.mkdir(exist_ok=True)
+    pages = sorted([p for p in target_dir.glob("*.html") if p.name not in SKIP and not p.name.startswith("_") and "v2preview" not in p.name])
+    print(f"対象: {args.target} | {len(pages)} ページ")
     ok = err = 0
     for p in pages:
         try:
             src = p.read_text(encoding="utf-8")
             out = process_page(src, v2_style)
-            shutil.copy2(p, BACKUP / p.name)
+            shutil.copy2(p, backup_dir / p.name)
             p.write_text(out, encoding="utf-8")
             print(f"  ✓ {p.name}")
             ok += 1
