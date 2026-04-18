@@ -618,4 +618,15 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <!-- 2026-04-18 追加: 新規ロングテール guide 10本 -->
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/nurse-resignation.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/nurse-transfer-bareless.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/mom-nurse-work.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/nurse-relationship-trouble.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/beauty-clinic-nurse.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/corporate-nurse.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/nurse-salary-1000man.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/nurse-salary-low-reason.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/nurse-power-harassment.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://quads-nurse.com/lp/job-seeker/guide/nurse-resignation-letter.html</loc><lastmod>2026-04-18</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
