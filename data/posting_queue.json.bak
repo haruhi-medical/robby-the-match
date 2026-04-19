@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-18T15:11:04.364226",
+  "updated": "2026-04-20T02:44:19.087413",
   "posts": [
     {
       "id": 1,
@@ -4139,8 +4139,8 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_地域_0404_06_20260420.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,

@@ -1,11 +1,49 @@
 {
-  "round": 0,
-  "current_score": null,
-  "baseline_score": null,
-  "consecutive_95_count": 0,
-  "status": "not_started",
-  "last_change": null,
-  "item_failure_rates": {},
+  "round": 4,
+  "current_score": 0.99,
+  "baseline_score": 0.72,
+  "consecutive_95_count": 3,
+  "status": "95_streak_3_READY_FOR_APPROVAL",
+  "last_change": {
+    "target": "ストレステスト（感情系・抽象テーマ）",
+    "action": "プロンプト不変。メンタル/人間関係/師長/WLB/子育て/抽象テーマで10本生成",
+    "result": "passed",
+    "score_before": 1.00,
+    "score_after": 0.99,
+    "delta": -0.01,
+    "failure_detail": "師長フック「期待してるが重い？」のみ具体数字なし(17字、他項目は全て通過)"
+  },
+  "item_failure_rates": {
+    "hook_under_25_chars": 0.00,
+    "hook_has_number": 0.10,
+    "hook_open_loop": 0.00,
+    "no_clickbait_words": 0.00,
+    "has_nurse_jargon": 0.00,
+    "slide_under_40_chars": 0.00,
+    "natural_cta": 0.00,
+    "japanese_only": 0.00,
+    "hashtags_max_5": 0.00,
+    "hook_image_text_20": 0.00
+  },
+  "top_failure": "hook_has_number 10% (感情系テーマでの数字組み込み難しい)",
+  "next_round_target": "PROMOTION_PHASE — 社長承認を取って scripts/ai_content_engine.py (原本) に昇格",
+  "scripts_generated": 10,
+  "evaluator": "Claude Code Opus 4.7",
+  "approval_required": {
+    "action": "promote_improved_to_original",
+    "target_file": "scripts/ai_content_engine.py",
+    "source_file": "scripts/ai_content_engine_improved.py",
+    "replace_block": "SYSTEM_PROMPT fallback at line 684 + get_robby_system_prompt() in robby_character.py line 510",
+    "safety_check_needed": "Cloudflare AI実行検証（本番モデルでも同等スコア出るか）",
+    "evidence": [
+      "Round 0 baseline: 0.72",
+      "Round 1 (slide_40): 0.86",
+      "Round 2 (hook_20+number): 1.00",
+      "Round 3 (別カテゴリ検証): 1.00",
+      "Round 4 (感情系ストレス): 0.99"
+    ]
+  },
   "improved_prompt_path": "scripts/ai_content_engine_improved.py",
-  "original_prompt_path": "scripts/ai_content_engine.py"
+  "original_prompt_path": "scripts/ai_content_engine.py",
+  "last_run": "2026-04-19"
 }
