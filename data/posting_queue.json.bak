@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-20T02:44:19.087413",
+  "updated": "2026-04-20T15:01:26.492678",
   "posts": [
     {
       "id": 1,
@@ -4139,11 +4139,11 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_地域_0404_06_20260420.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -5990,11 +5990,11 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -6031,7 +6031,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.12,
       "quality_checked": true
     },
@@ -6061,7 +6061,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.66,
       "quality_checked": true
     },
@@ -6091,7 +6091,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.71,
       "quality_checked": true
     },
@@ -6121,7 +6121,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.21,
       "quality_checked": true
     },
@@ -6151,7 +6151,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.91,
       "quality_checked": true
     },
@@ -6181,7 +6181,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.31,
       "quality_checked": true
     },
@@ -6211,7 +6211,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -6240,7 +6240,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -6269,7 +6269,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -6298,7 +6298,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -6327,7 +6327,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     }
   ],

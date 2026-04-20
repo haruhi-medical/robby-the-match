@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-20T06:00:05.331538",
+  "updated": "2026-04-20T15:01:26.514166",
   "posts": [
     {
       "id": 1,
@@ -6020,7 +6020,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6031,9 +6031,10 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.12,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-20 17:30"
     },
     {
       "id": 237,
@@ -6050,7 +6051,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6061,9 +6062,10 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.66,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-21 12:00"
     },
     {
       "id": 238,
@@ -6080,7 +6082,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6091,9 +6093,10 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.71,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-22 21:00"
     },
     {
       "id": 239,
@@ -6110,7 +6113,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6121,9 +6124,10 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.21,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-23 17:30"
     },
     {
       "id": 240,
@@ -6140,7 +6144,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6151,9 +6155,10 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.91,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-24 12:00"
     },
     {
       "id": 241,
@@ -6170,7 +6175,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6181,9 +6186,10 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8.31,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-25 21:00"
     },
     {
       "id": 242,
@@ -6200,7 +6206,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6211,8 +6217,9 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
-      "quality_score": 8
+      "ai_score": 7,
+      "quality_score": 8,
+      "scheduled_for": "2026-04-26 17:30"
     },
     {
       "id": 243,
@@ -6240,7 +6247,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -6269,7 +6276,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -6298,7 +6305,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     },
     {
@@ -6327,7 +6334,7 @@
         "saves": null,
         "comments": null
       },
-      "ai_score": null,
+      "ai_score": 7,
       "quality_score": 8
     }
   ],
