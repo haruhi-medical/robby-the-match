@@ -1614,6 +1614,18 @@ export default {
       } catch (e) { return jsonResponse({ error: e.message }, 500); }
     }
 
+    // ========== 履歴書生成 API ==========
+    // POST /api/resume-generate : LIFFフォームからのデータ受信→AI生成→KV保存→URL返す
+    if (url.pathname === "/api/resume-generate" && request.method === "POST") {
+      return await handleResumeGenerate(request, env, ctx);
+    }
+
+    // GET /api/resume-view/:id : 生成済み履歴書HTMLを返す（印刷/PDF保存用）
+    if (url.pathname.startsWith("/api/resume-view/") && request.method === "GET") {
+      const id = url.pathname.replace("/api/resume-view/", "").split("/")[0].split("?")[0];
+      return await handleResumeView(id, env);
+    }
+
     return jsonResponse({ error: "Not Found" }, 404);
   },
 };
@@ -7614,7 +7626,21 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "rm_new_jobs") {
           entry.phase = "rm_new_jobs";
           replyMessages = await buildPhaseMessage("rm_new_jobs", entry, env);
-        } else if (nextPhase === "rm_resume_start" || nextPhase === "rm_cv_q2" || nextPhase === "rm_cv_q3" || nextPhase === "rm_cv_q4" || nextPhase === "rm_cv_q5" || nextPhase === "rm_cv_q6" || nextPhase === "rm_cv_q7" || nextPhase === "rm_cv_q8") {
+        } else if (nextPhase === "rm_resume_start") {
+          // 新フロー: Webフォーム(LIFF)へ誘導してAI履歴書生成＋PDF保存導線
+          entry.phase = "rm_resume_start";
+          const resumeFormUrl = `https://quads-nurse.com/resume/?user_id=${encodeURIComponent(userId)}`;
+          replyMessages = [
+            {
+              type: "text",
+              text: "📄 AI履歴書を作成します ✨\n\n事実情報（住所・学歴・職歴・資格）はご入力いただき、志望動機と職務経歴の文章化はAIがお手伝いいたします。\n\n完成した履歴書はJIS規格レイアウトで印刷 / PDF保存が可能です。",
+            },
+            {
+              type: "text",
+              text: `下記リンクから作成画面を開いてください 👇\n\n${resumeFormUrl}\n\n所要時間: 約5-10分`,
+            },
+          ];
+        } else if (nextPhase === "rm_cv_q2" || nextPhase === "rm_cv_q3" || nextPhase === "rm_cv_q4" || nextPhase === "rm_cv_q5" || nextPhase === "rm_cv_q6" || nextPhase === "rm_cv_q7" || nextPhase === "rm_cv_q8") {
           entry.phase = nextPhase;
           replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         } else if (nextPhase === "rm_resume_generate") {
@@ -9225,6 +9251,245 @@ function jsonResponse(data, status = 200, allowedOrigin = "*", extraHeaders = {}
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Expose-Headers": "X-RateLimit-Remaining, Retry-After",
       ...extraHeaders,
+    },
+  });
+}
+
+// ========== 履歴書生成ハンドラ ==========
+
+const RESUME_TEMPLATE_URL = "https://quads-nurse.com/resume/template.html";
+
+async function fetchResumeTemplate() {
+  // Cloudflare edge cache に乗せる（Cache-Control無視してキャッシュ）
+  const res = await fetch(RESUME_TEMPLATE_URL, {
+    cf: { cacheTtl: 3600, cacheEverything: true },
+  });
+  if (!res.ok) throw new Error(`template fetch failed: ${res.status}`);
+  return await res.text();
+}
+
+function escapeHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function calcAge(birthDate) {
+  if (!birthDate) return "";
+  try {
+    const b = new Date(birthDate);
+    const now = new Date();
+    let age = now.getFullYear() - b.getFullYear();
+    const m = now.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+    return age;
+  } catch { return ""; }
+}
+
+function formatBirthDate(iso) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    const eraYear = d.getFullYear();
+    let era = "", y = eraYear;
+    if (eraYear >= 2019) { era = "令和"; y = eraYear - 2018; }
+    else if (eraYear >= 1989) { era = "平成"; y = eraYear - 1988; }
+    else if (eraYear >= 1926) { era = "昭和"; y = eraYear - 1925; }
+    else era = "";
+    return `${era}${y}年${d.getMonth() + 1}月${d.getDate()}日`;
+  } catch { return iso; }
+}
+
+async function generateMotivationWithAI(data, env) {
+  if (!env.OPENAI_API_KEY) {
+    return "（志望動機はAI生成されませんでした。担当者と相談して記入してください）";
+  }
+  const careerSummary = (data.career || []).map(c =>
+    `${c.car_start_year || "?"}年${c.car_start_month || "?"}月〜${c.car_end_year ? c.car_end_year + "年" + (c.car_end_month || "") + "月" : "現職"} ${c.car_facility}（${c.car_detail}）`
+  ).join("\n");
+  const prompt = `以下の情報から、看護師の履歴書「志望動機欄」に書く文章を作成してください。
+
+【基本情報】
+氏名: ${data.lastName || ""} ${data.firstName || ""}
+年齢: ${calcAge(data.birthDate) || "不明"}歳
+
+【職歴】
+${careerSummary || "（記載なし）"}
+
+【保有資格】
+${(data.licenses || []).map(l => l.lic_name).join(" / ") || "看護師免許"}
+
+【本人のヒント】
+① 今の職場で変えたいこと: ${data.hint_change || "（未記入）"}
+② 自分の強み: ${data.hint_strengths || "（未記入）"}
+③ 次の職場で大事にしたいこと: ${data.hint_wishes || "（未記入）"}
+
+【ルール】
+- 400-500字で作成
+- 看護師としての経験を具体的に言及
+- ポジティブな表現（退職理由を前向きに言い換え）
+- 専門用語を適度に使い説得力を持たせる
+- 敬体（です・ます調）
+- 改行は2〜3段落程度で読みやすく
+- 「貴院」表記を使う（施設名は空欄）`;
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "あなたは看護師専門の転職キャリアアドバイザーです。数百件の履歴書を添削してきた経験があります。" },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 900,
+        temperature: 0.7,
+      }),
+    });
+    const d = await res.json();
+    return d.choices?.[0]?.message?.content?.trim() || "（AI生成に失敗しました）";
+  } catch (e) {
+    console.error("[Resume] AI gen error:", e.message);
+    return "（AI生成中にエラーが発生しました）";
+  }
+}
+
+function buildHistoryRows(items, type) {
+  if (!items || items.length === 0) return '<tr><td colspan="3" style="height:12mm;"></td></tr>';
+  const rows = [];
+  items.forEach(item => {
+    if (type === "education") {
+      rows.push(`<tr><td>${escapeHtml(item.edu_year || "")}</td><td>${escapeHtml(item.edu_month || "")}</td><td>${escapeHtml(item.edu_desc || "")}</td></tr>`);
+    } else if (type === "career") {
+      // 入職
+      rows.push(`<tr><td>${escapeHtml(item.car_start_year || "")}</td><td>${escapeHtml(item.car_start_month || "")}</td><td>${escapeHtml(item.car_facility || "")} 入職${item.car_detail ? "<br>　　" + escapeHtml(item.car_detail).replace(/\n/g, "<br>　　") : ""}</td></tr>`);
+      // 退職（ある場合のみ）
+      if (item.car_end_year) {
+        rows.push(`<tr><td>${escapeHtml(item.car_end_year)}</td><td>${escapeHtml(item.car_end_month || "")}</td><td>${escapeHtml(item.car_facility || "")} 退職</td></tr>`);
+      }
+    } else if (type === "license") {
+      rows.push(`<tr><td>${escapeHtml(item.lic_year || "")}</td><td>${escapeHtml(item.lic_month || "")}</td><td>${escapeHtml(item.lic_name || "")}</td></tr>`);
+    }
+  });
+  return rows.join("");
+}
+
+async function handleResumeGenerate(request, env, ctx) {
+  let data;
+  try {
+    data = await request.json();
+  } catch {
+    return jsonResponse({ error: "invalid JSON" }, 400);
+  }
+  if (!data.lastName || !data.firstName) {
+    return jsonResponse({ error: "名前は必須です" }, 400);
+  }
+
+  // AI志望動機生成
+  const motivation = await generateMotivationWithAI(data, env);
+
+  // テンプレート取得
+  let template;
+  try {
+    template = await fetchResumeTemplate();
+  } catch (e) {
+    console.error("[Resume] template fetch failed:", e.message);
+    return jsonResponse({ error: "テンプレート取得に失敗しました" }, 500);
+  }
+
+  // placeholder 置換
+  const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long", day: "numeric" });
+  const vars = {
+    "{{createdDate}}": escapeHtml(nowJST),
+    "{{furigana}}": escapeHtml(`${data.lastNameFurigana || ""}　${data.firstNameFurigana || ""}`.trim()),
+    "{{fullName}}": escapeHtml(`${data.lastName}　${data.firstName}`),
+    "{{birthDate}}": escapeHtml(formatBirthDate(data.birthDate)),
+    "{{age}}": escapeHtml(String(calcAge(data.birthDate))),
+    "{{gender}}": escapeHtml(data.gender || ""),
+    "{{phone}}": escapeHtml(data.phone || ""),
+    "{{email}}": escapeHtml(data.email || ""),
+    "{{postalCode}}": escapeHtml(data.postalCode || ""),
+    "{{address}}": escapeHtml(data.address || ""),
+    "{{addressFurigana}}": escapeHtml(data.addressFurigana || ""),
+    "{{educationRows}}": buildHistoryRows(data.education, "education"),
+    "{{careerRows}}": buildHistoryRows(data.career, "career"),
+    "{{licenseRows}}": buildHistoryRows(data.licenses, "license"),
+    "{{motivation}}": escapeHtml(motivation).replace(/\n/g, "<br>"),
+    "{{wishes}}": escapeHtml(data.wishes || "").replace(/\n/g, "<br>"),
+    "{{commuteTime}}": escapeHtml(data.commuteTime || "―"),
+    "{{dependents}}": escapeHtml(data.dependents || "―"),
+    "{{spouse}}": escapeHtml(data.spouse || "無"),
+    "{{spouseSupport}}": escapeHtml(data.spouseSupport || "無"),
+  };
+
+  let html = template;
+  for (const [k, v] of Object.entries(vars)) {
+    html = html.split(k).join(v);
+  }
+
+  // KV保存（7日間）
+  const id = crypto.randomUUID().slice(0, 12);
+  if (env?.LINE_SESSIONS) {
+    try {
+      await env.LINE_SESSIONS.put(`resume:${id}`, html, { expirationTtl: 7 * 86400 });
+    } catch (e) {
+      console.error("[Resume] KV put failed:", e.message);
+      return jsonResponse({ error: "保存に失敗しました" }, 500);
+    }
+  }
+
+  // LINE userIdがあれば handoff notify に履歴書URLを追加送信
+  if (data.userId && env.SLACK_BOT_TOKEN) {
+    const resumeUrl = `https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/resume-view/${id}`;
+    ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+        text: `📄 *AI履歴書作成完了*\nユーザー: \`${data.userId}\`\n氏名: ${data.lastName}${data.firstName}\n\n履歴書URL: ${resumeUrl}\n\n※7日間有効`,
+      }),
+    }).catch(e => console.error("[Resume] slack notify failed:", e.message)));
+
+    // LINEへもPush送信（user_idがあれば）
+    if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+      ctx.waitUntil(linePushWithFallback(data.userId, [{
+        type: "text",
+        text: `📄 履歴書が完成しました\n\n下記URLから確認・印刷・PDF保存ができます（7日間有効）\n\n${resumeUrl}`,
+      }], env, { tag: "resume_complete" }));
+    }
+  }
+
+  return jsonResponse({
+    id,
+    url: `https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/resume-view/${id}`,
+  });
+}
+
+async function handleResumeView(id, env) {
+  if (!id || !/^[a-z0-9-]{6,40}$/.test(id)) {
+    return new Response("Not Found", { status: 404 });
+  }
+  if (!env?.LINE_SESSIONS) {
+    return new Response("Storage unavailable", { status: 503 });
+  }
+  const html = await env.LINE_SESSIONS.get(`resume:${id}`);
+  if (!html) {
+    return new Response("履歴書が見つかりません（有効期限切れまたは無効なID）", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "private, max-age=0, must-revalidate",
+      "X-Robots-Tag": "noindex, nofollow",
     },
   });
 }
