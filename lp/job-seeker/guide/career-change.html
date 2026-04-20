@@ -1024,12 +1024,12 @@ section {
 }
 
 
-/* ====== guide 既存要素 互換レイヤー ====== */
-.site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; }
+/* ====== guide 既存要素 互換レイヤー（2026-04-20 LP統一で site-header/footer は表示） ====== */
+/* 旧: .site-header等をdisplay:none!important していたが、LP同一ヘッダー表示のため削除 */
 
-/* Hero (既存 guide の大型緑バナー) */
+/* Hero (既存 guide の大型バナー) — LP統一でブルー系に */
 header.hero {
-  background: linear-gradient(135deg, var(--teal) 0%, #2f5e75 100%);
+  background: linear-gradient(135deg, var(--teal) 0%, var(--primary-deeper, #0a6aa0) 100%);
   color: #fff;
   padding: 64px 24px 72px;
   text-align: center;
