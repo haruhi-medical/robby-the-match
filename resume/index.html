@@ -237,14 +237,14 @@
         </div>
 
         <div class="field">
-          <label>メールアドレス</label>
+          <label>メールアドレス（任意・担当者連絡用）</label>
           <input type="email" name="email" placeholder="example@example.com">
         </div>
       </div>
 
-      <!-- ===== 住所 ===== -->
+      <!-- ===== 現住所 ===== -->
       <div class="section">
-        <h2>📮 住所</h2>
+        <h2>📮 現住所</h2>
         <div class="field">
           <label>郵便番号<span class="required">*</span></label>
           <input type="text" name="postalCode" required placeholder="250-0011" pattern="\d{3}-?\d{4}">
@@ -256,6 +256,28 @@
         <div class="field">
           <label>住所（ふりがな）</label>
           <input type="text" name="addressFurigana" placeholder="かながわけん よこはまし...">
+        </div>
+      </div>
+
+      <!-- ===== 連絡先（現住所以外・任意） ===== -->
+      <div class="section">
+        <h2>📮 連絡先（現住所以外・任意）</h2>
+        <p class="hint">現住所以外に連絡を希望する場合のみ記入してください</p>
+        <div class="field">
+          <label>郵便番号</label>
+          <input type="text" name="contactPostalCode" placeholder="250-0011" pattern="\d{3}-?\d{4}">
+        </div>
+        <div class="field">
+          <label>住所</label>
+          <input type="text" name="contactAddress" placeholder="（空欄可）">
+        </div>
+        <div class="field">
+          <label>住所（ふりがな）</label>
+          <input type="text" name="contactAddressFurigana" placeholder="">
+        </div>
+        <div class="field">
+          <label>電話</label>
+          <input type="tel" name="contactPhone" placeholder="">
         </div>
       </div>
 
@@ -316,36 +338,6 @@
         </div>
       </div>
 
-      <!-- ===== その他 ===== -->
-      <div class="section">
-        <h2>🚉 通勤・家族情報（任意）</h2>
-        <div class="field-row">
-          <div class="field">
-            <label>通勤時間（分）</label>
-            <input type="number" name="commuteTime" placeholder="45" min="0">
-          </div>
-          <div class="field">
-            <label>扶養家族数（配偶者除く）</label>
-            <input type="number" name="dependents" placeholder="0" min="0">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>配偶者</label>
-            <select name="spouse">
-              <option value="無">無</option>
-              <option value="有">有</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>配偶者の扶養義務</label>
-            <select name="spouseSupport">
-              <option value="無">無</option>
-              <option value="有">有</option>
-            </select>
-          </div>
-        </div>
-      </div>
     </form>
   </div>
 
@@ -470,14 +462,14 @@
         postalCode: form.postalCode.value,
         address: form.address.value,
         addressFurigana: form.addressFurigana.value,
+        contactPostalCode: form.contactPostalCode.value,
+        contactAddress: form.contactAddress.value,
+        contactAddressFurigana: form.contactAddressFurigana.value,
+        contactPhone: form.contactPhone.value,
         hint_change: form.hint_change.value,
         hint_strengths: form.hint_strengths.value,
         hint_wishes: form.hint_wishes.value,
         wishes: form.wishes.value,
-        commuteTime: form.commuteTime.value,
-        dependents: form.dependents.value,
-        spouse: form.spouse.value,
-        spouseSupport: form.spouseSupport.value,
         education: collectRepeating(form, ['edu_year', 'edu_month', 'edu_desc']),
         career: collectRepeating(form, ['car_start_year', 'car_start_month', 'car_facility', 'car_detail', 'car_end_year', 'car_end_month']),
         licenses: collectRepeating(form, ['lic_year', 'lic_month', 'lic_name']),

@@ -9359,23 +9359,55 @@ ${(data.licenses || []).map(l => l.lic_name).join(" / ") || "看護師免許"}
   }
 }
 
-function buildHistoryRows(items, type) {
-  if (!items || items.length === 0) return '<tr><td colspan="3" style="height:12mm;"></td></tr>';
+// 学歴・職歴の全行を生成（学歴→職歴の順、中央「学歴」「職歴」セクションラベル付き）
+function buildAllHistoryRows(education, career) {
   const rows = [];
-  items.forEach(item => {
-    if (type === "education") {
-      rows.push(`<tr><td>${escapeHtml(item.edu_year || "")}</td><td>${escapeHtml(item.edu_month || "")}</td><td>${escapeHtml(item.edu_desc || "")}</td></tr>`);
-    } else if (type === "career") {
-      // 入職
-      rows.push(`<tr><td>${escapeHtml(item.car_start_year || "")}</td><td>${escapeHtml(item.car_start_month || "")}</td><td>${escapeHtml(item.car_facility || "")} 入職${item.car_detail ? "<br>　　" + escapeHtml(item.car_detail).replace(/\n/g, "<br>　　") : ""}</td></tr>`);
-      // 退職（ある場合のみ）
+  // 学歴セクション
+  if (education && education.length > 0) {
+    rows.push(`<tr><td class="year"></td><td class="month"></td><td class="section-label">学　歴</td></tr>`);
+    education.forEach(item => {
+      rows.push(`<tr><td class="year">${escapeHtml(item.edu_year || "")}</td><td class="month">${escapeHtml(item.edu_month || "")}</td><td>${escapeHtml(item.edu_desc || "")}</td></tr>`);
+    });
+  }
+  // 職歴セクション
+  if (career && career.length > 0) {
+    rows.push(`<tr><td class="year"></td><td class="month"></td><td class="section-label">職　歴</td></tr>`);
+    career.forEach(item => {
+      const details = item.car_detail ? `<br><span style="font-size:9.5pt;">　　${escapeHtml(item.car_detail).replace(/\n/g, "<br>　　")}</span>` : "";
+      rows.push(`<tr><td class="year">${escapeHtml(item.car_start_year || "")}</td><td class="month">${escapeHtml(item.car_start_month || "")}</td><td>${escapeHtml(item.car_facility || "")} 入職${details}</td></tr>`);
       if (item.car_end_year) {
-        rows.push(`<tr><td>${escapeHtml(item.car_end_year)}</td><td>${escapeHtml(item.car_end_month || "")}</td><td>${escapeHtml(item.car_facility || "")} 退職</td></tr>`);
+        rows.push(`<tr><td class="year">${escapeHtml(item.car_end_year)}</td><td class="month">${escapeHtml(item.car_end_month || "")}</td><td>${escapeHtml(item.car_facility || "")} 退職</td></tr>`);
       }
-    } else if (type === "license") {
-      rows.push(`<tr><td>${escapeHtml(item.lic_year || "")}</td><td>${escapeHtml(item.lic_month || "")}</td><td>${escapeHtml(item.lic_name || "")}</td></tr>`);
-    }
+    });
+    rows.push(`<tr><td class="year"></td><td class="month"></td><td class="right-align">以　上</td></tr>`);
+  }
+  return rows;
+}
+
+// 左ページと右ページに分割（左は最大14行、残りは右ページへ）
+function splitHistoryRows(allRows, leftMax = 14) {
+  // 空欄で埋める（印刷時の体裁のため）
+  const emptyRow = '<tr><td class="year"></td><td class="month"></td><td></td></tr>';
+  const left = allRows.slice(0, leftMax);
+  const right = allRows.slice(leftMax);
+  // 左ページは最低11行分埋める
+  while (left.length < 11) left.push(emptyRow);
+  // 右ページも最低4行分埋める
+  while (right.length < 4) right.push(emptyRow);
+  return { left: left.join(""), right: right.join("") };
+}
+
+function buildLicenseRows(items) {
+  const rows = [];
+  (items || []).forEach(item => {
+    rows.push(`<tr><td class="year">${escapeHtml(item.lic_year || "")}</td><td class="month">${escapeHtml(item.lic_month || "")}</td><td>${escapeHtml(item.lic_name || "")}</td></tr>`);
   });
+  if (rows.length > 0) {
+    rows.push(`<tr><td class="year"></td><td class="month"></td><td class="right-align">以　上</td></tr>`);
+  }
+  // 空欄で埋める（最低6行）
+  const emptyRow = '<tr><td class="year"></td><td class="month"></td><td></td></tr>';
+  while (rows.length < 6) rows.push(emptyRow);
   return rows.join("");
 }
 
@@ -9404,27 +9436,35 @@ async function handleResumeGenerate(request, env, ctx) {
 
   // placeholder 置換
   const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long", day: "numeric" });
+  // 「2026年4月20日」→「2026年 4月20日 」風の整形
+  const allHistoryRows = buildAllHistoryRows(data.education, data.career);
+  const { left: histLeft, right: histRight } = splitHistoryRows(allHistoryRows, 14);
+
+  // 性別: 「回答しない」or 未入力なら空欄
+  const genderDisplay = (data.gender && data.gender !== "回答しない") ? data.gender : "";
+
   const vars = {
     "{{createdDate}}": escapeHtml(nowJST),
     "{{furigana}}": escapeHtml(`${data.lastNameFurigana || ""}　${data.firstNameFurigana || ""}`.trim()),
-    "{{fullName}}": escapeHtml(`${data.lastName}　${data.firstName}`),
+    "{{fullName}}": escapeHtml(`${data.lastName || ""}　${data.firstName || ""}`.trim()),
     "{{birthDate}}": escapeHtml(formatBirthDate(data.birthDate)),
     "{{age}}": escapeHtml(String(calcAge(data.birthDate))),
-    "{{gender}}": escapeHtml(data.gender || ""),
+    "{{gender}}": escapeHtml(genderDisplay),
     "{{phone}}": escapeHtml(data.phone || ""),
-    "{{email}}": escapeHtml(data.email || ""),
     "{{postalCode}}": escapeHtml(data.postalCode || ""),
     "{{address}}": escapeHtml(data.address || ""),
     "{{addressFurigana}}": escapeHtml(data.addressFurigana || ""),
-    "{{educationRows}}": buildHistoryRows(data.education, "education"),
-    "{{careerRows}}": buildHistoryRows(data.career, "career"),
-    "{{licenseRows}}": buildHistoryRows(data.licenses, "license"),
+    // 連絡先（現住所以外）
+    "{{contactPostalCode}}": escapeHtml(data.contactPostalCode || ""),
+    "{{contactAddress}}": escapeHtml(data.contactAddress || ""),
+    "{{contactAddressFurigana}}": escapeHtml(data.contactAddressFurigana || ""),
+    "{{contactPhone}}": escapeHtml(data.contactPhone || ""),
+    // 学歴職歴（左右ページ分割）
+    "{{historyLeftRows}}": histLeft,
+    "{{historyRightRows}}": histRight,
+    "{{licenseRows}}": buildLicenseRows(data.licenses),
     "{{motivation}}": escapeHtml(motivation).replace(/\n/g, "<br>"),
     "{{wishes}}": escapeHtml(data.wishes || "").replace(/\n/g, "<br>"),
-    "{{commuteTime}}": escapeHtml(data.commuteTime || "―"),
-    "{{dependents}}": escapeHtml(data.dependents || "―"),
-    "{{spouse}}": escapeHtml(data.spouse || "無"),
-    "{{spouseSupport}}": escapeHtml(data.spouseSupport || "無"),
   };
 
   let html = template;
