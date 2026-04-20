@@ -3726,7 +3726,7 @@ function buildIntakeHumanWelcome() {
   return [
     {
       type: "text",
-      text: "✨ ご登録ありがとうございます！\n担当者におつなぎしました 🙌\n\n採用特化のAIを活用して、\nスピード感ある転職サポートをお約束します 🚀\n\n履歴書・職務経歴書も、\nあなたの魅力が伝わるよう完全サポートします 📝",
+      text: "✨ ご登録いただきありがとうございます\n\n担当者よりお話を伺います。\n採用に特化したAIを活用し、\nスピーディーな転職サポートをいたします。\n\nあなたの魅力が伝わる履歴書・職務経歴書も、\n最後まで丁寧にサポートいたします 📝",
     },
     buildIntakeQualQuestion()[0],
   ];
@@ -3743,7 +3743,7 @@ const INTAKE_QUAL_LABELS = {
 function buildIntakeQualQuestion() {
   return [{
     type: "text",
-    text: "まずは3つだけ教えてください ✍️\n\n💼 保有資格を教えてください",
+    text: "お手数ですが、3点ご回答ください ✍️\n\n💼 保有資格を教えてください",
     quickReply: {
       items: [
         qrItem("正看護師", "intake=qual&v=rn"),
@@ -3768,7 +3768,7 @@ const INTAKE_AGE_LABELS = {
 function buildIntakeAgeQuestion() {
   return [{
     type: "text",
-    text: "ありがとうございます 🙏\n\n🎂 年代を教えてください",
+    text: "ありがとうございます 🙏\n\n👤 年代を教えてください",
     quickReply: {
       items: [
         qrItem("20代", "intake=age&v=20s"),
@@ -3786,14 +3786,14 @@ function buildIntakeAgeQuestion() {
 function buildIntakePostalQuestion() {
   return [{
     type: "text",
-    text: "あと1問です 🙏\n\n📮 郵便番号を教えてください\n（例：250-0011）\n\n分からない場合は最寄駅名でもOKです 🚉",
+    text: "あと1問です 🙏\n\n📮 郵便番号を教えてください\n（例：250-0011）\n\nご不明な場合は、最寄駅名でも構いません 🚉",
   }];
 }
 
 function buildIntakeHumanThanks() {
   return [{
     type: "text",
-    text: "🙏 ありがとうございます！\n\n担当者からご連絡させていただきます ✨\n\n自己認識には誰しも限界があります。\nご自身の気づいていない魅力を整理して、\nよりよい一歩に進む支援をさせていただきます 🙌",
+    text: "ご回答ありがとうございました 🙏\n\n担当者より改めてご連絡させていただきます ✨\n\n自己認識には誰しも限界がございます。\nご自身の気づいていない魅力を整理し、\nよりよい一歩へ進むサポートをいたします 🌸",
   }];
 }
 
@@ -8048,7 +8048,7 @@ ${entry.rmCvQualifications || '看護師免許'}
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({
                 channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-                text: `🎯 *新規リード → 人間対応リクエスト*\n${nameLine}${src}ユーザーID: \`${userId}\`\n\n📝 *基本情報*\n💼 資格: ${qualDisp}\n🎂 年代: ${ageDisp}\n📮 郵便番号: \`${postalDisp}\`\n\n時刻: ${nowJST}\n${picLine}📲 返信 → https://chat.line.biz/\n\n✅ *対応TODO*\n☐ 24時間以内にLINEで連絡\n☐ 郵便番号から通勤可能エリアを確認\n☐ 資格・年代から求人候補を絞り込み`,
+                text: `🎯 *新規リード → 人間対応リクエスト*\n${nameLine}${src}ユーザーID: \`${userId}\`\n\n📋 *基本情報*\n💼 資格: ${qualDisp}\n👤 年代: ${ageDisp}\n📮 郵便番号: \`${postalDisp}\`\n\n時刻: ${nowJST}\n${picLine}📲 返信 → https://chat.line.biz/\n\n✅ *対応TODO*\n☐ 24時間以内にLINEで連絡\n☐ 郵便番号から通勤可能エリアを確認\n☐ 資格・年代から求人候補を絞り込み`,
               }),
             }).catch((e) => { console.error(`[Slack] intake notify failed: ${e.message}`); });
           })());
