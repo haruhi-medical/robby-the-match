@@ -7207,6 +7207,21 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // area+workStyle+urgency が揃っているなら intake_qual をスキップして即マッチング
         const hasCompleteShindan = !!(entry.area && entry.workStyle && entry.urgency);
 
+        console.log(`[LINE] Follow decision for ${userId.slice(0, 8)}: preloadedCtx=${!!preloadedCtx} source=${preloadedCtx?.source || 'none'} hasShindan=${hasCompleteShindan} area=${entry.area} ws=${entry.workStyle} urg=${entry.urgency}`);
+
+        // Slack通知: 経路判定ログ（デバッグ用）
+        if (env.SLACK_BOT_TOKEN) {
+          const pathName = preloadedCtx && hasCompleteShindan ? 'shindan_shortcut' : (preloadedCtx ? 'session_incomplete' : 'direct_follow');
+          ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({
+              channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+              text: `🔍 *Follow経路判定* \`${userId.slice(0,8)}...\`\n経路: \`${pathName}\`\nsource: ${preloadedCtx?.source || 'none'}\nエリア: ${entry.area || '—'} / 働き方: ${entry.workStyle || '—'} / 温度: ${entry.urgency || '—'}`
+            }),
+          }).catch(() => {}));
+        }
+
         if (preloadedCtx && hasCompleteShindan) {
           // 求人データをinline生成（preMatching HIT時はスキップ）
           if (!entry.matchingResults || entry.matchingResults.length === 0) {
@@ -7929,8 +7944,10 @@ ${entry.rmCvQualifications || '看護師免許'}
         }
         // UUID v4パターン: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionCandidate);
-        // 2026-04-20: intake_qual追加（follow後にdm_text遅延到達時の救済）
-        if (isUUID && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "il_area" || entry.phase === "intake_qual")) {
+        // 2026-04-20: phase制限を撤廃。既存フレンドが再度LP診断を完遂したケースを救済。
+        // UUIDが一致するsession:{uuid}がKVにあれば、どのphaseからでもshindanショートカットを許可する。
+        // 他人のUUIDを推測するのは現実的に不可能（v4 UUID）なので、セキュリティリスクは低い。
+        if (isUUID) {
           // KVからセッション情報を取得
           let sessionCtx = null;
           if (env?.LINE_SESSIONS) {
@@ -7985,7 +8002,41 @@ ${entry.rmCvQualifications || '看護師免許'}
               }
             }
 
-            // source別welcome分岐
+            // 2026-04-20: shindan完遂データがあれば buildSessionWelcome の「求人を見る」1タップをスキップし
+            // 既存フレンドでも即マッチング/info_detour へ直行
+            const _hasCompleteShindanMsg = !!(entry.area && entry.workStyle && entry.urgency);
+            if (sessionCtx.source === 'shindan' && _hasCompleteShindanMsg) {
+              if (!entry.matchingResults || entry.matchingResults.length === 0) {
+                try { await generateLineMatching(entry, env, 0); } catch (e) { console.error(`[LINE] generateLineMatching error: ${e.message}`); }
+              }
+              const _targetPhase = entry.urgency === 'info' ? 'info_detour' : 'matching_preview';
+              entry.phase = _targetPhase;
+              entry.messageCount++;
+              entry.updatedAt = Date.now();
+              if (entry.matchingResults && entry.matchingResults.length > 0) {
+                if (!entry.browsedJobIds) entry.browsedJobIds = [];
+                entry.browsedJobIds.push(...entry.matchingResults.slice(0, 5).map(r => r.id || r.n).filter(Boolean));
+              }
+              await saveLineEntry(userId, entry, env);
+              const _replyMsgs = await buildPhaseMessage(_targetPhase, entry, env);
+              await lineReply(event.replyToken, (_replyMsgs || []).slice(0, 5), channelAccessToken);
+              // 使用済みセッション削除
+              try { if (env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`session:${sessionCandidate}`); } catch (e) { /* ignore */ }
+              webSessionMap.delete(`session:${sessionCandidate}`);
+
+              if (env.SLACK_BOT_TOKEN) {
+                const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+                ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+                  method: "POST",
+                  headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                  body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `⚡ *Shindanショートカット成功（dm_text経由）*\nuser: \`${userId.slice(0,8)}...\`\nsource: ${sessionCtx.source}\nエリア: ${entry.areaLabel || entry.area}\n働き方: ${entry.workStyle}\n温度: ${entry.urgency}\n→ ${_targetPhase}\n時刻: ${nowJST}` }),
+                }).catch(() => {}));
+              }
+              console.log(`[LINE] Shindan shortcut (msg): ${sessionCandidate.slice(0, 8)} → ${_targetPhase}`);
+              continue;
+            }
+
+            // 従来フロー: source別welcome分岐（shindan未完の場合 or 他source）
             const welcomeMsgs = buildSessionWelcome(sessionCtx, entry);
             entry.phase = welcomeMsgs.nextPhase;
             entry.messageCount++;
