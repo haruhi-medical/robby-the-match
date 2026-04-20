@@ -3765,15 +3765,15 @@ const INTAKE_AGE_LABELS = {
   "40s_late": "40代後半",
   "50plus": "50代以上",
 };
-// 年代postback action: タップ後にキーボード自動起動+郵便番号先頭記号プレフィル
-// LINE Messaging API の inputOption / fillInText 機能で次の郵便番号入力をワンタップ化
-function ageQrItem(label, v) {
+// Quick Reply ヘルパー（キーボード自動起動版）
+// 次のフェーズがテキスト入力を要求する場合に使う。postback応答後、LINEクライアントが自動で文字入力画面を起動
+function qrItemKb(label, data) {
   return {
     type: "action",
     action: {
       type: "postback",
       label: label.slice(0, 20),
-      data: `intake=age&v=${v}`,
+      data,
       displayText: label,
       inputOption: "openKeyboard",
     },
@@ -3786,12 +3786,12 @@ function buildIntakeAgeQuestion() {
     text: "ありがとうございます 😊\n\n👤 年代を教えてください",
     quickReply: {
       items: [
-        ageQrItem("20代", "20s"),
-        ageQrItem("30代前半", "30s_early"),
-        ageQrItem("30代後半", "30s_late"),
-        ageQrItem("40代前半", "40s_early"),
-        ageQrItem("40代後半", "40s_late"),
-        ageQrItem("50代以上", "50plus"),
+        qrItemKb("20代", "intake=age&v=20s"),
+        qrItemKb("30代前半", "intake=age&v=30s_early"),
+        qrItemKb("30代後半", "intake=age&v=30s_late"),
+        qrItemKb("40代前半", "intake=age&v=40s_early"),
+        qrItemKb("40代後半", "intake=age&v=40s_late"),
+        qrItemKb("50代以上", "intake=age&v=50plus"),
       ],
     },
   }];
@@ -4995,7 +4995,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "apply_info":
       return [{
         type: "text",
-        text: "ありがとうございます！\n担当者が病院に確認するための準備をしますね。\n\n📝 お名前を教えてください。\n※名前を伏せて病院に確認します。お名前は社内管理用です。\n（例: 山田 花子）",
+        text: "ありがとうございます 😊\n担当者が病院に確認する準備をいたします。\n\n📝 お名前を教えてください\n※名前を伏せて病院に確認いたします。お名前は社内管理用です。\n（例：山田 花子）",
       }];
 
     case "apply_consent": {
@@ -5110,19 +5110,20 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "handoff_phone_time": {
-      // #27 希望時間帯QR: 看護師のシフト実態に合わせた選択肢（夜勤明け午前/週末のみ等）を追加
+      // #27 希望時間帯QR: 看護師のシフト実態に合わせた選択肢（夜勤明け午前/週末のみ等）
+      // タップ後は電話番号入力なのでキーボード自動起動
       return [{
         type: "text",
-        text: "ありがとうございます！\nご都合の良い時間帯はありますか？",
+        text: "ありがとうございます 😊\nご都合の良い時間帯はありますか？",
         quickReply: {
           items: [
-            qrItem("いつでもOK", "phone_time=anytime"),
-            qrItem("夜勤明けの午前", "phone_time=post_night_morning"),
-            qrItem("週末のみ", "phone_time=weekend_only"),
-            qrItem("平日18時以降", "phone_time=weekday_evening"),
-            qrItem("午前中", "phone_time=morning"),
-            qrItem("午後", "phone_time=afternoon"),
-            qrItem("夕方以降", "phone_time=evening"),
+            qrItemKb("いつでもOK", "phone_time=anytime"),
+            qrItemKb("夜勤明けの午前", "phone_time=post_night_morning"),
+            qrItemKb("週末のみ", "phone_time=weekend_only"),
+            qrItemKb("平日18時以降", "phone_time=weekday_evening"),
+            qrItemKb("午前中", "phone_time=morning"),
+            qrItemKb("午後", "phone_time=afternoon"),
+            qrItemKb("夕方以降", "phone_time=evening"),
           ],
         },
       }];
@@ -5133,7 +5134,7 @@ async function buildPhaseMessage(phase, entry, env) {
       const timeText = timeLabel[entry.preferredCallTime] || entry.preferredCallTime || '';
       return [{
         type: "text",
-        text: `${timeText}ですね！\n\n📞 お電話番号を教えてください。\n（例: 090-1234-5678）\n\n※担当者からのご連絡にのみ使用します。`,
+        text: `${timeText}ですね 😊\n\n📞 お電話番号を教えてください\n（例：090-1234-5678）\n\n※担当者からのご連絡にのみ使用いたします`,
       }];
     }
 
@@ -5263,17 +5264,18 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
 
     case "rm_cv_q2":
+      // 次のQ3は業務内容の自由入力なのでキーボード自動起動
       return [{
         type: "text",
         text: `${entry.rmCvLicenseYear || ''}取得ですね。\n\nQ2. 直近の職場の種類は？`,
         quickReply: {
           items: [
-            qrItem("大学病院", "rm_cv=fac_univ"),
-            qrItem("総合病院(200床+)", "rm_cv=fac_general"),
-            qrItem("中小病院(~200床)", "rm_cv=fac_small"),
-            qrItem("クリニック", "rm_cv=fac_clinic"),
-            qrItem("訪問看護", "rm_cv=fac_visiting"),
-            qrItem("介護施設", "rm_cv=fac_care"),
+            qrItemKb("大学病院", "rm_cv=fac_univ"),
+            qrItemKb("総合病院(200床+)", "rm_cv=fac_general"),
+            qrItemKb("中小病院(~200床)", "rm_cv=fac_small"),
+            qrItemKb("クリニック", "rm_cv=fac_clinic"),
+            qrItemKb("訪問看護", "rm_cv=fac_visiting"),
+            qrItemKb("介護施設", "rm_cv=fac_care"),
           ],
         },
       }];
@@ -5285,13 +5287,14 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
 
     case "rm_cv_q4":
+      // 次は前職詳細(Q5)またはQ6資格入力の自由記述なのでキーボード自動起動
       return [{
         type: "text",
         text: "Q4. 前職（他の病院・施設）の経験はありますか？",
         quickReply: {
           items: [
-            qrItem("あり", "rm_cv=prev_yes"),
-            qrItem("直近が初めての職場", "rm_cv=prev_no"),
+            qrItemKb("あり", "rm_cv=prev_yes"),
+            qrItemKb("直近が初めての職場", "rm_cv=prev_no"),
           ],
         },
       }];
@@ -5309,17 +5312,18 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
 
     case "rm_cv_q7":
+      // 次のQ8はお名前入力の自由記述なのでキーボード自動起動
       return [{
         type: "text",
         text: "Q7. 最後に、転職を考えた理由に近いものは？",
         quickReply: {
           items: [
-            qrItem("キャリアアップ", "rm_cv=reason_career"),
-            qrItem("人間関係", "rm_cv=reason_relation"),
-            qrItem("給与・待遇", "rm_cv=reason_salary"),
-            qrItem("ワークライフバランス", "rm_cv=reason_wlb"),
-            qrItem("引越し・家庭事情", "rm_cv=reason_family"),
-            qrItem("その他", "rm_cv=reason_other"),
+            qrItemKb("キャリアアップ", "rm_cv=reason_career"),
+            qrItemKb("人間関係", "rm_cv=reason_relation"),
+            qrItemKb("給与・待遇", "rm_cv=reason_salary"),
+            qrItemKb("ワークライフバランス", "rm_cv=reason_wlb"),
+            qrItemKb("引越し・家庭事情", "rm_cv=reason_family"),
+            qrItemKb("その他", "rm_cv=reason_other"),
           ],
         },
       }];
