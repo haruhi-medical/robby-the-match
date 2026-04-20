@@ -755,5 +755,14 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_給与_0406_01",
+    "content_id": "ai_給与_0406_01",
+    "timestamp": "2026-04-20T17:24:22",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]

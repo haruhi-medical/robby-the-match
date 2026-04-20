@@ -4183,9 +4183,9 @@
       ],
       "cta_type": "hard",
       "content_type": "salary",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-20T17:24:22",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -4210,7 +4210,8 @@
         "suggestion": "フックを25文字以内に修正し、ソフトCTAを追加して8:2ルールを満たす"
       },
       "scheduled_for": "2026-04-11 21:00",
-      "quality_checked": true
+      "quality_checked": true,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 193,
@@ -6218,8 +6219,9 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8,
-      "scheduled_for": "2026-04-26 17:30"
+      "quality_score": 8.69,
+      "scheduled_for": "2026-04-26 17:30",
+      "quality_checked": true
     },
     {
       "id": 243,
@@ -6248,7 +6250,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 8.5,
+      "quality_checked": true
     },
     {
       "id": 244,
@@ -6277,7 +6280,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 8.63,
+      "quality_checked": true
     },
     {
       "id": 245,
@@ -6306,7 +6310,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 8.0,
+      "quality_checked": true
     },
     {
       "id": 246,
@@ -6335,7 +6340,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 7.54,
+      "quality_checked": true
     }
   ],
   "archive": [
