@@ -684,6 +684,11 @@ const AREA_CITY_MAP = {
   kanagawa_all: [],  // 神奈川全域 → prefectureフィルタで検索（D1_AREA_PREF: 神奈川県）
   tokyo_included: [],  // 東京全域 → prefectureフィルタで検索（D1_AREA_PREF: 東京都）
   tokyo_23ku: ['千代田区', '中央区', '港区', '新宿区', '文京区', '台東区', '墨田区', '江東区', '品川区', '目黒区', '大田区', '世田谷区', '渋谷区', '中野区', '杉並区', '豊島区', '北区', '荒川区', '板橋区', '練馬区', '足立区', '葛飾区', '江戸川区'],
+  // 2026-04-20: 23区を4つのサブエリアに分割（通勤圏・雰囲気で区分け）
+  tokyo_central: ['千代田区', '中央区', '港区', '新宿区', '渋谷区', '文京区'],   // 都心・副都心
+  tokyo_east:    ['台東区', '墨田区', '江東区', '荒川区', '足立区', '葛飾区', '江戸川区'], // 城東・下町
+  tokyo_south:   ['品川区', '目黒区', '大田区', '世田谷区'],                        // 城南
+  tokyo_nw:      ['中野区', '杉並区', '練馬区', '豊島区', '北区', '板橋区'],          // 城西・城北
   tokyo_tama: ['八王子市', '立川市', '武蔵野市', '三鷹市', '府中市', '調布市', '町田市', '多摩市', '日野市', '青梅市', '国分寺市', '国立市', '小金井市', '小平市', '東村山市', '東大和市', '清瀬市', '東久留米市', '西東京市', '福生市', '羽村市', 'あきる野市', '稲城市', '狛江市', '武蔵村山市'],
   chiba_tokatsu: ['船橋市', '市川市', '松戸市', '柏市', '流山市', '浦安市', '習志野市', '八千代市', '我孫子市', '鎌ケ谷市', '野田市'],
   chiba_uchibo: ['千葉市', '市原市', '木更津市', '君津市', '富津市', '袖ケ浦市'],
@@ -3210,6 +3215,18 @@ async function handleLineStart(url, env, request, ctx) {
     const dmText = encodeURIComponent(effectiveSessionId);
     const redirectUrl = `${LINE_START_OA_URL}?dm_text=${dmText}`;
 
+    // 2026-04-20: CTA押下の可視化（Slack通知）
+    if (env?.SLACK_BOT_TOKEN && ctx) {
+      ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+          text: `🔗 *LP→LINE CTA押下* source=\`${source}\` intent=\`${intent}\` area=\`${area || '-'}\`\nsession: \`${effectiveSessionId.slice(0,8)}...\`\nanswers有: ${answers ? 'Yes' : 'No'}`
+        }),
+      }).catch(() => {}));
+    }
+
     return new Response(null, {
       status: 302,
       headers: {
@@ -3672,6 +3689,10 @@ const AREA_ZONE_MAP = {
   q3_odawara_kensei_il:     ["小田原", "南足柄", "開成", "大井", "中井", "松田", "山北", "箱根", "真鶴", "湯河原", "平塚", "秦野", "伊勢原", "大磯", "二宮"],
   q3_tokyo_included_il:     ["23区", "多摩"],  // 東京全域（EXTERNAL_JOBSキーに合わせる）
   q3_tokyo_23ku_il:         ["23区"],  // 東京23区
+  q3_tokyo_central_il:      ["23区"],  // 2026-04-20: 23区細分化（中央）
+  q3_tokyo_east_il:         ["23区"],  // 23区東部
+  q3_tokyo_south_il:        ["23区"],  // 23区南部
+  q3_tokyo_nw_il:           ["23区"],  // 23区北西部
   q3_tokyo_tama_il:         ["多摩"],  // 東京多摩地域
   q3_kanagawa_all_il:       ["横浜", "川崎", "相模原", "藤沢", "茅ヶ崎", "小田原", "厚木", "海老名", "大和", "横須賀", "鎌倉", "平塚", "秦野"],  // 神奈川全域
   q3_chiba_tokatsu_il:      ["船橋・市川", "柏・松戸"],
@@ -3696,6 +3717,10 @@ const IL_AREA_LABELS = {
   kanagawa_all: "神奈川県全域",
   tokyo_included: "東京全域",
   tokyo_23ku: "東京23区",
+  tokyo_central: "23区中央（千代田/新宿/渋谷ほか）",
+  tokyo_east: "23区東部（墨田/江東/足立ほか）",
+  tokyo_south: "23区南部（品川/目黒/世田谷ほか）",
+  tokyo_nw: "23区北西部（中野/杉並/練馬ほか）",
   tokyo_tama: "東京多摩地域",
   chiba_tokatsu: "船橋・松戸・柏",
   chiba_uchibo: "千葉市・内房",
@@ -3907,6 +3932,26 @@ function buildSessionWelcome(sessionCtx, entry) {
 
 function qrItem(label, data) {
   return { type: "action", action: { type: "postback", label: label.slice(0, 20), data, displayText: label } };
+}
+
+// URI アクション QR（外部URL/LPページを開く）
+function qrItemUri(label, uri) {
+  return { type: "action", action: { type: "uri", label: label.slice(0, 20), uri } };
+}
+
+// エリアコード → LP area ページのスラッグ変換（全件表示リンク用）
+// 神奈川以外はsalary-mapへフォールバック
+const AREA_LP_SLUG = {
+  yokohama_kawasaki: 'yokohama',
+  sagamihara_kenoh: 'sagamihara',
+  shonan_kamakura: 'fujisawa',
+  yokosuka_miura: 'yokosuka',
+  odawara_kensei: 'odawara',
+};
+function buildAllJobsUri(entry) {
+  const slug = AREA_LP_SLUG[entry.area];
+  if (slug) return `https://quads-nurse.com/lp/job-seeker/area/${slug}.html`;
+  return 'https://quads-nurse.com/lp/job-seeker/salary-map.html';
 }
 
 // ---------- リッチメニュー4状態切り替え ----------
@@ -4349,9 +4394,13 @@ async function buildPhaseMessage(phase, entry, env) {
           text: `${prefLabel}ですね！\n\n${countLine}\n\n東京のどのあたりが希望ですか？`,
           quickReply: {
             items: [
-              qrItem("23区", "il_area=tokyo_23ku"),
+              qrItem("23区 中央", "il_area=tokyo_central"),
+              qrItem("23区 東部", "il_area=tokyo_east"),
+              qrItem("23区 南部", "il_area=tokyo_south"),
+              qrItem("23区 北西部", "il_area=tokyo_nw"),
               qrItem("多摩地域", "il_area=tokyo_tama"),
-              qrItem("どこでもOK", "il_area=tokyo_included"),
+              qrItem("23区どこでも", "il_area=tokyo_23ku"),
+              qrItem("東京全域", "il_area=tokyo_included"),
               ...backItems,
             ],
           },
@@ -4777,6 +4826,7 @@ async function buildPhaseMessage(phase, entry, env) {
           quickReply: {
             items: [
               qrItem("他の求人も見る", "matching_preview=more"),
+              qrItemUri("全件チェック", buildAllJobsUri(entry)),
               qrItem("条件を変える", "welcome=see_jobs"),
               qrItem("直接相談する", "handoff=ok"),
               qrItem("あとで見る", "matching_preview=later"),
@@ -4803,7 +4853,7 @@ async function buildPhaseMessage(phase, entry, env) {
             yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
             sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦',
             odawara_kensei: '小田原・県西', kanagawa_all: '神奈川全域',
-            tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_tama: '多摩地域',
+            tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_central: '23区中央', tokyo_east: '23区東', tokyo_south: '23区南', tokyo_nw: '23区北西', tokyo_tama: '多摩地域',
             saitama_south: 'さいたま南部', saitama_east: '埼玉東部', saitama_west: '埼玉西部', saitama_north: '埼玉北部', saitama_all: '埼玉全域',
             chiba_tokatsu: '船橋・松戸', chiba_uchibo: '千葉・内房', chiba_inba: '成田・印旛', chiba_sotobo: '外房', chiba_all: '千葉全域',
           };
@@ -4825,7 +4875,7 @@ async function buildPhaseMessage(phase, entry, env) {
           yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
           sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦',
           odawara_kensei: '小田原・県西', kanagawa_all: '神奈川全域',
-          tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_tama: '多摩地域',
+          tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_central: '23区中央', tokyo_east: '23区東', tokyo_south: '23区南', tokyo_nw: '23区北西', tokyo_tama: '多摩地域',
           saitama_south: 'さいたま南部', saitama_east: '埼玉東部', saitama_west: '埼玉西部', saitama_north: '埼玉北部', saitama_all: '埼玉全域',
           chiba_tokatsu: '船橋・松戸', chiba_uchibo: '千葉・内房', chiba_inba: '成田・印旛', chiba_sotobo: '外房', chiba_all: '千葉全域',
         };
@@ -4920,6 +4970,7 @@ async function buildPhaseMessage(phase, entry, env) {
         quickReply: {
           items: [
             qrItem(`${_areaL}の求人を見る`, "info_detour=see_jobs"),
+            qrItemUri("全件チェック", buildAllJobsUri(entry)),
             qrItem("年収相場マップ", "info_detour=salary_map"),
             qrItem("担当者に相談", "handoff=ok"),
           ],
@@ -5466,6 +5517,10 @@ const ADJACENT_AREAS = {
   // 東京
   tokyo_included: ['yokohama_kawasaki'],
   tokyo_23ku: ['tokyo_tama', 'yokohama_kawasaki'],
+  tokyo_central: ['tokyo_east', 'tokyo_south', 'tokyo_nw'],          // 23区中央 ↔ 他23区
+  tokyo_east:    ['tokyo_central', 'tokyo_nw', 'chiba_tokatsu', 'saitama_south'],
+  tokyo_south:   ['tokyo_central', 'tokyo_nw', 'yokohama_kawasaki'],
+  tokyo_nw:      ['tokyo_central', 'tokyo_east', 'tokyo_tama', 'saitama_south'],
   tokyo_tama: ['tokyo_23ku', 'sagamihara_kenoh'],
   // 埼玉
   saitama_south: ['tokyo_23ku', 'saitama_east', 'saitama_west'],
@@ -5536,7 +5591,7 @@ async function generateLineMatching(entry, env, offset = 0) {
       const D1_AREA_PREF_JOBS = {
         chiba_all: '千葉県', saitama_all: '埼玉県',
         tokyo_included: '東京都', kanagawa_all: '神奈川県',
-        tokyo_23ku: '東京都', tokyo_tama: '東京都',
+        tokyo_23ku: "東京都", tokyo_central: "東京都", tokyo_east: "東京都", tokyo_south: "東京都", tokyo_nw: "東京都", tokyo_tama: '東京都',
       };
       const prefFilter = D1_AREA_PREF_JOBS[baseArea] || null;
 
@@ -5752,7 +5807,7 @@ async function generateLineMatching(entry, env, offset = 0) {
       const D1_AREA_PREF = {
         chiba_all: '千葉県', saitama_all: '埼玉県',
         tokyo_included: '東京都', kanagawa_all: '神奈川県',
-        tokyo_23ku: '東京都', tokyo_tama: '東京都',
+        tokyo_23ku: "東京都", tokyo_central: "東京都", tokyo_east: "東京都", tokyo_south: "東京都", tokyo_nw: "東京都", tokyo_tama: '東京都',
       };
       const prefFilter = D1_AREA_PREF[baseArea] || null;
       // バインドパラメータでSQLインジェクション対策
@@ -5857,7 +5912,7 @@ async function generateLineMatching(entry, env, offset = 0) {
       const D1_AREA_PREF_CONF = {
         chiba_all: '千葉県', saitama_all: '埼玉県',
         tokyo_included: '東京都', kanagawa_all: '神奈川県',
-        tokyo_23ku: '東京都', tokyo_tama: '東京都',
+        tokyo_23ku: "東京都", tokyo_central: "東京都", tokyo_east: "東京都", tokyo_south: "東京都", tokyo_nw: "東京都", tokyo_tama: '東京都',
       };
       const prefFilter = D1_AREA_PREF_CONF[baseArea] || null;
       let sql = `SELECT COUNT(*) AS cnt, GROUP_CONCAT(facility_id) AS ids
@@ -6465,7 +6520,7 @@ function handleLinePostback(dataStr, entry) {
           yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
           sagamihara_kenoh: '相模原・県央', yokosuka_miura: '横須賀・三浦',
           odawara_kensei: '小田原・県西', kanagawa_all: '神奈川全域',
-          tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_tama: '多摩地域',
+          tokyo_included: '東京都', tokyo_23ku: '東京23区', tokyo_central: '23区中央', tokyo_east: '23区東', tokyo_south: '23区南', tokyo_nw: '23区北西', tokyo_tama: '多摩地域',
           saitama_south: 'さいたま南部', saitama_east: '埼玉東部', saitama_west: '埼玉西部', saitama_north: '埼玉北部', saitama_all: '埼玉全域',
           chiba_tokatsu: '船橋・松戸', chiba_uchibo: '千葉・内房', chiba_inba: '成田・印旛', chiba_sotobo: '外房', chiba_all: '千葉全域',
         };

@@ -43,7 +43,10 @@
   /* ── Q2: サブエリア（都道府県別） ── */
   var SUBAREA = {
     tokyo: [
-      { l: '23区', v: 'tokyo_23ku' },
+      { l: '23区 中央', v: 'tokyo_central' },
+      { l: '23区 東部', v: 'tokyo_east' },
+      { l: '23区 南部', v: 'tokyo_south' },
+      { l: '23区 北西部', v: 'tokyo_nw' },
       { l: '多摩地域', v: 'tokyo_tama' },
       { l: 'どこでもOK', v: 'tokyo_included' }
     ],
