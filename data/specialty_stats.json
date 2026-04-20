@@ -1,0 +1,1248 @@
+{
+  "yokohama-seishinka": {
+    "facility_count": 54,
+    "job_count": 25,
+    "monthly_min": 229205,
+    "monthly_max": 277500,
+    "annual_min": 3208870,
+    "annual_max": 3885000,
+    "top_facilities": [
+      {
+        "name": "公立大学法人横浜市立大学附属市民総合医療センター",
+        "station": "横浜市ブルーライン 阪東橋",
+        "minutes": 6,
+        "beds": 696,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "昭和大学横浜市北部病院",
+        "station": "グリーンライン センター南",
+        "minutes": 6,
+        "beds": 689,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "公立大学法人横浜市立大学附属病院",
+        "station": "金沢シーサイドライン 市大医学部",
+        "minutes": 1,
+        "beds": 671,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜労災病院",
+        "station": "横浜市ブルーライン 新横浜",
+        "minutes": 12,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜市立市民病院",
+        "station": "横浜市ブルーライン 三ツ沢上町",
+        "minutes": 13,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokohama",
+    "city_ja": "横浜市",
+    "specialty_slug": "seishinka",
+    "specialty_ja": "精神科"
+  },
+  "kawasaki-seishinka": {
+    "facility_count": 20,
+    "job_count": 5,
+    "monthly_min": 180200,
+    "monthly_max": 238266,
+    "annual_min": 2522800,
+    "annual_max": 3335724,
+    "top_facilities": [
+      {
+        "name": "聖マリアンナ医科大学病院",
+        "station": "小田急小田原線 生田",
+        "minutes": 28,
+        "beds": 955,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "川崎市立川崎病院",
+        "station": "京浜急行本線 京急川崎",
+        "minutes": 13,
+        "beds": 713,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "関東労災病院",
+        "station": "東急東横線 元住吉",
+        "minutes": 6,
+        "beds": 610,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団三成会　新百合ヶ丘総合病院",
+        "station": "小田急小田原線 新百合ヶ丘",
+        "minutes": 9,
+        "beds": 563,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "帝京大学医学部附属溝口病院",
+        "station": "東急田園都市線 高津",
+        "minutes": 2,
+        "beds": 400,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "kawasaki",
+    "city_ja": "川崎市",
+    "specialty_slug": "seishinka",
+    "specialty_ja": "精神科"
+  },
+  "sagamihara-seishinka": {
+    "facility_count": 9,
+    "job_count": 1,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "医療法人社団清伸会　ふじの温泉病院",
+        "station": null,
+        "minutes": null,
+        "beds": 472,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構相模原病院",
+        "station": "小田急小田原線 小田急相模原",
+        "minutes": 19,
+        "beds": 458,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "総合相模更生病院",
+        "station": "JR横浜線 相模原",
+        "minutes": 3,
+        "beds": 225,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団博奉会相模ヶ丘病院",
+        "station": "JR相模線 下溝",
+        "minutes": 10,
+        "beds": 200,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "相模病院",
+        "station": "JR横浜線 古淵",
+        "minutes": 25,
+        "beds": 173,
+        "sub_type": "",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "sagamihara",
+    "city_ja": "相模原市",
+    "specialty_slug": "seishinka",
+    "specialty_ja": "精神科"
+  },
+  "fujisawa-seishinka": {
+    "facility_count": 8,
+    "job_count": 1,
+    "monthly_min": 330000,
+    "monthly_max": 330000,
+    "annual_min": 4620000,
+    "annual_max": 4620000,
+    "top_facilities": [
+      {
+        "name": "藤沢市民病院",
+        "station": "小田急江ノ島線 藤沢本町",
+        "minutes": 10,
+        "beds": 536,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "藤沢病院",
+        "station": "湘南モノレール 湘南深沢",
+        "minutes": 21,
+        "beds": 420,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "一般財団法人同友会藤沢湘南台病院",
+        "station": "小田急江ノ島線 長後",
+        "minutes": 11,
+        "beds": 320,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "湘南中央病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 11,
+        "beds": 199,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団いしずえ湘南敬愛病院",
+        "station": "小田急江ノ島線 六会日大前",
+        "minutes": 19,
+        "beds": 109,
+        "sub_type": "",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "fujisawa",
+    "city_ja": "藤沢市",
+    "specialty_slug": "seishinka",
+    "specialty_ja": "精神科"
+  },
+  "yokosuka-seishinka": {
+    "facility_count": 8,
+    "job_count": 2,
+    "monthly_min": 275000,
+    "monthly_max": 375000,
+    "annual_min": 3850000,
+    "annual_max": 5250000,
+    "top_facilities": [
+      {
+        "name": "国家公務員共済組合連合会横須賀共済病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 7,
+        "beds": 740,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横須賀市立うわまち病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 13,
+        "beds": 417,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構久里浜医療センター",
+        "station": "京浜急行久里浜線 YRP野比",
+        "minutes": 25,
+        "beds": 277,
+        "sub_type": "回復期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人湘南福祉協会総合病院湘南病院",
+        "station": "京浜急行本線 追浜",
+        "minutes": 1,
+        "beds": 227,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人日本医療伝道会　総合病院衣笠病院",
+        "station": "JR横須賀線 衣笠",
+        "minutes": 3,
+        "beds": 198,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokosuka",
+    "city_ja": "横須賀市",
+    "specialty_slug": "seishinka",
+    "specialty_ja": "精神科"
+  },
+  "yokohama-seikeigeka": {
+    "facility_count": 86,
+    "job_count": 8,
+    "monthly_min": 216012,
+    "monthly_max": 231012,
+    "annual_min": 3024168,
+    "annual_max": 3234168,
+    "top_facilities": [
+      {
+        "name": "公立大学法人横浜市立大学附属市民総合医療センター",
+        "station": "横浜市ブルーライン 阪東橋",
+        "minutes": 6,
+        "beds": 696,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "昭和大学横浜市北部病院",
+        "station": "グリーンライン センター南",
+        "minutes": 6,
+        "beds": 689,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "公立大学法人横浜市立大学附属病院",
+        "station": "金沢シーサイドライン 市大医学部",
+        "minutes": 1,
+        "beds": 671,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜労災病院",
+        "station": "横浜市ブルーライン 新横浜",
+        "minutes": 12,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜市立市民病院",
+        "station": "横浜市ブルーライン 三ツ沢上町",
+        "minutes": 13,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokohama",
+    "city_ja": "横浜市",
+    "specialty_slug": "seikeigeka",
+    "specialty_ja": "整形外科"
+  },
+  "kawasaki-seikeigeka": {
+    "facility_count": 26,
+    "job_count": 3,
+    "monthly_min": 230000,
+    "monthly_max": 280000,
+    "annual_min": 3220000,
+    "annual_max": 3920000,
+    "top_facilities": [
+      {
+        "name": "聖マリアンナ医科大学病院",
+        "station": "小田急小田原線 生田",
+        "minutes": 28,
+        "beds": 955,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "川崎市立川崎病院",
+        "station": "京浜急行本線 京急川崎",
+        "minutes": 13,
+        "beds": 713,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "関東労災病院",
+        "station": "東急東横線 元住吉",
+        "minutes": 6,
+        "beds": 610,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団三成会　新百合ヶ丘総合病院",
+        "station": "小田急小田原線 新百合ヶ丘",
+        "minutes": 9,
+        "beds": 563,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "帝京大学医学部附属溝口病院",
+        "station": "東急田園都市線 高津",
+        "minutes": 2,
+        "beds": 400,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "kawasaki",
+    "city_ja": "川崎市",
+    "specialty_slug": "seikeigeka",
+    "specialty_ja": "整形外科"
+  },
+  "sagamihara-seikeigeka": {
+    "facility_count": 15,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "独立行政法人国立病院機構相模原病院",
+        "station": "小田急小田原線 小田急相模原",
+        "minutes": 19,
+        "beds": 458,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "総合相模更生病院",
+        "station": "JR横浜線 相模原",
+        "minutes": 3,
+        "beds": 225,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人地域医療機能推進機構相模野病院",
+        "station": "JR横浜線 矢部",
+        "minutes": 4,
+        "beds": 212,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人ユーカリ　さがみ林間病院",
+        "station": "小田急江ノ島線 東林間",
+        "minutes": 5,
+        "beds": 199,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "渕野辺総合病院",
+        "station": "JR横浜線 淵野辺",
+        "minutes": 7,
+        "beds": 161,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "sagamihara",
+    "city_ja": "相模原市",
+    "specialty_slug": "seikeigeka",
+    "specialty_ja": "整形外科"
+  },
+  "fujisawa-seikeigeka": {
+    "facility_count": 10,
+    "job_count": 4,
+    "monthly_min": 320000,
+    "monthly_max": 380000,
+    "annual_min": 4480000,
+    "annual_max": 5320000,
+    "top_facilities": [
+      {
+        "name": "藤沢市民病院",
+        "station": "小田急江ノ島線 藤沢本町",
+        "minutes": 10,
+        "beds": 536,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人徳洲会湘南藤沢徳洲会病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 8,
+        "beds": 419,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "一般財団法人同友会藤沢湘南台病院",
+        "station": "小田急江ノ島線 長後",
+        "minutes": 11,
+        "beds": 320,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "湘南中央病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 11,
+        "beds": 199,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "湘南第一病院",
+        "station": "横浜市ブルーライン 湘南台",
+        "minutes": 4,
+        "beds": 94,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "fujisawa",
+    "city_ja": "藤沢市",
+    "specialty_slug": "seikeigeka",
+    "specialty_ja": "整形外科"
+  },
+  "yokosuka-seikeigeka": {
+    "facility_count": 8,
+    "job_count": 3,
+    "monthly_min": 285000,
+    "monthly_max": 285000,
+    "annual_min": 3990000,
+    "annual_max": 3990000,
+    "top_facilities": [
+      {
+        "name": "国家公務員共済組合連合会横須賀共済病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 7,
+        "beds": 740,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横須賀市立うわまち病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 13,
+        "beds": 417,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人湘南福祉協会総合病院湘南病院",
+        "station": "京浜急行本線 追浜",
+        "minutes": 1,
+        "beds": 227,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人日本医療伝道会　総合病院衣笠病院",
+        "station": "JR横須賀線 衣笠",
+        "minutes": 3,
+        "beds": 198,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "聖ヨゼフ病院",
+        "station": "京浜急行本線 汐入",
+        "minutes": 6,
+        "beds": 182,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokosuka",
+    "city_ja": "横須賀市",
+    "specialty_slug": "seikeigeka",
+    "specialty_ja": "整形外科"
+  },
+  "yokohama-naika": {
+    "facility_count": 114,
+    "job_count": 13,
+    "monthly_min": 211675,
+    "monthly_max": 229675,
+    "annual_min": 2963450,
+    "annual_max": 3215450,
+    "top_facilities": [
+      {
+        "name": "公立大学法人横浜市立大学附属市民総合医療センター",
+        "station": "横浜市ブルーライン 阪東橋",
+        "minutes": 6,
+        "beds": 696,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "昭和大学横浜市北部病院",
+        "station": "グリーンライン センター南",
+        "minutes": 6,
+        "beds": 689,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "公立大学法人横浜市立大学附属病院",
+        "station": "金沢シーサイドライン 市大医学部",
+        "minutes": 1,
+        "beds": 671,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜労災病院",
+        "station": "横浜市ブルーライン 新横浜",
+        "minutes": 12,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜市立市民病院",
+        "station": "横浜市ブルーライン 三ツ沢上町",
+        "minutes": 13,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokohama",
+    "city_ja": "横浜市",
+    "specialty_slug": "naika",
+    "specialty_ja": "内科"
+  },
+  "kawasaki-naika": {
+    "facility_count": 38,
+    "job_count": 2,
+    "monthly_min": 235000,
+    "monthly_max": 340000,
+    "annual_min": 3290000,
+    "annual_max": 4760000,
+    "top_facilities": [
+      {
+        "name": "聖マリアンナ医科大学病院",
+        "station": "小田急小田原線 生田",
+        "minutes": 28,
+        "beds": 955,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "川崎市立川崎病院",
+        "station": "京浜急行本線 京急川崎",
+        "minutes": 13,
+        "beds": 713,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "関東労災病院",
+        "station": "東急東横線 元住吉",
+        "minutes": 6,
+        "beds": 610,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団三成会　新百合ヶ丘総合病院",
+        "station": "小田急小田原線 新百合ヶ丘",
+        "minutes": 9,
+        "beds": 563,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "帝京大学医学部附属溝口病院",
+        "station": "東急田園都市線 高津",
+        "minutes": 2,
+        "beds": 400,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "kawasaki",
+    "city_ja": "川崎市",
+    "specialty_slug": "naika",
+    "specialty_ja": "内科"
+  },
+  "sagamihara-naika": {
+    "facility_count": 27,
+    "job_count": 2,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "医療法人社団清伸会　ふじの温泉病院",
+        "station": null,
+        "minutes": null,
+        "beds": 472,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構相模原病院",
+        "station": "小田急小田原線 小田急相模原",
+        "minutes": 19,
+        "beds": 458,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "小松会病院",
+        "station": "JR相模線 下溝",
+        "minutes": 29,
+        "beds": 402,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "総合相模更生病院",
+        "station": "JR横浜線 相模原",
+        "minutes": 3,
+        "beds": 225,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人地域医療機能推進機構相模野病院",
+        "station": "JR横浜線 矢部",
+        "minutes": 4,
+        "beds": 212,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "sagamihara",
+    "city_ja": "相模原市",
+    "specialty_slug": "naika",
+    "specialty_ja": "内科"
+  },
+  "fujisawa-naika": {
+    "facility_count": 15,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "藤沢市民病院",
+        "station": "小田急江ノ島線 藤沢本町",
+        "minutes": 10,
+        "beds": 536,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人徳洲会湘南藤沢徳洲会病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 8,
+        "beds": 419,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "一般財団法人同友会藤沢湘南台病院",
+        "station": "小田急江ノ島線 長後",
+        "minutes": 11,
+        "beds": 320,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "湘南中央病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 11,
+        "beds": 199,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "クローバーホスピタル",
+        "station": "江ノ島電鉄線 石上",
+        "minutes": 4,
+        "beds": 173,
+        "sub_type": "",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "fujisawa",
+    "city_ja": "藤沢市",
+    "specialty_slug": "naika",
+    "specialty_ja": "内科"
+  },
+  "yokosuka-naika": {
+    "facility_count": 12,
+    "job_count": 2,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "国家公務員共済組合連合会横須賀共済病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 7,
+        "beds": 740,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横須賀市立うわまち病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 13,
+        "beds": 417,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構久里浜医療センター",
+        "station": "京浜急行久里浜線 YRP野比",
+        "minutes": 25,
+        "beds": 277,
+        "sub_type": "回復期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人湘南福祉協会総合病院湘南病院",
+        "station": "京浜急行本線 追浜",
+        "minutes": 1,
+        "beds": 227,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人日本医療伝道会　総合病院衣笠病院",
+        "station": "JR横須賀線 衣笠",
+        "minutes": 3,
+        "beds": 198,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokosuka",
+    "city_ja": "横須賀市",
+    "specialty_slug": "naika",
+    "specialty_ja": "内科"
+  },
+  "yokohama-shonika": {
+    "facility_count": 31,
+    "job_count": 3,
+    "monthly_min": 290000,
+    "monthly_max": 320000,
+    "annual_min": 4060000,
+    "annual_max": 4480000,
+    "top_facilities": [
+      {
+        "name": "公立大学法人横浜市立大学附属市民総合医療センター",
+        "station": "横浜市ブルーライン 阪東橋",
+        "minutes": 6,
+        "beds": 696,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "昭和大学横浜市北部病院",
+        "station": "グリーンライン センター南",
+        "minutes": 6,
+        "beds": 689,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "公立大学法人横浜市立大学附属病院",
+        "station": "金沢シーサイドライン 市大医学部",
+        "minutes": 1,
+        "beds": 671,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜労災病院",
+        "station": "横浜市ブルーライン 新横浜",
+        "minutes": 12,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜市立市民病院",
+        "station": "横浜市ブルーライン 三ツ沢上町",
+        "minutes": 13,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokohama",
+    "city_ja": "横浜市",
+    "specialty_slug": "shonika",
+    "specialty_ja": "小児科"
+  },
+  "kawasaki-shonika": {
+    "facility_count": 16,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "聖マリアンナ医科大学病院",
+        "station": "小田急小田原線 生田",
+        "minutes": 28,
+        "beds": 955,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "川崎市立川崎病院",
+        "station": "京浜急行本線 京急川崎",
+        "minutes": 13,
+        "beds": 713,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "関東労災病院",
+        "station": "東急東横線 元住吉",
+        "minutes": 6,
+        "beds": 610,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団三成会　新百合ヶ丘総合病院",
+        "station": "小田急小田原線 新百合ヶ丘",
+        "minutes": 9,
+        "beds": 563,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "帝京大学医学部附属溝口病院",
+        "station": "東急田園都市線 高津",
+        "minutes": 2,
+        "beds": 400,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "kawasaki",
+    "city_ja": "川崎市",
+    "specialty_slug": "shonika",
+    "specialty_ja": "小児科"
+  },
+  "sagamihara-shonika": {
+    "facility_count": 8,
+    "job_count": 1,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "独立行政法人国立病院機構相模原病院",
+        "station": "小田急小田原線 小田急相模原",
+        "minutes": 19,
+        "beds": 458,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "総合相模更生病院",
+        "station": "JR横浜線 相模原",
+        "minutes": 3,
+        "beds": 225,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人地域医療機能推進機構相模野病院",
+        "station": "JR横浜線 矢部",
+        "minutes": 4,
+        "beds": 212,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "渕野辺総合病院",
+        "station": "JR横浜線 淵野辺",
+        "minutes": 7,
+        "beds": 161,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "相模原療育園",
+        "station": "JR横浜線 古淵",
+        "minutes": 23,
+        "beds": 60,
+        "sub_type": "慢性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "sagamihara",
+    "city_ja": "相模原市",
+    "specialty_slug": "shonika",
+    "specialty_ja": "小児科"
+  },
+  "fujisawa-shonika": {
+    "facility_count": 2,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "藤沢市民病院",
+        "station": "小田急江ノ島線 藤沢本町",
+        "minutes": 10,
+        "beds": 536,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人徳洲会湘南藤沢徳洲会病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 8,
+        "beds": 419,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "fujisawa",
+    "city_ja": "藤沢市",
+    "specialty_slug": "shonika",
+    "specialty_ja": "小児科"
+  },
+  "yokosuka-shonika": {
+    "facility_count": 8,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "国家公務員共済組合連合会横須賀共済病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 7,
+        "beds": 740,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横須賀市立うわまち病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 13,
+        "beds": 417,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人湘南福祉協会総合病院湘南病院",
+        "station": "京浜急行本線 追浜",
+        "minutes": 1,
+        "beds": 227,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人日本医療伝道会　総合病院衣笠病院",
+        "station": "JR横須賀線 衣笠",
+        "minutes": 3,
+        "beds": 198,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "自衛隊横須賀病院",
+        "station": "JR横須賀線 田浦",
+        "minutes": 4,
+        "beds": 100,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokosuka",
+    "city_ja": "横須賀市",
+    "specialty_slug": "shonika",
+    "specialty_ja": "小児科"
+  },
+  "yokohama-sanfujinka": {
+    "facility_count": 20,
+    "job_count": 2,
+    "monthly_min": 220000,
+    "monthly_max": 270000,
+    "annual_min": 3080000,
+    "annual_max": 3780000,
+    "top_facilities": [
+      {
+        "name": "昭和大学横浜市北部病院",
+        "station": "グリーンライン センター南",
+        "minutes": 6,
+        "beds": 689,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "公立大学法人横浜市立大学附属病院",
+        "station": "金沢シーサイドライン 市大医学部",
+        "minutes": 1,
+        "beds": 671,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜労災病院",
+        "station": "横浜市ブルーライン 新横浜",
+        "minutes": 12,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜市立市民病院",
+        "station": "横浜市ブルーライン 三ツ沢上町",
+        "minutes": 13,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜市立みなと赤十字病院",
+        "station": "横浜みなとみらい線 元町・中華街",
+        "minutes": 23,
+        "beds": 634,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokohama",
+    "city_ja": "横浜市",
+    "specialty_slug": "sanfujinka",
+    "specialty_ja": "産婦人科"
+  },
+  "kawasaki-sanfujinka": {
+    "facility_count": 9,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "聖マリアンナ医科大学病院",
+        "station": "小田急小田原線 生田",
+        "minutes": 28,
+        "beds": 955,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "関東労災病院",
+        "station": "東急東横線 元住吉",
+        "minutes": 6,
+        "beds": 610,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団三成会　新百合ヶ丘総合病院",
+        "station": "小田急小田原線 新百合ヶ丘",
+        "minutes": 9,
+        "beds": 563,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "帝京大学医学部附属溝口病院",
+        "station": "東急田園都市線 高津",
+        "minutes": 2,
+        "beds": 400,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "川崎市立多摩病院",
+        "station": "JR南武線 登戸",
+        "minutes": 4,
+        "beds": 376,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "kawasaki",
+    "city_ja": "川崎市",
+    "specialty_slug": "sanfujinka",
+    "specialty_ja": "産婦人科"
+  },
+  "sagamihara-sanfujinka": {
+    "facility_count": 3,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "総合相模更生病院",
+        "station": "JR横浜線 相模原",
+        "minutes": 3,
+        "beds": 225,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人地域医療機能推進機構相模野病院",
+        "station": "JR横浜線 矢部",
+        "minutes": 4,
+        "beds": 212,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "渕野辺総合病院",
+        "station": "JR横浜線 淵野辺",
+        "minutes": 7,
+        "beds": 161,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "sagamihara",
+    "city_ja": "相模原市",
+    "specialty_slug": "sanfujinka",
+    "specialty_ja": "産婦人科"
+  },
+  "fujisawa-sanfujinka": {
+    "facility_count": 1,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "藤沢市民病院",
+        "station": "小田急江ノ島線 藤沢本町",
+        "minutes": 10,
+        "beds": 536,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "fujisawa",
+    "city_ja": "藤沢市",
+    "specialty_slug": "sanfujinka",
+    "specialty_ja": "産婦人科"
+  },
+  "yokosuka-sanfujinka": {
+    "facility_count": 1,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "top_facilities": [
+      {
+        "name": "国家公務員共済組合連合会横須賀共済病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 7,
+        "beds": 740,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "city_slug": "yokosuka",
+    "city_ja": "横須賀市",
+    "specialty_slug": "sanfujinka",
+    "specialty_ja": "産婦人科"
+  }
+}

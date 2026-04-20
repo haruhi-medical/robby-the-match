@@ -50,6 +50,22 @@ CONDITIONS = [
     ("訪問看護", "houmon", "1対1の在宅ケア。神奈川県内のST求人"),
 ]
 
+# 診療科×主要5市の追加エリア（2026-04-21）
+SPECIALTIES_WITH_AREAS = [
+    ("精神科", "seishinka"),
+    ("整形外科", "seikeigeka"),
+    ("内科", "naika"),
+    ("小児科", "shonika"),
+    ("産婦人科", "sanfujinka"),
+]
+SPECIALTY_CITIES = [
+    ("yokohama", "横浜市"),
+    ("kawasaki", "川崎市"),
+    ("sagamihara", "相模原市"),
+    ("fujisawa", "藤沢市"),
+    ("yokosuka", "横須賀市"),
+]
+
 START_MARKER = "<!-- AREA_CONDITION_LINKS_START -->"
 END_MARKER = "<!-- AREA_CONDITION_LINKS_END -->"
 
@@ -69,6 +85,24 @@ def build_section() -> str:
             url = f'/lp/job-seeker/area/{slug}-{cond_slug}.html'
             parts.append(
                 f'                <a href="{url}" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">{ja}</a>'
+            )
+        parts.append('            </div>')
+
+    # 診療科×主要市セクション（2026-04-21 追加）
+    import pathlib as _pathlib
+    AREA_DIR_FOR_CHECK = ROOT / "lp/job-seeker/area"
+    parts.append('            <h2 style="margin-top:32px;">診療科 × 主要市</h2>')
+    parts.append('            <p style="color:#666;margin-bottom:24px;font-size:0.95rem;">専門科別に主要5市の看護師求人をまとめました。各ページに該当施設・求人統計付き。</p>')
+    for spec_label, spec_slug in SPECIALTIES_WITH_AREAS:
+        parts.append('            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #e07b39;">' + spec_label + '</h3>')
+        parts.append('            <div style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:20px;">')
+        for city_slug, city_ja in SPECIALTY_CITIES:
+            file_slug = f'{city_slug}-{spec_slug}'
+            if not (AREA_DIR_FOR_CHECK / f'{file_slug}.html').exists():
+                continue  # 薄判定で生成されなかったページはリンクしない
+            url = f'/lp/job-seeker/area/{file_slug}.html'
+            parts.append(
+                f'                <a href="{url}" style="display:inline-block;padding:6px 12px;background:#fff4e6;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">{city_ja}</a>'
             )
         parts.append('            </div>')
 
