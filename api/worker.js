@@ -3806,10 +3806,16 @@ function buildIntakePostalQuestion() {
 }
 
 function buildIntakeHumanThanks() {
-  return [{
-    type: "text",
-    text: "ご回答ありがとうございました 🌸\n\n担当者より改めてご連絡させていただきます ✨\n\n自己認識には誰しも限界がございます。ご自身の気づいていない魅力を整理し、よりよい一歩へ進むサポートをいたします 😊",
-  }];
+  return [
+    {
+      type: "text",
+      text: "ご回答ありがとうございました 🌸\n\n担当者より改めてご連絡させていただきます ✨\n\n自己認識には誰しも限界がございます。ご自身の気づいていない魅力を整理し、よりよい一歩へ進むサポートをいたします 😊",
+    },
+    {
+      type: "text",
+      text: "📋 ご連絡をお待ちいただく間、下のメニューから求人検索もご利用いただけます 🔍",
+    },
+  ];
 }
 
 function buildSessionWelcome(sessionCtx, entry) {
@@ -8073,6 +8079,8 @@ ${entry.rmCvQualifications || '看護師免許'}
           })());
           ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
           ctx.waitUntil(logPhaseTransition(userId, "intake_postal", "handoff", "text", entry, env, ctx));
+          // 担当者連絡待ちの間、求人検索できるようリッチメニューをhandoff用に切り替え
+          ctx.waitUntil(switchRichMenu(userId, RICH_MENU_STATES.handoff, env));
           continue;
         }
 
