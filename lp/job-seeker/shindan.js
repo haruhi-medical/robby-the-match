@@ -43,11 +43,11 @@
   /* ── Q2: サブエリア（都道府県別） ── */
   var SUBAREA = {
     tokyo: [
-      { l: '23区 中央', v: 'tokyo_central' },
-      { l: '23区 東部', v: 'tokyo_east' },
-      { l: '23区 南部', v: 'tokyo_south' },
-      { l: '23区 北西部', v: 'tokyo_nw' },
-      { l: '多摩地域', v: 'tokyo_tama' },
+      { l: '新宿・渋谷・東京', v: 'tokyo_central' },
+      { l: '池袋・中野・練馬', v: 'tokyo_nw' },
+      { l: '品川・目黒・世田谷', v: 'tokyo_south' },
+      { l: '上野・北千住・葛飾', v: 'tokyo_east' },
+      { l: '多摩（八王子・立川）', v: 'tokyo_tama' },
       { l: 'どこでもOK', v: 'tokyo_included' }
     ],
     kanagawa: [
