@@ -56,21 +56,21 @@
    ========================================== */
 :root {
   /* Palette */
-  --bg: #F6F2E8;           /* warm cream */
-  --bg-card: #FAF8F1;      /* lighter cream */
-  --bg-deep: #EDE6D2;      /* sand */
-  --ink: #181A20;          /* near-black */
-  --ink-soft: #484D58;
-  --ink-quiet: #8A8D94;
-  --teal: #3E7388;         /* existing brand, deepened */
-  --teal-soft: #7CA3B6;
-  --gold: #9E7A3F;         /* editorial accent */
+  --bg: #ffffff;           /* warm cream */
+  --bg-card: #f0f8fc;      /* lighter cream */
+  --bg-deep: #e6f4fb;      /* sand */
+  --ink: #2a2a3e;          /* near-black */
+  --ink-soft: #4a4a5e;
+  --ink-quiet: #7a7a8e;
+  --teal: #1a9de0;         /* existing brand, deepened */
+  --teal-soft: #50c8a0;
+  --gold: #1080c0;         /* editorial accent */
   --line: #06C755;         /* LINE official */
-  --rule: rgba(24, 26, 32, 0.1);
-  --rule-soft: rgba(24, 26, 32, 0.05);
+  --rule: rgba(42, 42, 62, 0.08);
+  --rule-soft: rgba(42, 42, 62, 0.04);
 
   /* Typography */
-  --font-display: "Shippori Mincho B1", "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-body: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
@@ -95,16 +95,7 @@ body {
 }
 
 /* Subtle grain — atmosphere */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-}
+body::before { display: none; }
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -753,7 +744,7 @@ section {
    FINAL CTA (dark)
    ========================================== */
 .final-cta {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(72px, 10vw, 120px) 0;
   position: relative;
@@ -1202,7 +1193,7 @@ main p strong, .container p strong { font-weight: 600; color: var(--ink); }
 
 /* cta-band （既存 guide の 末尾帯 CTA → v2 final-cta 風） */
 .cta-band {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(64px, 9vw, 96px) 20px;
   text-align: center;
@@ -1324,7 +1315,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 {"@context":"https://schema.org","@type":"Organization","name":"神奈川ナース転職編集部","url":"https://quads-nurse.com/"}
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#F6F2E8" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#e6f4fb" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="/assets/design-tokens.css" rel="stylesheet">
@@ -1362,12 +1353,12 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 </div>
 <article><div class="content">
-<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2d5a3d;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
-<p style="font-weight:bold;margin:0 0 0.5em;color:#2d5a3d;">この記事のポイント</p>
+<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2a2a3e;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
+<p style="font-weight:bold;margin:0 0 0.5em;color:#2a2a3e;">この記事のポイント</p>
 <p style="margin:0;line-height:1.7;">看護師の転職ベストタイミングは1月（4月入職狙い）と7月（10月入職狙い）です。経験年数別では3年目が最初の売り時、5年目がキャリアチェンジの好機。ボーナスを最大化するには、支給後に退職意思を伝えるのが鉄則です。</p>
 </div>
 <h2>転職タイミングで、結果は大きく変わる</h2>
-<p>「転職したいけど、今のタイミングでいいのだろうか」。看護師の転職相談で最も多い悩みの一つがこのタイミングの問題です。実際、転職の時期によって求人の質と量は大きく変わり、同じスキルの看護師でも入職時期によって年収に差が出ることもあります。<a href="kanagawa-nurse-salary.html" style="color:#1a7f64;">神奈川県の看護師年収の地域別・施設別データ</a>を把握しておくと、転職先の条件を客観的に評価できます。</p>
+<p>「転職したいけど、今のタイミングでいいのだろうか」。看護師の転職相談で最も多い悩みの一つがこのタイミングの問題です。実際、転職の時期によって求人の質と量は大きく変わり、同じスキルの看護師でも入職時期によって年収に差が出ることもあります。<a href="kanagawa-nurse-salary.html" style="color:#1a9de0;">神奈川県の看護師年収の地域別・施設別データ</a>を把握しておくと、転職先の条件を客観的に評価できます。</p>
 <p>この記事では、看護師の転職に最適な月、経験年数別のベストタイミング、ボーナスを最大化する方法、退職の伝え方まで、タイミングに関するすべてを網羅します。「いつ動くか」を戦略的に考えることで、転職の成功率は格段に上がります。</p>
 <h2>看護師転職に最適な月はいつ？</h2>
 <p>結論から言うと、看護師の転職活動を始めるベストな月は<strong>1月</strong>と<strong>7月</strong>です。これは、多くの医療機関が4月入職と10月入職を採用のピークとしているため、その2〜3ヶ月前から求人が増加するからです。</p>
@@ -1485,14 +1476,14 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </ul>
 <p>自分の健康と安全を守ることが最優先です。上記に該当する場合は、経験年数に関係なく転職を検討してください。</p>
 <h3>3年目：最初の転職チャンス</h3>
-<p>臨床経験3年は、看護師の転職市場で最初の「売り時」です。基本的な看護スキルが身についており、まだ若いため新しい環境への適応力も高い。即戦力として期待されつつ、育成の余地もあるとして、多くの施設が歓迎する経験年数です。3年目でクリニック転職を検討している方は、<a href="/lp/job-seeker/guide/clinic-vs-hospital.html" style="color:#1a7f64;">クリニックと病院の違いを比較したガイド</a>が参考になります。</p>
+<p>臨床経験3年は、看護師の転職市場で最初の「売り時」です。基本的な看護スキルが身についており、まだ若いため新しい環境への適応力も高い。即戦力として期待されつつ、育成の余地もあるとして、多くの施設が歓迎する経験年数です。3年目でクリニック転職を検討している方は、<a href="/lp/job-seeker/guide/clinic-vs-hospital.html" style="color:#1a9de0;">クリニックと病院の違いを比較したガイド</a>が参考になります。</p>
 <ul>
 <li><strong>市場評価</strong>：高い。特に急性期から慢性期・クリニック・訪問看護への転職に有利</li>
 <li><strong>年収交渉</strong>：前職の年収+10〜20万円が狙える</li>
 <li><strong>注意点</strong>：「3年で辞めた」と見られないよう、前向きな転職理由を用意する</li>
 </ul>
 <h3>5年目：キャリアチェンジの好機</h3>
-<p>5年目は「一通りの経験を積んだ中堅」として最も市場価値が高い時期の一つです。リーダー経験、プリセプター経験、夜勤リーダーなどの実績があれば、さらに評価が上がります。5年目のキャリアチェンジで年収を最大化するには、<a href="/lp/job-seeker/guide/salary-up.html" style="color:#1a7f64;">看護師の年収アップ転職戦略</a>と組み合わせて考えることをおすすめします。</p>
+<p>5年目は「一通りの経験を積んだ中堅」として最も市場価値が高い時期の一つです。リーダー経験、プリセプター経験、夜勤リーダーなどの実績があれば、さらに評価が上がります。5年目のキャリアチェンジで年収を最大化するには、<a href="/lp/job-seeker/guide/salary-up.html" style="color:#1a9de0;">看護師の年収アップ転職戦略</a>と組み合わせて考えることをおすすめします。</p>
 <ul>
 <li><strong>市場評価</strong>：非常に高い。どの分野でも即戦力として期待される</li>
 <li><strong>キャリアの幅</strong>：管理職候補、専門分野への転向、訪問看護の立ち上げメンバーなど選択肢が広い</li>
@@ -1694,7 +1685,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 <div style="margin-top:40px;padding:24px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
 <p style="font-size:0.8rem;color:var(--text-secondary,#999);line-height:1.8;margin:0;">
-<strong style="color:var(--text-heading,#e8e6e3);">参考文献・出典</strong><br/>
+<strong style="color:var(--text-heading,#f0f8fc);">参考文献・出典</strong><br/>
     本記事の情報は以下の公的データ等を参考にしています。<br/>
     ・厚生労働省「賃金構造基本統計調査」<br/>
     ・日本看護協会「看護職員実態調査」<br/>
@@ -1704,11 +1695,11 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   </p>
 </div>
 <div style="margin:32px 0;padding:24px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-<h4 style="font-size:0.95rem;color:var(--text-heading,#e8e6e3);margin:0 0 12px;">もっと詳しく知る</h4>
+<h4 style="font-size:0.95rem;color:var(--text-heading,#f0f8fc);margin:0 0 12px;">もっと詳しく知る</h4>
 <ul style="list-style:none;padding:0;margin:0;display:grid;gap:6px;">
-<li><a href="/lp/job-seeker/guide/retirement-timing.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">退職のタイミングと手順</a></li>
-<li><a href="/lp/job-seeker/guide/first-transfer.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">初めての転職ガイド</a></li>
-<li><a href="/lp/job-seeker/guide/nurse-transfer-process.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">転職の流れと手順</a></li>
+<li><a href="/lp/job-seeker/guide/retirement-timing.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">退職のタイミングと手順</a></li>
+<li><a href="/lp/job-seeker/guide/first-transfer.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">初めての転職ガイド</a></li>
+<li><a href="/lp/job-seeker/guide/nurse-transfer-process.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">転職の流れと手順</a></li>
 </ul>
 </div>
 <div class="related-articles">
@@ -1719,13 +1710,13 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <li><a href="nurse-market-2026.html">2026年看護師転職市場の最新動向</a></li>
 <li><a href="nurse-money-guide.html">看護師のための資産形成・マネーガイド</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">エリア別求人情報</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">エリア別求人情報</h4>
 <ul>
 <li><a href="/lp/job-seeker/area/odawara.html">小田原市の求人</a></li>
 <li><a href="/lp/job-seeker/area/hiratsuka.html">平塚市の求人</a></li>
 <li><a href="/lp/job-seeker/area/yokohama.html">横浜市の看護師求人</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">転職ガイド</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">転職ガイド</h4>
 <ul>
 <li><a href="/lp/job-seeker/guide/retirement-timing.html">退職タイミングガイド</a></li>
 <li><a href="/lp/job-seeker/guide/first-transfer.html">はじめての転職ガイド</a></li>

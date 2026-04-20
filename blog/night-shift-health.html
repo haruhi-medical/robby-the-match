@@ -56,21 +56,21 @@
    ========================================== */
 :root {
   /* Palette */
-  --bg: #F6F2E8;           /* warm cream */
-  --bg-card: #FAF8F1;      /* lighter cream */
-  --bg-deep: #EDE6D2;      /* sand */
-  --ink: #181A20;          /* near-black */
-  --ink-soft: #484D58;
-  --ink-quiet: #8A8D94;
-  --teal: #3E7388;         /* existing brand, deepened */
-  --teal-soft: #7CA3B6;
-  --gold: #9E7A3F;         /* editorial accent */
+  --bg: #ffffff;           /* warm cream */
+  --bg-card: #f0f8fc;      /* lighter cream */
+  --bg-deep: #e6f4fb;      /* sand */
+  --ink: #2a2a3e;          /* near-black */
+  --ink-soft: #4a4a5e;
+  --ink-quiet: #7a7a8e;
+  --teal: #1a9de0;         /* existing brand, deepened */
+  --teal-soft: #50c8a0;
+  --gold: #1080c0;         /* editorial accent */
   --line: #06C755;         /* LINE official */
-  --rule: rgba(24, 26, 32, 0.1);
-  --rule-soft: rgba(24, 26, 32, 0.05);
+  --rule: rgba(42, 42, 62, 0.08);
+  --rule-soft: rgba(42, 42, 62, 0.04);
 
   /* Typography */
-  --font-display: "Shippori Mincho B1", "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-body: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
@@ -95,16 +95,7 @@ body {
 }
 
 /* Subtle grain — atmosphere */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-}
+body::before { display: none; }
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -753,7 +744,7 @@ section {
    FINAL CTA (dark)
    ========================================== */
 .final-cta {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(72px, 10vw, 120px) 0;
   position: relative;
@@ -1202,7 +1193,7 @@ main p strong, .container p strong { font-weight: 600; color: var(--ink); }
 
 /* cta-band （既存 guide の 末尾帯 CTA → v2 final-cta 風） */
 .cta-band {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(64px, 9vw, 96px) 20px;
   text-align: center;
@@ -1324,7 +1315,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 {"@context":"https://schema.org","@type":"Organization","name":"神奈川ナース転職編集部","url":"https://quads-nurse.com/"}
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#F6F2E8" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#e6f4fb" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="/assets/design-tokens.css" rel="stylesheet">
@@ -1362,8 +1353,8 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 </div>
 <article><div class="content">
-<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2d5a3d;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
-<p style="font-weight:bold;margin:0 0 0.5em;color:#2d5a3d;">この記事のポイント</p>
+<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2a2a3e;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
+<p style="font-weight:bold;margin:0 0 0.5em;color:#2a2a3e;">この記事のポイント</p>
 <p style="margin:0;line-height:1.7;">夜勤が健康に与える影響は科学的に実証されており、睡眠障害・免疫力低下・メンタル不調のリスクが高まります。夜勤を続ける場合は「光の管理」「仮眠の確保」「食事のタイミング」の3つが健康維持の鍵。夜勤なしの選択肢も含めてキャリアを考えましょう。</p>
 </div>
 <h2>夜勤が体に与える影響を正しく理解する</h2>
@@ -1489,7 +1480,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 <div style="margin-top:40px;padding:24px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
 <p style="font-size:0.8rem;color:var(--text-secondary,#999);line-height:1.8;margin:0;">
-<strong style="color:var(--text-heading,#e8e6e3);">参考文献・出典</strong><br/>
+<strong style="color:var(--text-heading,#f0f8fc);">参考文献・出典</strong><br/>
     本記事の情報は以下の公的データ等を参考にしています。<br/>
     ・厚生労働省「賃金構造基本統計調査」<br/>
     ・日本看護協会「看護職員実態調査」<br/>
@@ -1499,11 +1490,11 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   </p>
 </div>
 <div style="margin:32px 0;padding:24px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-<h4 style="font-size:0.95rem;color:var(--text-heading,#e8e6e3);margin:0 0 12px;">もっと詳しく知る</h4>
+<h4 style="font-size:0.95rem;color:var(--text-heading,#f0f8fc);margin:0 0 12px;">もっと詳しく知る</h4>
 <ul style="list-style:none;padding:0;margin:0;display:grid;gap:6px;">
-<li><a href="/lp/job-seeker/guide/night-shift.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">夜勤の実態と対策</a></li>
-<li><a href="/lp/job-seeker/guide/work-life-balance.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">看護師のワークライフバランス</a></li>
-<li><a href="/lp/job-seeker/guide/nurse-burnout.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">バーンアウト対策</a></li>
+<li><a href="/lp/job-seeker/guide/night-shift.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">夜勤の実態と対策</a></li>
+<li><a href="/lp/job-seeker/guide/work-life-balance.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">看護師のワークライフバランス</a></li>
+<li><a href="/lp/job-seeker/guide/nurse-burnout.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">バーンアウト対策</a></li>
 </ul>
 </div>
 <div class="related-articles">
@@ -1515,13 +1506,13 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <li><a href="nurse-communication.html">看護師の職場コミュニケーション改善法</a></li>
 <li><a href="nurse-market-2026.html">2026年看護師転職市場の最新動向</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">エリア別求人情報</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">エリア別求人情報</h4>
 <ul>
 <li><a href="/lp/job-seeker/area/odawara.html">小田原市の求人</a></li>
 <li><a href="/lp/job-seeker/area/yokohama.html">横浜市の夜勤なし求人</a></li>
 <li><a href="/lp/job-seeker/area/kawasaki.html">川崎市の夜勤なし求人</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">転職ガイド</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">転職ガイド</h4>
 <ul>
 <li><a href="/lp/job-seeker/guide/night-shift.html">夜勤なし求人特集</a></li>
 <li><a href="/lp/job-seeker/guide/work-life-balance.html">ワークライフバランス</a></li>

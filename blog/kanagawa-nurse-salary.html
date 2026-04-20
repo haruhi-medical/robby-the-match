@@ -56,21 +56,21 @@
    ========================================== */
 :root {
   /* Palette */
-  --bg: #F6F2E8;           /* warm cream */
-  --bg-card: #FAF8F1;      /* lighter cream */
-  --bg-deep: #EDE6D2;      /* sand */
-  --ink: #181A20;          /* near-black */
-  --ink-soft: #484D58;
-  --ink-quiet: #8A8D94;
-  --teal: #3E7388;         /* existing brand, deepened */
-  --teal-soft: #7CA3B6;
-  --gold: #9E7A3F;         /* editorial accent */
+  --bg: #ffffff;           /* warm cream */
+  --bg-card: #f0f8fc;      /* lighter cream */
+  --bg-deep: #e6f4fb;      /* sand */
+  --ink: #2a2a3e;          /* near-black */
+  --ink-soft: #4a4a5e;
+  --ink-quiet: #7a7a8e;
+  --teal: #1a9de0;         /* existing brand, deepened */
+  --teal-soft: #50c8a0;
+  --gold: #1080c0;         /* editorial accent */
   --line: #06C755;         /* LINE official */
-  --rule: rgba(24, 26, 32, 0.1);
-  --rule-soft: rgba(24, 26, 32, 0.05);
+  --rule: rgba(42, 42, 62, 0.08);
+  --rule-soft: rgba(42, 42, 62, 0.04);
 
   /* Typography */
-  --font-display: "Shippori Mincho B1", "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-body: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
@@ -95,16 +95,7 @@ body {
 }
 
 /* Subtle grain — atmosphere */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-}
+body::before { display: none; }
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -753,7 +744,7 @@ section {
    FINAL CTA (dark)
    ========================================== */
 .final-cta {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(72px, 10vw, 120px) 0;
   position: relative;
@@ -1202,7 +1193,7 @@ main p strong, .container p strong { font-weight: 600; color: var(--ink); }
 
 /* cta-band （既存 guide の 末尾帯 CTA → v2 final-cta 風） */
 .cta-band {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(64px, 9vw, 96px) 20px;
   text-align: center;
@@ -1324,7 +1315,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 {"@context":"https://schema.org","@type":"Organization","name":"神奈川ナース転職編集部","url":"https://quads-nurse.com/"}
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#F6F2E8" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#e6f4fb" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="/assets/design-tokens.css" rel="stylesheet">
@@ -1362,8 +1353,8 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 </div>
 <article><div class="content">
-<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2d5a3d;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
-<p style="font-weight:bold;margin:0 0 0.5em;color:#2d5a3d;">この記事のポイント</p>
+<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2a2a3e;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
+<p style="font-weight:bold;margin:0 0 0.5em;color:#2a2a3e;">この記事のポイント</p>
 <p style="margin:0;line-height:1.7;">神奈川県の看護師平均年収は約530〜550万円で全国トップクラス。特に経験5〜10年の中堅看護師は転職による年収アップの恩恵を受けやすい層です。横浜と小田原では年収差があっても家賃差を考えると実質可処分所得は逆転するケースもあります。</p>
 </div>
 <h2>神奈川県の看護師平均年収は全国トップクラス</h2>
@@ -1422,7 +1413,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <tr><td>15年目</td><td>530-580万円</td><td>35-39万円</td></tr>
 <tr><td>20年以上（管理職）</td><td>580-650万円</td><td>38-43万円</td></tr>
 </table>
-<p>注目すべきは、<strong>経験5-10年の「中堅」看護師が最も転職による年収アップの恩恵を受けやすい</strong>ということです。一定のスキルと経験があるため即戦力として評価され、条件交渉の余地が最も大きい層です。転職タイミングの戦略については<a href="tenshoku-timing.html" style="color:#1a7f64;">看護師の転職ベストタイミングを解説した記事</a>も参考になります。</p>
+<p>注目すべきは、<strong>経験5-10年の「中堅」看護師が最も転職による年収アップの恩恵を受けやすい</strong>ということです。一定のスキルと経験があるため即戦力として評価され、条件交渉の余地が最も大きい層です。転職タイミングの戦略については<a href="tenshoku-timing.html" style="color:#1a9de0;">看護師の転職ベストタイミングを解説した記事</a>も参考になります。</p>
 <h2>施設種類別の年収比較</h2>
 <p>看護師の年収は、勤務先の施設種類によっても大きく異なります。神奈川県内の施設種類別の年収を比較してみましょう。</p>
 <table class="data-table">
@@ -1436,7 +1427,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <tr><td>介護施設</td><td>400-460万円</td><td>施設による</td><td>ゆったりしたケア、医療行為が少ない</td></tr>
 </table>
 <h3>施設選びの考え方</h3>
-<p>年収だけを見ると大学病院や大規模総合病院が有利ですが、その分、夜勤回数が多い、残業が多い、精神的な負荷が大きいといったデメリットもあります。自分のライフスタイルや価値観に合った施設を選ぶことが、長く働き続けるためには重要です。クリニックと病院の実態を詳しく比較したい方は<a href="/lp/job-seeker/guide/clinic-vs-hospital.html" style="color:#1a7f64;">クリニックと病院の違いを看護師目線で比較したガイド</a>もご覧ください。</p>
+<p>年収だけを見ると大学病院や大規模総合病院が有利ですが、その分、夜勤回数が多い、残業が多い、精神的な負荷が大きいといったデメリットもあります。自分のライフスタイルや価値観に合った施設を選ぶことが、長く働き続けるためには重要です。クリニックと病院の実態を詳しく比較したい方は<a href="/lp/job-seeker/guide/clinic-vs-hospital.html" style="color:#1a9de0;">クリニックと病院の違いを看護師目線で比較したガイド</a>もご覧ください。</p>
 <ul>
 <li><strong>年収重視</strong>なら → 大学病院、総合病院、美容クリニック</li>
 <li><strong>ワークライフバランス重視</strong>なら → クリニック、訪問看護</li>
@@ -1450,7 +1441,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <a class="btn" href="https://line.me/R/ti/p/@174cxnev">LINEで無料相談する</a>
 </div>
 <h2>年収を上げる5つの方法</h2>
-<p>現在の年収に満足していない看護師の方へ。年収アップを実現するための具体的な方法を5つご紹介します。具体的な転職戦略のステップは<a href="/lp/job-seeker/guide/salary-up.html" style="color:#1a7f64;">看護師が年収を上げる5つの転職戦略ガイド</a>で詳しく解説しています。</p>
+<p>現在の年収に満足していない看護師の方へ。年収アップを実現するための具体的な方法を5つご紹介します。具体的な転職戦略のステップは<a href="/lp/job-seeker/guide/salary-up.html" style="color:#1a9de0;">看護師が年収を上げる5つの転職戦略ガイド</a>で詳しく解説しています。</p>
 <h3>1. 資格を取得する</h3>
 <p>専門性の高い資格を取得することで、資格手当が加算されたり、より高待遇のポジションに就ける可能性が高まります。</p>
 <ul>
@@ -1587,7 +1578,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 <div style="margin-top:40px;padding:24px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
 <p style="font-size:0.8rem;color:var(--text-secondary,#999);line-height:1.8;margin:0;">
-<strong style="color:var(--text-heading,#e8e6e3);">参考文献・出典</strong><br/>
+<strong style="color:var(--text-heading,#f0f8fc);">参考文献・出典</strong><br/>
     本記事の情報は以下の公的データ等を参考にしています。<br/>
     ・厚生労働省「令和6年 賃金構造基本統計調査」<br/>
     ・日本看護協会「看護職員実態調査」<br/>
@@ -1597,19 +1588,19 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   </p>
 </div>
 <div style="margin:32px 0;padding:24px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-<h4 style="font-size:0.95rem;color:var(--text-heading,#e8e6e3);margin:0 0 12px;">もっと詳しく知る</h4>
+<h4 style="font-size:0.95rem;color:var(--text-heading,#f0f8fc);margin:0 0 12px;">もっと詳しく知る</h4>
 <ul style="list-style:none;padding:0;margin:0;display:grid;gap:6px;">
-<li><a href="/lp/job-seeker/guide/salary-comparison.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">看護師の給与比較ガイド</a></li>
-<li><a href="/lp/job-seeker/guide/nurse-salary-odawara.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">小田原市の看護師給与相場</a></li>
-<li><a href="/lp/job-seeker/guide/salary-simulator.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">年収シミュレーター</a></li>
+<li><a href="/lp/job-seeker/guide/salary-comparison.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">看護師の給与比較ガイド</a></li>
+<li><a href="/lp/job-seeker/guide/nurse-salary-odawara.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">小田原市の看護師給与相場</a></li>
+<li><a href="/lp/job-seeker/guide/salary-simulator.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">年収シミュレーター</a></li>
 </ul>
 </div>
 <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin:24px 0;">
 <h3 style="font-size:1.1rem;margin:0 0 12px;">あわせて読みたい</h3>
 <ul style="list-style:none;padding:0;margin:0;">
-<li style="margin:8px 0;"><a href="/lp/job-seeker/area/yokohama.html" style="color:#1a7f64;">横浜市の看護師求人情報</a></li>
-<li style="margin:8px 0;"><a href="/lp/job-seeker/area/kawasaki.html" style="color:#1a7f64;">川崎市の看護師求人情報</a></li>
-<li style="margin:8px 0;"><a href="/lp/job-seeker/area/yokosuka.html" style="color:#1a7f64;">横須賀市の看護師求人情報</a></li>
+<li style="margin:8px 0;"><a href="/lp/job-seeker/area/yokohama.html" style="color:#1a9de0;">横浜市の看護師求人情報</a></li>
+<li style="margin:8px 0;"><a href="/lp/job-seeker/area/kawasaki.html" style="color:#1a9de0;">川崎市の看護師求人情報</a></li>
+<li style="margin:8px 0;"><a href="/lp/job-seeker/area/yokosuka.html" style="color:#1a9de0;">横須賀市の看護師求人情報</a></li>
 </ul>
 </div>
 <div class="related-articles">
@@ -1620,13 +1611,13 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <li><a href="agent-comparison.html">看護師転職エージェント手数料比較【2026年版】</a></li>
 <li><a href="nurse-market-2026.html">2026年看護師転職市場の最新動向</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">エリア別求人情報</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">エリア別求人情報</h4>
 <ul>
 <li><a href="/lp/job-seeker/area/odawara.html">小田原市の求人</a></li>
 <li><a href="/lp/job-seeker/area/hiratsuka.html">平塚市の求人</a></li>
 <li><a href="/lp/job-seeker/area/hadano.html">秦野市の求人</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">転職ガイド</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">転職ガイド</h4>
 <ul>
 <li><a href="/lp/job-seeker/guide/salary-comparison.html">給与比較ガイド</a></li>
 <li><a href="/lp/job-seeker/guide/nurse-salary-odawara.html">小田原の看護師給与</a></li>

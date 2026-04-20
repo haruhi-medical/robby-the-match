@@ -25,7 +25,7 @@ src="https://www.facebook.com/tr?id=2326210157891886&ev=PageView&noscript=1"/></
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#F6F2E8">
+<meta name="theme-color" content="#e6f4fb">
 
 <title>相模原市のパート看護師求人｜ナースロビー</title>
 <meta name="description" content="相模原市のパート看護師求人を探す。橋本・町田境エリアから北里大学病院まで。LINE完結・電話なし・手数料10%で、静かに次の職場を見つけられます。">
@@ -65,21 +65,21 @@ src="https://www.facebook.com/tr?id=2326210157891886&ev=PageView&noscript=1"/></
    ========================================== */
 :root {
   /* Palette */
-  --bg: #F6F2E8;           /* warm cream */
-  --bg-card: #FAF8F1;      /* lighter cream */
-  --bg-deep: #EDE6D2;      /* sand */
-  --ink: #181A20;          /* near-black */
-  --ink-soft: #484D58;
-  --ink-quiet: #8A8D94;
-  --teal: #3E7388;         /* existing brand, deepened */
-  --teal-soft: #7CA3B6;
-  --gold: #9E7A3F;         /* editorial accent */
+  --bg: #ffffff;           /* warm cream */
+  --bg-card: #f0f8fc;      /* lighter cream */
+  --bg-deep: #e6f4fb;      /* sand */
+  --ink: #2a2a3e;          /* near-black */
+  --ink-soft: #4a4a5e;
+  --ink-quiet: #7a7a8e;
+  --teal: #1a9de0;         /* existing brand, deepened */
+  --teal-soft: #50c8a0;
+  --gold: #1080c0;         /* editorial accent */
   --line: #06C755;         /* LINE official */
-  --rule: rgba(24, 26, 32, 0.1);
-  --rule-soft: rgba(24, 26, 32, 0.05);
+  --rule: rgba(42, 42, 62, 0.08);
+  --rule-soft: rgba(42, 42, 62, 0.04);
 
   /* Typography */
-  --font-display: "Shippori Mincho B1", "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-body: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
@@ -104,16 +104,7 @@ body {
 }
 
 /* Subtle grain — atmosphere */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-}
+body::before { display: none; }
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -762,7 +753,7 @@ section {
    FINAL CTA (dark)
    ========================================== */
 .final-cta {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(72px, 10vw, 120px) 0;
   position: relative;
@@ -1211,7 +1202,7 @@ main p strong, .container p strong { font-weight: 600; color: var(--ink); }
 
 /* cta-band （既存 guide の 末尾帯 CTA → v2 final-cta 風） */
 .cta-band {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(64px, 9vw, 96px) 20px;
   text-align: center;

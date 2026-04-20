@@ -56,21 +56,21 @@
    ========================================== */
 :root {
   /* Palette */
-  --bg: #F6F2E8;           /* warm cream */
-  --bg-card: #FAF8F1;      /* lighter cream */
-  --bg-deep: #EDE6D2;      /* sand */
-  --ink: #181A20;          /* near-black */
-  --ink-soft: #484D58;
-  --ink-quiet: #8A8D94;
-  --teal: #3E7388;         /* existing brand, deepened */
-  --teal-soft: #7CA3B6;
-  --gold: #9E7A3F;         /* editorial accent */
+  --bg: #ffffff;           /* warm cream */
+  --bg-card: #f0f8fc;      /* lighter cream */
+  --bg-deep: #e6f4fb;      /* sand */
+  --ink: #2a2a3e;          /* near-black */
+  --ink-soft: #4a4a5e;
+  --ink-quiet: #7a7a8e;
+  --teal: #1a9de0;         /* existing brand, deepened */
+  --teal-soft: #50c8a0;
+  --gold: #1080c0;         /* editorial accent */
   --line: #06C755;         /* LINE official */
-  --rule: rgba(24, 26, 32, 0.1);
-  --rule-soft: rgba(24, 26, 32, 0.05);
+  --rule: rgba(42, 42, 62, 0.08);
+  --rule-soft: rgba(42, 42, 62, 0.04);
 
   /* Typography */
-  --font-display: "Shippori Mincho B1", "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-body: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
@@ -95,16 +95,7 @@ body {
 }
 
 /* Subtle grain — atmosphere */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-}
+body::before { display: none; }
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -753,7 +744,7 @@ section {
    FINAL CTA (dark)
    ========================================== */
 .final-cta {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(72px, 10vw, 120px) 0;
   position: relative;
@@ -1202,7 +1193,7 @@ main p strong, .container p strong { font-weight: 600; color: var(--ink); }
 
 /* cta-band （既存 guide の 末尾帯 CTA → v2 final-cta 風） */
 .cta-band {
-  background: #181A20;
+  background: #2a2a3e;
   color: var(--bg);
   padding: clamp(64px, 9vw, 96px) 20px;
   text-align: center;
@@ -1324,7 +1315,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 {"@context":"https://schema.org","@type":"Organization","name":"神奈川ナース転職編集部","url":"https://quads-nurse.com/"}
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#F6F2E8" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600&amp;family=Noto+Sans+JP:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><meta content="#e6f4fb" name="theme-color"/><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="/assets/design-tokens.css" rel="stylesheet">
@@ -1362,8 +1353,8 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 </div>
 <article><div class="content">
-<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2d5a3d;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
-<p style="font-weight:bold;margin:0 0 0.5em;color:#2d5a3d;">この記事のポイント</p>
+<div class="answer-box" style="background:#f0f7f0;border-left:4px solid #2a2a3e;padding:1.2em 1.5em;margin:1.5em 0;border-radius:0 8px 8px 0;">
+<p style="font-weight:bold;margin:0 0 0.5em;color:#2a2a3e;">この記事のポイント</p>
 <p style="margin:0;line-height:1.7;">看護師のストレスは「人間関係」「業務量」「命を預かる責任感」の3つが主な原因です。ストレスが3ヶ月以上続いている場合は、環境を変えることも選択肢のひとつ。まずはセルフチェックで自分の状態を客観的に把握しましょう。</p>
 </div>
 <h2>「辞めたい」と感じるのは甘えではない</h2>
@@ -1373,7 +1364,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <h2>看護師の5大ストレス要因</h2>
 <h3>1. 命に関わる責任のプレッシャー</h3>
 <p>看護師の仕事は、一つのミスが患者の命に直結する可能性があります。このプレッシャーは「慣れ」では解消されません。経験を積むほど、リスクを正確に認識できるようになり、むしろプレッシャーが増す場合もあります。</p>
-<p>特に急性期病院のICUや救急外来では、常に緊張状態が続きます。このような環境で長期間働くと、心身のエネルギーが消耗し、バーンアウト（燃え尽き症候群）のリスクが高まります。夜勤の負担が原因の場合は、<a href="/lp/job-seeker/guide/no-night-shift.html" style="color:#1a7f64;">夜勤なし職場への転職ガイド</a>を参考にしてください。</p>
+<p>特に急性期病院のICUや救急外来では、常に緊張状態が続きます。このような環境で長期間働くと、心身のエネルギーが消耗し、バーンアウト（燃え尽き症候群）のリスクが高まります。夜勤の負担が原因の場合は、<a href="/lp/job-seeker/guide/no-night-shift.html" style="color:#1a9de0;">夜勤なし職場への転職ガイド</a>を参考にしてください。</p>
 <h3>2. 人手不足による業務過多</h3>
 <p>慢性的な人手不足は、看護師のストレスの根源的な要因です。少ない人数で多くの患者をケアしなければならず、残業が常態化。「本来やるべきケア」に時間を割けないジレンマがストレスに拍車をかけます。</p>
 <h3>3. 人間関係の難しさ</h3>
@@ -1444,7 +1435,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <h3>ステップ2：自分の「譲れない条件」を明確にする</h3>
 <p>転職で最も大切なのは、「何を改善したいのか」を明確にすることです。給与、夜勤の有無、人間関係、通勤時間、キャリアアップの機会──すべてを満たす完璧な職場はありません。優先順位をつけましょう。</p>
 <h3>ステップ3：情報を集めてから判断する</h3>
-<p>転職先の情報は、求人票だけでは分かりません。職場の雰囲気、実際の残業時間、有給消化率、離職率など、「中の人」しか知らない情報が転職の成否を分けます。地域に密着した転職支援サービスを活用することで、こうした情報を得られます。<a href="tenshoku-timing.html" style="color:#1a7f64;">看護師の転職ベストタイミングと転職市場の動向</a>も合わせて確認すると、動き出す時期の判断に役立ちます。</p>
+<p>転職先の情報は、求人票だけでは分かりません。職場の雰囲気、実際の残業時間、有給消化率、離職率など、「中の人」しか知らない情報が転職の成否を分けます。地域に密着した転職支援サービスを活用することで、こうした情報を得られます。<a href="tenshoku-timing.html" style="color:#1a9de0;">看護師の転職ベストタイミングと転職市場の動向</a>も合わせて確認すると、動き出す時期の判断に役立ちます。</p>
 <div class="cta-box">
 <h3>まずは情報収集から始めてみませんか</h3>
 <p>「転職するかどうか迷っている」段階でもOK。気軽にご相談ください。</p>
@@ -1460,7 +1451,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </ul>
 <h2>まとめ：自分を大切にすることが、良い看護につながる</h2>
 <p>看護師は患者のケアを第一に考える職業です。しかし、自分自身が壊れてしまっては、良いケアはできません。「自分を大切にすること」は、わがままでも甘えでもなく、長く質の高い看護を提供するための必須条件です。</p>
-<p>ストレスを感じたら、まず自分の状態を客観的に把握すること。そして、管理できるストレスは管理し、環境を変えるべき時には勇気を持って変える。その判断のために、この記事が少しでもお役に立てれば幸いです。環境を変える選択をした際は、<a href="/lp/job-seeker/guide/career-change.html" style="color:#1a7f64;">看護師のキャリアチェンジ完全ガイド</a>で選択肢を整理してから動き出しましょう。</p>
+<p>ストレスを感じたら、まず自分の状態を客観的に把握すること。そして、管理できるストレスは管理し、環境を変えるべき時には勇気を持って変える。その判断のために、この記事が少しでもお役に立てれば幸いです。環境を変える選択をした際は、<a href="/lp/job-seeker/guide/career-change.html" style="color:#1a9de0;">看護師のキャリアチェンジ完全ガイド</a>で選択肢を整理してから動き出しましょう。</p>
 <p>一人で判断に迷ったら、気軽にご相談ください。転職を急かすことはしません。あなたにとってベストな選択を、一緒に考えていきましょう。</p>
 <div class="cta-box">
 <h3>あなたのペースで、あなたらしい選択を</h3>
@@ -1469,7 +1460,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 </div>
 <div style="margin-top:40px;padding:24px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
 <p style="font-size:0.8rem;color:var(--text-secondary,#999);line-height:1.8;margin:0;">
-<strong style="color:var(--text-heading,#e8e6e3);">参考文献・出典</strong><br/>
+<strong style="color:var(--text-heading,#f0f8fc);">参考文献・出典</strong><br/>
     本記事の情報は以下の公的データ等を参考にしています。<br/>
     ・厚生労働省「賃金構造基本統計調査」<br/>
     ・日本看護協会「看護職員実態調査」<br/>
@@ -1479,11 +1470,11 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   </p>
 </div>
 <div style="margin:32px 0;padding:24px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-<h4 style="font-size:0.95rem;color:var(--text-heading,#e8e6e3);margin:0 0 12px;">もっと詳しく知る</h4>
+<h4 style="font-size:0.95rem;color:var(--text-heading,#f0f8fc);margin:0 0 12px;">もっと詳しく知る</h4>
 <ul style="list-style:none;padding:0;margin:0;display:grid;gap:6px;">
-<li><a href="/lp/job-seeker/guide/nurse-burnout.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">バーンアウト対策</a></li>
-<li><a href="/lp/job-seeker/guide/work-life-balance.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">看護師のワークライフバランス</a></li>
-<li><a href="/lp/job-seeker/guide/nurse-holidays.html" style="color:var(--accent,#a8dadc);font-size:0.9rem;text-decoration:none;">看護師の休日・有給事情</a></li>
+<li><a href="/lp/job-seeker/guide/nurse-burnout.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">バーンアウト対策</a></li>
+<li><a href="/lp/job-seeker/guide/work-life-balance.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">看護師のワークライフバランス</a></li>
+<li><a href="/lp/job-seeker/guide/nurse-holidays.html" style="color:var(--accent,#50c8a0);font-size:0.9rem;text-decoration:none;">看護師の休日・有給事情</a></li>
 </ul>
 </div>
 <div class="related-articles">
@@ -1495,13 +1486,13 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <li><a href="kanagawa-west-guide.html">神奈川県西部で働く看護師の生活ガイド</a></li>
 <li><a href="ai-medical-future.html">AI時代の看護師キャリア戦略</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">エリア別求人情報</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">エリア別求人情報</h4>
 <ul>
 <li><a href="/lp/job-seeker/area/odawara.html">小田原市の求人</a></li>
 <li><a href="/lp/job-seeker/area/yokohama.html">横浜市の看護師求人</a></li>
 <li><a href="/lp/job-seeker/area/kawasaki.html">川崎市の看護師求人</a></li>
 </ul>
-<h4 style="margin-top:16px;color:#1a1a2e;">転職ガイド</h4>
+<h4 style="margin-top:16px;color:#2a2a3e;">転職ガイド</h4>
 <ul>
 <li><a href="/lp/job-seeker/guide/nurse-burnout.html">バーンアウト対策</a></li>
 <li><a href="/lp/job-seeker/guide/mental-health-nurse.html">メンタルヘルスナース</a></li>
