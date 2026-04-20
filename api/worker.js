@@ -3768,7 +3768,7 @@ const INTAKE_AGE_LABELS = {
 function buildIntakeAgeQuestion() {
   return [{
     type: "text",
-    text: "ありがとうございます 🙏\n\n👤 年代を教えてください",
+    text: "ありがとうございます 😊\n\n👤 年代を教えてください",
     quickReply: {
       items: [
         qrItem("20代", "intake=age&v=20s"),
@@ -3786,14 +3786,14 @@ function buildIntakeAgeQuestion() {
 function buildIntakePostalQuestion() {
   return [{
     type: "text",
-    text: "あと1問です 🙏\n\n📮 郵便番号を教えてください\n（例：250-0011）\n\nご不明な場合は、最寄駅名でも構いません 🚉",
+    text: "あと1問です ✨\n\n📮 郵便番号を教えてください\n（例：250-0011）\n\nご不明な場合は、最寄駅名でも構いません 🚉",
   }];
 }
 
 function buildIntakeHumanThanks() {
   return [{
     type: "text",
-    text: "ご回答ありがとうございました 🙏\n\n担当者より改めてご連絡させていただきます ✨\n\n自己認識には誰しも限界がございます。\nご自身の気づいていない魅力を整理し、\nよりよい一歩へ進むサポートをいたします 🌸",
+    text: "ご回答ありがとうございました 🌸\n\n担当者より改めてご連絡させていただきます ✨\n\n自己認識には誰しも限界がございます。\nご自身の気づいていない魅力を整理し、\nよりよい一歩へ進むサポートをいたします 😊",
   }];
 }
 
