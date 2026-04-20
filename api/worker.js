@@ -3721,24 +3721,74 @@ const TEXT_TO_POSTBACK = {
 // ---------- ヘルパー関数 ----------
 // ========== 共通EP経由 welcome分岐 ==========
 // source/intentに応じた経路別welcomeメッセージを生成
-// 新規友だち追加 → 担当者引き継ぎ宣言 + 郵便番号/年齢/資格の収集メッセージ
+// 新規友だち追加 → 担当者引き継ぎ宣言 + 郵便番号入力依頼
 function buildIntakeHumanWelcome() {
   return [
     {
       type: "text",
-      text: "この度は友達登録ありがとうございます！\n担当者におつなぎ致しました。\n\n採用に特化したAIの活用により、転職のサポートさせていただきます。\n今までにないスピードにて転職活動をサポートいたします。\n\n転職の際に自身の魅力が伝わる履歴書・職務経歴書も完全サポート致します。",
+      text: "✨ ご登録ありがとうございます！\n担当者におつなぎしました 💚\n\n採用特化のAIを活用して、\nスピード感ある転職サポートをお約束します 🚀\n\n履歴書・職務経歴書も、\nあなたの魅力が伝わるよう完全サポートします 📝",
     },
     {
       type: "text",
-      text: "先に下記の事項にお答えください。\n\n・郵便番号\n・年齢\n・保有資格",
+      text: "まずは3つだけ教えてください ✍️\n\n📮 郵便番号を教えてください\n（例：250-0011）",
     },
   ];
+}
+
+// 年代質問（Quick Reply）
+const INTAKE_AGE_LABELS = {
+  "20s": "20代",
+  "30s_early": "30代前半",
+  "30s_late": "30代後半",
+  "40s_early": "40代前半",
+  "40s_late": "40代後半",
+  "50plus": "50代以上",
+};
+function buildIntakeAgeQuestion() {
+  return [{
+    type: "text",
+    text: "ありがとうございます 🙏\n\n🎂 年代を教えてください",
+    quickReply: {
+      items: [
+        qrItem("20代", "intake=age&v=20s"),
+        qrItem("30代前半", "intake=age&v=30s_early"),
+        qrItem("30代後半", "intake=age&v=30s_late"),
+        qrItem("40代前半", "intake=age&v=40s_early"),
+        qrItem("40代後半", "intake=age&v=40s_late"),
+        qrItem("50代以上", "intake=age&v=50plus"),
+      ],
+    },
+  }];
+}
+
+// 保有資格質問（Quick Reply）
+const INTAKE_QUAL_LABELS = {
+  "rn": "正看護師",
+  "lpn": "准看護師",
+  "phn": "保健師",
+  "midwife": "助産師",
+  "other": "その他",
+};
+function buildIntakeQualQuestion() {
+  return [{
+    type: "text",
+    text: "💼 保有資格を教えてください",
+    quickReply: {
+      items: [
+        qrItem("正看護師", "intake=qual&v=rn"),
+        qrItem("准看護師", "intake=qual&v=lpn"),
+        qrItem("保健師", "intake=qual&v=phn"),
+        qrItem("助産師", "intake=qual&v=midwife"),
+        qrItem("その他", "intake=qual&v=other"),
+      ],
+    },
+  }];
 }
 
 function buildIntakeHumanThanks() {
   return [{
     type: "text",
-    text: "ありがとうございます。\n担当者から連絡させていただきます。\n\n自己認識には誰しも限界があります。\nご自身の認識していない魅力を整理し、\nよりよいステップに進む支援をさせていただきます。",
+    text: "🙏 ありがとうございます！\n\n担当者からご連絡させていただきます ✨\n\n自己認識には誰しも限界があります。\nご自身の気づいていない魅力を整理して、\nよりよい一歩に進む支援をさせていただきます 💚",
   }];
 }
 
@@ -7071,7 +7121,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             }
           }
           // LIFF経由でもまず担当者引き継ぎを宣言して情報収集する
-          entry.phase = "intake_human";
+          entry.phase = "intake_postal";
           await saveLineEntry(userId, entry, env);
           await lineReply(event.replyToken, buildIntakeHumanWelcome(), channelAccessToken);
           // 使用済みLIFFセッションを削除
@@ -7082,7 +7132,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else {
           // 通常フォロー（LIFF未経由 or dm_text方式）
           entry.welcomeSource = entry.welcomeSource || 'none';
-          entry.phase = "intake_human";
+          entry.phase = "intake_postal";
           await saveLineEntry(userId, entry, env);
           await lineReply(event.replyToken, buildIntakeHumanWelcome(), channelAccessToken);
         }
@@ -7157,6 +7207,60 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         const dataStr = event.postback.data;
+
+        // 【intake_age】年代選択 → 資格選択へ
+        if (entry.phase === "intake_age" && dataStr.startsWith("intake=age&")) {
+          const pbParams = new URLSearchParams(dataStr);
+          const ageKey = pbParams.get("v") || "";
+          if (INTAKE_AGE_LABELS[ageKey]) {
+            entry.intakeAge = ageKey;
+            entry.phase = "intake_qual";
+            entry.messageCount = (entry.messageCount || 0) + 1;
+            await saveLineEntry(userId, entry, env);
+            await lineReply(event.replyToken, buildIntakeQualQuestion(), channelAccessToken);
+            ctx.waitUntil(logPhaseTransition(userId, "intake_age", "intake_qual", "postback", entry, env, ctx));
+            continue;
+          }
+        }
+
+        // 【intake_qual】資格選択 → 感謝 + handoff + Slack通知
+        if (entry.phase === "intake_qual" && dataStr.startsWith("intake=qual&")) {
+          const pbParams = new URLSearchParams(dataStr);
+          const qualKey = pbParams.get("v") || "";
+          if (INTAKE_QUAL_LABELS[qualKey]) {
+            entry.intakeQual = qualKey;
+            entry.phase = "handoff";
+            entry.handoffAt = Date.now();
+            entry.handoffRequestedByUser = false;
+            entry.handoffReason = "intake_human_complete";
+            entry.messageCount = (entry.messageCount || 0) + 1;
+            await saveLineEntry(userId, entry, env);
+            await lineReply(event.replyToken, buildIntakeHumanThanks(), channelAccessToken);
+            // Slack通知（担当者アクション用）
+            ctx.waitUntil((async () => {
+              if (!env.SLACK_BOT_TOKEN) return;
+              const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+              const profile = await getLineProfile(userId, env);
+              const nameLine = profile?.displayName ? `👤 名前: *${profile.displayName}*\n` : "";
+              const picLine = profile?.pictureUrl ? `🖼 ${profile.pictureUrl}\n` : "";
+              const src = entry.welcomeSource && entry.welcomeSource !== 'none' ? `📍 流入: ${entry.welcomeSource}\n` : "";
+              const postalDisp = entry.intakePostal ? (entry.intakePostal.slice(0,3) + '-' + entry.intakePostal.slice(3)) : '(未取得)';
+              const ageDisp = INTAKE_AGE_LABELS[entry.intakeAge] || '(未取得)';
+              const qualDisp = INTAKE_QUAL_LABELS[entry.intakeQual] || '(未取得)';
+              await fetch("https://slack.com/api/chat.postMessage", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({
+                  channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                  text: `🎯 *新規リード → 人間対応リクエスト*\n${nameLine}${src}ユーザーID: \`${userId}\`\n\n📝 *基本情報*\n📮 郵便番号: \`${postalDisp}\`\n🎂 年代: ${ageDisp}\n💼 資格: ${qualDisp}\n\n時刻: ${nowJST}\n${picLine}📲 返信 → https://chat.line.biz/\n\n✅ *対応TODO*\n☐ 24時間以内にLINEで連絡\n☐ 郵便番号から通勤可能エリアを確認\n☐ 資格・年代から求人候補を絞り込み`,
+                }),
+              }).catch((e) => { console.error(`[Slack] intake notify failed: ${e.message}`); });
+            })());
+            ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
+            ctx.waitUntil(logPhaseTransition(userId, "intake_qual", "handoff", "postback", entry, env, ctx));
+            continue;
+          }
+        }
 
         // handoff中のpostbackはFAQ+リッチメニューのみ許可（Bot再起動防止）
         if (entry.phase === "handoff" || entry.phase === "handoff_silent") {
@@ -7928,36 +8032,33 @@ ${entry.rmCvQualifications || '看護師免許'}
           // isUrgent: Slack通知はするが会話は続行（ユーザーの意思を尊重）
         }
 
-        // 【intake_human】新規友だち追加後、郵便番号/年齢/資格の返信を受けて即handoff
-        if (entry.phase === "intake_human") {
-          entry.intakeHumanResponse = userText.slice(0, 500);
-          entry.phase = "handoff";
-          entry.handoffAt = Date.now();
-          entry.handoffRequestedByUser = false;
-          entry.handoffReason = "intake_human_complete";
+        // 【intake_postal】郵便番号入力受付 → 年代選択へ
+        if (entry.phase === "intake_postal") {
+          // 郵便番号抽出（XXX-XXXX または XXXXXXX）
+          const postalMatch = userText.match(/(\d{3}-?\d{4})/);
+          if (!postalMatch) {
+            await lineReply(event.replyToken, [{
+              type: "text",
+              text: "📮 郵便番号を教えてください 🙏\n（例：250-0011）\n\n分からない場合は最寄駅名でもOKです！",
+            }], channelAccessToken);
+            continue;
+          }
+          entry.intakePostal = postalMatch[1].replace('-', '').slice(0, 7);
+          entry.phase = "intake_age";
           entry.messageCount = (entry.messageCount || 0) + 1;
           await saveLineEntry(userId, entry, env);
-          await lineReply(event.replyToken, buildIntakeHumanThanks(), channelAccessToken);
-          // Slack通知（担当者アクション用・プロフィール+入力内容+OA Manager誘導）
-          ctx.waitUntil((async () => {
-            if (!env.SLACK_BOT_TOKEN) return;
-            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-            const profile = await getLineProfile(userId, env);
-            const nameLine = profile?.displayName ? `👤 名前: *${profile.displayName}*\n` : "";
-            const picLine = profile?.pictureUrl ? `🖼 ${profile.pictureUrl}\n` : "";
-            const src = entry.welcomeSource && entry.welcomeSource !== 'none' ? `📍 流入: ${entry.welcomeSource}\n` : "";
-            await fetch("https://slack.com/api/chat.postMessage", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({
-                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-                text: `🎯 *新規リード → 人間対応リクエスト*\n${nameLine}${src}ユーザーID: \`${userId}\`\n\n📝 *入力情報（郵便番号/年齢/資格）*\n${userText.slice(0, 500)}\n\n時刻: ${nowJST}\n${picLine}📲 返信 → https://chat.line.biz/\n\n✅ *対応TODO*\n☐ 24時間以内にLINEで連絡\n☐ 郵便番号から通勤可能エリアを確認\n☐ 資格・年齢から求人候補を絞り込み`,
-              }),
-            }).catch((e) => { console.error(`[Slack] intake_human notify failed: ${e.message}`); });
-          })());
-          // ファネルイベント
-          ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
-          ctx.waitUntil(logPhaseTransition(userId, "intake_human", "handoff", "text", entry, env, ctx));
+          await lineReply(event.replyToken, buildIntakeAgeQuestion(), channelAccessToken);
+          ctx.waitUntil(logPhaseTransition(userId, "intake_postal", "intake_age", "text", entry, env, ctx));
+          continue;
+        }
+
+        // 【intake_age / intake_qual】テキスト入力が来た場合はQR再表示で誘導
+        if (entry.phase === "intake_age") {
+          await lineReply(event.replyToken, buildIntakeAgeQuestion(), channelAccessToken);
+          continue;
+        }
+        if (entry.phase === "intake_qual") {
+          await lineReply(event.replyToken, buildIntakeQualQuestion(), channelAccessToken);
           continue;
         }
 
@@ -8329,8 +8430,9 @@ ${entry.rmCvQualifications || '看護師免許'}
           }).catch((e) => { console.error(`[Slack] non-text notification failed: ${e.message}`); });
         }
 
-        // handoff中 or intake_human中: Bot沈黙（テキストと同じ挙動）
-        if (entry.phase === "handoff" || entry.phase === "handoff_silent" || entry.phase === "intake_human") {
+        // handoff中 or intake中: Bot沈黙（テキストと同じ挙動）
+        const silentPhases = ["handoff", "handoff_silent", "intake_postal", "intake_age", "intake_qual"];
+        if (silentPhases.includes(entry.phase)) {
           console.log(`[LINE] Silent (${entry.phase}, non-text ${msgType}): User: ${userId.slice(0, 8)}`);
           continue;
         }
