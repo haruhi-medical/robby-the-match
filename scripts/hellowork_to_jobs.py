@@ -166,6 +166,22 @@ def main():
     ranked_jobs = ranked_data.get("jobs", [])
     print(f"📦 入力: {len(ranked_jobs)}件のランク済み看護師求人")
 
+    # 派遣求人除外（職業安定法遵守 + 社長指示 feedback_no_dispatch.md）
+    # hellowork_to_d1.py の EXCLUDE_EMP_TYPES と同一ルール
+    dispatch_excluded = 0
+    non_dispatch = []
+    for rj in ranked_jobs:
+        details = rj.get("details", {}) or {}
+        emp_type = details.get("emp_type") or rj.get("employment_type") or ""
+        title = rj.get("job_title") or ""
+        if "派遣" in emp_type or "派遣" in title:
+            dispatch_excluded += 1
+            continue
+        non_dispatch.append(rj)
+    if dispatch_excluded:
+        print(f"🚫 派遣求人除外: {dispatch_excluded}件")
+    ranked_jobs = non_dispatch
+
     # エリア別に分類
     area_jobs = {}  # area → [job_objects]
     unclassified = 0

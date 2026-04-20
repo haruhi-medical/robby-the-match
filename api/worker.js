@@ -5114,6 +5114,9 @@ async function buildPhaseMessage(phase, entry, env) {
         let sql = 'SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type FROM jobs';
         const params = [];
         const conditions = [];
+        // 派遣求人除外（ランタイム保険・職業安定法）
+        conditions.push("(emp_type IS NULL OR emp_type NOT LIKE '%派遣%')");
+        conditions.push("(title IS NULL OR title NOT LIKE '%派遣%')");
         if (entry.prefecture) {
           conditions.push('prefecture = ?');
           params.push(entry.prefecture === 'tokyo' ? '東京都' : entry.prefecture === 'kanagawa' ? '神奈川県' : entry.prefecture === 'chiba' ? '千葉県' : entry.prefecture === 'saitama' ? '埼玉県' : '');
@@ -5426,7 +5429,9 @@ async function generateLineMatching(entry, env, offset = 0) {
       let sql = `SELECT kjno, employer, title, rank, score, area, prefecture,
         work_location, salary_form, salary_min, salary_max, salary_display,
         bonus_text, holidays, emp_type, station_text, shift1, shift2,
-        description, welfare FROM jobs WHERE 1=1`;
+        description, welfare FROM jobs WHERE 1=1
+        AND (emp_type IS NULL OR emp_type NOT LIKE '%派遣%')
+        AND (title IS NULL OR title NOT LIKE '%派遣%')`;
       const params = [];
 
       // エリアフィルタ
