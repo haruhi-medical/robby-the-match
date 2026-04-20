@@ -9344,159 +9344,119 @@ const RESUME_TEMPLATE_HTML = String.raw`<!DOCTYPE html>
       width: 10mm;
     }
 
-    /* ===== 左ページ: 個人情報 + 学歴職歴前半 ===== */
-    .personal-info {
+    /* ===== 個人情報テーブル（単一のtableで境界線を統一） ===== */
+    .person-info {
       width: 100%;
-      border: var(--border);
       border-collapse: collapse;
-      margin-bottom: 4mm;
-    }
-    .personal-info td, .personal-info th {
       border: var(--border);
-      padding: 3px 6px;
+      margin-bottom: 3mm;
+    }
+    .person-info td {
+      border: var(--border);
+      padding: 2mm 3mm;
       vertical-align: middle;
       font-size: 10.5pt;
     }
-    .personal-info .lbl {
-      font-size: 8.5pt;
-      color: #000;
-      display: block;
+    /* ラベルセル（ふりがな/氏名/現住所/連絡先） */
+    .person-info .lbl-cell {
+      font-size: 9pt;
+      text-align: center;
+      padding: 1mm 2mm;
+      vertical-align: middle;
+    }
+    /* ふりがな値セル */
+    .person-info .furi-cell {
+      font-size: 9pt;
+      padding: 1mm 3mm;
+      min-height: 5mm;
+      vertical-align: middle;
+    }
+    /* 氏名セル */
+    .person-info .name-cell {
+      font-size: 14pt;
+      letter-spacing: 0.2em;
+      padding: 3mm 3mm;
+      vertical-align: middle;
+    }
+    /* 生年月日セル */
+    .person-info .dob-cell {
+      text-align: center;
+      padding: 2mm 3mm;
+      font-size: 10.5pt;
+    }
+    /* 性別セル */
+    .person-info .gender-cell {
+      padding: 1mm 2mm;
+      text-align: center;
+    }
+    .person-info .gender-cell .gender-lbl {
+      font-size: 8pt;
       line-height: 1.2;
+    }
+    .person-info .gender-cell .gender-val {
+      font-size: 10.5pt;
+      margin-top: 1mm;
+      line-height: 1.2;
+    }
+    /* 住所セル */
+    .person-info .addr-cell {
+      padding: 2mm 3mm;
+      font-size: 10.5pt;
+      line-height: 1.5;
+    }
+    .person-info .note-small {
+      font-size: 8pt;
+      color: #333;
+    }
+    /* 電話セル */
+    .person-info .phone-cell {
+      padding: 1mm 2mm;
+      text-align: center;
+    }
+    .person-info .phone-cell .phone-lbl {
+      font-size: 8pt;
+      padding-bottom: 1mm;
+      border-bottom: 1px solid #000;
       margin-bottom: 1mm;
     }
-    .personal-info .name-big {
-      font-size: 14pt;
-      letter-spacing: 0.15em;
-      padding: 6mm 8px 4mm;
-      text-align: left;
+    .person-info .phone-cell .phone-val {
+      font-size: 10pt;
+      padding-top: 1mm;
     }
-    .personal-info .furigana {
-      font-size: 9pt;
-      min-height: 4mm;
-      padding: 2px 6px;
-    }
-    .personal-info .age-gender {
-      padding: 2mm 6px;
-    }
-
-    /* 写真欄 */
-    .photo-box {
-      width: 28mm;
-      height: 38mm;
-      border: var(--border);
+    /* 写真セル（28x38mmの枠を内部に表示） */
+    .person-info .photo-cell {
+      width: 30mm;
       padding: 2mm;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .photo-box {
+      width: 26mm;
+      min-height: 36mm;
+      padding: 1mm;
       font-size: 7.5pt;
-      line-height: 1.35;
-      color: #000;
+      line-height: 1.3;
       text-align: left;
-      vertical-align: top;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
+      margin: 0 auto;
     }
     .photo-box .ph-head {
       font-size: 8pt;
+      text-align: center;
       margin-bottom: 1mm;
     }
+    .photo-box .ph-note {
+      font-size: 7pt;
+      margin-bottom: 1mm;
+      text-align: center;
+    }
     .photo-box ol {
-      padding-left: 1.2em;
+      padding-left: 1.1em;
       margin: 0;
     }
     .photo-box li {
       font-size: 7pt;
-      line-height: 1.3;
-    }
-
-    /* ふりがな / 氏名 / 写真 エリア */
-    .header-block {
-      display: grid;
-      grid-template-columns: 1fr 30mm;
-      gap: 0;
-      margin-bottom: 2mm;
-    }
-    .name-block {
-      border: var(--border);
-      border-right: none;
-    }
-    .name-block > .row {
-      border-bottom: var(--border);
-      padding: 1mm 4px;
-    }
-    .name-block > .row:last-child {
-      border-bottom: none;
-    }
-    .photo-block {
-      border: var(--border);
-    }
-
-    /* 生年月日 + 性別 */
-    .dob-row {
-      display: grid;
-      grid-template-columns: 1fr 30mm;
-      border: var(--border);
-      border-top: none;
-    }
-    .dob-row .dob {
-      padding: 2mm 6px;
-      border-right: var(--border);
-      font-size: 10.5pt;
-      text-align: center;
-    }
-    .dob-row .gender {
-      padding: 2mm 6px;
-      font-size: 9pt;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .dob-row .gender .gender-label {
-      font-size: 8pt;
-      color: #000;
-    }
-    .dob-row .gender .gender-value {
-      font-size: 10pt;
-      margin-top: 1mm;
-    }
-
-    /* 現住所 + 電話 / 連絡先 + 電話 */
-    .addr-row {
-      border: var(--border);
-      border-top: none;
-      display: grid;
-      grid-template-columns: 1fr 40mm;
-    }
-    .addr-row .addr-col {
-      border-right: var(--border);
-    }
-    .addr-row .addr-col > .furigana {
-      padding: 1mm 4px;
-      border-bottom: var(--border);
-      font-size: 9pt;
-      min-height: 5mm;
-    }
-    .addr-row .addr-col > .addr-body {
-      padding: 2mm 4px;
-      min-height: 14mm;
-      font-size: 10.5pt;
-    }
-    .addr-row .phone-col {
-      display: flex;
-      flex-direction: column;
-    }
-    .addr-row .phone-col > .phone-label {
-      padding: 1mm 4px;
-      border-bottom: var(--border);
-      font-size: 9pt;
-      text-align: center;
-      min-height: 5mm;
-    }
-    .addr-row .phone-col > .phone-body {
-      padding: 2mm 4px;
-      min-height: 14mm;
-      font-size: 10.5pt;
-      text-align: center;
+      line-height: 1.25;
+      margin-bottom: 0.5mm;
     }
 
     /* 学歴職歴 / 免許資格 テーブル */
@@ -9615,63 +9575,64 @@ const RESUME_TEMPLATE_HTML = String.raw`<!DOCTYPE html>
           <span class="date-today">{{createdDate}}現在</span>
         </div>
 
-        <!-- 氏名 + 写真 -->
-        <div class="header-block">
-          <div class="name-block">
-            <div class="row" style="min-height: 6mm;">
-              <span class="lbl">ふりがな</span>
-              <span style="font-size: 10pt; padding-left: 4px;">{{furigana}}</span>
-            </div>
-            <div class="row" style="min-height: 14mm; display: flex; align-items: center;">
-              <span class="lbl" style="align-self: flex-start;">氏　名</span>
-              <span class="name-big" style="padding: 0 0 0 6px; flex: 1;">{{fullName}}</span>
-            </div>
-          </div>
-          <div class="photo-block">
-            <div class="photo-box">
-              <div class="ph-head">写真をはる位置</div>
-              <div style="font-size: 7pt; margin-top: 1mm;">写真をはる必要が<br>ある場合</div>
-              <ol>
-                <li>縦 36〜40mm<br>横 24〜30mm</li>
-                <li>本人単身胸から上</li>
-                <li>裏面のりづけ</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-
-        <!-- 生年月日 + 性別 -->
-        <div class="dob-row">
-          <div class="dob">{{birthDate}}（満 {{age}} 歳）</div>
-          <div class="gender">
-            <span class="gender-label">※性別</span>
-            <span class="gender-value">{{gender}}</span>
-          </div>
-        </div>
-
-        <!-- 現住所 -->
-        <div class="addr-row">
-          <div class="addr-col">
-            <div class="furigana">ふりがな　{{addressFurigana}}</div>
-            <div class="addr-body">現住所　〒{{postalCode}}<br>{{address}}</div>
-          </div>
-          <div class="phone-col">
-            <div class="phone-label">電話</div>
-            <div class="phone-body">{{phone}}</div>
-          </div>
-        </div>
-
-        <!-- 連絡先（現住所以外） -->
-        <div class="addr-row" style="border-top: none;">
-          <div class="addr-col">
-            <div class="furigana">ふりがな　{{contactAddressFurigana}}</div>
-            <div class="addr-body" style="font-size: 9pt;">連絡先　〒{{contactPostalCode}}<br>{{contactAddress}}<br><span style="font-size: 8pt; color: #333;">（現住所以外に連絡を希望する場合のみ記入）</span></div>
-          </div>
-          <div class="phone-col">
-            <div class="phone-label">電話</div>
-            <div class="phone-body">{{contactPhone}}</div>
-          </div>
-        </div>
+        <!-- 個人情報（ふりがな/氏名/生年月日/性別/現住所/連絡先を1つの表として） -->
+        <table class="person-info">
+          <colgroup>
+            <col style="width: 18mm;">
+            <col>
+            <col style="width: 30mm;">
+          </colgroup>
+          <tr>
+            <td class="lbl-cell">ふりがな</td>
+            <td class="furi-cell">{{furigana}}</td>
+            <td rowspan="2" class="photo-cell">
+              <div class="photo-box">
+                <div class="ph-head">写真をはる位置</div>
+                <div class="ph-note">写真をはる必要が<br>ある場合</div>
+                <ol>
+                  <li>縦 36〜40mm<br>横 24〜30mm</li>
+                  <li>本人単身胸から上</li>
+                  <li>裏面のりづけ</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="lbl-cell">氏　名</td>
+            <td class="name-cell">{{fullName}}</td>
+          </tr>
+          <tr>
+            <td colspan="2" class="dob-cell">{{birthDate}}生　　（満 {{age}} 歳）</td>
+            <td class="gender-cell">
+              <div class="gender-lbl">※性別</div>
+              <div class="gender-val">{{gender}}</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="lbl-cell">ふりがな</td>
+            <td class="furi-cell">{{addressFurigana}}</td>
+            <td rowspan="2" class="phone-cell">
+              <div class="phone-lbl">電話</div>
+              <div class="phone-val">{{phone}}</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="lbl-cell">現住所</td>
+            <td class="addr-cell">〒{{postalCode}}<br>{{address}}</td>
+          </tr>
+          <tr>
+            <td class="lbl-cell">ふりがな</td>
+            <td class="furi-cell">{{contactAddressFurigana}}</td>
+            <td rowspan="2" class="phone-cell">
+              <div class="phone-lbl">電話</div>
+              <div class="phone-val">{{contactPhone}}</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="lbl-cell">連絡先</td>
+            <td class="addr-cell">〒{{contactPostalCode}}<br>{{contactAddress}}<br><span class="note-small">（現住所以外に連絡を希望する場合のみ記入）</span></td>
+          </tr>
+        </table>
 
         <!-- 学歴・職歴（前半） -->
         <table class="history-table" style="margin-top: 3mm;">
