@@ -7068,6 +7068,22 @@ async function handleLineWebhook(request, env, ctx) {
   }
 }
 
+// 同POSTのeventsから同ユーザーの dm_text UUID を先読み（follow直後のmessage eventを事前検知）
+// LINE API仕様: 友だち追加URLに ?dm_text=UUID があると follow + message が1POSTで届く
+// follow処理の段階で session_id を把握することで、intake_qual を挟まず直接マッチングへ誘導可能
+function peekSiblingSessionId(events, userId) {
+  for (const ev of events) {
+    if (ev.source?.userId !== userId) continue;
+    if (ev.type !== "message" || ev.message?.type !== "text") continue;
+    let t = (ev.message.text || "").trim();
+    if (/^text=/i.test(t)) t = t.replace(/^text=/i, '');
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(t)) {
+      return t;
+    }
+  }
+  return null;
+}
+
 // ---------- LINE イベント処理（v2: Quick Reply ベース + KV永続化） ----------
 async function processLineEvents(events, channelAccessToken, env, ctx) {
   try {
@@ -7121,20 +7137,44 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           console.error(`[LINE] LIFF session lookup error: ${e.message}`);
         }
 
-        if (liffSessionCtx) {
-          // LIFF経由: セッション情報を復元して即マッチング or カスタムウェルカム
-          console.log(`[LINE] LIFF session found for ${userId.slice(0, 8)}: source=${liffSessionCtx.source}`);
-          entry.webSessionData = liffSessionCtx;
-          entry.welcomeSource = liffSessionCtx.source || 'liff';
-          entry.welcomeIntent = liffSessionCtx.intent || 'see_jobs';
-          if (liffSessionCtx.area) {
-            entry.area = liffSessionCtx.area;
-            // エリアラベルの変換はbuildSessionWelcomeで行う
+        // ========== dm_text方式セッション先読み（2026-04-20 追加） ==========
+        // 同POST内のmessage eventからUUIDを抜いて session:{uuid} を取得
+        // 従来はfollowハンドラで常にintake_qual固定だったためshindan引き継ぎがデッドコード化していた
+        let dmTextSessionCtx = null;
+        let consumedSessionId = null;
+        if (!liffSessionCtx) {
+          const siblingSid = peekSiblingSessionId(events, userId);
+          if (siblingSid && env?.LINE_SESSIONS) {
+            try {
+              const raw = await env.LINE_SESSIONS.get(`session:${siblingSid}`, { cacheTtl: 60 });
+              if (raw) {
+                dmTextSessionCtx = JSON.parse(raw);
+                dmTextSessionCtx.sessionId = siblingSid;
+                consumedSessionId = siblingSid;
+              }
+            } catch (e) { console.error(`[LINE] dm_text session lookup error: ${e.message}`); }
+          }
+          if (!dmTextSessionCtx && siblingSid && webSessionMap.has(`session:${siblingSid}`)) {
+            dmTextSessionCtx = webSessionMap.get(`session:${siblingSid}`);
+            dmTextSessionCtx.sessionId = siblingSid;
+            consumedSessionId = siblingSid;
+          }
+        }
+
+        const preloadedCtx = liffSessionCtx || dmTextSessionCtx;
+        if (preloadedCtx) {
+          console.log(`[LINE] Session preload for ${userId.slice(0, 8)}: source=${preloadedCtx.source}, via=${liffSessionCtx ? 'liff' : 'dm_text'}`);
+          entry.webSessionData = preloadedCtx;
+          entry.welcomeSource = preloadedCtx.source || (liffSessionCtx ? 'liff' : 'none');
+          entry.welcomeIntent = preloadedCtx.intent || 'see_jobs';
+          if (preloadedCtx.area) {
+            entry.area = preloadedCtx.area;
+            entry.areaLabel = IL_AREA_LABELS[preloadedCtx.area] || entry.areaLabel || preloadedCtx.area;
           }
           // LP診断の回答があれば復元
-          if (liffSessionCtx.answers) {
+          if (preloadedCtx.answers) {
             try {
-              const ans = typeof liffSessionCtx.answers === 'string' ? JSON.parse(liffSessionCtx.answers) : liffSessionCtx.answers;
+              const ans = typeof preloadedCtx.answers === 'string' ? JSON.parse(preloadedCtx.answers) : preloadedCtx.answers;
               if (ans.area) entry.area = ans.area;
               if (ans.areaLabel) entry.areaLabel = ans.areaLabel;
               if (ans.prefecture) entry.prefecture = ans.prefecture;
@@ -7143,9 +7183,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               if (ans.urgency) entry.urgency = ans.urgency;
             } catch (e) { /* パース失敗は無視 */ }
           }
-          // #42 Phase2 Group J: preMatching キャッシュヒット時はマッチング生成を skip
-          // handleLineStart で事前生成されていれば 15分TTL で preMatching:{sessionId} に入っている
-          const preMatchingSid = liffSessionCtx.sessionId;
+          // preMatching キャッシュヒット時はマッチング生成を skip
+          const preMatchingSid = preloadedCtx.sessionId;
           if (preMatchingSid && env?.LINE_SESSIONS) {
             try {
               const pmRaw = await env.LINE_SESSIONS.get(`preMatching:${preMatchingSid}`, { cacheTtl: 30 });
@@ -7156,28 +7195,60 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                   entry._preMatchingHit = true;
                   console.log(`[LINE] preMatching HIT userId=${userId.slice(0, 8)} sid=${preMatchingSid.slice(0, 8)} count=${pm.results.length}`);
                 }
-                // 使用済みキャッシュは削除
                 await env.LINE_SESSIONS.delete(`preMatching:${preMatchingSid}`).catch(() => {});
               }
             } catch (e) {
               console.error(`[LINE] preMatching cache lookup error: ${e.message}`);
             }
           }
-          // LIFF経由でもまず担当者引き継ぎを宣言して情報収集する
+        }
+
+        // ===== Shindanショートカット判定 =====
+        // area+workStyle+urgency が揃っているなら intake_qual をスキップして即マッチング
+        const hasCompleteShindan = !!(entry.area && entry.workStyle && entry.urgency);
+
+        if (preloadedCtx && hasCompleteShindan) {
+          // 求人データをinline生成（preMatching HIT時はスキップ）
+          if (!entry.matchingResults || entry.matchingResults.length === 0) {
+            try {
+              await generateLineMatching(entry, env, 0);
+            } catch (e) {
+              console.error(`[LINE] generateLineMatching on follow error: ${e.message}`);
+            }
+          }
+
+          // info層は info_detour（求人→相場マップ3択）、それ以外は matching_preview
+          const targetPhase = entry.urgency === 'info' ? 'info_detour' : 'matching_preview';
+          entry.phase = targetPhase;
+          entry._consumedSessionId = consumedSessionId;  // 同POSTのdm_textを重複処理しないための目印
+          if (entry.matchingResults && entry.matchingResults.length > 0) {
+            if (!entry.browsedJobIds) entry.browsedJobIds = [];
+            entry.browsedJobIds.push(...entry.matchingResults.slice(0, 5).map(r => r.id || r.n).filter(Boolean));
+          }
+          await saveLineEntry(userId, entry, env);
+
+          const replyMsgs = await buildPhaseMessage(targetPhase, entry, env);
+          await lineReply(event.replyToken, (replyMsgs || []).slice(0, 5), channelAccessToken);
+
+          // LIFFセッション/session削除（消費済み）
+          try {
+            if (liffSessionCtx && env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${userId}`);
+            webSessionMap.delete(`liff:${userId}`);
+            if (consumedSessionId && env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`session:${consumedSessionId}`);
+            if (consumedSessionId) webSessionMap.delete(`session:${consumedSessionId}`);
+          } catch (e) { /* 削除失敗は無視 */ }
+        } else {
+          // 診断データ未完 or 流入経路不明 → 既存 intake_qual（3問ヒアリング）
+          entry.welcomeSource = entry.welcomeSource || 'none';
           entry.phase = "intake_qual";
+          if (consumedSessionId) entry._consumedSessionId = consumedSessionId;
           await saveLineEntry(userId, entry, env);
           await lineReply(event.replyToken, buildIntakeHumanWelcome(), channelAccessToken);
           // 使用済みLIFFセッションを削除
           try {
-            if (env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${userId}`);
+            if (liffSessionCtx && env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${userId}`);
             webSessionMap.delete(`liff:${userId}`);
           } catch (e) { /* 削除失敗は無視 */ }
-        } else {
-          // 通常フォロー（LIFF未経由 or dm_text方式）
-          entry.welcomeSource = entry.welcomeSource || 'none';
-          entry.phase = "intake_qual";
-          await saveLineEntry(userId, entry, env);
-          await lineReply(event.replyToken, buildIntakeHumanWelcome(), channelAccessToken);
         }
 
         // ファネルイベント: LINE友達追加
@@ -7839,6 +7910,17 @@ ${entry.rmCvQualifications || '看護師免許'}
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
 
+        // ===== dm_text 重複処理防止（2026-04-20 追加） =====
+        // follow handlerで既にsession復元済みのUUIDなら無視（同POST内のdm_text messageを捨てる）
+        let _dmTextStripped = userText;
+        if (/^text=/i.test(_dmTextStripped)) _dmTextStripped = _dmTextStripped.replace(/^text=/i, '');
+        if (entry._consumedSessionId && _dmTextStripped === entry._consumedSessionId) {
+          console.log(`[LINE] Skipping consumed dm_text UUID for ${userId.slice(0, 8)}`);
+          delete entry._consumedSessionId;
+          await saveLineEntry(userId, entry, env);
+          continue;
+        }
+
         // ===== session_id検出（共通LINE送客EP /api/line-start 経由、UUID形式） =====
         // dm_text方式で「text=UUID」として届く場合があるのでプレフィックス除去
         let sessionCandidate = userText;
@@ -7847,7 +7929,8 @@ ${entry.rmCvQualifications || '看護師免許'}
         }
         // UUID v4パターン: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionCandidate);
-        if (isUUID && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "il_area")) {
+        // 2026-04-20: intake_qual追加（follow後にdm_text遅延到達時の救済）
+        if (isUUID && (entry.phase === "follow" || entry.phase === "welcome" || entry.phase === "consent" || entry.phase === "il_area" || entry.phase === "intake_qual")) {
           // KVからセッション情報を取得
           let sessionCtx = null;
           if (env?.LINE_SESSIONS) {
