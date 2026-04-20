@@ -1,6 +1,6 @@
 # Search Console 手動インデックスリクエスト優先リスト
 
-> 生成日時: 2026-04-20 21:40
+> 生成日時: 2026-04-20 21:59
 > 生成元: `scripts/generate_sitemap.py`
 
 ## 運用ガイド
@@ -72,9 +72,9 @@
 
 ## 全URL統計
 
-- 総URL数: 241
+- 総URL数: 251
 - Priority 1.0: 2
 - Priority 0.9: 6
 - Priority 0.8: 153
-- Priority 0.7: 78
+- Priority 0.7: 88
 - Priority 0.5以下: 2
