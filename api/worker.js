@@ -3765,18 +3765,33 @@ const INTAKE_AGE_LABELS = {
   "40s_late": "40代後半",
   "50plus": "50代以上",
 };
+// 年代postback action: タップ後にキーボード自動起動+郵便番号先頭記号プレフィル
+// LINE Messaging API の inputOption / fillInText 機能で次の郵便番号入力をワンタップ化
+function ageQrItem(label, v) {
+  return {
+    type: "action",
+    action: {
+      type: "postback",
+      label: label.slice(0, 20),
+      data: `intake=age&v=${v}`,
+      displayText: label,
+      inputOption: "openKeyboard",
+    },
+  };
+}
+
 function buildIntakeAgeQuestion() {
   return [{
     type: "text",
     text: "ありがとうございます 😊\n\n👤 年代を教えてください",
     quickReply: {
       items: [
-        qrItem("20代", "intake=age&v=20s"),
-        qrItem("30代前半", "intake=age&v=30s_early"),
-        qrItem("30代後半", "intake=age&v=30s_late"),
-        qrItem("40代前半", "intake=age&v=40s_early"),
-        qrItem("40代後半", "intake=age&v=40s_late"),
-        qrItem("50代以上", "intake=age&v=50plus"),
+        ageQrItem("20代", "20s"),
+        ageQrItem("30代前半", "30s_early"),
+        ageQrItem("30代後半", "30s_late"),
+        ageQrItem("40代前半", "40s_early"),
+        ageQrItem("40代後半", "40s_late"),
+        ageQrItem("50代以上", "50plus"),
       ],
     },
   }];
