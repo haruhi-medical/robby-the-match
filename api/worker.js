@@ -4833,7 +4833,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "nurture_subscribed":
       return [{
         type: "text",
-        text: "ありがとうございます！\n条件に合う新着求人が出たら\nすぐにお知らせしますね。\n\nいつでも「求人を探す」と\n話しかけてください🤖",
+        text: "ありがとうございます 😊\n条件に合う新着求人が出たら\nすぐにお知らせしますね。\n\nいつでも「求人を探す」と\n話しかけてください 🌸",
         quickReply: {
           items: [
             qrItem("今すぐ求人を探す", "welcome=see_jobs"),
@@ -6807,7 +6807,7 @@ function handleFreeTextInput(text, entry) {
   if (phase === "rm_cv_q8") {
     const name = text.trim();
     if (name.length < 2) {
-      return { type: "text", text: "お名前は2文字以上でご入力ください🙏\n（例: 山田 花子）" };
+      return { type: "text", text: "お名前は2文字以上でご入力ください\n（例: 山田 花子）" };
     }
     entry.fullName = name;
     entry.unexpectedTextCount = 0;
@@ -6915,7 +6915,7 @@ function handleFreeTextInput(text, entry) {
     if (!entry.applyStep || entry.applyStep === "name") {
       // バリデーション: 2文字以上
       if (text.trim().length < 2) {
-        return { type: "text", text: "お名前は2文字以上でご入力ください🙏\n例: 山田 花子" };
+        return { type: "text", text: "お名前は2文字以上でご入力ください\n例: 山田 花子" };
       }
       entry.fullName = text;
       entry.applyStep = "done";
