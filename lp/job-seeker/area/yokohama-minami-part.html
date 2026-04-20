@@ -25,7 +25,7 @@ src="https://www.facebook.com/tr?id=2326210157891886&ev=PageView&noscript=1"/></
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#e6f4fb">
+<meta name="theme-color" content="#F6F2E8">
 
 <title>横浜市南区のパート看護師求人｜ナースロビー</title>
 <meta name="description" content="横浜市南区のパート看護師求人を探す。弘明寺駅周辺エリアから横浜市立大学附属市民総合医療センターまで。LINE完結・電話なし・手数料10%で、静かに次の職場を見つけられます。">
@@ -1032,7 +1032,7 @@ section {
 
 
 /* ====== guide 既存要素 互換レイヤー ====== */
-/* removed: .site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; } */
+.site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; }
 
 /* Hero (既存 guide の大型緑バナー) */
 header.hero {
@@ -1202,7 +1202,7 @@ main p strong, .container p strong { font-weight: 600; color: var(--ink); }
 
 /* cta-band （既存 guide の 末尾帯 CTA → v2 final-cta 風） */
 .cta-band {
-  background: #2a2a3e;
+  background: #181A20;
   color: var(--bg);
   padding: clamp(64px, 9vw, 96px) 20px;
   text-align: center;
@@ -1310,34 +1310,18 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 }
 
 </style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="/assets/design-tokens.css" rel="stylesheet">
 </head>
 <body>
 
-<!-- Header (LP統一 2026-04-20) -->
-<header class="site-header" id="site-header">
-<a href="/lp/job-seeker/" class="header-logo"><img src="/assets/logo-nursrobby.png" alt="ナースロビー" height="48"></a>
-<nav class="header-nav">
-<a href="/lp/job-seeker/area/">地域別求人</a>
-<a href="/lp/job-seeker/guide/">転職ガイド</a>
-<a href="/blog/">ブログ</a>
+<nav class="site-nav" role="navigation" aria-label="メインナビゲーション">
+  <div class="site-nav__inner">
+    <a href="/" class="brand" aria-label="ナースロビー トップ">
+      <span>ナースロビー</span>
+      <span class="brand-tagline">Nurse Robby</span>
+    </a>
+    <a href="https://lin.ee/oUgDB3x" class="nav-cta" aria-label="LINEで求人を見る" rel="noopener">LINEで求人を見る →</a>
+  </div>
 </nav>
-<button class="hamburger" aria-label="メニュー" onclick="document.getElementById('mobileNav').classList.add('open')">&#9776;</button>
-</header>
-
-<!-- Mobile Navigation -->
-<div id="mobileNav" class="mobile-nav" onclick="this.classList.remove('open')">
-<div class="mobile-nav-inner" onclick="event.stopPropagation()">
-<button class="mobile-nav-close" onclick="document.getElementById('mobileNav').classList.remove('open')">&times;</button>
-<a href="/lp/job-seeker/area/">地域別求人</a>
-<a href="/lp/job-seeker/guide/">転職ガイド</a>
-<a href="/blog/">ブログ</a>
-<a href="/about.html">会社概要</a>
-</div>
-</div>
 
 <nav class="breadcrumb" aria-label="パンくずリスト">
   <a href="/">TOP</a>
@@ -1376,6 +1360,14 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
       <p>「保育園の送迎時間」「学校行事で休める」「子の看護休暇あり」という条件で探すと、実質的なママナース歓迎の施設が見つかります。院内保育所があるかも重要な判断材料です。</p>
     </div>
   </section>
+  <section>
+    <div class="container">
+      <h2>横浜市南区の求人データ（公開中）</h2>
+      <p>現在の求人数 <strong>13</strong>件 / 月給平均からの年収換算 <strong>345〜416万円</strong>（ハローワーク・厚労省公表データより自動集計・毎朝更新）</p>
+      <p>求人形態の内訳: 正社員 7件・パート労働者 4件・正社員以外 2件。</p>
+      <p>パート求人は上記のうちクリニック・訪問看護ステーション・介護施設に多く集中しています。</p>
+    </div>
+  </section>
 </div>
 
 <section>
@@ -1404,41 +1396,19 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   <a href="https://lin.ee/oUgDB3x" class="cta-button" rel="noopener">LINEで求人を見る →</a>
 </section>
 
-<!-- Footer (LP統一 2026-04-20) -->
-<footer class="site-footer">
-<div class="footer-brand"><img src="/assets/logo-nursrobby.png" alt="ナースロビー" style="height:72px;width:auto;"></div>
-<p class="footer-permit">有料職業紹介事業許可番号: 23-ユ-302928</p>
-<p style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;">施設データ出典: 厚生労働省 医療情報ネット / 病床機能報告（令和6年度）/ ハローワーク求人</p>
-<div class="footer-links">
-<a href="/privacy.html">プライバシーポリシー</a>
-<a href="/terms.html">利用規約</a>
-<a href="/about/editorial-policy.html">編集方針</a>
-<a href="/blog/">ブログ</a>
-<a href="/lp/job-seeker/area/">地域別求人</a>
-<a href="/lp/job-seeker/guide/">転職ガイド</a>
-</div>
-<p class="footer-editorial">執筆: <a href="/about/editorial-policy.html">神奈川ナース転職編集部</a> / 厚生労働省許可 23-ユ-302928</p>
-<p class="footer-copy"><a href="https://haruhi-medical.com/pages/about" rel="nofollow" target="_blank" style="color:inherit;text-decoration:underline;">会社概要</a></p>
-<p class="footer-copy">&copy; 2026 ナースロビー All Rights Reserved.</p>
+<footer class="footer" role="contentinfo">
+  <div class="container">
+    <div class="footer__grid">
+      <div>
+        <div class="brand" style="font-size: 1.15rem;"><span>ナースロビー</span><span class="brand-tagline">Nurse Robby</span></div>
+        <p style="margin-top: 16px; font-size: 0.85rem; color: var(--ink-soft); max-width: 380px; line-height: 1.85;">神奈川県の看護師転職を、LINE で静かに完結させる AI コンシェルジュ。手数料 10% で、電話営業ゼロの転職体験を。</p>
+      </div>
+      <nav aria-label="エリア"><div class="footer__label">Areas</div><div class="footer__links"><a href="/lp/job-seeker/area/yokohama.html">横浜市</a><a href="/lp/job-seeker/area/kawasaki.html">川崎市</a><a href="/lp/job-seeker/area/sagamihara.html">相模原市</a><a href="/lp/job-seeker/area/">全エリア</a></div></nav>
+      <nav aria-label="ガイド"><div class="footer__label">Guides</div><div class="footer__links"><a href="/lp/job-seeker/guide/">転職ガイド</a><a href="/lp/job-seeker/guide/career-change.html">キャリアチェンジ</a><a href="/lp/job-seeker/guide/fee-comparison.html">手数料について</a></div></nav>
+    </div>
+    <div class="legal"><div><span class="permit"><span class="permit__dot"></span>有料職業紹介事業許可 23-ユ-302928</span></div><div>© 2026 神奈川ナース転職 All Rights Reserved.</div></div>
+  </div>
 </footer>
 
-<!-- Mobile Sticky CTA (LP統一) -->
-<div class="mobile-sticky-cta" id="mobile-sticky-cta">
-<a href="https://line.me/R/ti/p/@174cxnev" target="_blank" rel="noopener" class="mobile-sticky-line">LINEで求人を相談する →</a>
-</div>
-
-<script>
-(function(){
-    var header = document.getElementById('site-header');
-    var mobileCta = document.getElementById('mobile-sticky-cta');
-    function onScroll() {
-        var y = window.pageYOffset;
-        if (header) { if (y > 10) { header.classList.add('scrolled'); } else { header.classList.remove('scrolled'); } }
-        if (mobileCta) { if (y > 300) { mobileCta.classList.add('visible'); } else { mobileCta.classList.remove('visible'); } }
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-})();
-</script>
 </body>
 </html>

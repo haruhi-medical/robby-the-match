@@ -22,12 +22,104 @@ from scripts.apply_editorial_guide import GUIDE_COMPAT_CSS  # type: ignore
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 AREA_DIR = ROOT / "lp/job-seeker/area"
 TEMPLATE_SRC = ROOT / "lp/job-seeker/area/yokohama-naka.html"  # v2適用済み
+STATS_SRC = ROOT / "data" / "area_stats.json"
 BASE_URL = "https://quads-nurse.com"
 
 
 def load_v2_style():
     m = re.search(r"<style>(.*?)</style>", TEMPLATE_SRC.read_text(encoding="utf-8"), re.DOTALL)
     return m.group(1) if m else ""
+
+
+def load_area_stats() -> dict:
+    if not STATS_SRC.exists():
+        return {}
+    return json.loads(STATS_SRC.read_text(encoding="utf-8"))
+
+
+def build_stats_section(area_slug: str, area_ja: str, cond: dict, stats_all: dict) -> str:
+    """D1統計から各ページ固有の統計セクションを生成（薄いコンテンツ対策）。"""
+    s = stats_all.get(area_slug)
+    if not s:
+        return ""
+
+    parts = [f"      <h2>{html.escape(area_ja)}の求人データ（公開中）</h2>"]
+    # 数字サマリー
+    summary_items = []
+    if s.get("facility_count"):
+        summary_items.append(f"対象施設数 <strong>{s['facility_count']}</strong>施設")
+    if s.get("job_count"):
+        summary_items.append(f"現在の求人数 <strong>{s['job_count']}</strong>件")
+    if s.get("annual_min") and s.get("annual_max"):
+        lo = round(s["annual_min"] / 10000)
+        hi = round(s["annual_max"] / 10000)
+        summary_items.append(f"月給平均からの年収換算 <strong>{lo}〜{hi}万円</strong>")
+    if summary_items:
+        parts.append(
+            "      <p>" + " / ".join(summary_items) +
+            "（ハローワーク・厚労省公表データより自動集計・毎朝更新）</p>"
+        )
+
+    # 施設カテゴリ内訳
+    cat = s.get("category_counts") or {}
+    if cat:
+        cat_line = "・".join(f"{k} {v}" for k, v in list(cat.items())[:4] if k)
+        parts.append(f"      <p>施設の内訳: {html.escape(cat_line)}。</p>")
+
+    # 主要施設（上位3）
+    top = s.get("top_facilities") or []
+    if top:
+        parts.append("      <h3>代表施設</h3>")
+        parts.append("      <ul>")
+        for f in top[:3]:
+            name = f.get("name") or ""
+            if not name:
+                continue
+            suffix_parts = []
+            if f.get("sub_type"):
+                suffix_parts.append(f["sub_type"])
+            if f.get("beds"):
+                suffix_parts.append(f"{f['beds']}床")
+            if f.get("station"):
+                suffix_parts.append(f["station"])
+            suffix = "（" + " / ".join(suffix_parts) + "）" if suffix_parts else ""
+            parts.append(f"        <li>{html.escape(name)}{html.escape(suffix)}</li>")
+        parts.append("      </ul>")
+
+    # 主要駅
+    stations = s.get("top_stations") or []
+    if stations:
+        stations_line = "、".join(
+            f"{st['station']}（{st['count']}施設）" for st in stations[:3] if st.get("station")
+        )
+        if stations_line:
+            parts.append(f"      <p>主要アクセス駅: {html.escape(stations_line)}。</p>")
+
+    # 求人形態別
+    emp = s.get("emp_type_counts") or {}
+    if emp:
+        emp_line = "・".join(f"{k} {v}件" for k, v in emp.items() if k)
+        parts.append(f"      <p>求人形態の内訳: {html.escape(emp_line)}。</p>")
+
+    # Condition 別の注記
+    cond_note = {
+        "day": "日勤のみ求人は上記のうちクリニック・訪問看護・外来で特に探しやすい傾向があります。",
+        "night": "夜勤ありは病院カテゴリ中心。施設ごとに2交代/3交代が異なります。",
+        "part": "パート求人は上記のうちクリニック・訪問看護ステーション・介護施設に多く集中しています。",
+        "visit": f"{area_ja}の訪問看護ステーション数は上記のとおりで、自転車訪問可能圏が広いのが特徴です。",
+    }.get(cond.get("label_slug") or "", "")
+    if cond_note:
+        parts.append(f"      <p>{html.escape(cond_note)}</p>")
+
+    # セクションコンテナで括って返す
+    inner = "\n".join(parts)
+    return (
+        "  <section>\n"
+        "    <div class=\"container\">\n"
+        f"{inner}\n"
+        "    </div>\n"
+        "  </section>"
+    )
 
 
 AREAS = [
@@ -266,8 +358,9 @@ src="https://www.facebook.com/tr?id=2326210157891886&ev=PageView&noscript=1"/></
 """
 
 
-def build_page(area_tuple, cond_slug, cond, v2_style, compat_css):
+def build_page(area_tuple, cond_slug, cond, v2_style, compat_css, stats_all=None):
     area_slug, area_ja, area_desc, main_hospital = area_tuple
+    stats_all = stats_all or {}
     slug = f"{area_slug}-{cond['label_slug']}"
     canonical = f"{BASE_URL}/lp/job-seeker/area/{slug}.html"
     title = f"{area_ja}{cond['title_suffix']}｜ナースロビー"
@@ -319,6 +412,10 @@ def build_page(area_tuple, cond_slug, cond, v2_style, compat_css):
             "    </div>\n"
             "  </section>"
         )
+    # 2026-04-20: D1統計から固有データセクション追加（薄いコンテンツ対策）
+    stats_section = build_stats_section(area_slug, area_ja, cond, stats_all)
+    if stats_section:
+        sections_html_parts.append(stats_section)
     sections_html = "\n".join(sections_html_parts)
 
     faq_html_parts = []
@@ -355,29 +452,37 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--force", action="store_true", help="既存ページも上書き（D1統計更新時）")
     args = ap.parse_args()
     if not (args.dry_run or args.apply):
         print("--dry-run または --apply", file=sys.stderr)
         sys.exit(1)
 
     v2_style = load_v2_style()
+    stats_all = load_area_stats()
+    if not stats_all:
+        print("⚠️  area_stats.json が空。先に python3 scripts/seo_fetch_area_stats.py を実行")
     generated = []
+    overwritten = 0
     skipped = 0
     for area_tuple in AREAS:
         for cond_slug, cond in CONDITIONS.items():
-            slug, content = build_page(area_tuple, cond_slug, cond, v2_style, GUIDE_COMPAT_CSS)
+            slug, content = build_page(area_tuple, cond_slug, cond, v2_style, GUIDE_COMPAT_CSS, stats_all)
             path = AREA_DIR / f"{slug}.html"
-            if path.exists():
+            if path.exists() and not args.force:
                 skipped += 1
                 continue
             if args.apply:
                 path.write_text(content, encoding="utf-8")
-                print(f"  ✓ {slug}.html ({len(content)} bytes)")
+                tag = "↻" if path.exists() else "✓"
+                print(f"  {tag} {slug}.html ({len(content)} bytes)")
+                if path.exists() and args.force:
+                    overwritten += 1
             else:
                 print(f"  [dry] {slug}.html ({len(content)} bytes)")
             generated.append(slug)
 
-    print(f"\n新規生成 {len(generated)} ページ / 既存スキップ {skipped}")
+    print(f"\n生成/上書き {len(generated)} ページ / 既存スキップ {skipped}")
 
 
 if __name__ == "__main__":

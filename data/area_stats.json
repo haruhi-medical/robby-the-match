@@ -1,0 +1,1722 @@
+{
+  "yokohama": {
+    "city": "横浜市",
+    "facility_count": 2824,
+    "active_facility_count": 0,
+    "job_count": 320,
+    "monthly_min": 235490,
+    "monthly_max": 277000,
+    "annual_min": 3296868,
+    "annual_max": 3878002,
+    "emp_type_counts": {
+      "正社員": 166,
+      "パート労働者": 142,
+      "正社員以外": 12
+    },
+    "category_counts": {
+      "クリニック": 2156,
+      "訪問看護ST": 545,
+      "病院": 123
+    },
+    "top_facilities": [
+      {
+        "name": "公立大学法人横浜市立大学附属市民総合医療センター",
+        "station": "横浜市ブルーライン 阪東橋",
+        "minutes": 6,
+        "beds": 696,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "昭和大学横浜市北部病院",
+        "station": "グリーンライン センター南",
+        "minutes": 6,
+        "beds": 689,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "公立大学法人横浜市立大学附属病院",
+        "station": "金沢シーサイドライン 市大医学部",
+        "minutes": 1,
+        "beds": 671,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜労災病院",
+        "station": "横浜市ブルーライン 新横浜",
+        "minutes": 12,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横浜市立市民病院",
+        "station": "横浜市ブルーライン 三ツ沢上町",
+        "minutes": 13,
+        "beds": 650,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "JR湘南新宿ライン 東戸塚",
+        "count": 4
+      },
+      {
+        "station": "JR横須賀線 東戸塚",
+        "count": 4
+      },
+      {
+        "station": "JR横浜線 鴨居",
+        "count": 4
+      },
+      {
+        "station": "JR根岸線 港南台",
+        "count": 4
+      },
+      {
+        "station": "JR京浜東北線 鶴見",
+        "count": 4
+      }
+    ]
+  },
+  "kawasaki": {
+    "city": "川崎市",
+    "facility_count": 987,
+    "active_facility_count": 0,
+    "job_count": 123,
+    "monthly_min": 219250,
+    "monthly_max": 276422,
+    "annual_min": 3069504,
+    "annual_max": 3869911,
+    "emp_type_counts": {
+      "パート労働者": 63,
+      "正社員": 50,
+      "正社員以外": 10
+    },
+    "category_counts": {
+      "クリニック": 778,
+      "訪問看護ST": 171,
+      "病院": 38
+    },
+    "top_facilities": [
+      {
+        "name": "聖マリアンナ医科大学病院",
+        "station": "小田急小田原線 生田",
+        "minutes": 28,
+        "beds": 955,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "川崎市立川崎病院",
+        "station": "京浜急行本線 京急川崎",
+        "minutes": 13,
+        "beds": 713,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "関東労災病院",
+        "station": "東急東横線 元住吉",
+        "minutes": 6,
+        "beds": 610,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団三成会　新百合ヶ丘総合病院",
+        "station": "小田急小田原線 新百合ヶ丘",
+        "minutes": 9,
+        "beds": 563,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "帝京大学医学部附属溝口病院",
+        "station": "東急田園都市線 高津",
+        "minutes": 2,
+        "beds": 400,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "小田急小田原線 柿生",
+        "count": 3
+      },
+      {
+        "station": "JR南武線 武蔵新城",
+        "count": 3
+      },
+      {
+        "station": "小田急小田原線 百合ヶ丘",
+        "count": 2
+      },
+      {
+        "station": "小田急多摩線 新百合ヶ丘",
+        "count": 2
+      },
+      {
+        "station": "京浜急行本線 京急川崎",
+        "count": 2
+      }
+    ]
+  },
+  "sagamihara": {
+    "city": "相模原市",
+    "facility_count": 448,
+    "active_facility_count": 0,
+    "job_count": 48,
+    "monthly_min": 221451,
+    "monthly_max": 267731,
+    "annual_min": 3100323,
+    "annual_max": 3748243,
+    "emp_type_counts": {
+      "正社員": 29,
+      "パート労働者": 17,
+      "正社員以外": 2
+    },
+    "category_counts": {
+      "クリニック": 290,
+      "訪問看護ST": 130,
+      "病院": 28
+    },
+    "top_facilities": [
+      {
+        "name": "北里大学病院",
+        "station": "JR相模線 原当麻",
+        "minutes": 31,
+        "beds": 1135,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団清伸会　ふじの温泉病院",
+        "station": null,
+        "minutes": null,
+        "beds": 472,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構相模原病院",
+        "station": "小田急小田原線 小田急相模原",
+        "minutes": 19,
+        "beds": 458,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "小松会病院",
+        "station": "JR相模線 下溝",
+        "minutes": 29,
+        "beds": 402,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人財団愛慈会相和病院",
+        "station": "JR相模線 南橋本",
+        "minutes": 41,
+        "beds": 312,
+        "sub_type": "",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "JR相模線 南橋本",
+        "count": 3
+      },
+      {
+        "station": "小田急江ノ島線 東林間",
+        "count": 2
+      },
+      {
+        "station": "小田急小田原線 相模大野",
+        "count": 2
+      },
+      {
+        "station": "小田急小田原線 小田急相模原",
+        "count": 2
+      },
+      {
+        "station": "JR相模線 下溝",
+        "count": 2
+      }
+    ]
+  },
+  "fujisawa": {
+    "city": "藤沢市",
+    "facility_count": 406,
+    "active_facility_count": 0,
+    "job_count": 46,
+    "monthly_min": 256317,
+    "monthly_max": 317235,
+    "annual_min": 3588444,
+    "annual_max": 4441301,
+    "emp_type_counts": {
+      "正社員": 27,
+      "パート労働者": 17,
+      "正社員以外": 2
+    },
+    "category_counts": {
+      "クリニック": 316,
+      "訪問看護ST": 74,
+      "病院": 16
+    },
+    "top_facilities": [
+      {
+        "name": "藤沢市民病院",
+        "station": "小田急江ノ島線 藤沢本町",
+        "minutes": 10,
+        "beds": 536,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "藤沢病院",
+        "station": "湘南モノレール 湘南深沢",
+        "minutes": 21,
+        "beds": 420,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人徳洲会湘南藤沢徳洲会病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 8,
+        "beds": 419,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "一般財団法人同友会藤沢湘南台病院",
+        "station": "小田急江ノ島線 長後",
+        "minutes": 11,
+        "beds": 320,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団健育会　湘南慶育病院",
+        "station": "小田急江ノ島線 湘南台",
+        "minutes": 53,
+        "beds": 230,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "JR東海道本線 辻堂",
+        "count": 3
+      },
+      {
+        "station": "小田急江ノ島線 藤沢本町",
+        "count": 2
+      },
+      {
+        "station": "湘南モノレール 湘南深沢",
+        "count": 1
+      },
+      {
+        "station": "江ノ島電鉄線 鵠沼",
+        "count": 1
+      },
+      {
+        "station": "江ノ島電鉄線 藤沢",
+        "count": 1
+      }
+    ]
+  },
+  "odawara": {
+    "city": "小田原市",
+    "facility_count": 154,
+    "active_facility_count": 0,
+    "job_count": 24,
+    "monthly_min": 241870,
+    "monthly_max": 271897,
+    "annual_min": 3386189,
+    "annual_max": 3806562,
+    "emp_type_counts": {
+      "正社員": 14,
+      "パート労働者": 8,
+      "正社員以外": 2
+    },
+    "category_counts": {
+      "クリニック": 110,
+      "訪問看護ST": 32,
+      "病院": 12
+    },
+    "top_facilities": [
+      {
+        "name": "小田原市立病院",
+        "station": "小田急小田原線 足柄",
+        "minutes": 8,
+        "beds": 417,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "公益財団法人積善会曽我病院",
+        "station": "JR御殿場線 下曽我",
+        "minutes": 3,
+        "beds": 297,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "特定医療法人清輝会国府津病院",
+        "station": "JR東海道本線 国府津",
+        "minutes": 22,
+        "beds": 250,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人同愛会小澤病院",
+        "station": "東海道新幹線 小田原",
+        "minutes": 9,
+        "beds": 202,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構箱根病院",
+        "station": "箱根登山鉄道線 風祭",
+        "minutes": 2,
+        "beds": 199,
+        "sub_type": "慢性期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "JR東海道本線 鴨宮",
+        "count": 2
+      },
+      {
+        "station": "箱根登山鉄道線 風祭",
+        "count": 1
+      },
+      {
+        "station": "東海道新幹線 小田原",
+        "count": 1
+      },
+      {
+        "station": "小田急小田原線 足柄",
+        "count": 1
+      },
+      {
+        "station": "小田急小田原線 小田原",
+        "count": 1
+      }
+    ]
+  },
+  "atsugi": {
+    "city": "厚木市",
+    "facility_count": 150,
+    "active_facility_count": 0,
+    "job_count": 20,
+    "monthly_min": 255645,
+    "monthly_max": 287949,
+    "annual_min": 3579039,
+    "annual_max": 4031293,
+    "emp_type_counts": {
+      "パート労働者": 10,
+      "正社員": 10
+    },
+    "category_counts": {
+      "クリニック": 104,
+      "訪問看護ST": 34,
+      "病院": 12
+    },
+    "top_facilities": [
+      {
+        "name": "愛光病院",
+        "station": "小田急小田原線 本厚木",
+        "minutes": 25,
+        "beds": 359,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "厚木市立病院",
+        "station": "小田急小田原線 本厚木",
+        "minutes": 17,
+        "beds": 347,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "神奈川リハビリテーション病院",
+        "station": "小田急小田原線 愛甲石田",
+        "minutes": 79,
+        "beds": 324,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "東名厚木病院",
+        "station": "小田急小田原線 愛甲石田",
+        "minutes": 21,
+        "beds": 289,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団青木末次郎記念会相州病院",
+        "station": "JR相模線 原当麻",
+        "minutes": 107,
+        "beds": 263,
+        "sub_type": "",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "小田急小田原線 本厚木",
+        "count": 4
+      },
+      {
+        "station": "小田急小田原線 愛甲石田",
+        "count": 4
+      },
+      {
+        "station": "小田急小田原線 厚木",
+        "count": 1
+      },
+      {
+        "station": "大山鋼索線 大山ケーブル",
+        "count": 1
+      },
+      {
+        "station": "JR相模線 相武台下",
+        "count": 1
+      }
+    ]
+  },
+  "chigasaki": {
+    "city": "茅ヶ崎市",
+    "facility_count": 137,
+    "active_facility_count": 0,
+    "job_count": 13,
+    "monthly_min": 253332,
+    "monthly_max": 275336,
+    "annual_min": 3546657,
+    "annual_max": 3854713,
+    "emp_type_counts": {
+      "正社員": 7,
+      "パート労働者": 6
+    },
+    "category_counts": {
+      "クリニック": 108,
+      "訪問看護ST": 22,
+      "病院": 7
+    },
+    "top_facilities": [
+      {
+        "name": "茅ケ崎中央病院",
+        "station": "JR相模線 茅ヶ崎",
+        "minutes": 6,
+        "beds": 476,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "茅ヶ崎市立病院",
+        "station": "JR相模線 北茅ヶ崎",
+        "minutes": 11,
+        "beds": 401,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "湘南東部総合病院",
+        "station": "JR相模線 香川",
+        "minutes": 20,
+        "beds": 327,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団湘南健友会　長岡病院",
+        "station": "JR東海道本線 辻堂",
+        "minutes": 34,
+        "beds": 162,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "湘南さくら病院",
+        "station": "JR相模線 香川",
+        "minutes": 23,
+        "beds": 156,
+        "sub_type": "",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "JR相模線 香川",
+        "count": 3
+      },
+      {
+        "station": "JR相模線 茅ヶ崎",
+        "count": 2
+      },
+      {
+        "station": "JR相模線 北茅ヶ崎",
+        "count": 1
+      },
+      {
+        "station": "JR東海道本線 辻堂",
+        "count": 1
+      }
+    ]
+  },
+  "ebina": {
+    "city": "海老名市",
+    "facility_count": 94,
+    "active_facility_count": 0,
+    "job_count": 5,
+    "monthly_min": 184700,
+    "monthly_max": 271700,
+    "annual_min": 2585800,
+    "annual_max": 3803800,
+    "emp_type_counts": {
+      "パート労働者": 4,
+      "正社員": 1
+    },
+    "category_counts": {
+      "クリニック": 69,
+      "訪問看護ST": 21,
+      "病院": 4
+    },
+    "top_facilities": [
+      {
+        "name": "海老名総合病院",
+        "station": "小田急小田原線 海老名",
+        "minutes": 12,
+        "beds": 479,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "湘陽かしわ台病院",
+        "station": "相模鉄道本線 かしわ台",
+        "minutes": 4,
+        "beds": 199,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団神愛会　オアシス湘南病院",
+        "station": "JR相模線 社家",
+        "minutes": 21,
+        "beds": 158,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団さがみ野中央病院",
+        "station": "相模鉄道本線 さがみ野",
+        "minutes": 7,
+        "beds": 96,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "葉梨整形外科",
+        "station": null,
+        "minutes": null,
+        "beds": 19,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "相模鉄道本線 さがみ野",
+        "count": 1
+      },
+      {
+        "station": "相模鉄道本線 かしわ台",
+        "count": 1
+      },
+      {
+        "station": "小田急小田原線 海老名",
+        "count": 1
+      },
+      {
+        "station": "JR相模線 社家",
+        "count": 1
+      }
+    ]
+  },
+  "hadano": {
+    "city": "秦野市",
+    "facility_count": 93,
+    "active_facility_count": 0,
+    "job_count": 17,
+    "monthly_min": 222459,
+    "monthly_max": 282022,
+    "annual_min": 3114431,
+    "annual_max": 3948315,
+    "emp_type_counts": {
+      "パート労働者": 9,
+      "正社員": 8
+    },
+    "category_counts": {
+      "クリニック": 66,
+      "訪問看護ST": 19,
+      "病院": 8
+    },
+    "top_facilities": [
+      {
+        "name": "鶴巻温泉病院",
+        "station": "小田急小田原線 鶴巻温泉",
+        "minutes": 5,
+        "beds": 505,
+        "sub_type": "回復期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構神奈川病院",
+        "station": "小田急小田原線 秦野",
+        "minutes": 30,
+        "beds": 330,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人丹沢病院",
+        "station": "小田急小田原線 渋沢",
+        "minutes": 31,
+        "beds": 312,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "秦野赤十字病院",
+        "station": "小田急小田原線 秦野",
+        "minutes": 18,
+        "beds": 308,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人財団　青山会　みくるべ病院",
+        "station": "小田急小田原線 渋沢",
+        "minutes": 68,
+        "beds": 276,
+        "sub_type": "",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "小田急小田原線 秦野",
+        "count": 3
+      },
+      {
+        "station": "小田急小田原線 渋沢",
+        "count": 3
+      },
+      {
+        "station": "小田急小田原線 鶴巻温泉",
+        "count": 1
+      },
+      {
+        "station": "小田急小田原線 東海大学前",
+        "count": 1
+      }
+    ]
+  },
+  "hakone": {
+    "city": "箱根町",
+    "facility_count": 3,
+    "active_facility_count": 0,
+    "job_count": 4,
+    "monthly_min": 217500,
+    "monthly_max": 265000,
+    "annual_min": 3045000,
+    "annual_max": 3710000,
+    "emp_type_counts": {
+      "正社員": 2,
+      "正社員以外": 2
+    },
+    "category_counts": {
+      "クリニック": 2,
+      "病院": 1
+    },
+    "top_facilities": [
+      {
+        "name": "特定医療法人社団研精会　箱根リハビリテーション病院",
+        "station": "箱根登山鉄道鋼索線 早雲山",
+        "minutes": 39,
+        "beds": 109,
+        "sub_type": "回復期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団土屋医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "尾泉内科医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "箱根登山鉄道鋼索線 早雲山",
+        "count": 1
+      }
+    ]
+  },
+  "hiratsuka": {
+    "city": "平塚市",
+    "facility_count": 179,
+    "active_facility_count": 0,
+    "job_count": 25,
+    "monthly_min": 235862,
+    "monthly_max": 304518,
+    "annual_min": 3302075,
+    "annual_max": 4263262,
+    "emp_type_counts": {
+      "正社員": 15,
+      "パート労働者": 9,
+      "正社員以外": 1
+    },
+    "category_counts": {
+      "クリニック": 133,
+      "訪問看護ST": 39,
+      "病院": 7
+    },
+    "top_facilities": [
+      {
+        "name": "平塚市民病院",
+        "station": "JR東海道本線 平塚",
+        "minutes": 39,
+        "beds": 416,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "国家公務員共済組合連合会平塚共済病院",
+        "station": "JR東海道本線 平塚",
+        "minutes": 26,
+        "beds": 400,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人研水会　平塚病院",
+        "station": "JR東海道本線 大磯",
+        "minutes": 42,
+        "beds": 298,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人研水会高根台病院",
+        "station": "JR東海道本線 大磯",
+        "minutes": 30,
+        "beds": 236,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "社会福祉法人恩賜財団済生会支部神奈川県済生会湘南平塚病院",
+        "station": "JR東海道本線 平塚",
+        "minutes": 19,
+        "beds": 176,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "JR東海道本線 平塚",
+        "count": 4
+      },
+      {
+        "station": "JR東海道本線 大磯",
+        "count": 2
+      },
+      {
+        "station": "JR相模線 寒川",
+        "count": 1
+      }
+    ]
+  },
+  "isehara": {
+    "city": "伊勢原市",
+    "facility_count": 71,
+    "active_facility_count": 0,
+    "job_count": 13,
+    "monthly_min": 247785,
+    "monthly_max": 293642,
+    "annual_min": 3469000,
+    "annual_max": 4111000,
+    "emp_type_counts": {
+      "正社員": 7,
+      "パート労働者": 6
+    },
+    "category_counts": {
+      "クリニック": 44,
+      "訪問看護ST": 24,
+      "病院": 3
+    },
+    "top_facilities": [
+      {
+        "name": "東海大学医学部付属病院",
+        "station": "小田急小田原線 伊勢原",
+        "minutes": 20,
+        "beds": 804,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "神奈川県厚生農業協同組合連合会伊勢原協同病院",
+        "station": "小田急小田原線 伊勢原",
+        "minutes": 14,
+        "beds": 350,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団三井会伊勢原日向病院",
+        "station": "大山鋼索線 大山ケーブル",
+        "minutes": 69,
+        "beds": 202,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人　ファインバース　やはたウィメンズクリニック",
+        "station": null,
+        "minutes": null,
+        "beds": 19,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "医療法人社団誠知会　誠知クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": 19,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "小田急小田原線 伊勢原",
+        "count": 2
+      },
+      {
+        "station": "大山鋼索線 大山ケーブル",
+        "count": 1
+      }
+    ]
+  },
+  "kaisei": {
+    "city": "開成町",
+    "facility_count": 16,
+    "active_facility_count": 0,
+    "job_count": 1,
+    "monthly_min": 190000,
+    "monthly_max": 277000,
+    "annual_min": 2660000,
+    "annual_max": 3878000,
+    "emp_type_counts": {
+      "正社員": 1
+    },
+    "category_counts": {
+      "クリニック": 12,
+      "訪問看護ST": 4
+    },
+    "top_facilities": [
+      {
+        "name": "医療法人鴎友会白鴎医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "医療法人社団遠藤耳鼻咽喉科医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "医療法人社団　大熊整形外科",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "岡部医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "樹（たつき）医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": []
+  },
+  "kamakura": {
+    "city": "鎌倉市",
+    "facility_count": 148,
+    "active_facility_count": 0,
+    "job_count": 15,
+    "monthly_min": 212655,
+    "monthly_max": 263522,
+    "annual_min": 2977177,
+    "annual_max": 3689311,
+    "emp_type_counts": {
+      "正社員": 9,
+      "パート労働者": 6
+    },
+    "category_counts": {
+      "クリニック": 117,
+      "訪問看護ST": 21,
+      "病院": 10
+    },
+    "top_facilities": [
+      {
+        "name": "医療法人徳洲会　湘南鎌倉総合病院",
+        "station": "湘南モノレール 湘南町屋",
+        "minutes": 18,
+        "beds": 669,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "大船中央病院",
+        "station": "湘南モノレール 大船",
+        "minutes": 10,
+        "beds": 247,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人徳洲会　清川病院",
+        "station": "JR横須賀線 鎌倉",
+        "minutes": 7,
+        "beds": 198,
+        "sub_type": "回復期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人湘和会　湘南記念病院",
+        "station": "湘南モノレール 湘南深沢",
+        "minutes": 7,
+        "beds": 143,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "鎌倉リハビリテーション聖テレジア病院",
+        "station": "江ノ島電鉄線 鎌倉高校前",
+        "minutes": 1,
+        "beds": 128,
+        "sub_type": "回復期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "江ノ島電鉄線 鎌倉高校前",
+        "count": 3
+      },
+      {
+        "station": "湘南モノレール 湘南町屋",
+        "count": 1
+      },
+      {
+        "station": "湘南モノレール 湘南深沢",
+        "count": 1
+      },
+      {
+        "station": "湘南モノレール 大船",
+        "count": 1
+      },
+      {
+        "station": "江ノ島電鉄線 長谷",
+        "count": 1
+      }
+    ]
+  },
+  "matsuda": {
+    "city": "松田町",
+    "facility_count": 6,
+    "active_facility_count": 0,
+    "job_count": 2,
+    "monthly_min": 181300,
+    "monthly_max": 222700,
+    "annual_min": 2538200,
+    "annual_max": 3117800,
+    "emp_type_counts": {
+      "パート労働者": 1,
+      "正社員": 1
+    },
+    "category_counts": {
+      "クリニック": 4,
+      "病院": 1,
+      "訪問看護ST": 1
+    },
+    "top_facilities": [
+      {
+        "name": "神奈川県立足柄上病院",
+        "station": "小田急小田原線 新松田",
+        "minutes": 7,
+        "beds": 296,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "山田内科医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "松田町国民健康保険診療所",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "安藤眼科医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "まごころ内科整形外科クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "小田急小田原線 新松田",
+        "count": 1
+      }
+    ]
+  },
+  "minamiashigara": {
+    "city": "南足柄市",
+    "facility_count": 20,
+    "active_facility_count": 0,
+    "job_count": 1,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "emp_type_counts": {
+      "パート労働者": 1
+    },
+    "category_counts": {
+      "クリニック": 16,
+      "病院": 2,
+      "訪問看護ST": 2
+    },
+    "top_facilities": [
+      {
+        "name": "北小田原病院",
+        "station": "JR御殿場線 山北",
+        "minutes": 61,
+        "beds": 345,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "大内病院",
+        "station": "伊豆箱根鉄道大雄山線 和田河原",
+        "minutes": 6,
+        "beds": 53,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "いのうえクリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "こうの内科クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "医療法人おぎの整形外科・歯科",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "伊豆箱根鉄道大雄山線 和田河原",
+        "count": 1
+      },
+      {
+        "station": "JR御殿場線 山北",
+        "count": 1
+      }
+    ]
+  },
+  "ninomiya": {
+    "city": "二宮町",
+    "facility_count": 20,
+    "active_facility_count": 0,
+    "job_count": 4,
+    "monthly_min": 270000,
+    "monthly_max": 310000,
+    "annual_min": 3780000,
+    "annual_max": 4340000,
+    "emp_type_counts": {
+      "パート労働者": 2,
+      "正社員": 2
+    },
+    "category_counts": {
+      "クリニック": 15,
+      "訪問看護ST": 5
+    },
+    "top_facilities": [
+      {
+        "name": "たけすえ小児科",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "医療法人百合が丘クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "医療法人社団光耀会二宮眼科クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "横山医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "加藤クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": []
+  },
+  "oiso": {
+    "city": "大磯町",
+    "facility_count": 16,
+    "active_facility_count": 0,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "emp_type_counts": {},
+    "category_counts": {
+      "クリニック": 13,
+      "訪問看護ST": 2,
+      "病院": 1
+    },
+    "top_facilities": [
+      {
+        "name": "医療法人徳洲会　湘南大磯病院",
+        "station": null,
+        "minutes": null,
+        "beds": 312,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "グリーン内科クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "ひよこクリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "医療法人社団森田内科医院",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "脇内科クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": []
+  },
+  "yamakita": {
+    "city": "山北町",
+    "facility_count": 3,
+    "active_facility_count": 0,
+    "job_count": 0,
+    "monthly_min": null,
+    "monthly_max": null,
+    "annual_min": null,
+    "annual_max": null,
+    "emp_type_counts": {},
+    "category_counts": {
+      "クリニック": 3
+    },
+    "top_facilities": [
+      {
+        "name": "医療法人能清会飛彈クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "山北町立山北診療所",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      },
+      {
+        "name": "ねもと総合内科クリニック",
+        "station": null,
+        "minutes": null,
+        "beds": null,
+        "sub_type": "",
+        "category": "クリニック"
+      }
+    ],
+    "top_stations": []
+  },
+  "yamato": {
+    "city": "大和市",
+    "facility_count": 211,
+    "active_facility_count": 0,
+    "job_count": 18,
+    "monthly_min": 226509,
+    "monthly_max": 269181,
+    "annual_min": 3171127,
+    "annual_max": 3768545,
+    "emp_type_counts": {
+      "パート労働者": 7,
+      "正社員": 7,
+      "正社員以外": 4
+    },
+    "category_counts": {
+      "クリニック": 160,
+      "訪問看護ST": 42,
+      "病院": 9
+    },
+    "top_facilities": [
+      {
+        "name": "社会医療法人財団大和会　東大和病院",
+        "station": "西武拝島線 東大和市",
+        "minutes": 15,
+        "beds": 284,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人正史会大和病院",
+        "station": "相鉄・JR直通線 大和",
+        "minutes": 17,
+        "beds": 250,
+        "sub_type": "",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人徳洲会大和徳洲会病院",
+        "station": "相鉄・JR直通線 大和",
+        "minutes": 5,
+        "beds": 248,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団哺育会桜ヶ丘中央病院",
+        "station": "小田急江ノ島線 桜ヶ丘",
+        "minutes": 2,
+        "beds": 171,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "南大和病院",
+        "station": "小田急江ノ島線 高座渋谷",
+        "minutes": 7,
+        "beds": 140,
+        "sub_type": "急性期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "相鉄・JR直通線 大和",
+        "count": 2
+      },
+      {
+        "station": "小田急江ノ島線 南林間",
+        "count": 2
+      },
+      {
+        "station": "西武拝島線 玉川上水",
+        "count": 1
+      },
+      {
+        "station": "西武拝島線 東大和市",
+        "count": 1
+      },
+      {
+        "station": "東急田園都市線 中央林間",
+        "count": 1
+      }
+    ]
+  },
+  "yokosuka": {
+    "city": "横須賀市",
+    "facility_count": 251,
+    "active_facility_count": 0,
+    "job_count": 47,
+    "monthly_min": 255292,
+    "monthly_max": 316054,
+    "annual_min": 3574097,
+    "annual_max": 4424758,
+    "emp_type_counts": {
+      "パート労働者": 27,
+      "正社員": 19,
+      "正社員以外": 1
+    },
+    "category_counts": {
+      "クリニック": 192,
+      "訪問看護ST": 47,
+      "病院": 12
+    },
+    "top_facilities": [
+      {
+        "name": "国家公務員共済組合連合会横須賀共済病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 7,
+        "beds": 740,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横須賀市立市民病院",
+        "station": "京浜急行久里浜線 津久井浜",
+        "minutes": 72,
+        "beds": 482,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "横須賀市立うわまち病院",
+        "station": "京浜急行本線 横須賀中央",
+        "minutes": 13,
+        "beds": 417,
+        "sub_type": "急性期",
+        "category": "病院"
+      },
+      {
+        "name": "医療法人社団　聖ルカ会　パシフィックホスピタル",
+        "station": "京浜急行久里浜線 京急久里浜",
+        "minutes": 39,
+        "beds": 300,
+        "sub_type": "慢性期",
+        "category": "病院"
+      },
+      {
+        "name": "独立行政法人国立病院機構久里浜医療センター",
+        "station": "京浜急行久里浜線 YRP野比",
+        "minutes": 25,
+        "beds": 277,
+        "sub_type": "回復期",
+        "category": "病院"
+      }
+    ],
+    "top_stations": [
+      {
+        "station": "京浜急行本線 横須賀中央",
+        "count": 3
+      },
+      {
+        "station": "京浜急行本線 追浜",
+        "count": 1
+      },
+      {
+        "station": "京浜急行本線 浦賀",
+        "count": 1
+      },
+      {
+        "station": "京浜急行本線 汐入",
+        "count": 1
+      },
+      {
+        "station": "京浜急行本線 安針塚",
+        "count": 1
+      }
+    ]
+  },
+  "yokohama-aoba": {
+    "city": "横浜市青葉区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 32,
+    "monthly_min": 215818,
+    "monthly_max": 240163,
+    "annual_min": 3021454,
+    "annual_max": 3362290,
+    "emp_type_counts": {
+      "パート労働者": 16,
+      "正社員": 16
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-asahi": {
+    "city": "横浜市旭区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 36,
+    "monthly_min": 223412,
+    "monthly_max": 276037,
+    "annual_min": 3127768,
+    "annual_max": 3864526,
+    "emp_type_counts": {
+      "正社員": 25,
+      "パート労働者": 11
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-kanagawa": {
+    "city": "横浜市神奈川区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 18,
+    "monthly_min": 272071,
+    "monthly_max": 331000,
+    "annual_min": 3809000,
+    "annual_max": 4634000,
+    "emp_type_counts": {
+      "パート労働者": 9,
+      "正社員": 7,
+      "正社員以外": 2
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-kohoku": {
+    "city": "横浜市港北区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 31,
+    "monthly_min": 238436,
+    "monthly_max": 267436,
+    "annual_min": 3338109,
+    "annual_max": 3744109,
+    "emp_type_counts": {
+      "正社員": 15,
+      "パート労働者": 13,
+      "正社員以外": 3
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-konan": {
+    "city": "横浜市港南区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 11,
+    "monthly_min": 268550,
+    "monthly_max": 335913,
+    "annual_min": 3759700,
+    "annual_max": 4702786,
+    "emp_type_counts": {
+      "パート労働者": 6,
+      "正社員": 5
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-minami": {
+    "city": "横浜市南区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 13,
+    "monthly_min": 246562,
+    "monthly_max": 297430,
+    "annual_min": 3451875,
+    "annual_max": 4164020,
+    "emp_type_counts": {
+      "正社員": 7,
+      "パート労働者": 4,
+      "正社員以外": 2
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-naka": {
+    "city": "横浜市中区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 20,
+    "monthly_min": 260497,
+    "monthly_max": 299510,
+    "annual_min": 3646965,
+    "annual_max": 4193140,
+    "emp_type_counts": {
+      "パート労働者": 11,
+      "正社員": 9
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-nishi": {
+    "city": "横浜市西区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 4,
+    "monthly_min": 243333,
+    "monthly_max": 273333,
+    "annual_min": 3406666,
+    "annual_max": 3826666,
+    "emp_type_counts": {
+      "正社員": 3,
+      "パート労働者": 1
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-totsuka": {
+    "city": "横浜市戸塚区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 36,
+    "monthly_min": 232816,
+    "monthly_max": 265261,
+    "annual_min": 3259433,
+    "annual_max": 3713655,
+    "emp_type_counts": {
+      "パート労働者": 18,
+      "正社員": 16,
+      "正社員以外": 2
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  },
+  "yokohama-tsurumi": {
+    "city": "横浜市鶴見区",
+    "facility_count": 0,
+    "active_facility_count": 0,
+    "job_count": 14,
+    "monthly_min": 234609,
+    "monthly_max": 267463,
+    "annual_min": 3284527,
+    "annual_max": 3744490,
+    "emp_type_counts": {
+      "正社員": 11,
+      "パート労働者": 3
+    },
+    "category_counts": {},
+    "top_facilities": [],
+    "top_stations": []
+  }
+}
