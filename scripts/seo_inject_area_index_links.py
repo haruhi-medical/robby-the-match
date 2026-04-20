@@ -57,6 +57,13 @@ SPECIALTIES_WITH_AREAS = [
     ("内科", "naika"),
     ("小児科", "shonika"),
     ("産婦人科", "sanfujinka"),
+    ("循環器内科", "junkanki"),
+    ("消化器内科", "shokaki"),
+    ("外科", "geka"),
+    ("眼科", "ganka"),
+    ("皮膚科", "hifuka"),
+    ("リハビリテーション科", "rehabilitation"),
+    ("脳神経外科", "nokeigeka"),
 ]
 SPECIALTY_CITIES = [
     ("yokohama", "横浜市"),
