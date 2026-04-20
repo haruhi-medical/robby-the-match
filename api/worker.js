@@ -9257,15 +9257,500 @@ function jsonResponse(data, status = 200, allowedOrigin = "*", extraHeaders = {}
 
 // ========== 履歴書生成ハンドラ ==========
 
-const RESUME_TEMPLATE_URL = "https://quads-nurse.com/resume/template.html";
+// 履歴書HTMLテンプレート（厚労省推奨様式・令和3年4月〜）
+// 注意: テンプレ更新は resume/template.html を編集してから下記文字列にも反映すること
+// edge cache問題を避けるためにインライン化
+const RESUME_TEMPLATE_HTML = String.raw`<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>履歴書 | {{fullName}}</title>
+  <style>
+    /* ===== 厚生労働省推奨 履歴書様式（令和3年4月〜） A3見開き ===== */
+    :root {
+      --border: 1px solid #000;
+      --cell-pad: 4px 8px;
+      --label-fs: 9pt;
+      --body-fs: 10.5pt;
+      --font-serif: "Hiragino Mincho ProN", "Noto Serif JP", "MS Mincho", "ＭＳ Ｐ明朝", serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #e8e8e8; color: #000; font-family: var(--font-serif); font-size: var(--body-fs); line-height: 1.4; }
+
+    /* A3横向き 1枚 */
+    .sheet {
+      width: 420mm;
+      height: 297mm;
+      padding: 10mm 12mm;
+      margin: 12px auto;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .sheet-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 8mm;
+      flex: 1;
+    }
+
+    h1.doc-title {
+      font-size: 22pt;
+      font-weight: normal;
+      letter-spacing: 0.6em;
+      margin: 0;
+      padding-left: 0.6em;
+      display: inline-block;
+    }
+    .date-today {
+      font-size: 10pt;
+      margin-left: auto;
+      padding-right: 8mm;
+    }
+    .title-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 3mm;
+    }
+
+    /* ===== 共通テーブル ===== */
+    table.jis {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--body-fs);
+    }
+    table.jis td, table.jis th {
+      border: var(--border);
+      padding: var(--cell-pad);
+      vertical-align: middle;
+    }
+    table.jis th {
+      background: transparent;
+      font-weight: normal;
+      font-size: var(--label-fs);
+      text-align: center;
+      white-space: nowrap;
+    }
+    table.jis td.label {
+      background: transparent;
+      font-size: var(--label-fs);
+      padding-left: 4px;
+      vertical-align: top;
+      white-space: nowrap;
+      width: 10mm;
+    }
+
+    /* ===== 左ページ: 個人情報 + 学歴職歴前半 ===== */
+    .personal-info {
+      width: 100%;
+      border: var(--border);
+      border-collapse: collapse;
+      margin-bottom: 4mm;
+    }
+    .personal-info td, .personal-info th {
+      border: var(--border);
+      padding: 3px 6px;
+      vertical-align: middle;
+      font-size: 10.5pt;
+    }
+    .personal-info .lbl {
+      font-size: 8.5pt;
+      color: #000;
+      display: block;
+      line-height: 1.2;
+      margin-bottom: 1mm;
+    }
+    .personal-info .name-big {
+      font-size: 14pt;
+      letter-spacing: 0.15em;
+      padding: 6mm 8px 4mm;
+      text-align: left;
+    }
+    .personal-info .furigana {
+      font-size: 9pt;
+      min-height: 4mm;
+      padding: 2px 6px;
+    }
+    .personal-info .age-gender {
+      padding: 2mm 6px;
+    }
+
+    /* 写真欄 */
+    .photo-box {
+      width: 28mm;
+      height: 38mm;
+      border: var(--border);
+      padding: 2mm;
+      font-size: 7.5pt;
+      line-height: 1.35;
+      color: #000;
+      text-align: left;
+      vertical-align: top;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .photo-box .ph-head {
+      font-size: 8pt;
+      margin-bottom: 1mm;
+    }
+    .photo-box ol {
+      padding-left: 1.2em;
+      margin: 0;
+    }
+    .photo-box li {
+      font-size: 7pt;
+      line-height: 1.3;
+    }
+
+    /* ふりがな / 氏名 / 写真 エリア */
+    .header-block {
+      display: grid;
+      grid-template-columns: 1fr 30mm;
+      gap: 0;
+      margin-bottom: 2mm;
+    }
+    .name-block {
+      border: var(--border);
+      border-right: none;
+    }
+    .name-block > .row {
+      border-bottom: var(--border);
+      padding: 1mm 4px;
+    }
+    .name-block > .row:last-child {
+      border-bottom: none;
+    }
+    .photo-block {
+      border: var(--border);
+    }
+
+    /* 生年月日 + 性別 */
+    .dob-row {
+      display: grid;
+      grid-template-columns: 1fr 30mm;
+      border: var(--border);
+      border-top: none;
+    }
+    .dob-row .dob {
+      padding: 2mm 6px;
+      border-right: var(--border);
+      font-size: 10.5pt;
+      text-align: center;
+    }
+    .dob-row .gender {
+      padding: 2mm 6px;
+      font-size: 9pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .dob-row .gender .gender-label {
+      font-size: 8pt;
+      color: #000;
+    }
+    .dob-row .gender .gender-value {
+      font-size: 10pt;
+      margin-top: 1mm;
+    }
+
+    /* 現住所 + 電話 / 連絡先 + 電話 */
+    .addr-row {
+      border: var(--border);
+      border-top: none;
+      display: grid;
+      grid-template-columns: 1fr 40mm;
+    }
+    .addr-row .addr-col {
+      border-right: var(--border);
+    }
+    .addr-row .addr-col > .furigana {
+      padding: 1mm 4px;
+      border-bottom: var(--border);
+      font-size: 9pt;
+      min-height: 5mm;
+    }
+    .addr-row .addr-col > .addr-body {
+      padding: 2mm 4px;
+      min-height: 14mm;
+      font-size: 10.5pt;
+    }
+    .addr-row .phone-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .addr-row .phone-col > .phone-label {
+      padding: 1mm 4px;
+      border-bottom: var(--border);
+      font-size: 9pt;
+      text-align: center;
+      min-height: 5mm;
+    }
+    .addr-row .phone-col > .phone-body {
+      padding: 2mm 4px;
+      min-height: 14mm;
+      font-size: 10.5pt;
+      text-align: center;
+    }
+
+    /* 学歴職歴 / 免許資格 テーブル */
+    .history-table, .license-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: var(--border);
+    }
+    .history-table th, .license-table th {
+      border: var(--border);
+      font-size: 9pt;
+      font-weight: normal;
+      text-align: center;
+      padding: 2px 4px;
+      background: transparent;
+    }
+    .history-table td, .license-table td {
+      border: var(--border);
+      padding: 2mm 6px;
+      vertical-align: middle;
+      font-size: 10.5pt;
+      height: 7.5mm;
+    }
+    .history-table td.year, .license-table td.year { width: 10mm; text-align: center; }
+    .history-table td.month, .license-table td.month { width: 8mm; text-align: center; }
+    .history-table td.section-label { text-align: center; letter-spacing: 0.5em; padding-left: 0.5em; }
+    .history-table td.right-align { text-align: right; padding-right: 2em; font-size: 10pt; }
+
+    /* 志望動機 / 本人希望 */
+    .freeform {
+      border: var(--border);
+      margin-top: 3mm;
+    }
+    .freeform .ff-label {
+      border-bottom: var(--border);
+      padding: 1mm 6px;
+      font-size: 9.5pt;
+    }
+    .freeform .ff-body {
+      padding: 3mm 6px;
+      font-size: 10.5pt;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      min-height: 40mm;
+    }
+    .freeform.wishes .ff-body {
+      min-height: 28mm;
+    }
+
+    /* 下部注記 */
+    .footer-note {
+      font-size: 8pt;
+      margin-top: 3mm;
+      padding-top: 2mm;
+      border-top: 1px dotted #888;
+      display: flex;
+      justify-content: space-between;
+      color: #333;
+    }
+
+    /* ===== 印刷時の最適化 ===== */
+    @page {
+      size: A3 landscape;
+      margin: 0;
+    }
+    @media print {
+      html, body { background: #fff; }
+      .sheet {
+        margin: 0;
+        box-shadow: none;
+        width: 420mm;
+        height: 297mm;
+      }
+      .no-print { display: none !important; }
+    }
+
+    /* ===== 画面表示時のツールバー ===== */
+    .toolbar {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      background: #1a7f64;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: -apple-system, "Hiragino Sans", sans-serif;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      cursor: pointer;
+      border: none;
+    }
+    .toolbar:hover { background: #166851; }
+    @media print { .toolbar { display: none; } }
+
+    /* ===== 狭い画面ではスクロール表示 ===== */
+    @media screen and (max-width: 1280px) {
+      body { overflow-x: auto; }
+      .sheet { transform-origin: top left; }
+    }
+    @media screen and (max-width: 900px) {
+      .sheet { transform: scale(0.5); margin-left: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="toolbar no-print" onclick="printResume()">📄 印刷 / PDF保存</button>
+
+  <div class="sheet">
+    <div class="sheet-inner">
+      <!-- ===== 左ページ ===== -->
+      <div class="left-page">
+        <!-- タイトル + 日付 -->
+        <div class="title-row">
+          <h1 class="doc-title">履　歴　書</h1>
+          <span class="date-today">{{createdDate}}現在</span>
+        </div>
+
+        <!-- 氏名 + 写真 -->
+        <div class="header-block">
+          <div class="name-block">
+            <div class="row" style="min-height: 6mm;">
+              <span class="lbl">ふりがな</span>
+              <span style="font-size: 10pt; padding-left: 4px;">{{furigana}}</span>
+            </div>
+            <div class="row" style="min-height: 14mm; display: flex; align-items: center;">
+              <span class="lbl" style="align-self: flex-start;">氏　名</span>
+              <span class="name-big" style="padding: 0 0 0 6px; flex: 1;">{{fullName}}</span>
+            </div>
+          </div>
+          <div class="photo-block">
+            <div class="photo-box">
+              <div class="ph-head">写真をはる位置</div>
+              <div style="font-size: 7pt; margin-top: 1mm;">写真をはる必要が<br>ある場合</div>
+              <ol>
+                <li>縦 36〜40mm<br>横 24〜30mm</li>
+                <li>本人単身胸から上</li>
+                <li>裏面のりづけ</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生年月日 + 性別 -->
+        <div class="dob-row">
+          <div class="dob">{{birthDate}}（満 {{age}} 歳）</div>
+          <div class="gender">
+            <span class="gender-label">※性別</span>
+            <span class="gender-value">{{gender}}</span>
+          </div>
+        </div>
+
+        <!-- 現住所 -->
+        <div class="addr-row">
+          <div class="addr-col">
+            <div class="furigana">ふりがな　{{addressFurigana}}</div>
+            <div class="addr-body">現住所　〒{{postalCode}}<br>{{address}}</div>
+          </div>
+          <div class="phone-col">
+            <div class="phone-label">電話</div>
+            <div class="phone-body">{{phone}}</div>
+          </div>
+        </div>
+
+        <!-- 連絡先（現住所以外） -->
+        <div class="addr-row" style="border-top: none;">
+          <div class="addr-col">
+            <div class="furigana">ふりがな　{{contactAddressFurigana}}</div>
+            <div class="addr-body" style="font-size: 9pt;">連絡先　〒{{contactPostalCode}}<br>{{contactAddress}}<br><span style="font-size: 8pt; color: #333;">（現住所以外に連絡を希望する場合のみ記入）</span></div>
+          </div>
+          <div class="phone-col">
+            <div class="phone-label">電話</div>
+            <div class="phone-body">{{contactPhone}}</div>
+          </div>
+        </div>
+
+        <!-- 学歴・職歴（前半） -->
+        <table class="history-table" style="margin-top: 3mm;">
+          <thead>
+            <tr>
+              <th style="width: 10mm;">年</th>
+              <th style="width: 8mm;">月</th>
+              <th>学　歴・職　歴（各別にまとめて書く）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{historyLeftRows}}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ===== 右ページ ===== -->
+      <div class="right-page">
+        <!-- 学歴・職歴（続き） -->
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th style="width: 10mm;">年</th>
+              <th style="width: 8mm;">月</th>
+              <th>学　歴・職　歴（各別にまとめて書く）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{historyRightRows}}
+          </tbody>
+        </table>
+
+        <!-- 免許・資格 -->
+        <table class="license-table" style="margin-top: 4mm;">
+          <thead>
+            <tr>
+              <th style="width: 10mm;">年</th>
+              <th style="width: 8mm;">月</th>
+              <th>免　許・資　格</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{licenseRows}}
+          </tbody>
+        </table>
+
+        <!-- 志望の動機、特技、好きな学科、アピールポイントなど -->
+        <div class="freeform">
+          <div class="ff-label">志望の動機、特技、好きな学科、アピールポイントなど</div>
+          <div class="ff-body">{{motivation}}</div>
+        </div>
+
+        <!-- 本人希望記入欄 -->
+        <div class="freeform wishes">
+          <div class="ff-label">本人希望記入欄（特に給料・職種・勤務時間・勤務地・その他についての希望などがあれば記入）</div>
+          <div class="ff-body">{{wishes}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下部注記 -->
+    <div class="footer-note">
+      <span>※「性別」欄：記載は任意です。未記載とすることも可能です。</span>
+      <span style="color: #666;">厚生労働省推奨様式（令和3年4月〜）</span>
+    </div>
+  </div>
+
+  <script>
+    function printResume() {
+      alert('印刷設定で【用紙: A3 横向き / 余白: なし】を選択してください。\n\nA4しかない場合は【A4・横向き・ページに合わせる】で縮小印刷できます。\n\n「PDFに保存」を選べば電子ファイルで保存できます。');
+      window.print();
+    }
+  </script>
+</body>
+</html>
+`;
 
 async function fetchResumeTemplate() {
-  // Cloudflare edge cache に乗せる（Cache-Control無視してキャッシュ）
-  const res = await fetch(RESUME_TEMPLATE_URL, {
-    cf: { cacheTtl: 3600, cacheEverything: true },
-  });
-  if (!res.ok) throw new Error(`template fetch failed: ${res.status}`);
-  return await res.text();
+  return RESUME_TEMPLATE_HTML;
 }
 
 function escapeHtml(str) {
