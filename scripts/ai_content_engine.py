@@ -438,8 +438,11 @@ def call_claude_code(
 ) -> Optional[str]:
     """
     Claude Code CLI (claude -p) で高品質テキスト生成。
-    サブスク内なので追加コストゼロ。
-    失敗時は Cloudflare Workers AI にフォールバック。
+    サブスク内なので追加コストゼロ。Opus 4.7 を本番モデルとして使う。
+
+    方針 (2026-04-20 社長決定):
+      Opus落ち時にCloudflare AIへフォールバックしない。
+      品質のバラつきを入れるより、停止してSlackアラートを出す。
     """
     full_prompt = ""
     if system_prompt:
@@ -451,9 +454,32 @@ def call_claude_code(
     if result:
         return result
 
-    # Fallback: Cloudflare Workers AI
-    print("  [FALLBACK] Claude CLI failed. Trying Cloudflare Workers AI...")
-    return _call_cloudflare_ai_fallback(prompt, system_prompt, max_tokens, temperature)
+    # Claude CLI 失敗 → Slackにアラートして停止
+    _alert_opus_down_to_slack()
+    return None
+
+
+def _alert_opus_down_to_slack() -> None:
+    """Claude Code CLI が応答しない場合のSlackアラート。"""
+    try:
+        caller_script = os.environ.get("ROBBY_CALLER", "ai_content_engine.py")
+        timestamp = timestamp_str()
+        message = (
+            f"🚨 [OPUS DOWN] Claude Code CLI応答なし\n"
+            f"時刻: {timestamp}\n"
+            f"発生箇所: {caller_script}\n"
+            f"アクション: Opus復旧後に手動再実行してください\n"
+            f"※ Cloudflare AIへのフォールバックは無効化済み(品質維持のため)"
+        )
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        subprocess.run(
+            ["python3", os.path.join(repo_root, "scripts", "slack_bridge.py"), "--send", message],
+            capture_output=True,
+            timeout=20,
+            check=False,
+        )
+    except Exception as e:
+        print(f"  [WARN] Slack alert failed: {e}")
 
 
 def _call_claude_cli(prompt: str, retries: int = 1) -> Optional[str]:
