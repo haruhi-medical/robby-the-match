@@ -661,14 +661,32 @@ def process_message(message: dict, channel: str):
 
     # !reply 特別処理（引数パース必要）
     if text.startswith("!reply "):
-        parts = text.split(" ", 2)
-        if len(parts) >= 3:
-            line_user_id = parts[1]
-            reply_message = parts[2]
+        # 改行もスペース扱いで分割（社長がSlackエディタで改行入れても動作する）
+        rest = text[len("!reply "):].lstrip()
+        # userID（U+32hex）と本文に分離
+        m = re.match(r"([Uu][0-9a-f]{32})[\s　]+([\s\S]+)", rest)
+        if m:
+            line_user_id = m.group(1)
+            reply_message = m.group(2).strip()
             handle_reply(channel, line_user_id, reply_message, ts=ts)
         else:
-            post_reply(channel, ts, "使い方: `!reply <userID> メッセージ`")
+            post_reply(channel, ts, "使い方: `!reply <userID> メッセージ`\n（userIDは `U` + 32文字。バッククォート不要）")
         return
+
+    # !reply 抜け検知: 先頭に LINE UserID（U+32hex）が来ていたら誤爆注意 → リマインダー
+    _first_line = text.split("\n", 1)[0].strip().strip("`").strip()
+    _uid_match = re.match(r"^([Uu][0-9a-f]{32})\s*$", _first_line)
+    if _uid_match:
+        uid = _uid_match.group(1)
+        body = text.split("\n", 1)[1].strip() if "\n" in text else ""
+        post_reply(
+            channel, ts,
+            f":warning: *LINE返信コマンドが抜けています*\n"
+            f"先頭がLINE UserIDですが `!reply` が無いため、LINE送信ではなく指示キューに保存されました。\n\n"
+            f"LINEに送信したい場合は以下をコピペしてください（1行で送信）:\n"
+            f"```!reply {uid} {body[:80]}{'...' if len(body) > 80 else ''}```"
+        )
+        # それでも指示キューには保存しておく（下の処理に委ねる）
 
     # コマンド検出
     for cmd, handler in COMMANDS.items():

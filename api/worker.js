@@ -4911,20 +4911,21 @@ async function buildPhaseMessage(phase, entry, env) {
     // ===== #30 Phase 2: 情報収集層の寄り道（給与相場マップ導線） =====
     // 「まずは情報収集」を選んだユーザーに、マッチング前に相場マップを案内する。
     // 離脱を防ぎつつ、将来のマッチングに繋げる（転職意欲が高まったら戻れる）。
-    case "info_detour":
+    // 2026-04-20 改修: 離脱防止のため「求人を見る」を第1ボタンに昇格、相場マップは第2へ降格
+    case "info_detour": {
+      const _areaL = entry.areaLabel || entry.area || "神奈川";
       return [{
         type: "text",
-        text: "情報収集中ですね！\n無理に転職を急ぐ必要はないです。\n\nまずは「今の自分の年収が相場通りか」だけでも見ておくと、\n転職のタイミングを判断しやすくなります。\n\n神奈川県212施設の年収マップが無料で見れます👇",
+        text: `ご登録ありがとうございます✨\n\n焦らずじっくり選びましょう。\n神奈川県212施設の中から\n${_areaL}エリアの求人を\nAIがピックアップします。\n\nまずは求人を見てみますか？\nそれとも年収相場を見ますか？`,
         quickReply: {
           items: [
-            qrItem("相場マップを見る", "info_detour=salary_map"),
-            qrItem("やっぱり求人も見る", "info_detour=see_jobs"),
+            qrItem(`${_areaL}の求人を見る`, "info_detour=see_jobs"),
+            qrItem("年収相場マップ", "info_detour=salary_map"),
+            qrItem("担当者に相談", "handoff=ok"),
           ],
         },
-      }, {
-        type: "text",
-        text: "▼ 神奈川県 看護師求人マップ（無料・匿名）\nhttps://quads-nurse.com/lp/job-seeker/salary-map.html\n\n最寄駅を入れるだけで、通勤30分圏内の求人を年収順に表示できます。",
       }];
+    }
 
     // ===== 転職アドバイスFAQ（5問） =====
     case "faq_free":
@@ -7317,7 +7318,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             fetch("https://slack.com/api/chat.postMessage", {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📊 *info_detour（情報収集層）*\n診断Q5「まずは情報収集」選択\nエリア: ${entry.areaLabel || entry.area || "不明"}\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST_i}` }),
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📊 *info_detour（情報収集層）*\n診断Q5「まずは情報収集」選択\nエリア: ${entry.areaLabel || entry.area || "不明"}\nユーザー: \`${userId}\`\n時刻: ${nowJST_i}\n\n返信する場合: \`!reply ${userId} メッセージ\``, mrkdwn: true }),
             }).catch((e) => { console.error(`[Slack] info_detour notify failed: ${e.message}`); });
           }
         }
