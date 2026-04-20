@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-20T15:01:26.492678",
+  "updated": "2026-04-21T02:43:40.955426",
   "posts": [
     {
       "id": 1,
@@ -4183,9 +4183,9 @@
       ],
       "cta_type": "hard",
       "content_type": "salary",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-20T17:24:22",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -4210,7 +4210,8 @@
         "suggestion": "フックを25文字以内に修正し、ソフトCTAを追加して8:2ルールを満たす"
       },
       "scheduled_for": "2026-04-11 21:00",
-      "quality_checked": true
+      "quality_checked": true,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 193,
@@ -4227,8 +4228,8 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0406_02_20260421.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -6020,7 +6021,7 @@
       ],
       "cta_type": "soft",
       "content_type": "career",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6033,7 +6034,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.12,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-20 17:30"
     },
     {
       "id": 237,
@@ -6050,7 +6052,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6063,7 +6065,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.66,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-21 12:00"
     },
     {
       "id": 238,
@@ -6080,7 +6083,7 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6093,7 +6096,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.71,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-22 21:00"
     },
     {
       "id": 239,
@@ -6110,7 +6114,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6123,7 +6127,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.21,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-23 17:30"
     },
     {
       "id": 240,
@@ -6140,7 +6145,7 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6153,7 +6158,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.91,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-24 12:00"
     },
     {
       "id": 241,
@@ -6170,7 +6176,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6183,7 +6189,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.31,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-25 21:00"
     },
     {
       "id": 242,
@@ -6200,7 +6207,7 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6212,7 +6219,9 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 8.69,
+      "scheduled_for": "2026-04-26 17:30",
+      "quality_checked": true
     },
     {
       "id": 243,
@@ -6241,7 +6250,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 8.5,
+      "quality_checked": true
     },
     {
       "id": 244,
@@ -6270,7 +6280,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 8.63,
+      "quality_checked": true
     },
     {
       "id": 245,
@@ -6299,7 +6310,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 8.0,
+      "quality_checked": true
     },
     {
       "id": 246,
@@ -6328,7 +6340,8 @@
         "comments": null
       },
       "ai_score": 7,
-      "quality_score": 8
+      "quality_score": 7.54,
+      "quality_checked": true
     }
   ],
   "archive": [

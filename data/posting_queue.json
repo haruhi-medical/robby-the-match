@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-20T15:01:26.514166",
+  "updated": "2026-04-21T02:58:11.072443",
   "posts": [
     {
       "id": 1,
@@ -4228,11 +4228,11 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0406_02_20260421.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
