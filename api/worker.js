@@ -3721,6 +3721,27 @@ const TEXT_TO_POSTBACK = {
 // ---------- ヘルパー関数 ----------
 // ========== 共通EP経由 welcome分岐 ==========
 // source/intentに応じた経路別welcomeメッセージを生成
+// 新規友だち追加 → 担当者引き継ぎ宣言 + 郵便番号/年齢/資格の収集メッセージ
+function buildIntakeHumanWelcome() {
+  return [
+    {
+      type: "text",
+      text: "この度は友達登録ありがとうございます！\n担当者におつなぎ致しました。\n\n採用に特化したAIの活用により、転職のサポートさせていただきます。\n今までにないスピードにて転職活動をサポートいたします。\n\n転職の際に自身の魅力が伝わる履歴書・職務経歴書も完全サポート致します。",
+    },
+    {
+      type: "text",
+      text: "先に下記の事項にお答えください。\n\n・郵便番号\n・年齢\n・保有資格",
+    },
+  ];
+}
+
+function buildIntakeHumanThanks() {
+  return [{
+    type: "text",
+    text: "ありがとうございます。\n担当者から連絡させていただきます。\n\n自己認識には誰しも限界があります。\nご自身の認識していない魅力を整理し、\nよりよいステップに進む支援をさせていただきます。",
+  }];
+}
+
 function buildSessionWelcome(sessionCtx, entry) {
   const source = sessionCtx.source || 'none';
   const intent = sessionCtx.intent || 'see_jobs';
@@ -7049,15 +7070,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               console.error(`[LINE] preMatching cache lookup error: ${e.message}`);
             }
           }
-          // セッション復元ウェルカム
-          const sessionWelcome = buildSessionWelcome(liffSessionCtx, entry);
-          if (sessionWelcome && sessionWelcome.nextPhase) {
-            entry.phase = sessionWelcome.nextPhase;
-          }
+          // LIFF経由でもまず担当者引き継ぎを宣言して情報収集する
+          entry.phase = "intake_human";
           await saveLineEntry(userId, entry, env);
-          if (sessionWelcome && sessionWelcome.messages && sessionWelcome.messages.length > 0) {
-            await lineReply(event.replyToken, sessionWelcome.messages, channelAccessToken);
-          }
+          await lineReply(event.replyToken, buildIntakeHumanWelcome(), channelAccessToken);
           // 使用済みLIFFセッションを削除
           try {
             if (env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${userId}`);
@@ -7065,28 +7081,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           } catch (e) { /* 削除失敗は無視 */ }
         } else {
           // 通常フォロー（LIFF未経由 or dm_text方式）
-          // dm_text が届いた場合はテキストメッセージハンドラでsession検出→welcome再送する。
-          entry.welcomeSource = 'none';
+          entry.welcomeSource = entry.welcomeSource || 'none';
+          entry.phase = "intake_human";
           await saveLineEntry(userId, entry, env);
-
-          // 全入口共通ウェルカムメッセージ（#13 短縮版 + #6 3択QR）
-          const fbNowHour = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo", hour: "numeric", hour12: false });
-          const fbHr = parseInt(fbNowHour, 10);
-          let fbGreet = 'こんにちは';
-          if (fbHr >= 5 && fbHr < 11) fbGreet = 'おはようございます';
-          else if (fbHr >= 18 || fbHr < 5) fbGreet = 'こんばんは';
-          const msgs = [{
-            type: "text",
-            text: `${fbGreet}、ナースロビーです。\nまずはどのエリアで働きたいですか？`,
-            quickReply: {
-              items: [
-                qrItem("求人を見る", "welcome=see_jobs"),
-                qrItem("相場が知りたい", "welcome=see_salary"),
-                qrItem("相談したい", "welcome=consult"),
-              ],
-            },
-          }];
-          await lineReply(event.replyToken, msgs, channelAccessToken);
+          await lineReply(event.replyToken, buildIntakeHumanWelcome(), channelAccessToken);
         }
 
         // ファネルイベント: LINE友達追加
@@ -7930,6 +7928,39 @@ ${entry.rmCvQualifications || '看護師免許'}
           // isUrgent: Slack通知はするが会話は続行（ユーザーの意思を尊重）
         }
 
+        // 【intake_human】新規友だち追加後、郵便番号/年齢/資格の返信を受けて即handoff
+        if (entry.phase === "intake_human") {
+          entry.intakeHumanResponse = userText.slice(0, 500);
+          entry.phase = "handoff";
+          entry.handoffAt = Date.now();
+          entry.handoffRequestedByUser = false;
+          entry.handoffReason = "intake_human_complete";
+          entry.messageCount = (entry.messageCount || 0) + 1;
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, buildIntakeHumanThanks(), channelAccessToken);
+          // Slack通知（担当者アクション用・プロフィール+入力内容+OA Manager誘導）
+          ctx.waitUntil((async () => {
+            if (!env.SLACK_BOT_TOKEN) return;
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            const profile = await getLineProfile(userId, env);
+            const nameLine = profile?.displayName ? `👤 名前: *${profile.displayName}*\n` : "";
+            const picLine = profile?.pictureUrl ? `🖼 ${profile.pictureUrl}\n` : "";
+            const src = entry.welcomeSource && entry.welcomeSource !== 'none' ? `📍 流入: ${entry.welcomeSource}\n` : "";
+            await fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                text: `🎯 *新規リード → 人間対応リクエスト*\n${nameLine}${src}ユーザーID: \`${userId}\`\n\n📝 *入力情報（郵便番号/年齢/資格）*\n${userText.slice(0, 500)}\n\n時刻: ${nowJST}\n${picLine}📲 返信 → https://chat.line.biz/\n\n✅ *対応TODO*\n☐ 24時間以内にLINEで連絡\n☐ 郵便番号から通勤可能エリアを確認\n☐ 資格・年齢から求人候補を絞り込み`,
+              }),
+            }).catch((e) => { console.error(`[Slack] intake_human notify failed: ${e.message}`); });
+          })());
+          // ファネルイベント
+          ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
+          ctx.waitUntil(logPhaseTransition(userId, "intake_human", "handoff", "text", entry, env, ctx));
+          continue;
+        }
+
         // 【安全チェック】handoff中なら handleFreeTextInput を呼ばずに直接沈黙
         if (entry.phase === "handoff") {
           console.log(`[LINE] Handoff silent (direct check): "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
@@ -8298,9 +8329,9 @@ ${entry.rmCvQualifications || '看護師免許'}
           }).catch((e) => { console.error(`[Slack] non-text notification failed: ${e.message}`); });
         }
 
-        // handoff中: Bot沈黙（テキストと同じ挙動）
-        if (entry.phase === "handoff" || entry.phase === "handoff_silent") {
-          console.log(`[LINE] Handoff silent (non-text ${msgType}): User: ${userId.slice(0, 8)}`);
+        // handoff中 or intake_human中: Bot沈黙（テキストと同じ挙動）
+        if (entry.phase === "handoff" || entry.phase === "handoff_silent" || entry.phase === "intake_human") {
+          console.log(`[LINE] Silent (${entry.phase}, non-text ${msgType}): User: ${userId.slice(0, 8)}`);
           continue;
         }
 
