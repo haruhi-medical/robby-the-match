@@ -372,69 +372,225 @@ tbody tr:hover {
 
 
 /* ==========================================================================
-   10. HEADER & FOOTER（全ページ共通）
+   10. HEADER & FOOTER — LP(TOP)完全準拠（全ページ共通）
    ========================================================================== */
 
-.site-header,
-.header {
+/* ---- Site Header（LP index-deferred.css より移植） ---- */
+.site-header {
   position: sticky;
   top: 0;
   z-index: 1000;
   background: rgba(230, 245, 250, 0.92);
-  backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  padding: 8px var(--section-pad-x);
+  backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(26, 157, 224, 0.10);
-}
-
-.site-header .logo,
-.header .logo {
-  display: inline-flex;
+  padding: 6px 24px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  transition: box-shadow 0.3s var(--ease-smooth);
 }
 
-.site-header .logo img,
-.header .logo img {
-  height: 40px;
+.site-header.scrolled {
+  box-shadow: var(--shadow-sm);
+}
+
+.header-logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-logo img {
+  height: 80px;
   width: auto;
 }
 
-.header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: var(--container-max);
-  margin: 0 auto;
-}
-
-.footer {
-  margin-top: var(--space-3xl);
-  padding: var(--space-2xl) var(--section-pad-x);
-  background: var(--bg-tint);
+.header-tagline {
+  font-size: 0.68rem;
   color: var(--text-muted);
-  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
 }
 
-.footer a {
+.header-nav {
+  display: flex;
+  gap: 24px;
+}
+
+.header-nav a {
   color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  position: relative;
+  transition: color 0.3s var(--ease-smooth);
 }
 
-.footer a:hover {
-  color: var(--primary);
+.header-nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 1px;
+  transition: width 0.3s var(--ease-out);
+}
+
+.header-nav a:hover { color: var(--primary); }
+.header-nav a:hover::after { width: 100%; }
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+  padding: 4px 8px;
+}
+
+/* ---- Mobile Navigation ---- */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1100;
+}
+
+.mobile-nav.open { display: block; }
+
+.mobile-nav-inner {
+  background: #fff;
+  width: 260px;
+  height: 100%;
+  padding: 24px 20px;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-nav-inner a {
+  display: block;
+  padding: 14px 0;
+  color: #333;
+  text-decoration: none;
+  font-size: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.mobile-nav-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  float: right;
+  color: #666;
+}
+
+/* ---- Site Footer（LP index-deferred.css より移植） ---- */
+.site-footer {
+  background: var(--primary-light);
+  color: var(--text-secondary);
+  border-top: 1px solid rgba(26, 157, 224, 0.12);
+  text-align: center;
+  padding: 56px 24px 40px;
+}
+
+.footer-brand {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+
+.footer-permit {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  letter-spacing: 0.02em;
 }
 
 .footer-links {
   display: flex;
-  justify-content: center;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-md);
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 28px;
+  margin-bottom: 28px;
 }
 
-.footer-bottom {
-  text-align: center;
-  font-size: var(--fs-xs);
+.footer-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover { color: var(--primary); }
+
+.footer-editorial {
+  font-size: 0.72rem;
   color: var(--text-muted);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.footer-editorial a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.footer-copy {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+  margin-top: 6px;
+}
+
+/* ---- Mobile Sticky CTA ---- */
+.mobile-sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  padding: 12px 20px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(26, 157, 224, 0.10);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(100%);
+  transition: transform 0.4s var(--ease-out);
+  display: none;
+}
+
+.mobile-sticky-cta.visible { transform: translateY(0); }
+
+.mobile-sticky-cta a {
+  display: block;
+  text-align: center;
+  background: linear-gradient(135deg, #06C755 0%, #05b34c 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 14px 20px;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 16px var(--line-glow);
+}
+
+/* ---- Header Responsive ---- */
+@media (max-width: 767px) {
+  .header-nav { display: none; }
+  .hamburger { display: block; }
 }
 
 
