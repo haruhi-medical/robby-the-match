@@ -42,37 +42,44 @@
 <meta content="https://quads-nurse.com/assets/ogp.png" name="twitter:image"/>
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-X4G2BYW13B"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-X4G2BYW13B');</script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="/assets/design-tokens.css" rel="stylesheet"/>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"トップ","item":"https://quads-nurse.com/"},{"@type":"ListItem","position":2,"name":"お役立ちガイド","item":"https://quads-nurse.com/lp/job-seeker/guide/"},{"@type":"ListItem","position":3,"name":"キャリアチェンジガイド","item":"https://quads-nurse.com/lp/job-seeker/guide/career-change.html"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"看護師のキャリアチェンジ完全ガイド","author":{"@type":"Organization","name":"神奈川ナース転職編集部"},"publisher":{"@type":"Organization","name":"ナースロビー","logo":{"@type":"ImageObject","url":"https://quads-nurse.com/assets/ogp.png"}},"datePublished":"2026-02-20","dateModified":"2026-02-20"}</script>
 <style>
 /* ==========================================
-   DESIGN TOKENS (re-usable across 80 pages)
-   Editorial Calm Japan — warm cream × teal × gold
+   LOCAL PAGE TOKENS — assets/design-tokens.css 準拠にリマップ（2026-04-20）
+   Brand: LP(TOP)同一のブライトブルー系。旧Editorial Calm Japan→LP統一
    ========================================== */
 :root {
-  /* Palette */
-  --bg: #F6F2E8;           /* warm cream */
-  --bg-card: #FAF8F1;      /* lighter cream */
-  --bg-deep: #EDE6D2;      /* sand */
-  --ink: #181A20;          /* near-black */
-  --ink-soft: #484D58;
-  --ink-quiet: #8A8D94;
-  --teal: #3E7388;         /* existing brand, deepened */
-  --teal-soft: #7CA3B6;
-  --gold: #9E7A3F;         /* editorial accent */
-  --line: #06C755;         /* LINE official */
-  --rule: rgba(24, 26, 32, 0.1);
-  --rule-soft: rgba(24, 26, 32, 0.05);
+  /* Palette — LP(TOP)統一 */
+  --bg: #ffffff;                   /* 旧 warm cream → 白 */
+  --bg-card: #f0f8fc;              /* 旧 lighter cream → ソフトブルー */
+  --bg-deep: #e6f4fb;              /* 旧 sand → プライマリライト */
+  --ink: #2a2a3e;                  /* 旧 near-black → LP見出し色 */
+  --ink-soft: #4a4a5e;             /* LP本文色 */
+  --ink-quiet: #7a7a8e;            /* LP muted */
+  --teal: #1a9de0;                 /* 旧 editorial teal → LP primary blue */
+  --teal-soft: #50c8a0;            /* LP accent mint */
+  --gold: #1080c0;                 /* 旧 gold → LP primary-dark (ブルー単色化) */
+  --line: #06C755;                 /* LINE official */
+  --rule: rgba(42, 42, 62, 0.08);
+  --rule-soft: rgba(42, 42, 62, 0.04);
 
-  /* Typography */
-  --font-display: "Shippori Mincho B1", "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  /* Typography — LP統一: すべてサンセリフ（Noto Sans JP） */
+  --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-body: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
-  /* Layout */
-  --container: min(100%, 1120px);
-  --reading: min(100%, 680px);
+  /* Layout — LP準拠で少し絞る */
+  --container: min(100%, 960px);
+  --reading: min(100%, 720px);
 }
+
+/* 見出し: 明朝→ゴシックのため weight 上げる */
+h1, h2, h3 { font-weight: 700 !important; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-text-size-adjust: 100%; }
 html { scroll-behavior: smooth; }
@@ -89,17 +96,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle grain — atmosphere */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-}
+/* 粒子テクスチャは LP統一のため無効化（2026-04-20） */
+body::before { display: none; }
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
