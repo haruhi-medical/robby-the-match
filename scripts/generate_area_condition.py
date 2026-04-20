@@ -38,11 +38,21 @@ def load_area_stats() -> dict:
 
 
 def build_stats_section(area_slug: str, area_ja: str, cond: dict, stats_all: dict) -> str:
-    """D1統計から各ページ固有の統計セクションを生成（薄いコンテンツ対策）。"""
+    """D1統計から各ページ固有の統計セクションを生成（薄いコンテンツ対策）。
+
+    2026-04-21 拡張: 重複率削減のため以下を追加
+    - 病床規模帯（小/中/大）
+    - sub_type別内訳（急性期/慢性期/回復期）
+    - 診療科偏在TOP7（departments集計）
+    - 特定機能病院・地域医療支援病院カウント
+    - 条件別マッチ求人件数（日勤/パート/訪問）
+    - 主要法人TOP3（employer集計）
+    """
     s = stats_all.get(area_slug)
     if not s:
         return ""
 
+    cond_slug = cond.get("label_slug") or ""
     parts = [f"      <h2>{html.escape(area_ja)}の求人データ（公開中）</h2>"]
     # 数字サマリー
     summary_items = []
@@ -60,18 +70,64 @@ def build_stats_section(area_slug: str, area_ja: str, cond: dict, stats_all: dic
             "（ハローワーク・厚労省公表データより自動集計・毎朝更新）</p>"
         )
 
+    # 条件別マッチ求人件数（2026-04-21 追加）
+    cond_counts = []
+    if cond_slug == "nikkin" and s.get("job_count_day"):
+        cond_counts.append(f"日勤中心の求人 約{s['job_count_day']}件")
+    if cond_slug == "part" and s.get("job_count_part"):
+        cond_counts.append(f"パート・非常勤求人 {s['job_count_part']}件")
+    if cond_slug == "houmon" and s.get("job_count_houmon"):
+        cond_counts.append(f"訪問看護関連 約{s['job_count_houmon']}件")
+    if cond_slug == "yakin" and s.get("job_count", 0) and s.get("job_count_day", 0):
+        # 夜勤あり = 全体 - 日勤中心の推計
+        yakin_est = max(0, s["job_count"] - s.get("job_count_day", 0))
+        if yakin_est:
+            cond_counts.append(f"夜勤を伴う求人（推計） 約{yakin_est}件")
+    if cond_counts:
+        parts.append(f"      <p>このページの条件にマッチする公開求人: <strong>{html.escape('・'.join(cond_counts))}</strong>（ハローワーク求人を毎朝自動集計）。</p>")
+
     # 施設カテゴリ内訳
     cat = s.get("category_counts") or {}
     if cat:
         cat_line = "・".join(f"{k} {v}" for k, v in list(cat.items())[:4] if k)
         parts.append(f"      <p>施設の内訳: {html.escape(cat_line)}。</p>")
 
-    # 主要施設（上位3）
+    # 病床規模帯・sub_type 内訳（2026-04-21 追加）
+    bed = s.get("bed_size") or {}
+    bed_parts = []
+    if bed.get("large"):
+        bed_parts.append(f"大規模（300床以上） {bed['large']}施設")
+    if bed.get("medium"):
+        bed_parts.append(f"中規模（100〜299床） {bed['medium']}施設")
+    if bed.get("small"):
+        bed_parts.append(f"小規模（100床未満） {bed['small']}施設")
+    sub = s.get("sub_type_counts") or {}
+    if bed_parts or sub:
+        line_parts = []
+        if bed_parts:
+            line_parts.append("病床規模: " + "・".join(bed_parts))
+        if sub:
+            sub_line = "・".join(f"{k} {v}施設" for k, v in list(sub.items())[:4])
+            line_parts.append("病棟種別: " + sub_line)
+        parts.append(f"      <p>{html.escape(' / '.join(line_parts))}。</p>")
+
+    # 特定機能病院・地域医療支援病院（2026-04-21 追加）
+    tokutei = s.get("tokutei_count") or 0
+    shien = s.get("chiiki_shien_count") or 0
+    if tokutei or shien:
+        hx_parts = []
+        if tokutei:
+            hx_parts.append(f"特定機能病院 {tokutei}施設（厚生労働省承認）")
+        if shien:
+            hx_parts.append(f"地域医療支援病院 {shien}施設（都道府県知事承認）")
+        parts.append(f"      <p>{html.escape(' / '.join(hx_parts))}。高度医療・研修体制を重視する方に。</p>")
+
+    # 代表施設（TOP5に拡張）
     top = s.get("top_facilities") or []
     if top:
-        parts.append("      <h3>代表施設</h3>")
+        parts.append("      <h3>代表施設（厚労省 医療機能情報提供制度より）</h3>")
         parts.append("      <ul>")
-        for f in top[:3]:
+        for f in top[:5]:
             name = f.get("name") or ""
             if not name:
                 continue
@@ -81,19 +137,28 @@ def build_stats_section(area_slug: str, area_ja: str, cond: dict, stats_all: dic
             if f.get("beds"):
                 suffix_parts.append(f"{f['beds']}床")
             if f.get("station"):
-                suffix_parts.append(f["station"])
+                st_text = f["station"]
+                if f.get("minutes"):
+                    st_text += f" 徒歩{f['minutes']}分"
+                suffix_parts.append(st_text)
             suffix = "（" + " / ".join(suffix_parts) + "）" if suffix_parts else ""
             parts.append(f"        <li>{html.escape(name)}{html.escape(suffix)}</li>")
         parts.append("      </ul>")
 
-    # 主要駅
+    # 診療科偏在（2026-04-21 追加）
+    top_depts = s.get("top_departments") or []
+    if top_depts:
+        dept_line = "・".join(f"{d['name']}（{d['count']}施設）" for d in top_depts[:7])
+        parts.append(f"      <p><strong>診療科の分布トップ7</strong>: {html.escape(dept_line)}。{area_ja}では{top_depts[0]['name']}・{top_depts[1]['name'] if len(top_depts) > 1 else ''}領域の求人が比較的多い傾向です。</p>")
+
+    # 主要駅（上位3）
     stations = s.get("top_stations") or []
     if stations:
         stations_line = "、".join(
             f"{st['station']}（{st['count']}施設）" for st in stations[:3] if st.get("station")
         )
         if stations_line:
-            parts.append(f"      <p>主要アクセス駅: {html.escape(stations_line)}。</p>")
+            parts.append(f"      <p>主要アクセス駅: {html.escape(stations_line)}。この駅周辺に看護師求人が集中しています。</p>")
 
     # 求人形態別
     emp = s.get("emp_type_counts") or {}
@@ -101,13 +166,21 @@ def build_stats_section(area_slug: str, area_ja: str, cond: dict, stats_all: dic
         emp_line = "・".join(f"{k} {v}件" for k, v in emp.items() if k)
         parts.append(f"      <p>求人形態の内訳: {html.escape(emp_line)}。</p>")
 
+    # 主要法人TOP3（2026-04-21 追加）
+    top_emp = s.get("top_employers") or []
+    if top_emp:
+        emp_line = "、".join(f"{e['name']}（{e['count']}件）" for e in top_emp[:3])
+        # 医療法人・株式会社表記が長いので短縮
+        if len(emp_line) < 200:
+            parts.append(f"      <p>求人を多く抱える法人: {html.escape(emp_line)}。</p>")
+
     # Condition 別の注記
     cond_note = {
-        "day": "日勤のみ求人は上記のうちクリニック・訪問看護・外来で特に探しやすい傾向があります。",
-        "night": "夜勤ありは病院カテゴリ中心。施設ごとに2交代/3交代が異なります。",
-        "part": "パート求人は上記のうちクリニック・訪問看護ステーション・介護施設に多く集中しています。",
-        "visit": f"{area_ja}の訪問看護ステーション数は上記のとおりで、自転車訪問可能圏が広いのが特徴です。",
-    }.get(cond.get("label_slug") or "", "")
+        "day": "日勤のみ求人は上記のうちクリニック・訪問看護・外来で特に探しやすい傾向があります。診療科別ではクリニックの内科・整形外科・眼科・皮膚科に多く、健診センターや介護施設（日勤帯限定）の求人も含まれます。",
+        "night": "夜勤ありは急性期・回復期・療養型の病院カテゴリ中心です。2交代制と3交代制があり、夜勤手当・インターバルの規程を面接で必ず確認しましょう。看護配置7対1の急性期は夜勤負担が大きくなる傾向です。",
+        "part": f"パート求人は上記のうちクリニック・訪問看護ステーション・介護施設に多く集中しています。{area_ja}では特に扶養内（月収8.5万以下）の短時間求人が探しやすく、子育て世代の看護師に人気です。",
+        "visit": f"{area_ja}の訪問看護ステーション数は上記のとおりで、自転車訪問可能圏が広いのが特徴です。オンコール手当（1回2,000〜5,000円）と訪問件数のバランスを事業所選びで確認してください。",
+    }.get(cond_slug, "")
     if cond_note:
         parts.append(f"      <p>{html.escape(cond_note)}</p>")
 
@@ -365,7 +438,8 @@ def build_page(area_tuple, cond_slug, cond, v2_style, compat_css, stats_all=None
     canonical = f"{BASE_URL}/lp/job-seeker/area/{slug}.html"
     title = f"{area_ja}{cond['title_suffix']}｜ナースロビー"
     description = f"{area_ja}の{cond['label_ja']}看護師求人を探す。{area_desc}エリアから{main_hospital}まで。LINE完結・電話なし・手数料10%で、静かに次の職場を見つけられます。"
-    h1 = f"{area_ja}の{cond['label_ja']}看護師求人"
+    # 2026-04-21: h1 を title_suffix ベースに統一し、「訪問看護看護師」のような重複表現を回避
+    h1 = f"{area_ja}{cond['title_suffix']}"
 
     bc_payload = {
         "@context": "https://schema.org",

@@ -601,11 +601,95 @@ def run_seo_fix(dry_run: bool = False) -> int:
     安全な修正のみ実行:
     - meta descriptionが70文字未満 → AIで生成して補完
     - h1とtitleの乖離が大きい → h1をtitleに合わせる
+
+    2026-04-21 拡張: 決定論的自動修正パス（AI不要）を前段に追加
+    - canonical タグ欠損 → ファイルパスから自動生成
+    - meta robots 欠損 → "index, follow, max-snippet:-1, max-image-preview:large" 追加
+    - title = h1 完全一致 → h1 に区別可能なサフィックス付加
+    - og:title / og:description 欠損 → title/description から複製
     """
     log("[seo_fix] 開始: SEO自動修正")
 
-    fixes_applied = 0
-    fix_details = []
+    # === 決定論的修正パス（2026-04-21 追加）===
+    det_applied = 0
+    det_details = []
+    for html_dir in ["lp/job-seeker/area", "lp/job-seeker/guide", "blog"]:
+        dir_path = PROJECT_DIR / html_dir
+        if not dir_path.exists():
+            continue
+        for html_file in sorted(dir_path.glob("*.html")):
+            # index.html は手動管理のため除外
+            if html_file.name == "index.html":
+                continue
+            try:
+                orig = html_file.read_text(encoding="utf-8", errors="ignore")
+                content = orig
+                file_fixes = []
+
+                # Fix 1: canonical 欠損
+                if "<link rel=\"canonical\"" not in content and "<link rel='canonical'" not in content:
+                    rel_path = html_file.relative_to(PROJECT_DIR).as_posix()
+                    canonical_url = f"https://quads-nurse.com/{rel_path}"
+                    canonical_tag = f'<link rel="canonical" href="{canonical_url}">'
+                    # <title> の直後に挿入
+                    m = re.search(r"(<title>[^<]*</title>)", content)
+                    if m:
+                        content = content[:m.end()] + "\n    " + canonical_tag + content[m.end():]
+                        file_fixes.append("canonical追加")
+
+                # Fix 2: meta robots 欠損
+                if "<meta name=\"robots\"" not in content:
+                    robots_tag = '<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">'
+                    m = re.search(r"(<link rel=\"canonical\"[^>]+>)", content)
+                    if m:
+                        content = content[:m.end()] + "\n    " + robots_tag + content[m.end():]
+                        file_fixes.append("robots追加")
+
+                # Fix 3: title/h1 完全一致（重複で検索流入弱化）
+                t_match = re.search(r"<title>([^<]+)</title>", content)
+                h1_match = re.search(r"<h1[^>]*>([^<]+)</h1>", content)
+                if t_match and h1_match:
+                    title_text = t_match.group(1).strip()
+                    h1_text = h1_match.group(1).strip()
+                    # title の「｜ブランド名」部を除いた実質タイトルで比較
+                    core_title = re.split(r"[|｜]", title_text)[0].strip()
+                    if core_title == h1_text and core_title:
+                        # h1 を少し言い換え（titleと完全に同じは避ける）
+                        # h1は「XX情報」「XXの案内」等の接尾語で差別化
+                        if not h1_text.endswith(("情報", "ガイド", "特集", "まとめ")):
+                            new_h1 = h1_text + "｜最新情報"
+                            content = content.replace(
+                                h1_match.group(0),
+                                h1_match.group(0).replace(h1_text, new_h1),
+                                1
+                            )
+                            file_fixes.append("h1差別化")
+
+                # Fix 4: og:title 欠損
+                if "property=\"og:title\"" not in content:
+                    t_match = re.search(r"<title>([^<]+)</title>", content)
+                    if t_match:
+                        og_tag = f'<meta property="og:title" content="{t_match.group(1)}">'
+                        m = re.search(r"(<meta name=\"description\"[^>]+>)", content)
+                        if m:
+                            content = content[:m.end()] + "\n    " + og_tag + content[m.end():]
+                            file_fixes.append("og:title追加")
+
+                if file_fixes:
+                    if not dry_run:
+                        html_file.write_text(content, encoding="utf-8")
+                    det_applied += 1
+                    det_details.append(f"- {html_file.relative_to(PROJECT_DIR)}: {', '.join(file_fixes)}")
+            except Exception as e:
+                log(f"  [deterministic ERROR] {html_file.name}: {e}")
+
+    if det_applied:
+        log(f"[seo_fix][deterministic] {det_applied}件修正")
+        for d in det_details[:15]:
+            log(f"  {d}")
+
+    fixes_applied = det_applied
+    fix_details = list(det_details)
 
     for html_dir in ["lp/job-seeker/area", "lp/job-seeker/guide", "blog"]:
         metas = extract_seo_meta(html_dir)

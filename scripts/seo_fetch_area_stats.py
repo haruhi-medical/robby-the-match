@@ -138,10 +138,11 @@ def city_stats(city_jp: str) -> dict:
         r.get("category") or "その他": int(r.get("cnt") or 0) for r in rows
     }
 
-    # 代表施設上位5（規模・駅近優先）
+    # 代表施設上位5（規模・駅近優先、徒歩30分以上は除外してUX改善）
     rows = d1(
         f"SELECT name, nearest_station, station_minutes, bed_count, sub_type, category "
         f"FROM facilities WHERE city LIKE '{like}' "
+        f"AND (station_minutes IS NULL OR station_minutes <= 30) "
         f"ORDER BY bed_count DESC NULLS LAST LIMIT 5"
     )
     result["top_facilities"] = [
@@ -165,6 +166,98 @@ def city_stats(city_jp: str) -> dict:
     result["top_stations"] = [
         {"station": r.get("nearest_station"), "count": int(r.get("cnt") or 0)}
         for r in rows
+    ]
+
+    # === 2026-04-20 追加: 重複率削減用の拡張統計 ===
+
+    # 特定機能病院 / 地域医療支援病院（承認制の客観的事実のみ）
+    rows = d1(
+        f"SELECT COUNT(*) AS tokutei FROM facilities "
+        f"WHERE city LIKE '{like}' AND is_tokutei = 1"
+    )
+    result["tokutei_count"] = int(rows[0].get("tokutei") or 0) if rows else 0
+
+    rows = d1(
+        f"SELECT COUNT(*) AS shien FROM facilities "
+        f"WHERE city LIKE '{like}' AND is_chiiki_shien = 1"
+    )
+    result["chiiki_shien_count"] = int(rows[0].get("shien") or 0) if rows else 0
+
+    # 病床規模帯（小規模<100 / 中規模100-299 / 大規模300+）
+    rows = d1(
+        f"SELECT "
+        f"  SUM(CASE WHEN bed_count > 0 AND bed_count < 100 THEN 1 ELSE 0 END) AS small, "
+        f"  SUM(CASE WHEN bed_count >= 100 AND bed_count < 300 THEN 1 ELSE 0 END) AS medium, "
+        f"  SUM(CASE WHEN bed_count >= 300 THEN 1 ELSE 0 END) AS large "
+        f"FROM facilities WHERE city LIKE '{like}'"
+    )
+    if rows:
+        result["bed_size"] = {
+            "small": int(rows[0].get("small") or 0),
+            "medium": int(rows[0].get("medium") or 0),
+            "large": int(rows[0].get("large") or 0),
+        }
+
+    # sub_type 別内訳（急性期/慢性期/回復期/精神科 等）
+    rows = d1(
+        f"SELECT sub_type, COUNT(*) AS cnt FROM facilities "
+        f"WHERE city LIKE '{like}' AND sub_type IS NOT NULL AND sub_type != '' "
+        f"GROUP BY sub_type ORDER BY cnt DESC LIMIT 5"
+    )
+    result["sub_type_counts"] = {
+        r.get("sub_type"): int(r.get("cnt") or 0) for r in rows if r.get("sub_type")
+    }
+
+    # 診療科偏在（departments から頻出キーワード抽出）
+    # departments はカンマ区切りなので SQLite 関数で分解が難しい→
+    # 各施設の departments を取得してPython側で集計
+    rows = d1(
+        f"SELECT departments FROM facilities "
+        f"WHERE city LIKE '{like}' AND departments IS NOT NULL AND departments != '' "
+        f"LIMIT 300"
+    )
+    dept_counter = {}
+    for r in rows:
+        depts = (r.get("departments") or "").split(",")
+        for d in depts:
+            d = d.strip()
+            if not d:
+                continue
+            dept_counter[d] = dept_counter.get(d, 0) + 1
+    # 上位7診療科
+    top_depts = sorted(dept_counter.items(), key=lambda x: -x[1])[:7]
+    result["top_departments"] = [{"name": k, "count": v} for k, v in top_depts]
+
+    # 条件別求人件数（日勤/パート/訪問看護）
+    rows = d1(
+        f"SELECT COUNT(*) AS cnt FROM jobs "
+        f"WHERE work_location LIKE '{like}' AND emp_type LIKE '%正社員%' "
+        f"AND (shift1 LIKE '%日勤%' OR shift2 LIKE '%日勤%' OR title LIKE '%日勤%')"
+    )
+    result["job_count_day"] = int(rows[0].get("cnt") or 0) if rows else 0
+
+    rows = d1(
+        f"SELECT COUNT(*) AS cnt FROM jobs "
+        f"WHERE work_location LIKE '{like}' AND emp_type LIKE '%パート%'"
+    )
+    result["job_count_part"] = int(rows[0].get("cnt") or 0) if rows else 0
+
+    rows = d1(
+        f"SELECT COUNT(*) AS cnt FROM jobs "
+        f"WHERE work_location LIKE '{like}' "
+        f"AND (employer LIKE '%訪問看護%' OR title LIKE '%訪問看護%' OR description LIKE '%訪問看護%')"
+    )
+    result["job_count_houmon"] = int(rows[0].get("cnt") or 0) if rows else 0
+
+    # 主要法人（employer）上位3 — 同エリアの求人を多く抱える法人
+    rows = d1(
+        f"SELECT employer, COUNT(*) AS cnt FROM jobs "
+        f"WHERE work_location LIKE '{like}' AND employer IS NOT NULL "
+        f"GROUP BY employer ORDER BY cnt DESC LIMIT 3"
+    )
+    result["top_employers"] = [
+        {"name": r.get("employer"), "count": int(r.get("cnt") or 0)}
+        for r in rows if r.get("employer")
     ]
 
     return result
