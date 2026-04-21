@@ -128,15 +128,10 @@ body {
 <div class="card">
   <img src="/assets/logo-nursrobby.png" alt="ナースロビー" class="logo-img" onerror="this.style.display='none';">
 
-  <!-- 読み込み中（モバイルLIFF処理中） -->
+  <!-- 読み込み中（モバイルLIFF処理中）- 最小限の視覚フィードバック -->
   <div id="state-loading">
     <div class="dots"><span></span><span></span><span></span></div>
-    <p class="status" id="loading-status">🔍 あなたにぴったりの求人を探しています...</p>
-    <div class="progress-steps">
-      <div class="progress-step active" id="step-1"></div>
-      <div class="progress-step" id="step-2"></div>
-      <div class="progress-step" id="step-3"></div>
-    </div>
+    <p class="status" id="loading-status">─ ─ ─</p>
   </div>
 
   <!-- 友だち追加が必要（モバイルは自動リダイレクトするので通常表示されない） -->
@@ -261,20 +256,11 @@ body {
     return;
   }
 
-  // ========== ステータス表示 ==========
+  // ========== ステータス表示（数秒で読めないので最小限） ==========
+  // 処理中は「─ ─ ─」固定、最後の送信時のみ "LINEに送信中…" を一瞬表示
   var statusEl = document.getElementById('loading-status');
   function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
-  function setStep(step) {
-    var s1 = document.getElementById('step-1');
-    var s2 = document.getElementById('step-2');
-    var s3 = document.getElementById('step-3');
-    if (!s1) return;
-    [s1, s2, s3].forEach(function(s, i) {
-      s.classList.remove('done', 'active');
-      if (i < step) s.classList.add('done');
-      else if (i === step) s.classList.add('active');
-    });
-  }
+  function setStep() { /* プログレスバー廃止・ドットパルスのみ */ }
 
   // 10秒タイムアウト: どこかで詰まったらフォールバック表示
   var fallbackTimer = setTimeout(function() {
@@ -284,12 +270,8 @@ body {
   function done() { clearTimeout(fallbackTimer); }
 
   // ========== LIFF 初期化 ==========
-  setStatus('🔍 あなたにぴったりの求人を探しています...');
-  setStep(0);
   liff.init({ liffId: LIFF_ID })
     .then(function() {
-      setStatus('🤝 LINEと連携しています...');
-      setStep(1);
       if (!liff.isLoggedIn()) {
         liff.login({ redirectUri: window.location.href });
         return Promise.reject('LOGIN_REDIRECT');
@@ -300,8 +282,6 @@ body {
       if (!profile) return Promise.reject('NO_PROFILE');
 
       var userId = profile.userId;
-      setStatus('🎁 求人を準備しています...');
-      setStep(2);
 
       // 友だち追加状況チェック
       return liff.getFriendship()
@@ -342,11 +322,10 @@ body {
               }, 1500);
             } else {
               // 友だち未追加 → 即自動リダイレクト（ボタン1タップの一手間を省く）
-              setStatus('✉️ あなたに合う求人をLINEに送信中...');
-              setStep(3);
+              setStatus('✉️ LINEに送信中');
               setTimeout(function() {
                 window.location.href = LINE_ADD_URL;
-              }, 400);
+              }, 300);
             }
           });
         });
