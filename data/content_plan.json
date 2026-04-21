@@ -1,9 +1,9 @@
 {
-  "created": "2026-04-20T15:00:08.854958",
-  "updated": "2026-04-20T15:00:08.855104",
-  "week_of": "2026-04-20",
+  "created": "2026-04-21T15:00:09.781981",
+  "updated": "2026-04-21T15:02:30.551995",
+  "week_of": "2026-04-21",
   "total": 7,
-  "queue_pending_at_creation": 11,
+  "queue_pending_at_creation": 3,
   "plans": [
     {
       "day": 1,
@@ -11,23 +11,23 @@
       "cta_type": "hard",
       "status": "planned",
       "content_id": null,
-      "hint": "紹介会社の手数料135万。それ、看護師の年間ボーナスとほぼ同額"
+      "hint": "ICU5年目で年収480万。一般病棟5年目は430万。同じ看護師免許で100万差"
     },
     {
       "day": 2,
-      "category": "あるある",
+      "category": "地域ネタ",
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "先輩の「私の時代はもっと大変だった」。その時代を終わらせたのは誰？"
+      "hint": "川崎の大学病院と小田原の市民病院、同じ5年目で年収50万差。立地だけでこんなに違う？"
     },
     {
       "day": 3,
-      "category": "給与",
+      "category": "業界裏側",
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "派遣看護師の時給2,200円、常勤の時給換算は約1,800円。ボーナスで取り返せてる？"
+      "hint": "紹介会社経由で入職すると「すぐ辞めるな」プレッシャーが強くなる。手数料のせいで"
     },
     {
       "day": 4,
@@ -35,7 +35,7 @@
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "横浜の病院で手取り28万。小田原なら24万。でも家賃は4万安い。結局どっちが得？"
+      "hint": "秦野の病院、夜勤の日だけ駐車場が満車。始発じゃ間に合わないから全員車通勤"
     },
     {
       "day": 5,
@@ -43,15 +43,15 @@
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "訪問看護に転職したら年収は下がったけど、オンコール手当で月3万入る。QOLは上がった"
+      "hint": "産業看護師（企業ナース）の年収500万。病棟5年目の自分は430万。何が違う？"
     },
     {
       "day": 6,
-      "category": "あるある",
+      "category": "給与",
       "cta_type": "soft",
       "status": "planned",
       "content_id": null,
-      "hint": "申し送りで「異常なし」って言った直後、自分の異常に気づいてないことに気づいた"
+      "hint": "ICU5年目で年収480万。一般病棟5年目は430万。同じ看護師免許で100万差"
     },
     {
       "day": 7,

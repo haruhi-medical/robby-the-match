@@ -764,5 +764,14 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_ある_0407_02",
+    "content_id": "ai_ある_0407_02",
+    "timestamp": "2026-04-21T12:11:48",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]

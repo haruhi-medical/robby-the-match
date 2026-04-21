@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-21T02:43:40.955426",
+  "updated": "2026-04-21T15:02:30.539413",
   "posts": [
     {
       "id": 1,
@@ -4228,11 +4228,11 @@
       ],
       "cta_type": "soft",
       "content_type": "industry",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_業界_0406_02_20260421.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
@@ -4302,9 +4302,9 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-21T12:11:48",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -4329,7 +4329,8 @@
         ],
         "suggestion": "フックを短くし、キャプションを簡潔にすることで、看護師の関心をより引き付けられる可能性がある"
       },
-      "scheduled_for": "2026-04-08 17:30"
+      "scheduled_for": "2026-04-08 17:30",
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 196,
@@ -6238,11 +6239,11 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "failed",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "slide_generation_failed",
       "performance": {
         "views": null,
         "likes": null,

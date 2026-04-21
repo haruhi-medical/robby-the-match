@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-21T06:00:05.345170",
+  "updated": "2026-04-21T15:02:31.055954",
   "posts": [
     {
       "id": 1,
@@ -4302,9 +4302,9 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-21T12:11:48",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -4329,7 +4329,8 @@
         ],
         "suggestion": "フックを短くし、キャプションを簡潔にすることで、看護師の関心をより引き付けられる可能性がある"
       },
-      "scheduled_for": "2026-04-08 17:30"
+      "scheduled_for": "2026-04-08 17:30",
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 196,
@@ -6268,7 +6269,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6281,7 +6282,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.63,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-21 17:30"
     },
     {
       "id": 245,
@@ -6298,7 +6300,7 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6311,7 +6313,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.0,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-22 12:00"
     },
     {
       "id": 246,
@@ -6328,7 +6331,7 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6341,7 +6344,8 @@
       },
       "ai_score": 7,
       "quality_score": 7.54,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-23 21:00"
     }
   ],
   "archive": [

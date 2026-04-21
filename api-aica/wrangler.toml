@@ -1,0 +1,45 @@
+name = "nurserobby-aica-api"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV: 会話セッション・状態管理
+[[kv_namespaces]]
+binding = "AICA_SESSIONS"
+id = "5ce06e4d4fba4bc1972625f5d9a377c8"
+
+# D1: 求職者DB・会話ログ
+[[d1_databases]]
+binding = "AICA_DB"
+database_name = "nurserobby-aica-db"
+database_id = "32750c1d-b7fa-4497-a366-c6f8bceea096"
+
+# 既存の施設DBを読み取り参照（求人・施設情報）
+[[d1_databases]]
+binding = "NURSE_DB"
+database_name = "nurse-robby-db"
+database_id = "d147e3ef-ff45-413f-8e21-c3e813a5f504"
+
+# Workers AI: 最終フォールバック（Llama 3）
+[ai]
+binding = "AI"
+
+# Cron Trigger:
+#   - 入職後フォロー Push（1日1回、09:00 JST = 00:00 UTC）
+#   - ハンドオフSLA監視（1時間おき）
+[triggers]
+crons = ["0 0 * * *", "0 * * * *"]
+
+[vars]
+AI_PROVIDER = "openai"
+AICA_VERSION = "0.1.0"
+
+# 以下は wrangler secret put で設定:
+# wrangler secret put LINE_CHANNEL_SECRET --config wrangler.toml
+# wrangler secret put LINE_CHANNEL_ACCESS_TOKEN --config wrangler.toml
+# wrangler secret put OPENAI_API_KEY --config wrangler.toml
+# wrangler secret put ANTHROPIC_API_KEY --config wrangler.toml  (既存から流用)
+# wrangler secret put GEMINI_API_KEY --config wrangler.toml     (既存から流用)
+# wrangler secret put SLACK_BOT_TOKEN --config wrangler.toml    (既存から流用)
+# wrangler secret put SLACK_CHANNEL_AICA --config wrangler.toml (新チャンネルID)
+# wrangler secret put SLACK_CHANNEL_URGENT --config wrangler.toml
