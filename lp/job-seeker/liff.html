@@ -8,95 +8,170 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+/* ブランドカラー: --nr-color-primary #1A6B8A (teal blue), CTA #2D9F6F (green), accent #D4A843 (gold) */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Noto Sans JP', sans-serif;
-  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  font-family: 'Noto Sans JP', "Hiragino Sans", sans-serif;
+  background: linear-gradient(135deg, #E8F4F8 0%, #FFF8E8 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  color: #2C2C2C;
 }
 .card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 40px 28px;
-  max-width: 380px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 36px 28px 32px;
+  max-width: 400px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px rgba(26, 107, 138, 0.12);
+  position: relative;
+  overflow: hidden;
 }
-.logo { font-size: 1.3rem; font-weight: 700; color: #1a7f64; margin-bottom: 8px; }
-.tagline { font-size: 0.8rem; color: #888; margin-bottom: 24px; }
-.spinner {
-  width: 40px; height: 40px; margin: 0 auto 16px;
-  border: 3px solid #e0e0e0;
-  border-top-color: #1a7f64;
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #1A6B8A 0%, #2D9F6F 50%, #D4A843 100%);
+}
+.logo-img {
+  height: 56px;
+  width: auto;
+  max-width: 220px;
+  margin: 0 auto 6px;
+  display: block;
+}
+.tagline { font-size: 0.8rem; color: #6B7280; margin-bottom: 28px; letter-spacing: 0.08em; }
+
+/* ドットローディング */
+.dots {
+  display: inline-flex;
+  gap: 6px;
+  margin: 12px 0 16px;
+  align-items: center;
+  justify-content: center;
+}
+.dots span {
+  width: 10px; height: 10px;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  background: #1A6B8A;
+  animation: pulse 1.4s ease-in-out infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
-.status { font-size: 0.95rem; color: #333; line-height: 1.6; }
-.status-sub { font-size: 0.82rem; color: #888; margin-top: 8px; }
-.error { color: #d32f2f; }
-.btn-add {
-  display: inline-block;
-  background: #06C755;
-  color: #fff;
+.dots span:nth-child(2) { animation-delay: 0.2s; background: #2D9F6F; }
+.dots span:nth-child(3) { animation-delay: 0.4s; background: #D4A843; }
+@keyframes pulse {
+  0%, 80%, 100% { transform: scale(0.4); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.status {
   font-size: 1rem;
   font-weight: 600;
-  padding: 14px 32px;
-  border-radius: 8px;
+  color: #1A6B8A;
+  line-height: 1.6;
+  margin-top: 8px;
+  transition: opacity 0.3s;
+}
+.status-sub { font-size: 0.82rem; color: #6B7280; margin-top: 10px; line-height: 1.6; }
+.error { color: #d32f2f; }
+
+.progress-steps {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+.progress-step {
+  width: 28px; height: 4px;
+  border-radius: 2px;
+  background: #E5E7EB;
+  transition: background 0.3s;
+}
+.progress-step.done { background: #2D9F6F; }
+.progress-step.active { background: #1A6B8A; animation: shimmer 1.5s ease-in-out infinite; }
+@keyframes shimmer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.btn-add {
+  display: inline-block;
+  background: linear-gradient(135deg, #2D9F6F 0%, #1E7A52 100%);
+  color: #FFFFFF;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 16px 32px;
+  border-radius: 12px;
   text-decoration: none;
   margin-top: 20px;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(45, 159, 111, 0.3);
 }
-.btn-add:hover { opacity: 0.9; }
+.btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(45, 159, 111, 0.4); }
+
+.excitement {
+  font-size: 0.85rem;
+  color: #1A6B8A;
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: #E8F4F8;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
 .hidden { display: none; }
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="logo">ナースロビー</div>
+  <img src="/assets/logo-nursrobby.png" alt="ナースロビー" class="logo-img" onerror="this.style.display='none';">
   <div class="tagline">早い × 簡単 × 24時間</div>
 
-  <!-- 読み込み中 -->
+  <!-- 読み込み中（モバイルLIFF処理中） -->
   <div id="state-loading">
-    <div class="spinner"></div>
-    <p class="status">準備しています...</p>
+    <div class="dots"><span></span><span></span><span></span></div>
+    <p class="status" id="loading-status">🔍 あなたにぴったりの求人を探しています...</p>
+    <div class="progress-steps">
+      <div class="progress-step active" id="step-1"></div>
+      <div class="progress-step" id="step-2"></div>
+      <div class="progress-step" id="step-3"></div>
+    </div>
   </div>
 
   <!-- 友だち追加が必要（モバイルは自動リダイレクトするので通常表示されない） -->
   <div id="state-add-friend" class="hidden">
-    <p class="status">あなたに合う求人の準備ができました！<br>受け取るには友だち追加してください。</p>
-    <a id="add-friend-btn" href="#" class="btn-add">友だち追加して求人を受け取る</a>
-    <p class="status-sub">※完全無料・電話なし・いつでもブロックOK</p>
+    <p class="status">🎁 あなたに合う求人の準備ができました</p>
+    <a id="add-friend-btn" href="#" class="btn-add">LINEで受け取る</a>
+    <p class="status-sub">完全無料・電話なし・いつでもブロックOK</p>
   </div>
 
   <!-- PC向け: QRコード表示 -->
   <div id="state-pc-qr" class="hidden">
-    <p class="status" style="font-weight:700;font-size:1rem;margin-bottom:12px;">スマホで読み取ってください 📱</p>
-    <div id="qrcode-container" style="display:inline-block;padding:16px;background:#fff;border:1px solid #e0e0e0;border-radius:12px;"></div>
-    <p class="status-sub" style="margin-top:16px;line-height:1.6;">
-      スマホのカメラで読み取るとLINEが開きます。<br>
-      診断結果を引き継いで求人をお届けします 🌸
+    <p class="status" style="margin-bottom:14px;">📱 スマホで読み取ってください</p>
+    <div id="qrcode-container" style="display:inline-block;padding:16px;background:#FFFFFF;border:2px solid #1A6B8A;border-radius:14px;"></div>
+    <p class="excitement" style="margin-top:16px;">
+      ✨ LPで答えた内容を引き継いで、<br>
+      あなた専用の求人をLINEに届けます
     </p>
     <p class="status-sub" style="margin-top:12px;">
-      <a href="#" id="pc-direct-link" style="color:#1a7f64;font-size:0.85rem;">このまま直接開く場合はこちら</a>
+      <a href="#" id="pc-direct-link" style="color:#1A6B8A;font-size:0.85rem;text-decoration:underline;">このまま直接開く場合はこちら</a>
     </p>
   </div>
 
   <!-- 既に友だち追加済み -->
   <div id="state-already-friend" class="hidden">
-    <p class="status">求人を準備中です...<br>LINEに戻ってください。</p>
-    <p class="status-sub">数秒後に自動で表示されます</p>
+    <div class="dots"><span></span><span></span><span></span></div>
+    <p class="status">✉️ あなた専用の求人をLINEに送信中...</p>
+    <p class="status-sub">LINEに戻ってご確認ください</p>
   </div>
 
   <!-- エラー -->
   <div id="state-error" class="hidden">
     <p class="status error" id="error-msg">エラーが発生しました</p>
-    <a href="https://line.me/R/ti/p/@174cxnev" class="btn-add" style="background:#1a7f64;">こちらから友だち追加</a>
+    <a href="https://line.me/R/ti/p/@174cxnev" class="btn-add">LINEで友だち追加</a>
     <p class="status-sub">※LINEで直接追加できます</p>
   </div>
 </div>
@@ -189,8 +264,19 @@ body {
   }
 
   // ========== ステータス表示 ==========
-  var statusEl = document.querySelector('#state-loading .status');
+  var statusEl = document.getElementById('loading-status');
   function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+  function setStep(step) {
+    var s1 = document.getElementById('step-1');
+    var s2 = document.getElementById('step-2');
+    var s3 = document.getElementById('step-3');
+    if (!s1) return;
+    [s1, s2, s3].forEach(function(s, i) {
+      s.classList.remove('done', 'active');
+      if (i < step) s.classList.add('done');
+      else if (i === step) s.classList.add('active');
+    });
+  }
 
   // 10秒タイムアウト: どこかで詰まったらフォールバック表示
   var fallbackTimer = setTimeout(function() {
@@ -200,23 +286,24 @@ body {
   function done() { clearTimeout(fallbackTimer); }
 
   // ========== LIFF 初期化 ==========
-  setStatus('LIFF初期化中...');
+  setStatus('🔍 あなたにぴったりの求人を探しています...');
+  setStep(0);
   liff.init({ liffId: LIFF_ID })
     .then(function() {
-      setStatus('ログイン確認中...');
+      setStatus('🤝 LINEと連携しています...');
+      setStep(1);
       if (!liff.isLoggedIn()) {
         liff.login({ redirectUri: window.location.href });
         return Promise.reject('LOGIN_REDIRECT');
       }
-
-      setStatus('プロフィール取得中...');
       return liff.getProfile();
     })
     .then(function(profile) {
       if (!profile) return Promise.reject('NO_PROFILE');
 
       var userId = profile.userId;
-      setStatus('友だち状況を確認中...');
+      setStatus('🎁 求人を準備しています...');
+      setStep(2);
 
       // 友だち追加状況チェック
       return liff.getFriendship()
@@ -257,11 +344,11 @@ body {
               }, 1500);
             } else {
               // 友だち未追加 → 即自動リダイレクト（ボタン1タップの一手間を省く）
-              setStatus('LINEを開いています...');
-              // 即遷移（100msだけ遅延してステータス表示）
+              setStatus('✉️ あなたに合う求人をLINEに送信中...');
+              setStep(3);
               setTimeout(function() {
                 window.location.href = LINE_ADD_URL;
-              }, 100);
+              }, 400);
             }
           });
         });
