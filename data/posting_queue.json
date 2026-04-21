@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-21T15:02:31.055954",
+  "updated": "2026-04-22T03:00:35.340631",
   "posts": [
     {
       "id": 1,
@@ -4347,11 +4347,11 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "ready",
-      "video_path": null,
+      "status": "failed",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_地域_0407_03_20260422.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,

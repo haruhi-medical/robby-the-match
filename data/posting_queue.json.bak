@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-21T15:02:30.539413",
+  "updated": "2026-04-22T02:46:33.919621",
   "posts": [
     {
       "id": 1,
@@ -4347,8 +4347,8 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_地域_0407_03_20260422.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
@@ -6269,7 +6269,7 @@
       ],
       "cta_type": "soft",
       "content_type": "local",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6282,7 +6282,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.63,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-21 17:30"
     },
     {
       "id": 245,
@@ -6299,7 +6300,7 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6312,7 +6313,8 @@
       },
       "ai_score": 7,
       "quality_score": 8.0,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-22 12:00"
     },
     {
       "id": 246,
@@ -6329,7 +6331,7 @@
       ],
       "cta_type": "soft",
       "content_type": "trend",
-      "status": "pending",
+      "status": "ready",
       "video_path": null,
       "posted_at": null,
       "tiktok_url": null,
@@ -6342,7 +6344,8 @@
       },
       "ai_score": 7,
       "quality_score": 7.54,
-      "quality_checked": true
+      "quality_checked": true,
+      "scheduled_for": "2026-04-23 21:00"
     }
   ],
   "archive": [
