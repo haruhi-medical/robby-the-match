@@ -3954,10 +3954,10 @@ function buildSessionWelcome(sessionCtx, entry) {
       nextPhase: 'welcome', // matching生成はpostbackハンドラ側で行う
       messages: [{
         type: 'text',
-        text: `診断結果を引き継ぎました✨\n\n${areaLabel}エリアで\n求人を探しますね。\n\nちょっとお待ちください…`,
+        text: `診断結果を引き継ぎました ✨\n\n${areaLabel}エリアで\nあなたにピッタリの求人を選びました。\n\n👇 下のボタンをタップして求人チェック！`,
         quickReply: {
           items: [
-            qrItem('求人を見る', 'welcome=start_with_session'),
+            qrItem('👉 TAPして求人を見る', 'welcome=start_with_session'),
           ],
         },
       }],
