@@ -3254,6 +3254,11 @@ async function handleLinkSession(request, env) {
   try {
     const body = await request.json();
     const { session_id, user_id, already_friend } = body;
+    // LIFF経由でLP診断回答を直接渡せるように (liff.html から付与される)
+    const bodySource = body.source;
+    const bodyIntent = body.intent;
+    const bodyArea = body.area;
+    const bodyAnswers = body.answers;
 
     if (!session_id || !user_id) {
       return new Response(JSON.stringify({ error: 'session_id and user_id are required' }), {
@@ -3279,6 +3284,26 @@ async function handleLinkSession(request, env) {
     if (!sessionData) {
       // セッションが見つからない場合でもuser_idだけ保存（直接LIFFアクセス対応）
       sessionData = { sessionId: session_id, source: 'liff_direct', intent: 'see_jobs', createdAt: Date.now() };
+    }
+
+    // LIFF経由でbodyから渡された診断情報をマージ（shindan.js CTAルート）
+    if (bodySource) sessionData.source = bodySource;
+    if (bodyIntent) sessionData.intent = bodyIntent;
+    if (bodyArea) sessionData.area = bodyArea;
+    if (bodyAnswers) {
+      try {
+        const parsed = typeof bodyAnswers === 'string' ? JSON.parse(bodyAnswers) : bodyAnswers;
+        sessionData.answers = parsed;
+        // answers内のトップレベルフィールドをsessionDataに展開（area/areaLabel/workstyle/urgency/facilityType等）
+        if (parsed.area && !sessionData.area) sessionData.area = parsed.area;
+        if (parsed.areaLabel) sessionData.areaLabel = parsed.areaLabel;
+        if (parsed.prefecture) sessionData.prefecture = parsed.prefecture;
+        if (parsed.facilityType) sessionData.facilityType = parsed.facilityType;
+        if (parsed.workStyle || parsed.workstyle) sessionData.workStyle = parsed.workStyle || parsed.workstyle;
+        if (parsed.urgency) sessionData.urgency = parsed.urgency;
+      } catch (e) {
+        console.error('[LinkSession] answers parse error:', e.message);
+      }
     }
 
     // liff:{userId} に保存（24h TTL）

@@ -177,7 +177,7 @@ body {
           var isFriend = !!(data && data.friendFlag);
           setStatus(isFriend ? 'セッションを連携中...' : '友だち追加画面を準備中...');
 
-          // セッション紐付けAPI
+          // セッション紐付けAPI - LP診断回答も引き継ぎ
           return fetch(API_BASE + '/api/link-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -185,6 +185,10 @@ body {
               session_id: sessionId || ('liff_' + Date.now()),
               user_id: userId,
               already_friend: isFriend,
+              source: params.get('source') || 'liff',
+              intent: params.get('intent') || 'see_jobs',
+              area: params.get('area') || '',
+              answers: params.get('answers') || '',
             }),
           })
           .then(function(res) {

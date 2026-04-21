@@ -489,10 +489,10 @@
     var skipped = window._shindanSkipped;
     window._shindanSkipped = false;
 
-    // 共通LINE送客EP /api/line-start 経由で session_id + 診断回答をWorkerに渡す
-    // Worker側がKVにセッション保存→dm_text付きでLINE友だち追加URLへ302リダイレクト
-    // LIFFではないので Instagram WebView でもログイン壁が出ない
-    var ctaURL = WORKER_BASE + '/api/line-start?source=shindan&intent=diagnose'
+    // LIFF経由で送客: userIdを事前取得してWorker側の liff:{userId} KVに診断回答を保存
+    // → follow event 時に shindan_shortcut が発動して matching_preview 直行
+    // LIFF失敗/未対応ブラウザの場合はliff.html側が /api/line-start へフォールバック
+    var ctaURL = '/lp/job-seeker/liff.html?source=shindan&intent=diagnose'
       + '&session_id=' + encodeURIComponent(sid || '')
       + '&area=' + encodeURIComponent(A.area || '')
       + '&answers=' + answersJson;
