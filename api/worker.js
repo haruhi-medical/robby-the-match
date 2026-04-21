@@ -3856,6 +3856,50 @@ function buildIntakeHumanThanks() {
   ];
 }
 
+// LP診断経由（matching直行）ユーザー向けウェルカム
+// 「LPで回答した内容を引き継いでいます」宣言で二度手間感を消す
+function buildShindanWelcome(entry) {
+  const AREA_LABELS = {
+    yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
+    odawara_kensei: '小田原・県西', sagamihara_kenoh: '相模原・県央',
+    yokosuka_miura: '横須賀・三浦', yokohama: '横浜市', kawasaki: '川崎市',
+    sagamihara: '相模原市', fujisawa: '藤沢市', odawara: '小田原市',
+    atsugi: '厚木市', yokosuka: '横須賀市', hiratsuka: '平塚市',
+  };
+  const FT_LABELS = {
+    hospital: '病院', clinic: 'クリニック',
+    visiting_nursing: '訪問看護', care_facility: '介護施設',
+    acute: '急性期病院', chronic: '慢性期病院', rehab: '回復期病院',
+  };
+  const WS_LABELS = {
+    day: '日勤のみ', night: '夜勤あり', part: 'パート',
+    regular: '常勤', full_time: 'フルタイム',
+  };
+  const areaL = entry.areaLabel || AREA_LABELS[entry.area] || '';
+  const ftL = FT_LABELS[entry.facilityType] || '';
+  const wsL = WS_LABELS[entry.workStyle] || '';
+  const parts = [areaL, ftL, wsL].filter(Boolean).join('・');
+  const partsDisplay = parts ? `📍 ${parts}\n\n` : '';
+  return [{
+    type: "text",
+    text: `✨ ご登録ありがとうございます\n\n${partsDisplay}LPでご回答いただいた内容をもとに、AIがあなたに合う求人をお探しいたします。\n\nもう一度ご入力いただく必要はございません 😊`,
+  }];
+}
+
+// 情報収集層（urgency=info）向けウェルカム（押し付けない柔らかい文言）
+function buildShindanWelcomeInfo(entry) {
+  const AREA_LABELS = {
+    yokohama_kawasaki: '横浜・川崎', shonan_kamakura: '湘南・鎌倉',
+    odawara_kensei: '小田原・県西', sagamihara_kenoh: '相模原・県央',
+    yokosuka_miura: '横須賀・三浦',
+  };
+  const areaL = entry.areaLabel || AREA_LABELS[entry.area] || 'ご希望エリア';
+  return [{
+    type: "text",
+    text: `✨ ご登録ありがとうございます\n\n「まずは情報収集」とのこと、承知いたしました 🌸\n\n${areaL}の相場や求人情報を、焦らず一緒に見ていきましょう。\n気になるものがあったときだけ、お気軽にご相談ください。`,
+  }];
+}
+
 function buildSessionWelcome(sessionCtx, entry) {
   const source = sessionCtx.source || 'none';
   const intent = sessionCtx.intent || 'see_jobs';
@@ -7298,8 +7342,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
           await saveLineEntry(userId, entry, env);
 
-          const replyMsgs = await buildPhaseMessage(targetPhase, entry, env);
-          await lineReply(event.replyToken, (replyMsgs || []).slice(0, 5), channelAccessToken);
+          // LP診断経由専用ウェルカムを先頭に prepend（info層は柔らかい文言）
+          const shindanWelcome = targetPhase === 'info_detour'
+            ? buildShindanWelcomeInfo(entry)
+            : buildShindanWelcome(entry);
+          const phaseMsgs = await buildPhaseMessage(targetPhase, entry, env);
+          const replyMsgs = [...shindanWelcome, ...(phaseMsgs || [])];
+          await lineReply(event.replyToken, replyMsgs.slice(0, 5), channelAccessToken);
 
           // LIFFセッション/session削除（消費済み）
           try {
