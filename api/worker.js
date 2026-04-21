@@ -6042,186 +6042,106 @@ function extractBedFunction(desc) {
   return "";
 }
 
+// AICA実装から移植した安定版 jobRow ヘルパー
+function jobRow(label, value) {
+  if (!value) return null;
+  return {
+    type: "box",
+    layout: "baseline",
+    spacing: "sm",
+    contents: [
+      { type: "text", text: label, size: "xs", color: "#999999", flex: 3 },
+      { type: "text", text: String(value), size: "xs", color: "#333333", flex: 7, wrap: true },
+    ],
+  };
+}
+
 function buildFacilityFlexBubble(job, index, opts) {
   const hasConfidential = !!(opts && opts.hasConfidential);
-  const name = job.n || "求人情報";
-  const title = job.t || "";
+  const name = (job.n || "求人情報").slice(0, 40);
+  const title = (job.t || "").slice(0, 60);
   const salary = job.sal || "要確認";
   const station = job.sta || "";
   const holidays = job.hol || "";
   const bonus = job.bon || "";
   const emp = job.emp || "";
-  const rank = job.r || "B";
-  const welfare = job.wel || "";
-  const desc = job.desc || "";
-  const loc = job.loc || "";
+  const welfare = (job.wel || "").trim();
+  const desc = (job.desc || "").trim();
+  const loc = (job.loc || "").replace(/^(神奈川県|東京都|千葉県|埼玉県)/, "");
   const shift = job.shift || "";
-  const ctr = job.ctr || job.contract_period || "";
-  const ins = job.ins || job.insurance || "";
-  const kjno = job.kjno || "";
-  const bedFunc = extractBedFunction(desc);
 
-  // ブランドカラー準拠の3段ヘッダー（医療×信頼感・警告赤を排除）
-  const palette = {
-    S: { header: "#1A6B8A", label: "特におすすめ" }, // ブランド primary (teal)
-    A: { header: "#2D9F6F", label: "おすすめ" },      // ブランド CTA (green)
-    B: { header: "#6B8E9F", label: "好条件" },        // ニュートラル (gray blue)
-  };
-  const { header: headerColor, label: rankLabel } = palette[rank] || palette.B;
+  // 説明文・福利厚生は180字で切る
+  const MAX_TEXT = 180;
+  const descTrunc = desc.length > MAX_TEXT ? desc.slice(0, MAX_TEXT) + "…" : desc;
+  const welfareTrunc = welfare.length > MAX_TEXT ? welfare.slice(0, MAX_TEXT) + "…" : welfare;
 
-  // 福利厚生を絵文字チップ化（最大4個）
-  const welfareChips = [];
-  if (welfare.includes("車通勤")) welfareChips.push({ icon: "🚗", text: "車OK" });
-  if (welfare.includes("託児") || welfare.includes("保育")) welfareChips.push({ icon: "👶", text: "託児所" });
-  if (welfare.includes("住宅") || welfare.includes("寮")) welfareChips.push({ icon: "🏠", text: "住宅手当" });
-  if (welfare.includes("退職金")) welfareChips.push({ icon: "💰", text: "退職金" });
-  const chipsBox = welfareChips.length > 0 ? {
-    type: "box", layout: "horizontal", margin: "md", spacing: "xs",
-    contents: welfareChips.slice(0, 4).map(c => ({
-      type: "box", layout: "baseline", paddingAll: "6px", cornerRadius: "md",
-      backgroundColor: "#F5F5F5", flex: 0, spacing: "xs",
+  // 1行 key-value ヘルパー
+  const row = (label, value) => {
+    if (!value) return null;
+    return {
+      type: "box", layout: "baseline", spacing: "sm",
       contents: [
-        { type: "text", text: c.icon, size: "sm", flex: 0 },
-        { type: "text", text: c.text, size: "xs", color: "#555555", flex: 0 },
-      ],
-    })),
-  } : null;
-
-  // 推薦理由タグ（最大3個、ブランドCTAグリーン）
-  const jobReasons = (job.reasons || []).filter(r => r).slice(0, 3);
-  const reasonsBox = jobReasons.length > 0 ? {
-    type: "box", layout: "horizontal", margin: "sm", spacing: "xs", flex: 0, wrap: true,
-    contents: jobReasons.map(r => ({
-      type: "box", layout: "vertical",
-      contents: [{ type: "text", text: `✓ ${r}`, size: "xs", color: "#FFFFFF", align: "center", weight: "bold" }],
-      backgroundColor: "#2D9F6F", cornerRadius: "sm", paddingAll: "5px", flex: 0,
-    })),
-  } : null;
-
-  // 病床機能バッジ（ゴールドアクセント）
-  const bedFuncBadge = bedFunc ? {
-    type: "box", layout: "horizontal", spacing: "xs",
-    contents: [{
-      type: "box", layout: "baseline", paddingAll: "6px", cornerRadius: "sm",
-      backgroundColor: "#FFF8E8", flex: 0, spacing: "xs",
-      contents: [
-        { type: "text", text: "🏥", size: "xs", flex: 0 },
-        { type: "text", text: bedFunc, size: "xs", color: "#A87E2A", weight: "bold", flex: 0 },
-      ],
-    }],
-  } : null;
-
-  // 2列情報行（ラベル+値）を作るヘルパー
-  const infoRow = (label, value) => value ? {
-    type: "box", layout: "baseline", margin: "sm", spacing: "sm",
-    contents: [
-      { type: "text", text: label, size: "sm", color: "#999999", flex: 3 },
-      { type: "text", text: value, size: "sm", color: "#333333", flex: 5, wrap: true },
-    ],
-  } : null;
-
-  // セクション見出し
-  const sectionHeader = (text) => ({
-    type: "text", text: text, size: "xs", color: "#1A6B8A",
-    weight: "bold", margin: "lg",
-  });
-
-  // Body構成（全情報をセクション分け）
-  const bodyContents = [];
-  if (bedFuncBadge) bodyContents.push(bedFuncBadge);
-  if (reasonsBox) bodyContents.push(reasonsBox);
-
-  // 職種（中サイズ・太字）
-  if (title) {
-    bodyContents.push({
-      type: "text", text: title, size: "md", color: "#2C2C2C",
-      weight: "bold", wrap: true, maxLines: 2, margin: "md",
-    });
-  }
-
-  // ===== セクション1: 給与 =====
-  bodyContents.push({
-    type: "text", text: salary, size: "xxl", weight: "bold",
-    color: "#C2185B", margin: "sm",
-  });
-  if (bonus) {
-    bodyContents.push({
-      type: "text", text: `賞与 ${bonus}`, size: "sm",
-      color: "#A87E2A", weight: "bold", margin: "xs",
-    });
-  }
-
-  // ===== 勤務条件（2列） =====
-  bodyContents.push({ type: "separator", margin: "lg" });
-  const conditionRows = [
-    infoRow("雇用形態", emp),
-    infoRow("年間休日", holidays ? `${holidays}日` : ""),
-    infoRow("勤務時間", shift ? shift.slice(0, 40) : ""),
-    infoRow("最寄駅", station ? station.slice(0, 30) : ""),
-    infoRow("勤務地", loc ? loc.slice(0, 40) : ""),
-  ].filter(Boolean);
-  conditionRows.forEach(r => bodyContents.push(r));
-
-  // ===== 仕事内容（短縮版） =====
-  if (desc && desc.length > 10) {
-    bodyContents.push({ type: "separator", margin: "md" });
-    bodyContents.push({
-      type: "text", text: desc.slice(0, 120), size: "xs",
-      color: "#555555", wrap: true, margin: "sm", maxLines: 3,
-    });
-  }
-
-  // ===== 福利厚生（チップのみ・テキスト省略） =====
-  if (chipsBox) {
-    bodyContents.push({ type: "separator", margin: "md" });
-    bodyContents.push(chipsBox);
-  }
-
-  // Header
-  const headerContents = [{
-    type: "text", text: rankLabel, size: "xs",
-    color: "#FFFFFF", weight: "bold",
-  }];
-  if (hasConfidential) {
-    headerContents[0] = {
-      type: "box", layout: "horizontal",
-      contents: [
-        { type: "text", text: rankLabel, size: "xs", color: "#FFFFFF", weight: "bold", flex: 1 },
-        { type: "text", text: "🔒 非公開あり", size: "xs", color: "#FFFFFF", weight: "bold", align: "end", flex: 0 },
+        { type: "text", text: label, size: "xs", color: "#999999", flex: 3 },
+        { type: "text", text: String(value), size: "xs", color: "#333333", flex: 7, wrap: true },
       ],
     };
-  }
-  headerContents.push({
-    type: "text", text: name, weight: "bold", size: "lg",
-    wrap: true, maxLines: 2, color: "#FFFFFF", margin: "sm",
-  });
+  };
+
+  const bodyContents = [
+    // 施設名（ブランドティール・太字）
+    { type: "text", text: name, weight: "bold", size: "md", wrap: true, color: "#1A6B8A" },
+    title ? { type: "text", text: title, size: "xs", color: "#666666", wrap: true, margin: "xs" } : null,
+    hasConfidential ? { type: "text", text: "🔒 非公開求人あり", size: "xxs", color: "#C2185B", weight: "bold", margin: "xs" } : null,
+    { type: "separator", margin: "md" },
+    // 基本情報テーブル
+    {
+      type: "box", layout: "vertical", spacing: "sm", margin: "md",
+      contents: [
+        row("給与", salary),
+        row("賞与", bonus),
+        row("所在地", loc),
+        row("最寄駅", station),
+        row("雇用形態", emp),
+        row("勤務体系", shift),
+        row("休日", holidays ? `年${holidays}日` : null),
+      ].filter(Boolean),
+    },
+    // 福利厚生
+    welfareTrunc ? { type: "separator", margin: "md" } : null,
+    welfareTrunc ? {
+      type: "box", layout: "vertical", margin: "md",
+      contents: [
+        { type: "text", text: "待遇・福利厚生", size: "xs", color: "#999999" },
+        { type: "text", text: welfareTrunc, size: "xs", color: "#333333", wrap: true, margin: "xs" },
+      ],
+    } : null,
+    // 仕事内容
+    descTrunc ? { type: "separator", margin: "md" } : null,
+    descTrunc ? {
+      type: "box", layout: "vertical", margin: "md",
+      contents: [
+        { type: "text", text: "仕事内容", size: "xs", color: "#999999" },
+        { type: "text", text: descTrunc, size: "xs", color: "#333333", wrap: true, margin: "xs" },
+      ],
+    } : null,
+  ].filter(Boolean);
 
   return {
     type: "bubble",
     size: "mega",
-    header: {
-      type: "box", layout: "vertical",
-      contents: headerContents,
-      backgroundColor: headerColor,
-      paddingAll: "16px",
-      spacing: "none",
-    },
     body: {
-      type: "box", layout: "vertical",
+      type: "box", layout: "vertical", spacing: "sm",
       contents: bodyContents,
-      paddingAll: "16px",
-      spacing: "none",
     },
     footer: {
       type: "box", layout: "vertical", spacing: "sm",
       contents: [{
         type: "button",
-        action: { type: "postback", label: "この求人を詳しく見る", data: `match=detail&idx=${index}`, displayText: `「${name.slice(0, 15)}」の詳細を見る` },
         style: "primary",
         color: "#2D9F6F",
-        height: "md",
+        height: "sm",
+        action: { type: "postback", label: "この求人を詳しく見る", data: `match=detail&idx=${index}`, displayText: `${name}の詳細を見る` },
       }],
-      paddingAll: "12px",
     },
   };
 }
