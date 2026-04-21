@@ -154,6 +154,25 @@ body {
     </p>
   </div>
 
+  <!-- Instagram/Facebook アプリ内ブラウザ向け: 外部ブラウザ誘導 -->
+  <div id="state-webview" class="hidden">
+    <p class="status" style="font-size:1.05rem;margin-bottom:10px;">
+      <span id="wv-app-name">Instagram</span>アプリ内では<br>LINEが開けません
+    </p>
+    <p class="excitement" style="margin-bottom:18px;">
+      右上の「…」メニューから<br>
+      <b>「外部ブラウザで開く」</b>または<br>
+      <b>「Safariで開く」</b>を選んでください
+    </p>
+    <button type="button" id="wv-copy-btn" class="btn-add" style="width:100%;margin-top:0;">
+      📋 URLをコピー
+    </button>
+    <p class="status-sub" style="margin-top:10px;line-height:1.6;">
+      コピー後、Safari/Chromeに貼り付けて開くと<br>
+      求人をLINEに送信できます
+    </p>
+  </div>
+
   <!-- 既に友だち追加済み -->
   <div id="state-already-friend" class="hidden">
     <div class="dots"><span></span><span></span><span></span></div>
@@ -193,14 +212,51 @@ body {
   var stateAlreadyFriend = document.getElementById('state-already-friend');
   var stateError = document.getElementById('state-error');
   var statePcQr = document.getElementById('state-pc-qr');
+  var stateWebview = document.getElementById('state-webview');
   var errorMsg = document.getElementById('error-msg');
   var addFriendBtn = document.getElementById('add-friend-btn');
 
   function showState(el) {
-    [stateLoading, stateAddFriend, stateAlreadyFriend, stateError, statePcQr].forEach(function(s) {
+    [stateLoading, stateAddFriend, stateAlreadyFriend, stateError, statePcQr, stateWebview].forEach(function(s) {
       s.classList.add('hidden');
     });
     el.classList.remove('hidden');
+  }
+
+  // ========== Instagram/Facebook WebView検出 ==========
+  // IG/FBアプリ内ブラウザでは LINE deep link が開けないため、外部ブラウザ誘導
+  var ua = navigator.userAgent || '';
+  var isIGWebView = /Instagram/i.test(ua);
+  var isFBWebView = /FBAN|FBAV/i.test(ua);
+  var isMetaWebView = isIGWebView || isFBWebView;
+
+  if (isMetaWebView) {
+    // WebView用画面を表示しLIFF処理を完全スキップ
+    var appName = isIGWebView ? 'Instagram' : 'Facebook';
+    var wvAppName = document.getElementById('wv-app-name');
+    if (wvAppName) wvAppName.textContent = appName;
+
+    var copyBtn = document.getElementById('wv-copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        var url = window.location.href;
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = url;
+          ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+          document.body.appendChild(ta);
+          ta.focus(); ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          copyBtn.textContent = '✓ コピー完了！Safariに貼り付けて開いてください';
+          copyBtn.style.background = 'linear-gradient(135deg, #1A6B8A 0%, #0F4A62 100%)';
+        } catch (e) {
+          copyBtn.textContent = 'コピー失敗 — ' + url.slice(0, 30) + '...';
+        }
+      });
+    }
+    showState(stateWebview);
+    return;
   }
 
   // ========== PC判定（LIFF login画面を避けるためQRコード表示） ==========
