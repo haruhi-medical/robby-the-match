@@ -830,7 +830,100 @@ section:nth-child(even) {
 
 
 /* ==========================================================================
-   14. ACCESSIBILITY
+   14. BLOG ARTICLE LAYOUT — 中央配置の強制（2026-04-21）
+   blog記事の article / .article-header / .content を中央揃えに
+   ========================================================================== */
+
+.article-header,
+article,
+article > .content,
+.article-body,
+.blog-content,
+main > article {
+  max-width: var(--container-max) !important;  /* 880px */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  box-sizing: border-box;
+}
+
+article > .content,
+.article-body {
+  max-width: var(--content-max) !important; /* 720px 読み物幅 */
+}
+
+/* ブログ記事のh1 記事タイトル */
+.article-header h1 {
+  font-size: clamp(1.5rem, 4.5vw, 2rem);
+  font-weight: 800 !important;
+  line-height: 1.4;
+  color: var(--text-primary) !important;
+  margin-bottom: 12px;
+}
+
+.article-header .category {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+
+.article-header .article-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.share-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 24px;
+  flex-wrap: wrap;
+}
+
+.share-buttons a {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--bg-tint);
+  color: var(--text-secondary);
+  transition: background var(--dur-base), color var(--dur-base);
+}
+
+.share-buttons a:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+}
+
+.breadcrumb {
+  max-width: var(--container-max);
+  margin: 0 auto !important;
+  padding: 12px 20px !important;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--primary);
+}
+
+
+/* ==========================================================================
+   15. ACCESSIBILITY
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
