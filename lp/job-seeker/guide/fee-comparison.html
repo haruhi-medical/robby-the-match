@@ -60,6 +60,7 @@
     {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"看護師紹介の手数料は誰が払うのですか？","acceptedAnswer":{"@type":"Answer","text":"手数料は病院（採用側）が支払います。看護師さんが費用を負担することは一切ありません。これは職業安定法で定められています。"}},{"@type":"Question","name":"手数料10%は安すぎて怪しくないですか？","acceptedAnswer":{"@type":"Answer","text":"ナースロビーはAIを活用した業務効率化、広告費をかけないSNS集客、地域密着の少人数運営により固定費を最小化しています。大手のように全国に拠点を構える必要がないため、低手数料でも健全に運営できます。有料職業紹介事業許可（23-ユ-302928）を取得した正規の紹介事業者です。"}},{"@type":"Question","name":"手数料が安いとサービスの質が落ちませんか？","acceptedAnswer":{"@type":"Answer","text":"手数料の大部分は広告費と人件費です。ナースロビーはAI活用で事務作業を効率化し、その分をヒアリングや条件交渉など看護師さんに直接関わる業務に集中しています。地域の医療機関に詳しく、質の高いマッチングを実現しています。"}},{"@type":"Question","name":"手数料が安いと病院側にどんなメリットがありますか？","acceptedAnswer":{"@type":"Answer","text":"年収400万円の看護師を採用する場合、大手（25%）なら100万円、ナースロビー（10%）なら40万円。1人あたり60万円のコスト削減になります。採用コストが下がることで、病院は積極的に採用でき、看護師の待遇改善にも予算を回しやすくなります。"}},{"@type":"Question","name":"看護師にとって手数料が安いことのメリットは何ですか？","acceptedAnswer":{"@type":"Answer","text":"手数料が安いと病院側の採用ハードルが下がるため、選考が通りやすくなります。また、高額な手数料を支払った病院は「すぐに辞めないでほしい」というプレッシャーが強くなりがちですが、手数料が安ければ病院の心理的負担も軽く、健全な雇用関係を築きやすくなります。"}},{"@type":"Question","name":"紹介手数料の相場はどのくらいですか？","acceptedAnswer":{"@type":"Answer","text":"看護師紹介の手数料相場は年収の20〜30%で、金額にすると平均76万円です。調査によると、51%の医療施設が年収の25%以上の手数料を支払っています。ナースロビーの10%は業界最安水準です。"}},{"@type":"Question","name":"他に追加費用はかかりますか？","acceptedAnswer":{"@type":"Answer","text":"看護師さん側の費用は完全無料です。登録料・相談料・紹介料など一切かかりません。病院側も手数料10%（入職者の理論年収の10%）以外の費用はありません。"}}]}
     </script>
 <style>
+@layer page {
 /* ==========================================
    DESIGN TOKENS (re-usable across 80 pages)
    Editorial Calm Japan — warm cream × teal × gold
@@ -1033,7 +1034,7 @@ section {
 
 
 /* ====== guide 既存要素 互換レイヤー ====== */
-/* removed: .site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; } */
+/* removed: /* removed: .site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; } */ */
 
 /* Hero (既存 guide の大型緑バナー) */
 header.hero {
@@ -1308,6 +1309,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   .card { padding: 22px 18px; margin: 16px 0; }
   .data-table { font-size: 0.82rem; display: block; overflow-x: auto; }
   .related-links a { font-size: 0.8rem; padding: 7px 14px; }
+}
 }
 </style>
 <!-- Microsoft Clarity -->

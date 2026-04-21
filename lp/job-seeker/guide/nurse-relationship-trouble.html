@@ -59,6 +59,7 @@ src="https://www.facebook.com/tr?id=2326210157891886&ev=PageView&noscript=1"/></
 
 <style>
 
+@layer page {
 /* ==========================================
    DESIGN TOKENS (re-usable across 80 pages)
    Editorial Calm Japan — warm cream × teal × gold
@@ -1032,7 +1033,7 @@ section {
 
 
 /* ====== guide 既存要素 互換レイヤー ====== */
-/* removed: .site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; } */
+/* removed: /* removed: .site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; } */ */
 
 /* Hero (既存 guide の大型緑バナー) */
 header.hero {
@@ -1307,6 +1308,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   .card { padding: 22px 18px; margin: 16px 0; }
   .data-table { font-size: 0.82rem; display: block; overflow-x: auto; }
   .related-links a { font-size: 0.8rem; padding: 7px 14px; }
+}
 }
 
 </style>

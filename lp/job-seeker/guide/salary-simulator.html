@@ -54,6 +54,7 @@
     {"@context":"https://schema.org","@type":"WebPage","name":"看護師年収シミュレーター｜神奈川県の給与相場を30秒で診断","description":"経験年数・勤務形態・エリアを選ぶだけで、神奈川県の看護師年収相場がわかるシミュレーター。手数料10%のナースロビーで、あなたの市場価値を無料診断。","url":"https://quads-nurse.com/lp/job-seeker/guide/salary-simulator.html","isPartOf":{"@type":"WebSite","name":"ナースロビー","url":"https://quads-nurse.com/"}}
     </script>
 <style>
+@layer page {
 /* ==========================================
    DESIGN TOKENS (re-usable across 80 pages)
    Editorial Calm Japan — warm cream × teal × gold
@@ -1027,7 +1028,7 @@ section {
 
 
 /* ====== guide 既存要素 互換レイヤー ====== */
-/* removed: .site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; } */
+/* removed: /* removed: .site-header, .mobile-nav, .mobile-nav-inner, .mobile-nav-close, .hamburger, .site-footer { display: none !important; } */ */
 
 /* Hero (既存 guide の大型緑バナー) */
 header.hero {
@@ -1302,6 +1303,7 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
   .card { padding: 22px 18px; margin: 16px 0; }
   .data-table { font-size: 0.82rem; display: block; overflow-x: auto; }
   .related-links a { font-size: 0.8rem; padding: 7px 14px; }
+}
 }
 </style>
 <!-- Microsoft Clarity -->
