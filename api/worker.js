@@ -6194,11 +6194,10 @@ function buildFacilityFlexBubble(job, index, opts) {
   }
 
   // ===== セクション6: その他 =====
-  if (ins || kjno) {
+  if (ins) {
     bodyContents.push({ type: "separator", margin: "lg" });
     bodyContents.push(sectionHeader("■ その他"));
-    if (ins) bodyContents.push(infoRow("加入保険", ins.slice(0, 60)));
-    if (kjno) bodyContents.push(infoRow("求人番号", kjno));
+    bodyContents.push(infoRow("加入保険", ins.slice(0, 60)));
   }
 
   // Header
