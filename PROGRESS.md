@@ -4581,3 +4581,91 @@ TikTok深夜投稿: TK=0
 - 例えば、看護師求人ページから看護師転職ガイドページへのリンクを追加することで、ユーザーがより多くの情報にアクセスできるようにする。
 - 関連するガイドページや地域ページへのリンクを追加し、ユーザーがナースロビーの全体的なコンテンツをより簡単に探索できるようにする。
 
+### 🔍 SEO朝サイクル（04:00:00）
+seo: 2026-04-21 SEO診断+自動修正
+
+### pdca_ai_marketing（06:00:00）
+AI Marketing PDCA:
+  Queue: pending=46 ready=42 posted=51 failed=43
+  Generated today: 0
+  Quality issues: 11
+  Status: Healthy
+
+### 🔧 SEO自動修正（07:17:22）
+SEO自動修正: 136件修正
+- lp/job-seeker/area/atsugi-nikkin.html: h1差別化
+- lp/job-seeker/area/atsugi-part.html: h1差別化
+- lp/job-seeker/area/chigasaki-nikkin.html: h1差別化
+- lp/job-seeker/area/chigasaki-part.html: h1差別化
+- lp/job-seeker/area/ebina-nikkin.html: h1差別化
+- lp/job-seeker/area/ebina-part.html: h1差別化
+- lp/job-seeker/area/fujisawa-nikkin.html: h1差別化
+- lp/job-seeker/area/fujisawa-part.html: h1差別化
+- lp/job-seeker/area/hadano-nikkin.html: h1差別化
+- lp/job-seeker/area/hadano-part.html: h1差別化
+
+### 🔧 SEO自動修正（07:29:58）
+SEO自動修正: 124件修正
+- lp/job-seeker/area/atsugi-houmon.html: h1差別化
+- lp/job-seeker/area/atsugi-nikkin.html: h1差別化
+- lp/job-seeker/area/atsugi-part.html: h1差別化
+- lp/job-seeker/area/atsugi-yakin.html: h1差別化
+- lp/job-seeker/area/chigasaki-houmon.html: h1差別化
+- lp/job-seeker/area/chigasaki-nikkin.html: h1差別化
+- lp/job-seeker/area/chigasaki-part.html: h1差別化
+- lp/job-seeker/area/chigasaki-yakin.html: h1差別化
+- lp/job-seeker/area/ebina-houmon.html: h1差別化
+- lp/job-seeker/area/ebina-nikkin.html: h1差別化
+
+### 🔧 SEO自動修正（07:42:39）
+SEO自動修正: 22件修正
+- lp/job-seeker/area/fujisawa-naika.html: h1差別化
+- lp/job-seeker/area/fujisawa-seikeigeka.html: h1差別化
+- lp/job-seeker/area/fujisawa-seishinka.html: h1差別化
+- lp/job-seeker/area/kawasaki-naika.html: h1差別化
+- lp/job-seeker/area/kawasaki-sanfujinka.html: h1差別化
+- lp/job-seeker/area/kawasaki-seikeigeka.html: h1差別化
+- lp/job-seeker/area/kawasaki-seishinka.html: h1差別化
+- lp/job-seeker/area/kawasaki-shonika.html: h1差別化
+- lp/job-seeker/area/sagamihara-naika.html: h1差別化
+- lp/job-seeker/area/sagamihara-sanfujinka.html: h1差別化
+
+### 🔧 SEO自動修正（08:02:43）
+SEO自動修正: 57件修正
+- lp/job-seeker/area/fujisawa-ganka.html: h1差別化
+- lp/job-seeker/area/fujisawa-geka.html: h1差別化
+- lp/job-seeker/area/fujisawa-hifuka.html: h1差別化
+- lp/job-seeker/area/fujisawa-junkanki.html: h1差別化
+- lp/job-seeker/area/fujisawa-naika.html: h1差別化
+- lp/job-seeker/area/fujisawa-nokeigeka.html: h1差別化
+- lp/job-seeker/area/fujisawa-rehabilitation.html: h1差別化
+- lp/job-seeker/area/fujisawa-seikeigeka.html: h1差別化
+- lp/job-seeker/area/fujisawa-seishinka.html: h1差別化
+- lp/job-seeker/area/fujisawa-shokaki.html: h1差別化
+
+### 🔧 SEO自動修正（08:03:52）
+SEO自動修正: 57件修正
+- lp/job-seeker/area/fujisawa-ganka.html: h1差別化
+- lp/job-seeker/area/fujisawa-geka.html: h1差別化
+- lp/job-seeker/area/fujisawa-hifuka.html: h1差別化
+- lp/job-seeker/area/fujisawa-junkanki.html: h1差別化
+- lp/job-seeker/area/fujisawa-naika.html: h1差別化
+- lp/job-seeker/area/fujisawa-nokeigeka.html: h1差別化
+- lp/job-seeker/area/fujisawa-rehabilitation.html: h1差別化
+- lp/job-seeker/area/fujisawa-seikeigeka.html: h1差別化
+- lp/job-seeker/area/fujisawa-seishinka.html: h1差別化
+- lp/job-seeker/area/fujisawa-shokaki.html: h1差別化
+
+### 🔎 競合・SEOギャップ分析（10:00:00）
+1. カバレッジの穴：現状のページ数から、特に「area/」の地域別ページにおいて、対象エリアである神奈川県西部の各市町村ごとのページが不足している可能性がある。さらに、「guide/」の転職ガイドページにおいて、看護師の専門分野や転職先の種類（病院、クリニック、訪問看護など）別のガイドが不足している可能性がある。
+
+2. 改善優先度の高いアクション3つ：
+   - 地域別ページの充実：特に神奈川県西部の各市町村について、看護師の転職に関する情報を提供するページを作成する。
+   - 転職ガイドの充実：看護師の専門分野や転職先の種類別のガイドを増やし、より具体的で有用な情報を提供する。
+   - 内部リンク構造の最適化：現在のページ同士の関連性を高めるために、内部リンクを適切に設定し、ユーザーのナビゲーションと検索エンジンのクロールを改善する。
+
+3. 次に作るべきページ2-3本の提案：
+   - 「小田原市の看護師転職ガイド」
+   - 「訪問看護師としての転職先を探す」
+   - 「神奈川県西部の病院・クリニックでの看護師転職のチャンス」
+
