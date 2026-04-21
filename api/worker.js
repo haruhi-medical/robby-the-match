@@ -4856,7 +4856,7 @@ async function buildPhaseMessage(phase, entry, env) {
 
       // カルーセル組み立て
       const bubbles = [];
-      normalResults.forEach((r, i) => bubbles.push(buildJobBubble(r, i)));
+      normalResults.forEach((r, i) => bubbles.push(buildFacilityFlexBubble(r, i, {})));
       // 通常求人2件以下ならフォールバック追加
       // 通常求人+フォールバックで合計5枚を目指す
       if (normalResults.length < 5) {
