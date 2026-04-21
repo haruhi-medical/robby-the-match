@@ -3189,6 +3189,13 @@ async function handleLineStart(url, env, request, ctx) {
               sta: r.sta || null,
               bon: r.bon || null,
               emp: r.emp || null,
+              wel: r.wel || null,
+              desc: (r.desc || '').slice(0, 400) || null,
+              shift: r.shift || null,
+              ctr: r.ctr || r.contract_period || null,
+              ins: r.ins || r.insurance || null,
+              kjno: r.kjno || null,
+              prefecture: r.prefecture || null,
               reasons: r.reasons || null,
               matchCount: r.matchCount || null,
               matchFlags: r.matchFlags || null,
@@ -4263,6 +4270,13 @@ async function saveLineEntry(userId, entry, env) {
           sta: r.sta || r.access || null,
           bon: r.bon || null,
           emp: r.emp || null,
+          wel: r.wel || null,              // 福利厚生
+          desc: (r.desc || '').slice(0, 400) || null,  // 仕事内容（400字まで）
+          shift: r.shift || null,          // 勤務時間
+          ctr: r.ctr || r.contract_period || null, // 契約期間
+          ins: r.ins || r.insurance || null,  // 加入保険
+          kjno: r.kjno || null,            // 求人番号
+          prefecture: r.prefecture || null,
           reasons: r.reasons || null,
           axes: r.axes || null,
           // 旧自社DB互換
@@ -6041,6 +6055,10 @@ function buildFacilityFlexBubble(job, index, opts) {
   const welfare = job.wel || "";
   const desc = job.desc || "";
   const loc = job.loc || "";
+  const shift = job.shift || "";
+  const ctr = job.ctr || job.contract_period || "";
+  const ins = job.ins || job.insurance || "";
+  const kjno = job.kjno || "";
   const bedFunc = extractBedFunction(desc);
 
   // ブランドカラー準拠の3段ヘッダー（医療×信頼感・警告赤を排除）
@@ -6102,12 +6120,18 @@ function buildFacilityFlexBubble(job, index, opts) {
     ],
   } : null;
 
-  // Body構成（読みやすさ優先・情報絞る）
+  // セクション見出し
+  const sectionHeader = (text) => ({
+    type: "text", text: text, size: "xs", color: "#1A6B8A",
+    weight: "bold", margin: "lg",
+  });
+
+  // Body構成（全情報をセクション分け）
   const bodyContents = [];
   if (bedFuncBadge) bodyContents.push(bedFuncBadge);
   if (reasonsBox) bodyContents.push(reasonsBox);
 
-  // 職種（1行、中サイズ）
+  // 職種（中サイズ・太字）
   if (title) {
     bodyContents.push({
       type: "text", text: title, size: "md", color: "#2C2C2C",
@@ -6115,13 +6139,11 @@ function buildFacilityFlexBubble(job, index, opts) {
     });
   }
 
-  // 月給（超大・ディープローズ=高級感）
+  // ===== セクション1: 給与 =====
   bodyContents.push({
     type: "text", text: salary, size: "xxl", weight: "bold",
     color: "#C2185B", margin: "sm",
   });
-
-  // 賞与（ゴールド・小）
   if (bonus) {
     bodyContents.push({
       type: "text", text: `賞与 ${bonus}`, size: "sm",
@@ -6129,21 +6151,54 @@ function buildFacilityFlexBubble(job, index, opts) {
     });
   }
 
+  // ===== セクション2: 勤務条件 =====
   bodyContents.push({ type: "separator", margin: "lg" });
-
-  // 主要2〜4行の情報（sm統一、優先度順）
-  const rows = [
-    infoRow("最寄駅", station),
-    infoRow("勤務地", loc),
-    infoRow("年間休日", holidays ? `${holidays}日` : ""),
+  bodyContents.push(sectionHeader("■ 勤務条件"));
+  const conditionRows = [
     infoRow("雇用形態", emp),
+    infoRow("年間休日", holidays ? `${holidays}日` : ""),
+    infoRow("勤務時間", shift),
+    infoRow("契約期間", ctr),
   ].filter(Boolean);
-  rows.forEach(r => bodyContents.push(r));
+  conditionRows.forEach(r => bodyContents.push(r));
 
-  // 福利厚生チップ
-  if (chipsBox) {
-    bodyContents.push({ type: "separator", margin: "md" });
-    bodyContents.push(chipsBox);
+  // ===== セクション3: 勤務地・アクセス =====
+  if (station || loc) {
+    bodyContents.push({ type: "separator", margin: "lg" });
+    bodyContents.push(sectionHeader("■ 勤務地・アクセス"));
+    if (loc) bodyContents.push(infoRow("住所", loc));
+    if (station) bodyContents.push(infoRow("最寄駅", station));
+  }
+
+  // ===== セクション4: 仕事内容 =====
+  if (desc && desc.length > 10) {
+    bodyContents.push({ type: "separator", margin: "lg" });
+    bodyContents.push(sectionHeader("■ 仕事内容"));
+    bodyContents.push({
+      type: "text", text: desc.slice(0, 250), size: "xs",
+      color: "#555555", wrap: true, margin: "sm", maxLines: 8,
+    });
+  }
+
+  // ===== セクション5: 福利厚生 =====
+  if (chipsBox || welfare) {
+    bodyContents.push({ type: "separator", margin: "lg" });
+    bodyContents.push(sectionHeader("■ 福利厚生"));
+    if (chipsBox) bodyContents.push(chipsBox);
+    if (welfare && welfare.length > 0) {
+      bodyContents.push({
+        type: "text", text: welfare.slice(0, 200), size: "xs",
+        color: "#666666", wrap: true, margin: "sm", maxLines: 5,
+      });
+    }
+  }
+
+  // ===== セクション6: その他 =====
+  if (ins || kjno) {
+    bodyContents.push({ type: "separator", margin: "lg" });
+    bodyContents.push(sectionHeader("■ その他"));
+    if (ins) bodyContents.push(infoRow("加入保険", ins.slice(0, 60)));
+    if (kjno) bodyContents.push(infoRow("求人番号", kjno));
   }
 
   // Header
