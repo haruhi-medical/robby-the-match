@@ -6151,53 +6151,30 @@ function buildFacilityFlexBubble(job, index, opts) {
     });
   }
 
-  // ===== セクション2: 勤務条件 =====
+  // ===== 勤務条件（2列） =====
   bodyContents.push({ type: "separator", margin: "lg" });
-  bodyContents.push(sectionHeader("■ 勤務条件"));
   const conditionRows = [
     infoRow("雇用形態", emp),
     infoRow("年間休日", holidays ? `${holidays}日` : ""),
-    infoRow("勤務時間", shift),
-    infoRow("契約期間", ctr),
+    infoRow("勤務時間", shift ? shift.slice(0, 40) : ""),
+    infoRow("最寄駅", station ? station.slice(0, 30) : ""),
+    infoRow("勤務地", loc ? loc.slice(0, 40) : ""),
   ].filter(Boolean);
   conditionRows.forEach(r => bodyContents.push(r));
 
-  // ===== セクション3: 勤務地・アクセス =====
-  if (station || loc) {
-    bodyContents.push({ type: "separator", margin: "lg" });
-    bodyContents.push(sectionHeader("■ 勤務地・アクセス"));
-    if (loc) bodyContents.push(infoRow("住所", loc));
-    if (station) bodyContents.push(infoRow("最寄駅", station));
-  }
-
-  // ===== セクション4: 仕事内容 =====
+  // ===== 仕事内容（短縮版） =====
   if (desc && desc.length > 10) {
-    bodyContents.push({ type: "separator", margin: "lg" });
-    bodyContents.push(sectionHeader("■ 仕事内容"));
+    bodyContents.push({ type: "separator", margin: "md" });
     bodyContents.push({
-      type: "text", text: desc.slice(0, 250), size: "xs",
-      color: "#555555", wrap: true, margin: "sm", maxLines: 8,
+      type: "text", text: desc.slice(0, 120), size: "xs",
+      color: "#555555", wrap: true, margin: "sm", maxLines: 3,
     });
   }
 
-  // ===== セクション5: 福利厚生 =====
-  if (chipsBox || welfare) {
-    bodyContents.push({ type: "separator", margin: "lg" });
-    bodyContents.push(sectionHeader("■ 福利厚生"));
-    if (chipsBox) bodyContents.push(chipsBox);
-    if (welfare && welfare.length > 0) {
-      bodyContents.push({
-        type: "text", text: welfare.slice(0, 200), size: "xs",
-        color: "#666666", wrap: true, margin: "sm", maxLines: 5,
-      });
-    }
-  }
-
-  // ===== セクション6: その他 =====
-  if (ins) {
-    bodyContents.push({ type: "separator", margin: "lg" });
-    bodyContents.push(sectionHeader("■ その他"));
-    bodyContents.push(infoRow("加入保険", ins.slice(0, 60)));
+  // ===== 福利厚生（チップのみ・テキスト省略） =====
+  if (chipsBox) {
+    bodyContents.push({ type: "separator", margin: "md" });
+    bodyContents.push(chipsBox);
   }
 
   // Header
