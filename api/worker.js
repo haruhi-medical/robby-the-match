@@ -3882,7 +3882,7 @@ function buildShindanWelcome(entry) {
   const partsDisplay = parts ? `📍 ${parts}\n\n` : '';
   return [{
     type: "text",
-    text: `✨ ご登録ありがとうございます\n\n${partsDisplay}AIが選んだおすすめ求人を、これからお届けいたします 😊`,
+    text: `✨ ご登録ありがとうございます\n\n${partsDisplay}AIが選んだおすすめ求人はこちら 👇`,
   }];
 }
 
