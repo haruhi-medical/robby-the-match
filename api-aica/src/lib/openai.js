@@ -22,7 +22,7 @@ const GEMINI_URL =
  * @returns {Promise<{text:string, provider:string}>}
  */
 export async function generateResponse(params) {
-  const { systemPrompt, messages, env, maxTokens = 500 } = params;
+  const { systemPrompt, messages, env, maxTokens = 500, responseFormat = null } = params;
 
   // 1. OpenAI GPT-4o-mini (プライマリ、タイムアウト 8秒)
   if (env.OPENAI_API_KEY) {
@@ -32,6 +32,7 @@ export async function generateResponse(params) {
         systemPrompt,
         messages,
         maxTokens,
+        responseFormat,
       });
       return { text, provider: "openai" };
     } catch (err) {
@@ -87,13 +88,16 @@ export async function generateResponse(params) {
   throw new Error("All AI providers failed");
 }
 
-async function callOpenAI({ apiKey, systemPrompt, messages, maxTokens }) {
+async function callOpenAI({ apiKey, systemPrompt, messages, maxTokens, responseFormat }) {
   const body = {
     model: "gpt-4o-mini",
     messages: [{ role: "system", content: systemPrompt }, ...messages],
     max_tokens: maxTokens,
     temperature: 0.7,
   };
+  if (responseFormat === "json") {
+    body.response_format = { type: "json_object" };
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);

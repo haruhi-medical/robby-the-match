@@ -16,7 +16,10 @@ export const PHASES = {
   TURN4: "turn4",
   SUMMARY: "summary",
 
-  // プロファイル補強（MVP1）
+  // 条件ヒアリング（MVP1・AI対話ベース）
+  CONDITION_HEARING: "condition_hearing",
+
+  // 旧プロファイル補強（廃止予定。互換のため定数のみ残す）
   PROFILE_EXP: "profile_exp",
   PROFILE_DEPT: "profile_dept",
   PROFILE_AREA: "profile_area",

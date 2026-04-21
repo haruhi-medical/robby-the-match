@@ -16,5 +16,14 @@
     "enqueued_at": "2026-04-18T12:12:17",
     "retries": 0,
     "last_error": "bot_exception_ProxyError"
+  },
+  {
+    "channel": "C09A7U4TV4G",
+    "text": "⚠️ *Instagram投稿タスク: Chrome MCP未接続により未実行*\n• 実行時刻: 2026-04-21 12:15\n• 対象コンテンツ: ai_地域_0407_03 (id=196, category=local)\n• フック: 夜勤看護師の車、駐車場に収まらない\n• 原因: Claude in Chrome extension が未接続（3回リトライ失敗）\n• 現状: posting_queue.json は ready のまま維持（重複投稿防止）\n• 対応: Chrome拡張機能を再接続後、手動実行 or 次回自動実行を待機\n• 備考: 該当スライド画像8枚は生成済み (content/generated/ai_batch_20260407_1500/ai_地域_0407_03/)",
+    "blocks": null,
+    "thread_ts": null,
+    "enqueued_at": "2026-04-21T12:15:11",
+    "retries": 0,
+    "last_error": null
   }
 ]

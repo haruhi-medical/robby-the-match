@@ -20,7 +20,7 @@ import {
   isProfilePhase,
 } from "./state-machine.js";
 import { handleIntakeTurn } from "./phases/intake.js";
-import { buildNextProfileMessage, handleProfileAnswer } from "./phases/profile.js";
+import { handleConditionTurn, buildConditionIntroMessage } from "./phases/condition.js";
 import { runMatching } from "./phases/matching.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
 
@@ -119,12 +119,19 @@ async function processEvent(event, env) {
 
   const candidate = await getOrCreateCandidate(db, userId, displayName);
 
-  // Follow イベント（友だち追加）
+  // Follow イベント（友だち追加 / ブロック解除）
   if (event.type === "follow") {
     const welcome = buildWelcomeMessage(displayName);
     await logMessage(db, userId, "assistant", welcome, PHASES.NEW, 0, "system");
-    // turn_count は welcome 送信後も 0 のまま（Turn 1 質問は送信済み、ユーザー回答待ち）
-    await updateCandidate(db, userId, { phase: PHASES.TURN1 });
+    // 全フィールドをリセット（ブロック→解除で「最初からやり直し」を正しく機能させる）
+    await updateCandidate(db, userId, {
+      phase: PHASES.TURN1,
+      turn_count: 0,
+      axis: null,
+      root_cause: null,
+      profile_json: null,
+      display_name: displayName || null,
+    });
 
     if (env.LINE_CHANNEL_ACCESS_TOKEN) {
       await replyMessage(event.replyToken, welcome, env.LINE_CHANNEL_ACCESS_TOKEN);
@@ -183,15 +190,12 @@ async function processEvent(event, env) {
 
       await logMessage(db, userId, "assistant", reply, nextPhase, candidate.turn_count + 1, provider);
 
-      // Turn 4 クロージングの直後、そのままプロファイル補強の1問目を追撃
+      // Turn 4 クロージングの直後、条件ヒアリングフェーズに橋渡し
       const messagesToSend = [reply];
       if (nextPhase === PHASES.SUMMARY) {
-        const profileCandidate = { ...candidate, phase: PHASES.SUMMARY };
-        const firstProfileMsg = buildNextProfileMessage(profileCandidate);
-        if (firstProfileMsg) {
-          messagesToSend.push(firstProfileMsg);
-          await updateCandidate(db, userId, { phase: PHASES.PROFILE_EXP });
-        }
+        const introMsg = buildConditionIntroMessage(candidate);
+        messagesToSend.push(introMsg);
+        await updateCandidate(db, userId, { phase: PHASES.CONDITION_HEARING });
       }
 
       if (env.LINE_CHANNEL_ACCESS_TOKEN) {
@@ -205,48 +209,51 @@ async function processEvent(event, env) {
       return;
     }
 
-    // SUMMARY 状態で何か発言された場合 → プロファイル補強の1問目を送って PROFILE_EXP へ
-    // （前バージョンの会話継続・手動で「続き」と言った場合もここでリカバー）
+    // SUMMARY 状態で何か発言された場合 → 条件ヒアリングへの橋渡し
     if (candidate.phase === PHASES.SUMMARY) {
-      const firstProfileMsg = buildNextProfileMessage({ ...candidate, phase: PHASES.SUMMARY });
-      if (firstProfileMsg && env.LINE_CHANNEL_ACCESS_TOKEN) {
-        await updateCandidate(db, userId, { phase: PHASES.PROFILE_EXP });
-        await logMessage(db, userId, "assistant", firstProfileMsg.text || "[profile q1]", PHASES.PROFILE_EXP, 0, "profile-template");
+      const introMsg = buildConditionIntroMessage(candidate);
+      await updateCandidate(db, userId, { phase: PHASES.CONDITION_HEARING });
+      await logMessage(db, userId, "assistant", introMsg.text, PHASES.CONDITION_HEARING, 0, "condition-intro");
+      if (env.LINE_CHANNEL_ACCESS_TOKEN) {
         try {
-          await replyMessage(event.replyToken, [firstProfileMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
+          await replyMessage(event.replyToken, [introMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
         } catch (err) {
           console.warn("[line] reply failed, fallback to push:", err.message);
-          await pushMessage(userId, [firstProfileMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
+          await pushMessage(userId, [introMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
         }
       }
       return;
     }
 
-    // プロファイル補強フェーズ
-    if (isProfilePhase(candidate.phase)) {
-      const { nextPhase, nextMessage } = await handleProfileAnswer({
+    // 条件ヒアリング（AI対話）フェーズ
+    if (candidate.phase === PHASES.CONDITION_HEARING) {
+      const { reply, isComplete, provider } = await handleConditionTurn({
         candidate,
         userText,
+        env,
         db,
       });
 
-      if (nextMessage && env.LINE_CHANNEL_ACCESS_TOKEN) {
-        const logContent = nextMessage.text || "[profile question]";
-        await logMessage(db, userId, "assistant", logContent, nextPhase, 0, "profile-template");
+      await logMessage(db, userId, "assistant", reply, isComplete ? PHASES.MATCHING : PHASES.CONDITION_HEARING, 0, provider);
+
+      if (env.LINE_CHANNEL_ACCESS_TOKEN) {
         try {
-          await replyMessage(event.replyToken, [nextMessage], env.LINE_CHANNEL_ACCESS_TOKEN);
+          await replyMessage(event.replyToken, reply, env.LINE_CHANNEL_ACCESS_TOKEN);
         } catch (err) {
           console.warn("[line] reply failed, fallback to push:", err.message);
-          await pushMessage(userId, [nextMessage], env.LINE_CHANNEL_ACCESS_TOKEN);
+          await pushMessage(userId, reply, env.LINE_CHANNEL_ACCESS_TOKEN);
         }
       }
 
-      // COMMUTE → MATCHING に到達したら、即求人検索を走らせて Push 送信
-      if (nextPhase === PHASES.MATCHING) {
-        // "少しお待ちください…" を reply で返した後、別途 Push で求人カルーセル送信
-        // ctx.waitUntil の扱いは呼び出し元で処理。ここでは直接 await する（処理後に webhookが完了）
-        const latestCandidate = { ...candidate, phase: PHASES.MATCHING };
-        await runMatching({ candidate: latestCandidate, env, db });
+      // カルテ完成 → MATCHING 実行（Push で求人カルーセル）
+      if (isComplete) {
+        const latestCandidate = await env.AICA_DB
+          .prepare("SELECT * FROM candidates WHERE id = ?")
+          .bind(userId)
+          .first();
+        if (latestCandidate) {
+          await runMatching({ candidate: latestCandidate, env, db });
+        }
       }
       return;
     }

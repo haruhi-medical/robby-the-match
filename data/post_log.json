@@ -773,5 +773,14 @@
     "status": "success",
     "method": "meta_business_suite",
     "error": null
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_地域_0407_03",
+    "content_id": "ai_地域_0407_03",
+    "timestamp": "2026-04-21T12:15:23",
+    "status": "failed",
+    "method": "meta_business_suite",
+    "error": "Claude in Chrome MCP not connected (3 retries). Queue entry id=196 left as ready for next scheduled run."
   }
 ]
