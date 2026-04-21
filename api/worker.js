@@ -6076,7 +6076,7 @@ function buildFacilityFlexBubble(job, index, opts) {
   if (welfare.includes("住宅") || welfare.includes("寮")) welfareChips.push({ icon: "🏠", text: "住宅手当" });
   if (welfare.includes("退職金")) welfareChips.push({ icon: "💰", text: "退職金" });
   const chipsBox = welfareChips.length > 0 ? {
-    type: "box", layout: "horizontal", margin: "md", spacing: "xs", wrap: true,
+    type: "box", layout: "horizontal", margin: "md", spacing: "xs",
     contents: welfareChips.slice(0, 4).map(c => ({
       type: "box", layout: "baseline", paddingAll: "6px", cornerRadius: "md",
       backgroundColor: "#F5F5F5", flex: 0, spacing: "xs",
@@ -6090,7 +6090,7 @@ function buildFacilityFlexBubble(job, index, opts) {
   // 推薦理由タグ（最大3個、ブランドCTAグリーン）
   const jobReasons = (job.reasons || []).filter(r => r).slice(0, 3);
   const reasonsBox = jobReasons.length > 0 ? {
-    type: "box", layout: "horizontal", margin: "sm", spacing: "xs", wrap: true,
+    type: "box", layout: "horizontal", margin: "sm", spacing: "xs", flex: 0, wrap: true,
     contents: jobReasons.map(r => ({
       type: "box", layout: "vertical",
       contents: [{ type: "text", text: `✓ ${r}`, size: "xs", color: "#FFFFFF", align: "center", weight: "bold" }],
