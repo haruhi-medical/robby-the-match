@@ -7417,8 +7417,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         if (preloadedCtx && hasCompleteShindan) {
-          // 求人データをinline生成（preMatching HIT時はスキップ）
-          if (!entry.matchingResults || entry.matchingResults.length === 0) {
+          // 求人データ生成: preMatching HITならそれを使う、それ以外は常に再生成
+          // 再フォロー時に古いmatchingResultsが再利用されると旧フォーマット表示になるので強制再生成
+          if (!entry._preMatchingHit) {
+            entry.matchingResults = null; // 古いデータをクリア
             try {
               await generateLineMatching(entry, env, 0);
             } catch (e) {
