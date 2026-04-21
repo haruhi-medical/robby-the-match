@@ -665,7 +665,98 @@ tbody tr:hover {
 
 
 /* ==========================================================================
-   12. ACCESSIBILITY
+   12. RELATED LINKS / AREA-GUIDE BADGES — LP準拠バッジスタイル（2026-04-21）
+   各下層ページの「エリア別求人」「転職ガイド」等の箇条書きをLP同一バッジに統一
+   ========================================================================== */
+
+.related-articles,
+.related-links,
+.related {
+  margin-top: var(--space-xl);
+}
+
+.related-articles h3,
+.related-articles h4,
+.related-links h3,
+.related-links h4,
+.related h3,
+.related h4 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  margin: 28px 0 12px !important;
+  color: var(--text-primary) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 !important;
+  border: none !important;
+  letter-spacing: 0.02em;
+}
+
+.related-articles h3::before,
+.related-articles h4::before,
+.related-links h3::before,
+.related-links h4::before,
+.related h3::before,
+.related h4::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 1em;
+  background: var(--primary);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.related-articles ul,
+.related-links ul,
+.related ul {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 0 16px !important;
+}
+
+.related-articles li,
+.related-links li,
+.related li {
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+.related-articles li::before,
+.related-links li::before,
+.related li::before {
+  display: none !important;
+}
+
+.related-articles li a,
+.related-links li a,
+.related li a {
+  display: inline-block !important;
+  padding: 6px 14px !important;
+  background: var(--primary-light) !important;
+  border-radius: var(--radius-full) !important;
+  color: var(--primary) !important;
+  text-decoration: none !important;
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
+  transition: background var(--dur-base), color var(--dur-base);
+}
+
+.related-articles li a:hover,
+.related-links li a:hover,
+.related li a:hover {
+  background: var(--primary) !important;
+  color: var(--text-inverse) !important;
+}
+
+
+/* ==========================================================================
+   13. ACCESSIBILITY
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
