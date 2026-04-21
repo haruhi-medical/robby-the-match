@@ -756,7 +756,81 @@ tbody tr:hover {
 
 
 /* ==========================================================================
-   13. ACCESSIBILITY
+   13. HERO / AREA-CARD / SECTION — LP準拠で読みやすさを確保（2026-04-21）
+   濃紺ヒーロー + 低コントラスト「詳しく見る」問題の対処
+   ========================================================================== */
+
+/* ヒーロー: 濃紺 → 薄水色+黒文字で可読性最大化 */
+header.hero,
+section.hero,
+.hero {
+  background: var(--primary-light) !important;
+  color: var(--text-primary) !important;
+  padding: 48px 20px !important;
+  text-align: center;
+}
+
+.hero h1,
+.hero h2 {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  margin-bottom: 12px;
+}
+
+.hero .subtitle,
+.hero p {
+  color: var(--text-secondary) !important;
+  opacity: 1 !important;
+}
+
+/* area-card: 「詳しく見る」リンクを LP primary で明瞭に */
+.area-card {
+  background: var(--bg-white) !important;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.area-card h3 {
+  color: var(--text-primary) !important;
+  font-size: 1.1rem;
+  font-weight: 700 !important;
+  margin-bottom: 8px;
+}
+
+.area-card p {
+  color: var(--text-secondary) !important;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.area-card a {
+  color: var(--primary) !important;
+  font-weight: 700 !important;
+  text-decoration: none;
+}
+
+.area-card a:hover {
+  color: var(--primary-dark) !important;
+  text-decoration: underline;
+}
+
+/* h2 section見出し: LP準拠の青い縦バー */
+section h2,
+main h2 {
+  color: var(--text-primary) !important;
+  border-left: 4px solid var(--primary) !important;
+  padding-left: 12px !important;
+}
+
+/* section:nth-child(even) の薄い背景色をLP準拠に */
+section:nth-child(even) {
+  background: var(--bg-soft) !important;
+}
+
+
+/* ==========================================================================
+   14. ACCESSIBILITY
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
