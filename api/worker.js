@@ -4675,6 +4675,53 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
+    case "job_detail_view": {
+      // 求人詳細テキスト表示（カードの「詳しく見る」タップで遷移）
+      // 全情報をテキスト1メッセージで表示 + 相談/他を見る QR
+      const idx = entry.interestedJobIdx !== undefined ? entry.interestedJobIdx : 0;
+      const job = (entry.matchingResults || [])[idx];
+      if (!job) {
+        return [{
+          type: "text",
+          text: "すみません、求人情報が見つかりませんでした。もう一度求人一覧からお選びいただけますか？",
+          quickReply: {
+            items: [
+              qrItem("求人一覧を見る", "matching_preview=deep"),
+              qrItem("担当者に相談", "handoff=ok"),
+            ],
+          },
+        }];
+      }
+
+      const lines = [];
+      lines.push(`◇ ${job.n || "施設情報"}`);
+      if (job.t) lines.push(`【職種】\n${job.t}`);
+      if (job.sal) lines.push(`【給与】\n${job.sal}${job.bon ? '\n賞与: ' + job.bon : ''}`);
+      if (job.loc || job.sta) {
+        const lo = [job.loc, job.sta].filter(Boolean).join('\n');
+        lines.push(`【勤務地・最寄駅】\n${lo}`);
+      }
+      if (job.emp) lines.push(`【雇用形態】\n${job.emp}`);
+      if (job.shift) lines.push(`【勤務体系】\n${job.shift}`);
+      if (job.hol) lines.push(`【休日】\n年${job.hol}日`);
+      if (job.wel) lines.push(`【待遇・福利厚生】\n${job.wel.slice(0, 400)}`);
+      if (job.desc) lines.push(`【仕事内容】\n${job.desc.slice(0, 400)}`);
+      lines.push(`━━━━━━━━━━\n気になる求人があれば担当者にお繋ぎします。`);
+      const text = lines.join('\n\n').slice(0, 4800);
+
+      return [{
+        type: "text",
+        text,
+        quickReply: {
+          items: [
+            qrItem("担当者に相談する", "match=consult"),
+            qrItem("他の求人も見る", "match=other"),
+            qrItem("逆指名したい", "match=reverse"),
+          ],
+        },
+      }];
+    }
+
     case "matching_preview": {
       const BRAND_COLOR = "#5a8fa8";
       const wsLabelsP = {day: "日勤のみ", twoshift: "夜勤あり", part: "パート", night: "夜勤専従"};
@@ -6634,16 +6681,19 @@ function handleLinePostback(dataStr, entry) {
       const idx = parseInt(params.get("idx"), 10);
       if (!isNaN(idx) && entry.matchingResults && entry.matchingResults[idx]) {
         entry.interestedFacility = entry.matchingResults[idx].n || entry.matchingResults[idx].name || null;
+        entry.interestedJobIdx = idx;
       } else if (entry.matchingResults && entry.matchingResults.length > 0) {
-        // idx未指定の場合は1番目を自動選択（BUG #3修正）
         entry.interestedFacility = entry.matchingResults[0].n || entry.matchingResults[0].name || null;
+        entry.interestedJobIdx = 0;
       }
-      // 後方互換: 旧facility形式もサポート
       const facilityName = params.get("facility");
       if (facilityName && !entry.interestedFacility) {
         entry.interestedFacility = decodeURIComponent(facilityName);
       }
-      nextPhase = "handoff_phone_check"; // 担当者紹介→電話確認→ハンドオフ
+      nextPhase = "job_detail_view"; // 詳細テキスト表示 → その後に相談/他を見る/逆指名
+    } else if (val === "consult") {
+      // 詳細閲覧後、担当者に相談
+      nextPhase = "handoff_phone_check";
     } else if (val === "other") {
       nextPhase = "matching_more";
     } else if (val === "reverse") {
@@ -7504,6 +7554,23 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `📊 *info_detour（情報収集層）*\n診断Q5「まずは情報収集」選択\nエリア: ${entry.areaLabel || entry.area || "不明"}\nユーザー: \`${userId}\`\n時刻: ${nowJST_i}\n\n返信する場合: \`!reply ${userId} メッセージ\``, mrkdwn: true }),
             }).catch((e) => { console.error(`[Slack] info_detour notify failed: ${e.message}`); });
+          }
+        }
+        // ===== 求人詳細表示（「詳しく見る」タップ） =====
+        else if (nextPhase === "job_detail_view") {
+          entry.phase = "job_detail_view";
+          replyMessages = await buildPhaseMessage("job_detail_view", entry, env);
+          // Slack通知: 求人詳細タップは高意欲シグナル
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                text: `💼 *求人詳細を閲覧*\nユーザー: \`${userId}\`\n施設: ${entry.interestedFacility || "不明"}\n時刻: ${nowJST}\n📲 返信 → https://chat.line.biz/`,
+              }),
+            }).catch(() => {}));
           }
         }
         // ===== intake_light → matching_preview =====
