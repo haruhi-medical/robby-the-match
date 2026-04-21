@@ -78,6 +78,9 @@ DIRECT_COLOR_REPLACEMENTS = [
     (re.compile(r"#3e7388", re.IGNORECASE), "#1a9de0"),  # editorial teal → primary
     (re.compile(r"#9e7a3f", re.IGNORECASE), "#1080c0"),  # gold → primary-dark
     (re.compile(r"#eef7f4", re.IGNORECASE), "#e6f4fb"),  # 薄緑背景 → primary-light
+    (re.compile(r"#5a8fa8", re.IGNORECASE), "#1a9de0"),  # ブルーグレー → primary (area/guide indexで多用)
+    (re.compile(r"#00b348", re.IGNORECASE), "#05b34c"),  # LINE green hover old → line-dark
+    (re.compile(r"#5A8FA8", re.IGNORECASE), "#1a9de0"),  # 大文字フォールバック
 ]
 
 # C) 監査用: 残存していたらフラグを立てる色

@@ -61,26 +61,26 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif; color: #333; background: #ffffff; line-height: 1.8; }
         .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-        .site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid rgba(90, 143, 168, 0.08); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; transition: box-shadow 0.3s ease; } .site-header.scrolled { box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02); } .header-logo { font-size: 1.1rem; font-weight: 800; color: #5a8fa8; text-decoration: none; letter-spacing: 0.02em; display: flex; align-items: baseline; gap: 8px; } .header-tagline { font-size: 0.68rem; color: #7a7a8e; font-weight: 500; letter-spacing: 0.08em; } .header-nav { display: flex; gap: 24px; } .header-nav a { color: #4a4a5e; text-decoration: none; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em; position: relative; transition: color 0.3s ease; } .header-nav a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #5a8fa8; border-radius: 1px; transition: width 0.3s ease; } .header-nav a:hover { color: #5a8fa8; } .header-nav a:hover::after { width: 100%; } .hamburger { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #333; padding: 4px 8px; } .mobile-nav { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1100; } .mobile-nav.open { display: block; } .mobile-nav-inner { background: #fff; width: 260px; height: 100%; padding: 24px 20px; box-shadow: 2px 0 12px rgba(0,0,0,0.15); } .mobile-nav-inner a { display: block; padding: 14px 0; color: #333; text-decoration: none; font-size: 1rem; border-bottom: 1px solid #eee; } .mobile-nav-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; float: right; color: #666; }
+        .site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid rgba(90, 143, 168, 0.08); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; transition: box-shadow 0.3s ease; } .site-header.scrolled { box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02); } .header-logo { font-size: 1.1rem; font-weight: 800; color: #1a9de0; text-decoration: none; letter-spacing: 0.02em; display: flex; align-items: baseline; gap: 8px; } .header-tagline { font-size: 0.68rem; color: #7a7a8e; font-weight: 500; letter-spacing: 0.08em; } .header-nav { display: flex; gap: 24px; } .header-nav a { color: #4a4a5e; text-decoration: none; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em; position: relative; transition: color 0.3s ease; } .header-nav a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #1a9de0; border-radius: 1px; transition: width 0.3s ease; } .header-nav a:hover { color: #1a9de0; } .header-nav a:hover::after { width: 100%; } .hamburger { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #333; padding: 4px 8px; } .mobile-nav { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1100; } .mobile-nav.open { display: block; } .mobile-nav-inner { background: #fff; width: 260px; height: 100%; padding: 24px 20px; box-shadow: 2px 0 12px rgba(0,0,0,0.15); } .mobile-nav-inner a { display: block; padding: 14px 0; color: #333; text-decoration: none; font-size: 1rem; border-bottom: 1px solid #eee; } .mobile-nav-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; float: right; color: #666; }
         .breadcrumb { padding: 10px 20px; font-size: 0.85rem; color: #888; max-width: 840px; margin: 0 auto; }
-        .breadcrumb a { color: #5a8fa8; text-decoration: none; }
-        .hero { background: linear-gradient(135deg, #5a8fa8, #2a2a3e); color: #fff; padding: 50px 20px; text-align: center; }
+        .breadcrumb a { color: #1a9de0; text-decoration: none; }
+        .hero { background: linear-gradient(135deg, #1a9de0, #2a2a3e); color: #fff; padding: 50px 20px; text-align: center; }
         .hero h1 { font-size: 1.8rem; margin-bottom: 10px; }
         .hero .subtitle { font-size: 1rem; opacity: 0.9; }
         section { padding: 40px 20px; }
         section:nth-child(even) { background: #f7f7f9; }
-        h2 { font-size: 1.4rem; color: #5a8fa8; margin-bottom: 20px; border-left: 4px solid #5a8fa8; padding-left: 12px; }
+        h2 { font-size: 1.4rem; color: #1a9de0; margin-bottom: 20px; border-left: 4px solid #1a9de0; padding-left: 12px; }
         .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
         .area-card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s; }
         .area-card:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
         .area-card h3 { font-size: 1.2rem; color: #2a2a3e; margin-bottom: 8px; }
         .area-card p { font-size: 0.9rem; color: #666; margin-bottom: 12px; }
-        .area-card a { display: inline-block; color: #5a8fa8; font-weight: bold; text-decoration: none; }
+        .area-card a { display: inline-block; color: #1a9de0; font-weight: bold; text-decoration: none; }
         .area-card a:hover { text-decoration: underline; }
-        .cta-section { text-align: center; background: linear-gradient(135deg, #5a8fa8, #2a2a3e); color: #fff; padding: 50px 20px; }
+        .cta-section { text-align: center; background: linear-gradient(135deg, #1a9de0, #2a2a3e); color: #fff; padding: 50px 20px; }
         .cta-section h2 { color: #fff; border-left: none; text-align: center; }
         .cta-button { display: inline-block; background: #06C755; color: #fff; padding: 16px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: bold; text-decoration: none; margin-top: 16px; }
-        .cta-button:hover { background: #00b348; }
+        .cta-button:hover { background: #05b34c; }
         footer { background: #2a2a3e; color: #ccc; text-align: center; padding: 30px 20px; font-size: 0.85rem; }
         footer strong { color: #fff; }
         footer a { color: #50c8a0; text-decoration: none; }
@@ -348,7 +348,7 @@
         <div class="container">
             <h2>働き方 × エリア（全124ページ）</h2>
             <p style="color:#666;margin-bottom:24px;font-size:0.95rem;">希望の働き方と勤務地から、看護師求人を直接検索できます。各ページにD1リアルタイム求人統計・代表施設・アクセス駅を掲載。</p>
-            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #5a8fa8;">日勤のみ</h3>
+            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #1a9de0;">日勤のみ</h3>
             <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">夜勤なし・残業少なめで働きたい方向け</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:20px;">
                 <a href="/lp/job-seeker/area/yokohama-nikkin.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市</a>
@@ -383,7 +383,7 @@
                 <a href="/lp/job-seeker/area/yokohama-totsuka-nikkin.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市戸塚区</a>
                 <a href="/lp/job-seeker/area/yokohama-tsurumi-nikkin.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市鶴見区</a>
             </div>
-            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #5a8fa8;">夜勤あり</h3>
+            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #1a9de0;">夜勤あり</h3>
             <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">夜勤手当で年収UPを狙う病院勤務</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:20px;">
                 <a href="/lp/job-seeker/area/yokohama-yakin.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市</a>
@@ -418,7 +418,7 @@
                 <a href="/lp/job-seeker/area/yokohama-totsuka-yakin.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市戸塚区</a>
                 <a href="/lp/job-seeker/area/yokohama-tsurumi-yakin.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市鶴見区</a>
             </div>
-            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #5a8fa8;">パート</h3>
+            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #1a9de0;">パート</h3>
             <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">週2〜4日・扶養内OKの短時間勤務</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:20px;">
                 <a href="/lp/job-seeker/area/yokohama-part.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市</a>
@@ -453,7 +453,7 @@
                 <a href="/lp/job-seeker/area/yokohama-totsuka-part.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市戸塚区</a>
                 <a href="/lp/job-seeker/area/yokohama-tsurumi-part.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市鶴見区</a>
             </div>
-            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #5a8fa8;">訪問看護</h3>
+            <h3 style="font-size:1.1rem;color:#2a2a3e;margin:24px 0 8px;padding-left:10px;border-left:3px solid #1a9de0;">訪問看護</h3>
             <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">1対1の在宅ケア。神奈川県内のST求人</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-bottom:20px;">
                 <a href="/lp/job-seeker/area/yokohama-houmon.html" style="display:inline-block;padding:6px 12px;background:#f4f1ea;border-radius:16px;color:#3a3a4e;text-decoration:none;font-size:0.88rem;">横浜市</a>
