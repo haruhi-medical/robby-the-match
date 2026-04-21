@@ -425,15 +425,38 @@
       r.appendChild(jobCard(d.sample, false));
     }
 
-    /* Blurred cards with overlay */
+    /* Blurred cards with overlay (clickable) */
     if (d && d.blurred && d.blurred.length) {
       var blurWrap = el('div', 'shindan-blur-overlay');
       d.blurred.forEach(function (j) {
         blurWrap.appendChild(jobCard(j, true));
       });
-      var blurLabel = el('div', 'shindan-blur-label', 'LINEで全件チェック');
+      // blurLabel は <a> 要素にしてクリック時にCTAと同じURLへ遷移させる
+      // 実URLは CTA 生成後に設定するため、ここではプレースホルダで生成しておく
+      var blurLabel = el('a', 'shindan-blur-label', '', {
+        href: '#',
+        target: '_blank',
+        rel: 'noopener',
+        role: 'button',
+        'aria-label': 'LINEで全件チェック'
+      });
+      blurLabel.innerHTML =
+        '<span class="shindan-blur-label-count">+' + d.blurred.length + '件</span>' +
+        '<span class="shindan-blur-label-text">LINEで全件チェック</span>' +
+        '<span class="shindan-blur-label-arrow" aria-hidden="true">→</span>';
       blurWrap.appendChild(blurLabel);
+      // 透明なオーバーレイを敷いてカード領域全体をタップ可能にする
+      var blurHit = el('a', 'shindan-blur-hit', '', {
+        href: '#',
+        target: '_blank',
+        rel: 'noopener',
+        'aria-hidden': 'true',
+        tabindex: '-1'
+      });
+      blurWrap.appendChild(blurHit);
       r.appendChild(blurWrap);
+      // 後で URL を注入するため参照を保持
+      r._blurLinks = [blurLabel, blurHit];
     }
 
     /* Summary card */
@@ -486,6 +509,27 @@
       ga('click_cta', { source: 'shindan', intent: 'diagnose', page_type: 'paid_lp', session_id: sid, prefecture: A.pref, area: A.area, facility_type: A.ft, workstyle: A.ws, urgency: A.urg });
     });
     r.appendChild(cta);
+
+    /* blurred カード群のクリッカブル要素に CTA と同じURLを注入し、計測を分けて取得 */
+    if (r._blurLinks && r._blurLinks.length) {
+      r._blurLinks.forEach(function (link, idx) {
+        link.setAttribute('href', ctaURL);
+        link.addEventListener('click', function () {
+          ga('click_cta', {
+            source: 'shindan',
+            intent: 'diagnose',
+            page_type: 'paid_lp',
+            cta_variant: idx === 0 ? 'blur_label' : 'blur_hit',
+            session_id: sid,
+            prefecture: A.pref,
+            area: A.area,
+            facility_type: A.ft,
+            workstyle: A.ws,
+            urgency: A.urg
+          });
+        });
+      });
+    }
 
     var note = el('p', 'shindan-note', '※完全無料・電話なし・いつでもブロックOK');
     r.appendChild(note);

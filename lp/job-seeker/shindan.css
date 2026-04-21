@@ -471,29 +471,95 @@
   50%      { transform: translateY(-4px); }
 }
 
-/* Blur overlay prompt */
+/* Blur overlay prompt (clickable) */
 .shindan-blur-overlay {
   position: relative;
   margin-bottom: 20px;
+  /* ぼかしカード群が「押せそう」に見えるようカーソルとアクセシブルフォーカスを示唆 */
+  cursor: pointer;
 }
 
+/* カード領域全体を覆う透明ヒット領域（カードごとのクリック誤作動を回避しつつ全面タップ可） */
+.shindan-blur-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  text-decoration: none;
+  border-radius: var(--sd-radius, 12px);
+  /* 視認性はゼロだがフォーカスリングは出す */
+}
+.shindan-blur-hit:focus-visible {
+  outline: 3px solid var(--sd-teal);
+  outline-offset: 4px;
+}
+
+/* 中央ラベル＝メインのクリッカブルバッジ */
 .shindan-blur-label {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  padding: 10px 24px;
-  border-radius: 24px;
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;              /* iOS HIG / WCAG ターゲットサイズ 44px 確保 */
+  padding: 12px 22px;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid var(--sd-teal);
+  border-radius: 999px;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--sd-teal);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  text-decoration: none;
   white-space: nowrap;
-  pointer-events: none;
+  box-shadow: 0 6px 22px rgba(26, 127, 100, 0.22);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  animation: sd-blurLabelPulse 2.4s ease-in-out infinite;
+  /* ぼかし領域の上でもタップを受け取れるようにする */
+  pointer-events: auto;
+}
+
+.shindan-blur-label-count {
+  background: var(--sd-teal);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.shindan-blur-label-arrow {
+  font-weight: 800;
+  transition: transform 0.2s ease;
+}
+
+.shindan-blur-label:hover {
+  background: #fff;
+  transform: translate(-50%, -50%) scale(1.04);
+  box-shadow: 0 10px 28px rgba(26, 127, 100, 0.32);
+}
+.shindan-blur-label:hover .shindan-blur-label-arrow {
+  transform: translateX(3px);
+}
+
+.shindan-blur-label:active {
+  transform: translate(-50%, -50%) scale(0.97);
+  box-shadow: 0 3px 10px rgba(26, 127, 100, 0.25);
+}
+
+.shindan-blur-label:focus-visible {
+  outline: 3px solid var(--sd-teal);
+  outline-offset: 3px;
+}
+
+@keyframes sd-blurLabelPulse {
+  0%, 100% { box-shadow: 0 6px 22px rgba(26, 127, 100, 0.22); }
+  50%      { box-shadow: 0 10px 30px rgba(26, 127, 100, 0.38); }
 }
 
 /* ============================
@@ -667,6 +733,10 @@
   .shindan-cta::before {
     animation: none !important;
   }
+
+  .shindan-blur-label {
+    animation: none !important;
+  }
 }
 
 /* ============================
@@ -703,6 +773,16 @@
   .shindan-summary-items div {
     font-size: 0.75rem;
     padding: 5px 12px;
+  }
+
+  .shindan-blur-label {
+    font-size: 0.85rem;
+    padding: 11px 18px;
+    gap: 6px;
+  }
+  .shindan-blur-label-count {
+    font-size: 0.72rem;
+    padding: 2px 7px;
   }
 }
 
