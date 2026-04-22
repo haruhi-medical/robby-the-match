@@ -1,6 +1,7 @@
 # 翌朝（2026-04-23）代表向けブリーフィング
 
 - 就寝時刻: 2026-04-22 深夜
+- 起床時追加作業: 2026-04-23 朝（お気に入り求人機能）
 - 報告者: AI開発担当
 - 宛先: 平島禎之 代表
 - **所要時間: 5分で読めます**
@@ -9,9 +10,9 @@
 
 ## 🎉 TL;DR（3行）
 
-1. **MVP-A 完全に本番稼働中**。Task 1-15全完了、E2Eスモーク 24/24 全パス
-2. **Phase 2 希望条件保存機能** も就寝中に追加実装・デプロイ完了
-3. 翌朝の代表タスクは **実機LINEでの E2E 動作確認** と **Phase 2/3 の方針判断**
+1. **MVP-A 完全に本番稼働中**。Task 1-15全完了、E2Eスモーク **37/37 全パス**
+2. **Phase 2 完成**: 希望条件保存 + **お気に入り求人保存（朝追加）** もデプロイ済み
+3. 翌朝の代表タスクは **実機LINEでの E2E 動作確認** と **Phase 3の実装方針判断**
 
 ---
 
@@ -24,10 +25,11 @@
 | マイページトップ | `https://quads-nurse.com/mypage/` | ✅ 稼働 |
 | 履歴書ビュー（印刷/PDF） | `https://quads-nurse.com/mypage/resume/` | ✅ 稼働 |
 | 履歴書編集フォーム | `https://quads-nurse.com/mypage/resume/edit.html` | ✅ 稼働 |
-| 希望条件設定 | `https://quads-nurse.com/mypage/preferences/` | ✅ 稼働（NEW） |
+| 希望条件設定 | `https://quads-nurse.com/mypage/preferences/` | ✅ 稼働 |
+| お気に入り求人一覧 | `https://quads-nurse.com/mypage/favorites/` | ✅ 稼働（NEW 4/23朝） |
 | LIFFなしアクセス誘導 | `https://quads-nurse.com/mypage/auth.html` | ✅ 稼働 |
 
-### B. API 全8エンドポイント稼働中
+### B. API 全11エンドポイント稼働中（4/23朝にPhase 2お気に入り3件追加）
 | Method | Path | 認証 | 機能 |
 |---|---|---|---|
 | POST | `/api/member-resume-generate` | 30分短期トークン | 会員化+履歴書生成 |
@@ -36,8 +38,11 @@
 | GET | `/api/mypage-resume-data` | sessionToken | 編集用JSON取得 |
 | POST | `/api/mypage-resume-edit` | sessionToken | 履歴書更新 |
 | DELETE | `/api/mypage-resume` | sessionToken | 削除（個情法35条対応） |
-| GET | `/api/mypage-preferences` | sessionToken | 希望条件取得（NEW） |
-| POST | `/api/mypage-preferences` | sessionToken | 希望条件保存（NEW） |
+| GET | `/api/mypage-preferences` | sessionToken | 希望条件取得 |
+| POST | `/api/mypage-preferences` | sessionToken | 希望条件保存 |
+| GET | `/api/mypage-favorites` | sessionToken | お気に入り求人一覧（NEW 4/23朝） |
+| POST | `/api/mypage-favorites` | sessionToken | お気に入り追加（最大50件、重複は更新扱い） |
+| DELETE | `/api/mypage-favorites?jobId=xxx` | sessionToken | お気に入り個別削除 |
 
 ### C. データ設計
 ```
@@ -45,7 +50,8 @@ KV: LINE_SESSIONS
 ├─ member:<userId>                         会員プロファイル（永続）
 ├─ member:<userId>:resume                  履歴書HTML（永続、削除時のみクリア）
 ├─ member:<userId>:resume_data             履歴書元データJSON（編集用）
-├─ member:<userId>:preferences             希望条件JSON（NEW）
+├─ member:<userId>:preferences             希望条件JSON
+├─ member:<userId>:favorites               お気に入り求人配列 (最大50件、NEW 4/23朝)
 ├─ resume_token:<uuid>                     30分短期トークン（使い切り）
 └─ session:<sessionId>                     LINE会話セッション（既存、未変更）
 ```
@@ -94,27 +100,28 @@ KV: LINE_SESSIONS
 
 ### 🟡 判断（5分）
 
-#### 3. Phase 2/3 の実装優先順位
-**残タスク3件の中からどれを先に着手するか:**
+#### 3. Phase 3 の実装方針判断
+**起床後追加実装済のため、残タスクは3件に減った:**
 
-- **(a) お気に入り求人の保存** (工数1-2日)
-  - LINE Bot 新着求人表示時に「⭐保存」ボタン → KV `member:<userId>:favorites` へ
-  - マイページに「お気に入り一覧」セクション追加
-  - ルートB会員化（お気に入り初保存時に最小プロフィールで会員化）
+- **(a) LINE Bot 側の⭐ボタン追加** (工数0.5-1日、**代表指示「既存NG」に該当**)
+  - LINE Bot 求人 Flex カードに「⭐保存」postback action を追加
+  - postback受信時にサーバーで member:<userId>:favorites に保存
+  - **既存 worker.js (handleLineWebhook や求人カード生成) の改修が必要** → 代表承認必須
+  - API は既に `/api/mypage-favorites` POST で受付可能状態
 
-- **(b) AI新着求人の定期LINE配信** (工数2-3日)
-  - Cloudflare Workers cron で毎朝 07:00 JST
-  - 全会員の `preferences` と新着求人（D1 jobs）を突合
-  - マッチあれば Flex Message で最大3件 LINE Push
-  - マッチ0件の会員には送信しない（スパム感ゼロ）
-  - **今日実装した希望条件がここで活きる**
+- **(b) AI新着求人の定期LINE配信** (工数2-3日、**既存 newjobs-notify との統合が必要**)
+  - 既に別セッションで実装された「毎朝10時JST Push cron + newjobs_notify:<userId> opt-out」と統合
+  - 会員(member:<userId>:preferences ありの人)には希望条件に基づく精密マッチ
+  - 非会員はエリア単位の既存ラフマッチ
+  - **既存 cron handler 改修** → 代表承認必須
 
-- **(c) 既存 /resume/ フォームの整理** (工数0.5日)
-  - LINE Bot が新URL `/resume/member/` に切替済のため、旧 `/resume/` は使われていない
-  - 削除 or /resume/member/ へリダイレクト
-  - 代表の方針次第
+- **(c) ルートB会員化** (工数1日)
+  - お気に入り保存時に未会員なら最小プロフィール(氏名+電話+希望エリア)で会員化
+  - 新 `/api/member-lite-register` エンドポイント
+  - LIFFフォーム `/resume/member-lite/` 新設
+  - **既存コード変更は最小(worker.js末尾のみ)、新規ファイル主体** → 代替案で既存変更ゼロで可能
 
-**推奨:** (b) を先に。希望条件と組み合わせて会員価値が一気に立つ。
+**推奨:** (c) → (a) → (b) の順。先に会員化の入口を増やし、次に LINE Bot 統合。
 
 ### 🟢 任意（2分）
 
@@ -130,6 +137,9 @@ KV: LINE_SESSIONS
 ## 📦 Commits（本日分・本番反映済）
 
 ```
+e078f2a test: E2EスモークにPhase 2 希望条件+お気に入り 追加 (37/37 PASS)
+5df408a feat: Phase 2 お気に入り求人保存 API+UI 実装 (4/23朝)
+4ce862b docs: MVP-A完了 + Phase 2希望条件 + 翌朝ブリーフィング
 45136e3 feat: Phase 2 希望条件保存機能を追加
 88268cb style: マイページ+会員フォームをブランドカラー準拠に
 6a350b0 fix: sessionStorage→localStorage + キャッシュバストv=c
@@ -150,7 +160,7 @@ ffb64bd docs: 履歴書システム現状報告書を追加
 0145c26 security: 履歴書作成システムのセキュリティ強化
 ```
 
-**Worker Version (最新):** `c91e96f9`
+**Worker Version (最新):** `3be05a4f`
 **main/master 両ブランチ:** push済
 
 ---
