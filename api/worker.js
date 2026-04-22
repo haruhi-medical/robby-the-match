@@ -4073,11 +4073,10 @@ function buildIntakeHumanThanks(entry) {
   const derivedAreaLabel = derivedAreaKey ? getAreaLabel(derivedAreaKey) : null;
 
   // opt-out設計: 3問完了した時点で新着通知は自動ON。
-  // エリア判定できれば「エリアを変える」「止める」を提示、できなければエリア選択に誘導。
+  // 「エリアを変える」のみ提示（通知停止はブロックで代用できるのでUI上は出さない）
   const qrItems = derivedAreaKey
     ? [
         qrItem("エリアを変える", "welcome=newjobs_optin"),
-        qrItem("通知を止める", "newjobs_optin=stop"),
         qrItem("求人を探す", "rm=start"),
       ]
     : [
@@ -4093,8 +4092,8 @@ function buildIntakeHumanThanks(entry) {
     {
       type: "text",
       text: derivedAreaLabel
-        ? `📋 ご連絡をお待ちいただく間、${derivedAreaLabel}の新着求人をお届けします。`
-        : "📋 ご連絡をお待ちいただく間、新着求人をお届けします。\nエリアを選んでください🌸",
+        ? `📬 定期的に ${derivedAreaLabel} の新着求人も配信しております。`
+        : "📬 定期的に新着求人も配信しております。\nエリアを選んでください🌸",
       quickReply: { items: qrItems },
     },
   ];
