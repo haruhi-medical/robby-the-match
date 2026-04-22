@@ -70,6 +70,54 @@
 - `docs/audit/2026-04-22-resume-security/report.md` — 技術詳細監査レポート
 - `docs/audit/2026-04-22-resume-security/status-report.md` — 代表向け現状報告書
 
+### 2段階メンバーシップ制 MVP-A 完成（2026-04-22 深夜）
+
+#### ビジョン
+LINE追加=ビジター / 履歴書作成=ナースロビー会員 の2段階運用。
+会員限定機能: 履歴書の保管・編集・PDF印刷、希望条件の保存、(将来)お気に入り求人・AI新着配信。
+
+#### 実装タスク 15件完了
+| # | 内容 | 成果物 |
+|---|------|--------|
+| T1 | マイページ骨子+LIFF | mypage/{index,auth}.html, mypage.css, mypage.js |
+| T2 | HMACトークン ユーティリティ | worker.js末尾: generate/verifyMypageSessionToken |
+| T3 | POST /api/mypage-init | LIFF→セッション交換 |
+| T5 | POST /api/member-resume-generate | 会員化+履歴書生成API（既存 handleResumeGenerate と並列運用） |
+| T7 | resume/member/index.html | 会員制フォーム（既存 resume/index.html 完全温存） |
+| T8 | GET /api/mypage-resume | 履歴書HTML取得（トークン認証） |
+| T9 | mypage/resume/index.html | 履歴書ビュー（iframe+印刷ボタン） |
+| T10 | POST /api/mypage-resume-edit + GET /mypage-resume-data + edit.html | 編集フロー |
+| T11 | DELETE /api/mypage-resume | 会員自身の削除（個情法35条対応、status=deleted論理削除） |
+| T13 | LINE Bot URL切替 | worker.js 1行変更: /resume/→/resume/member/ (E5 B案承認) |
+| T14 | E2E統合スモーク | 24件全パス(test_mypage_full_e2e.py) |
+
+#### 途中で発生した問題 + 対処
+1. **LIFF ID衝突** (2009683996-7pCYfOP7は/lp/job-seeker/liff.htmlに紐付き、/mypage/で400) → LIFF廃止、HMAC署名URLトークン方式に転換
+2. **sessionStorage途切れ** (LINE内ブラウザで/mypage/→/mypage/resume/遷移時セッション消失) → localStorageに変更
+3. **山田エリカ様1件削除** (代表指示、KV `resume:1ef7256b-818` 削除済)
+4. **Task 5 code review** (timing attack + unescape非推奨 + createdAt上書き + rate map共有) → 全修正済み
+5. **ブランドカラー不整合** (独自緑#1a7f64を使用) → ティール#1A6B8A+CTA緑#2D9F6Fに統一
+
+#### Phase 2: 希望条件保存機能 実装完了（就寝中着手）
+- mypage/preferences/index.html 新設（エリア11種/施設タイプ6種/働き方4種/給与/夜勤/時期/自由記入）
+- GET/POST /api/mypage-preferences（セッショントークン認証）
+- KV: member:<userId>:preferences
+- マイページTOPから「🎯 希望条件を設定する」ボタンで遷移
+- Worker Version: `c91e96f9`, Commit: `45136e3`
+
+#### 残ったPhase 2+3（次回対応）
+- お気に入り求人の保存
+- ルートB会員化（最小プロフィールから）
+- AI新着求人の定期LINE配信 cron（希望条件との突合）
+
+#### KV残存データ
+- member:U7e23b53d10319c3b070313537485fbc6 = 石づか様（代表自身のテスト会員、履歴書+会員レコード）
+- 4/20テスト resume:*6件 → 4/27自然失効
+- 山田エリカ様分 → 4/22削除済
+
+#### 代表向けブリーフィング
+- `docs/audit/2026-04-22-resume-security/briefing-for-tomorrow.md`
+
 ---
 
 ## 2026-04-17（金）Meta広告 徹底分析 + 計測修復 + 1週間計測スタート
