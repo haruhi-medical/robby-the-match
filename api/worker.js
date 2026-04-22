@@ -1805,6 +1805,9 @@ export default {
     if (url.pathname === "/api/mypage-init" && request.method === "POST") {
       return await handleMypageInit(request, env);
     }
+    if (url.pathname === "/api/member-resume-generate" && request.method === "POST") {
+      return await handleMemberResumeGenerate(request, env, ctx);
+    }
 
     return jsonResponse({ error: "Not Found" }, 404);
   },
@@ -11166,5 +11169,178 @@ async function handleMypageInit(request, env) {
     sessionToken,
     displayName: member.displayName || null,
     resumeUpdatedAt,
+  });
+}
+
+// ================================================================
+// ========== /api/member-resume-generate: 会員化+履歴書生成 =========
+// ================================================================
+// 既存 handleResumeGenerate (L10160付近) は完全温存。会員化用の別関数として並列追加。
+async function handleMemberResumeGenerate(request, env, ctx) {
+  let data;
+  try {
+    data = await request.json();
+  } catch {
+    return jsonResponse({ error: "invalid JSON" }, 400);
+  }
+
+  // 同意確認
+  if (data.consentPrivacy !== true || data.consentAi !== true) {
+    return jsonResponse({ error: "利用規約および AI 処理への同意が必要です" }, 400);
+  }
+
+  // トークン検証（LINE Botが発行した30分短期トークン）
+  if (!data.token || typeof data.token !== "string" || !/^[a-f0-9-]{36}$/.test(data.token)) {
+    return jsonResponse({ error: "履歴書作成リンクが無効です。LINEからやり直してください。" }, 403);
+  }
+  let serverUserId = null;
+  try {
+    const raw = await env.LINE_SESSIONS.get(`resume_token:${data.token}`);
+    if (!raw) {
+      return jsonResponse({ error: "履歴書作成リンクの有効期限が切れました（30分）。LINEからやり直してください。" }, 403);
+    }
+    const tokenData = JSON.parse(raw);
+    serverUserId = tokenData.userId || null;
+  } catch (e) {
+    console.error("[MemberResume] token verify failed:", e.message);
+    return jsonResponse({ error: "認証エラー" }, 500);
+  }
+  if (!serverUserId) {
+    return jsonResponse({ error: "トークンからユーザー情報を復元できません" }, 500);
+  }
+
+  // IPレート制限（既存 resumeRateMap を流用）
+  const clientIp = request.headers.get("cf-connecting-ip") || "unknown";
+  const now = Date.now();
+  let ipEntry = resumeRateMap.get(clientIp);
+  if (!ipEntry || now - ipEntry.windowStart > 86400000) {
+    ipEntry = { count: 1, windowStart: now };
+    resumeRateMap.set(clientIp, ipEntry);
+  } else {
+    ipEntry.count++;
+    if (ipEntry.count > 5) {
+      return jsonResponse({ error: "本日の履歴書作成回数の上限に達しました。" }, 429);
+    }
+  }
+
+  // 必須項目+入力長
+  if (!data.lastName || !data.firstName) {
+    return jsonResponse({ error: "名前は必須です" }, 400);
+  }
+  const limitStr = (v, max, field) => {
+    if (v == null) return "";
+    const s = String(v);
+    if (s.length > max) throw new Error(`${field} は ${max} 文字以内で入力してください`);
+    return s;
+  };
+  try {
+    limitStr(data.lastName, 50, "姓");
+    limitStr(data.firstName, 50, "名");
+    limitStr(data.lastNameFurigana, 50, "姓ふりがな");
+    limitStr(data.firstNameFurigana, 50, "名ふりがな");
+    limitStr(data.address, 200, "住所");
+    limitStr(data.addressFurigana, 300, "住所ふりがな");
+    limitStr(data.contactAddress, 200, "連絡先住所");
+    limitStr(data.phone, 20, "電話番号");
+    limitStr(data.email, 100, "メールアドレス");
+    limitStr(data.hint_change, 1000, "ヒント①");
+    limitStr(data.hint_strengths, 1000, "ヒント②");
+    limitStr(data.hint_wishes, 1000, "ヒント③");
+    limitStr(data.wishes, 2000, "本人希望");
+    if (Array.isArray(data.education) && data.education.length > 20) throw new Error("学歴は20件以内");
+    if (Array.isArray(data.career) && data.career.length > 30) throw new Error("職歴は30件以内");
+    if (Array.isArray(data.licenses) && data.licenses.length > 30) throw new Error("資格は30件以内");
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 400);
+  }
+
+  // サーバー側 userId を正とする（クライアント送信値は無視）
+  data.userId = serverUserId;
+
+  // AI生成+HTML構築（既存ユーティリティ流用）
+  const motivation = await generateMotivationWithAI(data, env);
+  let template;
+  try { template = await fetchResumeTemplate(); }
+  catch (e) {
+    console.error("[MemberResume] template fetch failed:", e.message);
+    return jsonResponse({ error: "テンプレート取得に失敗" }, 500);
+  }
+
+  const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long", day: "numeric" });
+  const allHistoryRows = buildAllHistoryRows(data.education, data.career);
+  const { left: histLeft, right: histRight } = splitHistoryRows(allHistoryRows, 14);
+  const genderDisplay = (data.gender && data.gender !== "回答しない") ? data.gender : "";
+
+  const vars = {
+    "{{createdDate}}": escapeHtml(nowJST),
+    "{{furigana}}": escapeHtml(`${data.lastNameFurigana || ""}　${data.firstNameFurigana || ""}`.trim()),
+    "{{fullName}}": escapeHtml(`${data.lastName || ""}　${data.firstName || ""}`.trim()),
+    "{{birthDate}}": escapeHtml(formatBirthDate(data.birthDate)),
+    "{{age}}": escapeHtml(String(calcAge(data.birthDate))),
+    "{{gender}}": escapeHtml(genderDisplay),
+    "{{phone}}": escapeHtml(data.phone || ""),
+    "{{postalCode}}": escapeHtml(data.postalCode || ""),
+    "{{address}}": escapeHtml(data.address || ""),
+    "{{addressFurigana}}": escapeHtml(data.addressFurigana || ""),
+    "{{contactPostalCode}}": escapeHtml(data.contactPostalCode || ""),
+    "{{contactAddress}}": escapeHtml(data.contactAddress || ""),
+    "{{contactAddressFurigana}}": escapeHtml(data.contactAddressFurigana || ""),
+    "{{contactPhone}}": escapeHtml(data.contactPhone || ""),
+    "{{historyLeftRows}}": histLeft,
+    "{{historyRightRows}}": histRight,
+    "{{licenseRows}}": buildLicenseRows(data.licenses),
+    "{{motivation}}": escapeHtml(motivation).replace(/\n/g, "<br>"),
+    "{{wishes}}": escapeHtml(data.wishes || "").replace(/\n/g, "<br>"),
+  };
+  let html = template;
+  for (const [k, v] of Object.entries(vars)) {
+    html = html.split(k).join(v);
+  }
+
+  // 会員レコード作成 or 更新
+  const member = {
+    userId: serverUserId,
+    createdAt: now,
+    consentedAt: now,
+    displayName: `${data.lastName} ${data.firstName}`,
+    status: "active",
+    version: 1,
+  };
+  const resumeData = { ...data, updatedAt: now };
+
+  try {
+    await env.LINE_SESSIONS.put(`member:${serverUserId}`, JSON.stringify(member));
+    await env.LINE_SESSIONS.put(`member:${serverUserId}:resume`, html);
+    await env.LINE_SESSIONS.put(`member:${serverUserId}:resume_data`, JSON.stringify(resumeData));
+  } catch (e) {
+    console.error("[MemberResume] KV put failed:", e.message);
+    return jsonResponse({ error: "保存に失敗しました" }, 500);
+  }
+
+  // トークン使い切り削除
+  ctx.waitUntil(env.LINE_SESSIONS.delete(`resume_token:${data.token}`).catch(() => {}));
+
+  // Slack + LINE 通知
+  const mypageUrl = `https://quads-nurse.com/mypage/`;
+  if (env.SLACK_BOT_TOKEN) {
+    ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+        text: `🎉 *新規会員登録+履歴書作成*\nユーザー: \`${serverUserId}\`\n氏名: ${data.lastName}${data.firstName}\nマイページ: ${mypageUrl}`,
+      }),
+    }).catch(e => console.error("[MemberResume] slack notify failed:", e.message)));
+  }
+  if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+    ctx.waitUntil(linePushWithFallback(serverUserId, [{
+      type: "text",
+      text: `✨ ナースロビー会員になりました\n\n履歴書はマイページで確認・編集・PDF保存ができます。\n\n🏠 マイページ\n${mypageUrl}`,
+    }], env, { tag: "member_welcome" }));
+  }
+
+  return jsonResponse({
+    success: true,
+    mypageUrl,
   });
 }
