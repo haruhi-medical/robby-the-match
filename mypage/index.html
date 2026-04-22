@@ -28,11 +28,17 @@
       <a href="/mypage/preferences/" class="btn btn-primary">希望条件を設定する</a>
     </div>
 
+    <div class="card" id="favCard">
+      <h2>⭐ お気に入り求人</h2>
+      <p class="muted" id="favMeta">0件</p>
+      <a href="/mypage/favorites/" class="btn btn-primary">お気に入り一覧を見る</a>
+    </div>
+
     <div class="card">
       <h3>🔜 近日中に追加予定</h3>
       <ul>
-        <li>お気に入り求人の保存</li>
         <li>AI新着求人の定期配信（LINE通知）</li>
+        <li>LINE Botで求人に⭐ボタン追加</li>
       </ul>
     </div>
 
@@ -65,6 +71,16 @@
               const d = new Date(pd.preferences.updatedAt);
               document.getElementById('prefsMeta').textContent = `最終更新: ${d.toLocaleString('ja-JP')}`;
             }
+          }
+        } catch {}
+
+        // お気に入り件数
+        try {
+          const fr = await apiCall('/api/mypage-favorites');
+          if (fr.ok) {
+            const fd = await fr.json();
+            const n = (fd.favorites || []).length;
+            document.getElementById('favMeta').textContent = n > 0 ? `${n}件保存中` : '0件';
           }
         } catch {}
 

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>お気に入り求人 | ナースロビー マイページ</title>
+  <link rel="stylesheet" href="/mypage/mypage.css">
+  <style>
+    .fav-item {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+      position: relative;
+    }
+    .fav-item:last-child { border-bottom: none; }
+    .fav-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--primary);
+      margin: 0 0 6px;
+    }
+    .fav-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .fav-salary {
+      color: var(--cta);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .fav-remove {
+      position: absolute;
+      top: 14px;
+      right: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--err);
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+    .fav-remove:hover { background: #FDF3F2; }
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    .empty .big-icon { font-size: 3rem; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading">読み込み中...</div>
+  <div id="app" class="container" style="display:none;">
+    <h1>⭐ お気に入り求人</h1>
+    <p class="muted" id="meta">0件</p>
+
+    <div id="list" class="card"></div>
+
+    <div id="empty" class="card empty" style="display:none;">
+      <div class="big-icon">🔍</div>
+      <p>まだお気に入り求人がありません</p>
+      <p class="muted">LINEで求人を検索して⭐ボタンで保存できます<br>（近日中にLINE Botで対応予定）</p>
+    </div>
+
+    <a href="/mypage/" class="btn btn-outline">← マイページへ戻る</a>
+  </div>
+
+  <script src="/mypage/mypage.js?v=20260422c"></script>
+  <script>
+    function esc(s) {
+      return (s == null ? "" : String(s))
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function fmtYen(min, max) {
+      if (!min && !max) return "";
+      if (min && max) return `月給 ${(min/10000).toFixed(0)}〜${(max/10000).toFixed(0)}万円`;
+      if (min) return `月給 ${(min/10000).toFixed(0)}万円〜`;
+      return `月給 〜${(max/10000).toFixed(0)}万円`;
+    }
+
+    function render(list) {
+      const container = document.getElementById('list');
+      const meta = document.getElementById('meta');
+      const empty = document.getElementById('empty');
+
+      if (!list || list.length === 0) {
+        container.style.display = 'none';
+        empty.style.display = 'block';
+        meta.textContent = '0件';
+        return;
+      }
+      container.style.display = 'block';
+      empty.style.display = 'none';
+      meta.textContent = `${list.length}件保存中`;
+
+      container.innerHTML = list.map(item => {
+        const s = item.snapshot || {};
+        const date = new Date(item.savedAt).toLocaleDateString('ja-JP');
+        return `
+          <div class="fav-item" data-jobid="${esc(item.jobId)}">
+            <div class="fav-title">${esc(s.title || s.facility || item.jobId)}</div>
+            ${s.facility && s.title ? `<div class="fav-meta">${esc(s.facility)}</div>` : ''}
+            ${s.area ? `<div class="fav-meta">📍 ${esc(s.area)}</div>` : ''}
+            ${fmtYen(s.salaryMin, s.salaryMax) ? `<div class="fav-salary">💰 ${fmtYen(s.salaryMin, s.salaryMax)}</div>` : ''}
+            <div class="fav-meta">保存日: ${date}</div>
+            <button type="button" class="fav-remove" data-jobid="${esc(item.jobId)}">✖ 削除</button>
+          </div>`;
+      }).join('');
+
+      // 削除ボタン
+      container.querySelectorAll('.fav-remove').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const jobId = e.target.dataset.jobid;
+          if (!confirm(`このお気に入りを削除しますか？`)) return;
+          try {
+            const res = await apiCall(`/api/mypage-favorites?jobId=${encodeURIComponent(jobId)}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            // 再レンダー
+            const reload = await apiCall('/api/mypage-favorites');
+            if (reload.ok) {
+              const rd = await reload.json();
+              render(rd.favorites || []);
+            }
+          } catch (err) {
+            alert('削除に失敗しました: ' + err.message);
+          }
+        });
+      });
+    }
+
+    (async () => {
+      try {
+        const session = await initMypageAuth();
+        if (!session) return;
+
+        const res = await apiCall('/api/mypage-favorites');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        render(data.favorites || []);
+      } catch (e) {
+        document.getElementById('loading').innerHTML =
+          `<div class="container"><div class="error">エラー: ${e.message}</div>
+          <a href="/mypage/" class="btn btn-outline">マイページへ戻る</a></div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

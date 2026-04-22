@@ -1844,6 +1844,15 @@ export default {
     if (url.pathname === "/api/mypage-preferences" && request.method === "POST") {
       return await handleMypagePreferencesSave(request, env);
     }
+    if (url.pathname === "/api/mypage-favorites" && request.method === "GET") {
+      return await handleMypageFavoritesGet(request, env);
+    }
+    if (url.pathname === "/api/mypage-favorites" && request.method === "POST") {
+      return await handleMypageFavoritesAdd(request, env);
+    }
+    if (url.pathname === "/api/mypage-favorites" && request.method === "DELETE") {
+      return await handleMypageFavoritesDelete(request, env);
+    }
 
     return jsonResponse({ error: "Not Found" }, 404);
   },
@@ -11758,4 +11767,121 @@ async function handleMypagePreferencesSave(request, env) {
   }
 
   return jsonResponse({ success: true, preferences: merged });
+}
+
+// ================================================================
+// ========== /api/mypage-favorites: お気に入り求人保存 ==========
+// ================================================================
+// KV構造: member:<userId>:favorites = JSON array (最大50件、配列全体で1エントリ)
+// [{ jobId, savedAt, snapshot: {title, facility, area, salaryMin, salaryMax, facilityType} }]
+
+const FAVORITES_MAX = 50;
+
+async function handleMypageFavoritesGet(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}:favorites`);
+  let list = [];
+  if (raw) {
+    try { list = JSON.parse(raw) || []; } catch { list = []; }
+  }
+  // savedAt 降順
+  list.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  return jsonResponse({ favorites: list });
+}
+
+async function handleMypageFavoritesAdd(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  let data;
+  try { data = await request.json(); }
+  catch { return jsonResponse({ error: "invalid JSON" }, 400); }
+
+  // バリデーション
+  const jobId = data.jobId;
+  if (!jobId || typeof jobId !== "string" || jobId.length > 100) {
+    return jsonResponse({ error: "jobIdは100文字以内の文字列" }, 400);
+  }
+  const snap = data.snapshot || {};
+  if (typeof snap !== "object") {
+    return jsonResponse({ error: "snapshotはobject" }, 400);
+  }
+  // snapshotフィールド長制限（XSS/肥大化防止）
+  const allowedFields = ["title", "facility", "area", "salaryMin", "salaryMax", "facilityType", "workStyle", "url"];
+  const cleaned = {};
+  for (const k of allowedFields) {
+    if (snap[k] === undefined) continue;
+    if (typeof snap[k] === "string") {
+      if (snap[k].length > 300) return jsonResponse({ error: `snapshot.${k}は300文字以内` }, 400);
+      cleaned[k] = snap[k];
+    } else if (typeof snap[k] === "number") {
+      if (snap[k] < 0 || snap[k] > 100000000) return jsonResponse({ error: `snapshot.${k}は数値範囲外` }, 400);
+      cleaned[k] = snap[k];
+    }
+  }
+
+  // 既存を読み込んでマージ
+  const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}:favorites`);
+  let list = [];
+  if (raw) {
+    try { list = JSON.parse(raw) || []; } catch { list = []; }
+  }
+
+  // 同jobIdがあれば更新、なければ追加
+  const existingIdx = list.findIndex(x => x.jobId === jobId);
+  const now = Date.now();
+  const entry = { jobId, savedAt: now, snapshot: cleaned };
+  if (existingIdx >= 0) {
+    list[existingIdx] = entry;
+  } else {
+    list.unshift(entry);
+  }
+
+  // 最大件数制限
+  if (list.length > FAVORITES_MAX) {
+    list = list.slice(0, FAVORITES_MAX);
+  }
+
+  try {
+    await env.LINE_SESSIONS.put(`member:${payload.userId}:favorites`, JSON.stringify(list));
+  } catch (e) {
+    console.error("[MypageFavoritesAdd] KV put failed:", e.message);
+    return jsonResponse({ error: "保存に失敗しました" }, 500);
+  }
+  return jsonResponse({ success: true, count: list.length, favorites: list });
+}
+
+async function handleMypageFavoritesDelete(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  const url = new URL(request.url);
+  const jobId = url.searchParams.get("jobId");
+  if (!jobId) return jsonResponse({ error: "jobIdクエリが必須" }, 400);
+
+  const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}:favorites`);
+  if (!raw) return jsonResponse({ success: true, count: 0 });
+
+  let list;
+  try { list = JSON.parse(raw) || []; }
+  catch { list = []; }
+
+  const before = list.length;
+  list = list.filter(x => x.jobId !== jobId);
+
+  try {
+    await env.LINE_SESSIONS.put(`member:${payload.userId}:favorites`, JSON.stringify(list));
+  } catch (e) {
+    console.error("[MypageFavoritesDelete] KV put failed:", e.message);
+    return jsonResponse({ error: "削除に失敗しました" }, 500);
+  }
+  return jsonResponse({ success: true, deleted: before - list.length, count: list.length });
 }
