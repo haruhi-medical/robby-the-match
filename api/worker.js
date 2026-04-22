@@ -1810,6 +1810,9 @@ export default {
     if (url.pathname === "/api/member-resume-generate" && request.method === "POST") {
       return await handleMemberResumeGenerate(request, env, ctx);
     }
+    if (url.pathname === "/api/mypage-resume" && request.method === "GET") {
+      return await handleMypageResume(request, env);
+    }
 
     return jsonResponse({ error: "Not Found" }, 404);
   },
@@ -11356,5 +11359,40 @@ async function handleMemberResumeGenerate(request, env, ctx) {
   return jsonResponse({
     success: true,
     mypageUrl,
+  });
+}
+
+// ================================================================
+// ========== /api/mypage-resume: 履歴書HTML取得 (GET) ==========
+// ================================================================
+async function handleMypageResume(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const html = await env.LINE_SESSIONS.get(`member:${payload.userId}:resume`);
+  if (!html) {
+    return new Response("履歴書が未作成です", {
+      status: 404,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Referrer-Policy": "no-referrer",
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex, nofollow",
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+    },
   });
 }
