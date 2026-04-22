@@ -11205,9 +11205,22 @@ async function handleMypageInit(request, env) {
     return jsonResponse({ error: "invalid JSON" }, 400);
   }
 
-  const { userId } = body;
-  if (!userId || typeof userId !== "string" || !/^U[a-f0-9]{32}$/.test(userId)) {
-    return jsonResponse({ error: "userIdが必須です" }, 400);
+  // 新方式: HMAC署名付き entryToken で認証（LIFF不要、URL ?t= 経由）
+  let userId = null;
+  if (body.entryToken && typeof body.entryToken === "string") {
+    const payload = await verifyMypageSessionToken(body.entryToken, env);
+    if (!payload) {
+      return jsonResponse({ error: "トークンが無効または期限切れです。LINEで新しいマイページリンクを取得してください。" }, 403);
+    }
+    userId = payload.userId;
+  } else if (body.userId) {
+    // 旧方式: LIFF直送（後方互換）
+    if (typeof body.userId !== "string" || !/^U[a-f0-9]{32}$/.test(body.userId)) {
+      return jsonResponse({ error: "userIdが不正です" }, 400);
+    }
+    userId = body.userId;
+  } else {
+    return jsonResponse({ error: "entryToken または userId が必須です" }, 400);
   }
 
   if (!env.LINE_SESSIONS) {
@@ -11251,6 +11264,7 @@ async function handleMypageInit(request, env) {
 
   return jsonResponse({
     sessionToken,
+    userId,
     displayName: member.displayName || null,
     resumeUpdatedAt,
   });
@@ -11417,7 +11431,17 @@ async function handleMemberResumeGenerate(request, env, ctx) {
   ctx.waitUntil(env.LINE_SESSIONS.delete(`resume_token:${data.token}`).catch(() => {}));
 
   // Slack + LINE 通知
-  const mypageUrl = `https://quads-nurse.com/mypage/`;
+  // マイページURLにHMAC署名付きエントリートークン付与（24h有効、1回交換で長期セッショントークン取得）
+  let entryToken;
+  try {
+    entryToken = await generateMypageSessionToken(serverUserId, env);
+  } catch (e) {
+    console.error("[MemberResume] entry token generation failed:", e.message);
+    entryToken = null;
+  }
+  const mypageUrl = entryToken
+    ? `https://quads-nurse.com/mypage/?t=${entryToken}`
+    : `https://quads-nurse.com/mypage/`;
   if (env.SLACK_BOT_TOKEN) {
     ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
