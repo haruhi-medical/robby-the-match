@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>履歴書 | ナースロビー マイページ</title>
+  <link rel="stylesheet" href="/mypage/mypage.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    #resumeFrame {
+      width: 100%;
+      height: calc(100vh - 80px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .toolbar {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .toolbar .btn { margin: 0; }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading">読み込み中...</div>
+  <div id="app" style="display:none;">
+    <div class="toolbar">
+      <a href="/mypage/" class="btn btn-outline">← マイページ</a>
+      <button class="btn btn-primary" onclick="printFrame()">🖨 印刷 / PDF保存</button>
+      <a href="/mypage/resume/edit.html" class="btn btn-outline">✏️ 編集</a>
+    </div>
+    <iframe id="resumeFrame" src="about:blank"></iframe>
+  </div>
+  <div id="empty" class="container" style="display:none;">
+    <h1>履歴書が未作成です</h1>
+    <div class="card">
+      <p>まずは履歴書を作成してください。</p>
+      <a href="/mypage/" class="btn btn-primary">マイページへ戻る</a>
+    </div>
+  </div>
+
+  <script src="/mypage/mypage.js"></script>
+  <script>
+    (async () => {
+      try {
+        const session = await initMypageAuth();
+        if (!session) return;
+
+        const res = await apiCall('/api/mypage-resume');
+        if (res.status === 404) {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('empty').style.display = 'block';
+          return;
+        }
+        if (!res.ok) {
+          throw new Error(`履歴書の取得に失敗しました (HTTP ${res.status})`);
+        }
+        const html = await res.text();
+
+        const frame = document.getElementById('resumeFrame');
+        frame.srcdoc = html;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+      } catch (e) {
+        document.getElementById('loading').innerHTML =
+          `<div class="container"><div class="error">エラー: ${e.message}</div>
+          <a href="/mypage/" class="btn btn-outline">マイページへ戻る</a></div>`;
+      }
+    })();
+
+    function printFrame() {
+      const frame = document.getElementById('resumeFrame');
+      try {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      } catch (e) {
+        alert('印刷に失敗しました: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>
