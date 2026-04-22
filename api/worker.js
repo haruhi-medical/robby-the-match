@@ -1813,6 +1813,12 @@ export default {
     if (url.pathname === "/api/mypage-resume" && request.method === "GET") {
       return await handleMypageResume(request, env);
     }
+    if (url.pathname === "/api/mypage-resume-data" && request.method === "GET") {
+      return await handleMypageResumeData(request, env);
+    }
+    if (url.pathname === "/api/mypage-resume-edit" && request.method === "POST") {
+      return await handleMypageResumeEdit(request, env, ctx);
+    }
 
     return jsonResponse({ error: "Not Found" }, 404);
   },
@@ -11395,4 +11401,127 @@ async function handleMypageResume(request, env) {
       "X-Frame-Options": "SAMEORIGIN",
     },
   });
+}
+
+// ================================================================
+// ========== /api/mypage-resume-data (GET): 編集フォーム初期値用 ====
+// ================================================================
+async function handleMypageResumeData(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}:resume_data`);
+  if (!raw) return jsonResponse({ error: "Not Found" }, 404);
+  return new Response(raw, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+    },
+  });
+}
+
+// ================================================================
+// ========== /api/mypage-resume-edit (POST): 会員による履歴書更新 ===
+// ================================================================
+async function handleMypageResumeEdit(request, env, ctx) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  let data;
+  try { data = await request.json(); }
+  catch { return jsonResponse({ error: "invalid JSON" }, 400); }
+
+  if (!data.lastName || !data.firstName) {
+    return jsonResponse({ error: "名前は必須です" }, 400);
+  }
+
+  // 入力長バリデーション（Task 5 と同じルール）
+  const limitStr = (v, max, field) => {
+    if (v == null) return "";
+    const s = String(v);
+    if (s.length > max) throw new Error(`${field} は ${max} 文字以内`);
+    return s;
+  };
+  try {
+    limitStr(data.lastName, 50, "姓");
+    limitStr(data.firstName, 50, "名");
+    limitStr(data.lastNameFurigana, 50, "姓ふりがな");
+    limitStr(data.firstNameFurigana, 50, "名ふりがな");
+    limitStr(data.address, 200, "住所");
+    limitStr(data.addressFurigana, 300, "住所ふりがな");
+    limitStr(data.contactAddress, 200, "連絡先住所");
+    limitStr(data.phone, 20, "電話番号");
+    limitStr(data.email, 100, "メールアドレス");
+    limitStr(data.hint_change, 1000, "ヒント①");
+    limitStr(data.hint_strengths, 1000, "ヒント②");
+    limitStr(data.hint_wishes, 1000, "ヒント③");
+    limitStr(data.wishes, 2000, "本人希望");
+    if (Array.isArray(data.education) && data.education.length > 20) throw new Error("学歴は20件以内");
+    if (Array.isArray(data.career) && data.career.length > 30) throw new Error("職歴は30件以内");
+    if (Array.isArray(data.licenses) && data.licenses.length > 30) throw new Error("資格は30件以内");
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 400);
+  }
+
+  // サーバー側 userId で上書き
+  data.userId = payload.userId;
+
+  // AI志望動機生成 + HTML構築（既存ユーティリティ流用）
+  const motivation = await generateMotivationWithAI(data, env);
+  let template;
+  try { template = await fetchResumeTemplate(); }
+  catch (e) {
+    console.error("[MypageResumeEdit] template fetch failed:", e.message);
+    return jsonResponse({ error: "テンプレート取得に失敗" }, 500);
+  }
+
+  const now = Date.now();
+  const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long", day: "numeric" });
+  const allHistoryRows = buildAllHistoryRows(data.education, data.career);
+  const { left: histLeft, right: histRight } = splitHistoryRows(allHistoryRows, 14);
+  const genderDisplay = (data.gender && data.gender !== "回答しない") ? data.gender : "";
+
+  const vars = {
+    "{{createdDate}}": escapeHtml(nowJST),
+    "{{furigana}}": escapeHtml(`${data.lastNameFurigana || ""}　${data.firstNameFurigana || ""}`.trim()),
+    "{{fullName}}": escapeHtml(`${data.lastName || ""}　${data.firstName || ""}`.trim()),
+    "{{birthDate}}": escapeHtml(formatBirthDate(data.birthDate)),
+    "{{age}}": escapeHtml(String(calcAge(data.birthDate))),
+    "{{gender}}": escapeHtml(genderDisplay),
+    "{{phone}}": escapeHtml(data.phone || ""),
+    "{{postalCode}}": escapeHtml(data.postalCode || ""),
+    "{{address}}": escapeHtml(data.address || ""),
+    "{{addressFurigana}}": escapeHtml(data.addressFurigana || ""),
+    "{{contactPostalCode}}": escapeHtml(data.contactPostalCode || ""),
+    "{{contactAddress}}": escapeHtml(data.contactAddress || ""),
+    "{{contactAddressFurigana}}": escapeHtml(data.contactAddressFurigana || ""),
+    "{{contactPhone}}": escapeHtml(data.contactPhone || ""),
+    "{{historyLeftRows}}": histLeft,
+    "{{historyRightRows}}": histRight,
+    "{{licenseRows}}": buildLicenseRows(data.licenses),
+    "{{motivation}}": escapeHtml(motivation).replace(/\n/g, "<br>"),
+    "{{wishes}}": escapeHtml(data.wishes || "").replace(/\n/g, "<br>"),
+  };
+  let html = template;
+  for (const [k, v] of Object.entries(vars)) {
+    html = html.split(k).join(v);
+  }
+
+  // 更新 KV（:resume と :resume_data のみ。会員レコードの createdAt/consentedAt 等は維持）
+  const resumeData = { ...data, updatedAt: now };
+  try {
+    await env.LINE_SESSIONS.put(`member:${payload.userId}:resume`, html);
+    await env.LINE_SESSIONS.put(`member:${payload.userId}:resume_data`, JSON.stringify(resumeData));
+  } catch (e) {
+    console.error("[MypageResumeEdit] KV put failed:", e.message);
+    return jsonResponse({ error: "保存に失敗しました" }, 500);
+  }
+
+  return jsonResponse({ success: true, updatedAt: now });
 }
