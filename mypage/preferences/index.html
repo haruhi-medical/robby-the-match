@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>希望条件 | ナースロビー マイページ</title>
+  <link rel="stylesheet" href="/mypage/mypage.css">
+  <style>
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; color: var(--primary); }
+    .field .hint { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 8px; }
+    .choices { display: flex; flex-wrap: wrap; gap: 6px; }
+    .choices label {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px;
+      font-size: 0.85rem; font-weight: 400; color: var(--text);
+      cursor: pointer; background: #fff; transition: all .15s ease;
+      margin-bottom: 0;
+    }
+    .choices label.checked { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+    .choices input[type="checkbox"], .choices input[type="radio"] { display: none; }
+    input[type="number"], select, textarea {
+      width: 100%; padding: 10px 12px; font-size: 16px;
+      border: 1px solid var(--border); border-radius: 8px; background: #fff;
+      color: var(--text); font-family: inherit;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    .submit-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.08); z-index: 100;
+    }
+    .submit-btn {
+      width: 100%; background: var(--cta); color: #fff; border: none;
+      padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    }
+    .submit-btn:hover { background: var(--cta-dark); }
+    .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+    .status { font-size: 0.85rem; text-align: center; margin-top: 8px; color: var(--text-muted); }
+    .status.error { color: var(--err); }
+    .status.success { color: var(--cta); }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading">読み込み中...</div>
+  <div id="app" class="container" style="display:none; padding-bottom: 120px;">
+    <h1>🎯 希望条件</h1>
+    <p class="muted">保存した条件に合う新着求人が届きます（機能追加予定）</p>
+
+    <div class="card">
+      <div class="field">
+        <label>希望エリア</label>
+        <p class="hint">複数選択OK</p>
+        <div class="choices" id="areasGroup">
+          <label data-value="yokohama"><input type="checkbox" value="yokohama">横浜</label>
+          <label data-value="kawasaki"><input type="checkbox" value="kawasaki">川崎</label>
+          <label data-value="sagamihara"><input type="checkbox" value="sagamihara">相模原</label>
+          <label data-value="yokosuka_miura"><input type="checkbox" value="yokosuka_miura">横須賀三浦</label>
+          <label data-value="kenou"><input type="checkbox" value="kenou">県央</label>
+          <label data-value="shonan_east"><input type="checkbox" value="shonan_east">湘南東部</label>
+          <label data-value="shonan_west"><input type="checkbox" value="shonan_west">湘南西部</label>
+          <label data-value="kensei"><input type="checkbox" value="kensei">県西</label>
+          <label data-value="tokyo"><input type="checkbox" value="tokyo">東京</label>
+          <label data-value="chiba"><input type="checkbox" value="chiba">千葉</label>
+          <label data-value="saitama"><input type="checkbox" value="saitama">埼玉</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>施設タイプ</label>
+        <p class="hint">複数選択OK</p>
+        <div class="choices" id="facilityTypesGroup">
+          <label data-value="acute"><input type="checkbox" value="acute">急性期</label>
+          <label data-value="recovery"><input type="checkbox" value="recovery">回復期</label>
+          <label data-value="chronic"><input type="checkbox" value="chronic">慢性期</label>
+          <label data-value="clinic"><input type="checkbox" value="clinic">クリニック</label>
+          <label data-value="visiting"><input type="checkbox" value="visiting">訪問看護</label>
+          <label data-value="care"><input type="checkbox" value="care">介護施設</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>働き方</label>
+        <p class="hint">複数選択OK</p>
+        <div class="choices" id="workStyleGroup">
+          <label data-value="regular"><input type="checkbox" value="regular">常勤(日勤+夜勤)</label>
+          <label data-value="day_only"><input type="checkbox" value="day_only">日勤のみ</label>
+          <label data-value="night_only"><input type="checkbox" value="night_only">夜勤専従</label>
+          <label data-value="part_time"><input type="checkbox" value="part_time">パート</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>希望月給の最低ライン（円/月、任意）</label>
+        <p class="hint">この額以上の求人を優先的にお知らせします</p>
+        <input type="number" id="salaryMin" min="0" max="2000000" step="10000" placeholder="例: 300000">
+      </div>
+
+      <div class="field">
+        <label>夜勤可否</label>
+        <div class="choices" id="nightShiftGroup">
+          <label data-value="true"><input type="radio" name="nightShift" value="true">夜勤OK</label>
+          <label data-value="false"><input type="radio" name="nightShift" value="false">日勤のみ希望</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>転職時期</label>
+        <select id="transferTiming">
+          <option value="">選択してください</option>
+          <option value="immediately">すぐにでも</option>
+          <option value="1_3_months">1〜3ヶ月以内</option>
+          <option value="6_months">半年以内</option>
+          <option value="1_year">1年以内</option>
+          <option value="undecided">未定・情報収集中</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>その他の希望（自由記入）</label>
+        <textarea id="note" placeholder="例：子育て中のため日勤中心希望、駅チカ優先など"></textarea>
+      </div>
+    </div>
+
+    <a href="/mypage/" class="btn btn-outline">← マイページへ戻る</a>
+  </div>
+
+  <div class="submit-bar" id="submitBar" style="display:none;">
+    <button type="button" class="submit-btn" id="submitBtn">希望条件を保存する</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script src="/mypage/mypage.js?v=20260422c"></script>
+  <script>
+    let session = null;
+
+    function toggleChecked(label) {
+      const input = label.querySelector('input');
+      if (!input) return;
+      if (input.type === 'radio') {
+        label.parentElement.querySelectorAll('label').forEach(l => l.classList.remove('checked'));
+      }
+      setTimeout(() => {
+        label.classList.toggle('checked', input.checked);
+      }, 0);
+    }
+
+    document.querySelectorAll('.choices label').forEach(label => {
+      label.addEventListener('click', () => setTimeout(() => toggleChecked(label), 0));
+    });
+
+    function getChecked(groupId) {
+      return Array.from(document.querySelectorAll(`#${groupId} input:checked`)).map(i => i.value);
+    }
+
+    function setChecked(groupId, values) {
+      document.querySelectorAll(`#${groupId} input`).forEach(i => {
+        const on = (values || []).includes(i.value);
+        i.checked = on;
+        i.closest('label').classList.toggle('checked', on);
+      });
+    }
+
+    async function loadPrefs() {
+      try {
+        const res = await apiCall('/api/mypage-preferences');
+        if (!res.ok) return;
+        const data = await res.json();
+        const p = data.preferences;
+        if (!p) return;
+        setChecked('areasGroup', p.areas);
+        setChecked('facilityTypesGroup', p.facilityTypes);
+        setChecked('workStyleGroup', p.workStyle);
+        if (p.salaryMin != null) document.getElementById('salaryMin').value = p.salaryMin;
+        if (p.nightShiftOk != null) {
+          const v = p.nightShiftOk ? 'true' : 'false';
+          const radio = document.querySelector(`#nightShiftGroup input[value="${v}"]`);
+          if (radio) { radio.checked = true; radio.closest('label').classList.add('checked'); }
+        }
+        if (p.transferTiming) document.getElementById('transferTiming').value = p.transferTiming;
+        if (p.note) document.getElementById('note').value = p.note;
+      } catch (e) {
+        console.error('[Prefs] load failed', e);
+      }
+    }
+
+    async function savePrefs() {
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      btn.disabled = true;
+      status.className = 'status';
+      status.textContent = '保存中...';
+
+      const nightShiftVal = document.querySelector('#nightShiftGroup input:checked')?.value;
+      const salaryRaw = document.getElementById('salaryMin').value;
+      const body = {
+        areas: getChecked('areasGroup'),
+        facilityTypes: getChecked('facilityTypesGroup'),
+        workStyle: getChecked('workStyleGroup'),
+        salaryMin: salaryRaw ? parseInt(salaryRaw, 10) : null,
+        nightShiftOk: nightShiftVal === 'true' ? true : nightShiftVal === 'false' ? false : null,
+        transferTiming: document.getElementById('transferTiming').value,
+        note: document.getElementById('note').value,
+      };
+
+      try {
+        const res = await apiCall('/api/mypage-preferences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        status.className = 'status success';
+        status.textContent = '✅ 保存しました';
+        setTimeout(() => { status.textContent = ''; btn.disabled = false; }, 2000);
+      } catch (e) {
+        status.className = 'status error';
+        status.textContent = 'エラー: ' + e.message;
+        btn.disabled = false;
+      }
+    }
+
+    (async () => {
+      try {
+        session = await initMypageAuth();
+        if (!session) return;
+        await loadPrefs();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('submitBar').style.display = 'block';
+        document.getElementById('submitBtn').addEventListener('click', savePrefs);
+      } catch (e) {
+        document.getElementById('loading').innerHTML =
+          `<div class="container"><div class="error">エラー: ${e.message}</div>
+          <a href="/mypage/" class="btn btn-outline">マイページへ戻る</a></div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

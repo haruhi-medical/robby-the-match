@@ -1838,6 +1838,12 @@ export default {
     if (url.pathname === "/api/mypage-resume" && request.method === "DELETE") {
       return await handleMypageResumeDelete(request, env, ctx);
     }
+    if (url.pathname === "/api/mypage-preferences" && request.method === "GET") {
+      return await handleMypagePreferencesGet(request, env);
+    }
+    if (url.pathname === "/api/mypage-preferences" && request.method === "POST") {
+      return await handleMypagePreferencesSave(request, env);
+    }
 
     return jsonResponse({ error: "Not Found" }, 404);
   },
@@ -11673,4 +11679,83 @@ async function handleMypageResumeDelete(request, env, ctx) {
   }
 
   return jsonResponse({ success: true });
+}
+
+// ================================================================
+// ========== /api/mypage-preferences (GET/POST): 希望条件保存 =====
+// ================================================================
+async function handleMypagePreferencesGet(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}:preferences`);
+  if (!raw) {
+    // 未保存時は空オブジェクト + updatedAt: null
+    return jsonResponse({ preferences: null });
+  }
+  try {
+    const prefs = JSON.parse(raw);
+    return jsonResponse({ preferences: prefs });
+  } catch {
+    return jsonResponse({ preferences: null });
+  }
+}
+
+async function handleMypagePreferencesSave(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  let data;
+  try { data = await request.json(); }
+  catch { return jsonResponse({ error: "invalid JSON" }, 400); }
+
+  // 入力バリデーション
+  const isStringArray = (v) => Array.isArray(v) && v.every(x => typeof x === "string" && x.length < 50);
+  if (data.areas !== undefined && !isStringArray(data.areas)) return jsonResponse({ error: "areasは文字列配列" }, 400);
+  if (data.facilityTypes !== undefined && !isStringArray(data.facilityTypes)) return jsonResponse({ error: "facilityTypesは文字列配列" }, 400);
+  if (data.workStyle !== undefined && !isStringArray(data.workStyle)) return jsonResponse({ error: "workStyleは文字列配列" }, 400);
+  if (data.salaryMin !== undefined && data.salaryMin !== null && (typeof data.salaryMin !== "number" || data.salaryMin < 0 || data.salaryMin > 2000000)) {
+    return jsonResponse({ error: "salaryMinは0-2000000の数値" }, 400);
+  }
+  if (data.nightShiftOk !== undefined && data.nightShiftOk !== null && typeof data.nightShiftOk !== "boolean") {
+    return jsonResponse({ error: "nightShiftOkはboolean" }, 400);
+  }
+  if (data.transferTiming !== undefined && (typeof data.transferTiming !== "string" || data.transferTiming.length > 30)) {
+    return jsonResponse({ error: "transferTimingは30文字以内の文字列" }, 400);
+  }
+  if (data.note !== undefined && (typeof data.note !== "string" || data.note.length > 500)) {
+    return jsonResponse({ error: "noteは500文字以内" }, 400);
+  }
+
+  // 既存を読み込んで上書きマージ
+  let existing = {};
+  const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}:preferences`);
+  if (raw) {
+    try { existing = JSON.parse(raw); } catch {}
+  }
+
+  const merged = {
+    areas: data.areas ?? existing.areas ?? [],
+    facilityTypes: data.facilityTypes ?? existing.facilityTypes ?? [],
+    workStyle: data.workStyle ?? existing.workStyle ?? [],
+    salaryMin: data.salaryMin ?? existing.salaryMin ?? null,
+    nightShiftOk: data.nightShiftOk ?? existing.nightShiftOk ?? null,
+    transferTiming: data.transferTiming ?? existing.transferTiming ?? "",
+    note: data.note ?? existing.note ?? "",
+    updatedAt: Date.now(),
+    version: (existing.version ?? 0) + 1,
+  };
+
+  try {
+    await env.LINE_SESSIONS.put(`member:${payload.userId}:preferences`, JSON.stringify(merged));
+  } catch (e) {
+    console.error("[MypagePreferencesSave] KV put failed:", e.message);
+    return jsonResponse({ error: "保存に失敗しました" }, 500);
+  }
+
+  return jsonResponse({ success: true, preferences: merged });
 }

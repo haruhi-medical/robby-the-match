@@ -22,11 +22,16 @@
       <a href="/mypage/resume/edit.html" class="btn btn-outline">編集する</a>
     </div>
 
+    <div class="card" id="prefsCard">
+      <h2>🎯 希望条件</h2>
+      <p class="muted" id="prefsMeta">未設定</p>
+      <a href="/mypage/preferences/" class="btn btn-primary">希望条件を設定する</a>
+    </div>
+
     <div class="card">
       <h3>🔜 近日中に追加予定</h3>
       <ul>
         <li>お気に入り求人の保存</li>
-        <li>希望条件の保存・変更</li>
         <li>AI新着求人の定期配信（LINE通知）</li>
       </ul>
     </div>
@@ -50,6 +55,18 @@
         } else {
           document.getElementById('resumeMeta').textContent = '履歴書が未作成です';
         }
+
+        // 希望条件の設定状況
+        try {
+          const pr = await apiCall('/api/mypage-preferences');
+          if (pr.ok) {
+            const pd = await pr.json();
+            if (pd.preferences && pd.preferences.updatedAt) {
+              const d = new Date(pd.preferences.updatedAt);
+              document.getElementById('prefsMeta').textContent = `最終更新: ${d.toLocaleString('ja-JP')}`;
+            }
+          }
+        } catch {}
 
         document.getElementById('deleteBtn').addEventListener('click', async () => {
           if (!confirm('履歴書を削除します。この操作は取り消せません。よろしいですか？')) return;
