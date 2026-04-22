@@ -11045,7 +11045,7 @@ async function verifyMypageSessionToken(token, env) {
     key,
     new TextEncoder().encode(payloadB64)
   );
-  if (base64urlEncode(expectedSig) !== sigB64) return null;
+  if (!timingSafeEqual(base64urlEncode(expectedSig), sigB64)) return null;
 
   // ペイロード確認
   try {
@@ -11060,15 +11060,16 @@ async function verifyMypageSessionToken(token, env) {
 // base64url ヘルパー（string版）
 // 既存の base64urlEncode (ArrayBuffer版) は worker.js 内に定義済み。ここでは string 用ヘルパーを追加。
 function base64urlEncodeString(str) {
-  return btoa(unescape(encodeURIComponent(str)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  const bytes = new TextEncoder().encode(str);
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 function base64urlDecodeToString(b64) {
   const pad = b64.length % 4;
   const padded = pad ? b64 + "=".repeat(4 - pad) : b64;
   const normal = padded.replace(/-/g, "+").replace(/_/g, "/");
-  return decodeURIComponent(escape(atob(normal)));
+  const bytes = Uint8Array.from(atob(normal), c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
