@@ -25,6 +25,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RANKED_FILE = PROJECT_ROOT / "data" / "hellowork_ranked.json"
 SQL_OUTPUT = PROJECT_ROOT / "data" / "hellowork_jobs_d1.sql"
 LOCAL_DB = PROJECT_ROOT / "data" / "hellowork_jobs.sqlite"
+HISTORY_DIR = PROJECT_ROOT / "data" / "hellowork_history"
 WRANGLER_CONFIG = PROJECT_ROOT / "api" / "wrangler.toml"
 D1_DB_NAME = "nurse-robby-db"
 
@@ -276,6 +277,33 @@ def load_ranked_jobs():
     return data.get("jobs", [])
 
 
+def load_first_seen_map():
+    """過去のスナップショットを古い順に走査してkjno→初出日(YYYY-MM-DD)マップを構築
+
+    data/hellowork_history/YYYY-MM-DD.json を全件読み、
+    同一kjnoが複数日に出現する場合は最も古い日付を採用する。
+    履歴が存在しないkjnoは呼び出し側でtodayをセットする。
+    """
+    first_seen = {}
+    if not HISTORY_DIR.exists():
+        print("[first_seen] HISTORY_DIR が無いため全求人を本日初出扱いにします")
+        return first_seen
+    files = sorted(HISTORY_DIR.glob("*.json"))
+    for f in files:
+        date_str = f.stem  # "2026-04-22"
+        try:
+            snap = json.loads(f.read_text())
+        except Exception as e:
+            print(f"[first_seen] skip {f.name}: {e}")
+            continue
+        for j in snap.get("jobs", []):
+            kjno = j.get("kjno")
+            if kjno and kjno not in first_seen:
+                first_seen[kjno] = date_str
+    print(f"[first_seen] {len(files)}日分のスナップショットから {len(first_seen)}件のkjno→初出日マップ構築")
+    return first_seen
+
+
 def escape_sql(s):
     """SQL文字列エスケープ"""
     if s is None:
@@ -356,16 +384,22 @@ def build_sql(jobs):
   score_loc INTEGER,
   contract_period TEXT,
   insurance TEXT,
-  synced_at TEXT
+  synced_at TEXT,
+  first_seen_at TEXT
 );""")
     lines.append("CREATE INDEX IF NOT EXISTS idx_jobs_area ON jobs(area);")
     lines.append("CREATE INDEX IF NOT EXISTS idx_jobs_prefecture ON jobs(prefecture);")
     lines.append("CREATE INDEX IF NOT EXISTS idx_jobs_rank ON jobs(rank);")
     lines.append("CREATE INDEX IF NOT EXISTS idx_jobs_score ON jobs(score DESC);")
     lines.append("CREATE INDEX IF NOT EXISTS idx_jobs_emp_type ON jobs(emp_type);")
+    lines.append("CREATE INDEX IF NOT EXISTS idx_jobs_first_seen ON jobs(first_seen_at);")
     lines.append("")
 
     synced_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    first_seen_map = load_first_seen_map()
+    new_today_count = 0
+    existing_count = 0
 
     # #16/#17 除外カウンタ
     excluded_counts = {}
@@ -411,8 +445,15 @@ def build_sql(jobs):
         elif sal_display.startswith("時給"):
             sal_form = "時給"
 
+        kjno = j.get("kjno", "")
+        first_seen = first_seen_map.get(kjno, today_str)
+        if first_seen == today_str:
+            new_today_count += 1
+        else:
+            existing_count += 1
+
         vals = [
-            escape_sql(j.get("kjno", "")),
+            escape_sql(kjno),
             escape_sql(j.get("employer", "")),
             escape_sql(j.get("job_title", "")),
             escape_sql(j.get("rank", "")),
@@ -441,6 +482,7 @@ def build_sql(jobs):
             escape_sql(j.get("contract_period", "")),
             escape_sql(j.get("insurance", "")),
             escape_sql(synced_at),
+            escape_sql(first_seen),
         ]
 
         lines.append(
@@ -448,7 +490,7 @@ def build_sql(jobs):
             "work_location,salary_form,salary_min,salary_max,salary_display,"
             "bonus_text,holidays,emp_type,station_text,shift1,shift2,"
             "description,welfare,score_sal,score_hol,score_bon,score_emp,"
-            "score_wel,score_loc,contract_period,insurance,synced_at) VALUES ("
+            "score_wel,score_loc,contract_period,insurance,synced_at,first_seen_at) VALUES ("
             + ",".join(vals) + ");"
         )
 
@@ -456,6 +498,7 @@ def build_sql(jobs):
     total_excluded = sum(excluded_counts.values())
     summary_lines = [
         f"-- 投入対象: {kept_count}件 / 除外: {total_excluded}件",
+        f"-- 本日初出: {new_today_count}件 / 既存: {existing_count}件 (first_seen_at)",
     ]
     for reason, cnt in sorted(excluded_counts.items(), key=lambda x: -x[1]):
         summary_lines.append(f"--   除外[{reason}]: {cnt}件")
@@ -465,6 +508,7 @@ def build_sql(jobs):
     print(f"[Filter] 除外: 計{total_excluded}件 / 残存: {kept_count}件")
     for reason, cnt in sorted(excluded_counts.items(), key=lambda x: -x[1]):
         print(f"  除外[{reason}]: {cnt}件")
+    print(f"[first_seen] 本日初出: {new_today_count}件 / 既存(履歴あり): {existing_count}件")
 
     return "\n".join(lines)
 

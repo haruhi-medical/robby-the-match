@@ -5399,39 +5399,135 @@ async function buildPhaseMessage(phase, entry, env) {
         text: "✅ 逆指名リクエスト受付\n\n「ここで働きたい」という病院名・施設名を\nメッセージで送ってください。\n\n例）\n・横浜市立大学附属病院\n・聖マリアンナ医科大学病院\n・小田原市立病院\n\n※ 担当者が24時間以内に採用可能性をお調べしてご連絡します。※ お名前や連絡先は先方に開示しません。",
       }];
 
+    // ===== リッチメニュー: 新着求人（エリア選択） =====
+    // entry.area 未設定時に rm=new_jobs で到達。エリアを選ばせて rm_new_jobs へ誘導。
+    case "rm_new_jobs_area_select":
+      return [{
+        type: "text",
+        text: "どのエリアの新着求人を見ますか？👇\n（選んだエリアは覚えておきます）",
+        quickReply: {
+          items: [
+            qrItem("横浜・川崎", "rm_new_jobs=yokohama_kawasaki"),
+            qrItem("湘南・鎌倉", "rm_new_jobs=shonan_kamakura"),
+            qrItem("相模原・県央", "rm_new_jobs=sagamihara_kenoh"),
+            qrItem("横須賀・三浦", "rm_new_jobs=yokosuka_miura"),
+            qrItem("小田原・県西", "rm_new_jobs=odawara_kensei"),
+            qrItem("東京", "rm_new_jobs=tokyo_included"),
+            qrItem("千葉", "rm_new_jobs=chiba_all"),
+            qrItem("埼玉", "rm_new_jobs=saitama_all"),
+            qrItem("神奈川すべて", "rm_new_jobs=kanagawa_all"),
+          ],
+        },
+      }];
+
     // ===== リッチメニュー: 新着求人 =====
     case "rm_new_jobs": {
-      // D1 jobsから最新のsynced_atの求人を5件表示
+      const BRAND_COLOR = "#5a8fa8";
       if (!env?.DB) {
         return [{ type: "text", text: "現在新着求人を取得できません。「お仕事探しをスタート」から求人を検索してみてください。" }];
       }
+      // _tempNewJobsArea（別エリア閲覧）優先、なければ entry.area を使用
+      const areaKey = ((entry._tempNewJobsArea || entry.area) || '').replace('_il', '');
+      // 使い捨ての一時エリアは今回の応答後に破棄
+      if (entry._tempNewJobsArea) delete entry._tempNewJobsArea;
+      if (!areaKey) {
+        entry.phase = "rm_new_jobs_area_select";
+        return [{
+          type: "text",
+          text: "どのエリアの新着求人を見ますか？👇\n（選んだエリアは覚えておきます）",
+          quickReply: {
+            items: [
+              qrItem("横浜・川崎", "rm_new_jobs=yokohama_kawasaki"),
+              qrItem("湘南・鎌倉", "rm_new_jobs=shonan_kamakura"),
+              qrItem("相模原・県央", "rm_new_jobs=sagamihara_kenoh"),
+              qrItem("横須賀・三浦", "rm_new_jobs=yokosuka_miura"),
+              qrItem("小田原・県西", "rm_new_jobs=odawara_kensei"),
+              qrItem("東京", "rm_new_jobs=tokyo_included"),
+              qrItem("千葉", "rm_new_jobs=chiba_all"),
+              qrItem("埼玉", "rm_new_jobs=saitama_all"),
+              qrItem("神奈川すべて", "rm_new_jobs=kanagawa_all"),
+            ],
+          },
+        }];
+      }
       try {
-        // ユーザーの前回条件があれば使う
-        let sql = 'SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type FROM jobs';
-        const params = [];
-        const conditions = [];
-        // 派遣求人除外（ランタイム保険・職業安定法）
-        conditions.push("(emp_type IS NULL OR emp_type NOT LIKE '%派遣%')");
-        conditions.push("(title IS NULL OR title NOT LIKE '%派遣%')");
-        if (entry.prefecture) {
-          conditions.push('prefecture = ?');
-          params.push(entry.prefecture === 'tokyo' ? '東京都' : entry.prefecture === 'kanagawa' ? '神奈川県' : entry.prefecture === 'chiba' ? '千葉県' : entry.prefecture === 'saitama' ? '埼玉県' : '');
+        // エリア名ラベル（表示用）
+        const AREA_LABELS_RM = {
+          yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
+          sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
+          odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
+          tokyo_included: "東京", tokyo_23ku: "東京23区", tokyo_central: "都心",
+          tokyo_east: "城東", tokyo_south: "城南", tokyo_nw: "城西・城北", tokyo_tama: "多摩",
+          chiba_all: "千葉", chiba_tokatsu: "東葛", chiba_uchibo: "内房",
+          chiba_inba: "印旛", chiba_sotobo: "外房",
+          saitama_all: "埼玉", saitama_south: "埼玉南部", saitama_east: "埼玉東部",
+          saitama_west: "埼玉西部", saitama_north: "埼玉北部",
+          undecided: "全エリア",
+        };
+        const areaLabel = AREA_LABELS_RM[areaKey] || areaKey;
+
+        // エリアフィルタ構築
+        const areaConditions = [];
+        const areaParams = [];
+        const cities = AREA_CITY_MAP[areaKey];
+        if (cities && cities.length > 0) {
+          areaConditions.push(`(${cities.map(() => 'work_location LIKE ?').join(' OR ')})`);
+          cities.forEach(c => areaParams.push(`%${c}%`));
+        } else if (areaKey === 'kanagawa_all') {
+          areaConditions.push('prefecture = ?'); areaParams.push('神奈川県');
+        } else if (areaKey === 'tokyo_included' || areaKey === 'tokyo_23ku') {
+          areaConditions.push('prefecture = ?'); areaParams.push('東京都');
+        } else if (areaKey === 'chiba_all') {
+          areaConditions.push('prefecture = ?'); areaParams.push('千葉県');
+        } else if (areaKey === 'saitama_all') {
+          areaConditions.push('prefecture = ?'); areaParams.push('埼玉県');
         }
-        if (conditions.length > 0) {
-          sql += ' WHERE ' + conditions.join(' AND ');
-        }
-        sql += ' ORDER BY score DESC LIMIT 5';
-        const result = await env.DB.prepare(sql).bind(...params).all();
+        // undecided / その他 → エリア条件なし（全件対象）
+
+        // 共通条件: 派遣除外
+        const baseConditions = [
+          "(emp_type IS NULL OR emp_type NOT LIKE '%派遣%')",
+          "(title IS NULL OR title NOT LIKE '%派遣%')",
+        ];
+        const selectCols = 'SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type, first_seen_at FROM jobs';
+
+        // Step1: 本日初出
+        const todayConds = [...baseConditions, "first_seen_at = date('now','localtime')", ...areaConditions];
+        const todaySql = `${selectCols} WHERE ${todayConds.join(' AND ')} ORDER BY score DESC LIMIT 5`;
+        let result = await env.DB.prepare(todaySql).bind(...areaParams).all();
+
+        let rangeLabel = "本日の新着";
+        let expanded = false;
+        // Step2: 0件なら直近7日に拡張
         if (!result || !result.results || result.results.length === 0) {
-          return [{ type: "text", text: "現在、新着求人はありません。\n\n明日またチェックしてくださいね。新しい求人が入り次第お知らせします。",
-            quickReply: { items: [qrItem("求人を探す", "rm=start")] }
+          const weekConds = [...baseConditions, "first_seen_at >= date('now','localtime','-7 days')", ...areaConditions];
+          const weekSql = `${selectCols} WHERE ${weekConds.join(' AND ')} ORDER BY first_seen_at DESC, score DESC LIMIT 5`;
+          result = await env.DB.prepare(weekSql).bind(...areaParams).all();
+          rangeLabel = "直近1週間の新着";
+          expanded = true;
+        }
+
+        if (!result || !result.results || result.results.length === 0) {
+          return [{
+            type: "text",
+            text: `${areaLabel}エリアの公開新着はありませんでした。\n\n※ここに出るのはハローワーク公開求人の一部のみです。\n非公開の求人や、条件に合わせてお探しするオーダーメイド求人は担当者にご相談ください🌸`,
+            quickReply: { items: [
+              qrItem("担当者に相談", "rm=contact"),
+              qrItem("別エリアを選ぶ", "rm=new_jobs_area"),
+              qrItem("お仕事探し", "rm=start"),
+            ]}
           }];
         }
-        // カルーセル生成
-        const bubbles = result.results.map((r, i) => ({
+
+        // カルーセル生成（求人5件）
+        const jobBubbles = result.results.map((r, i) => ({
           type: "bubble", size: "kilo",
           header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
-            contents: [{ type: "text", text: i === 0 ? "おすすめ" : "新着", size: "xs", weight: "bold", color: "#FFFFFF" }] },
+            contents: [{
+              type: "text",
+              text: (!expanded && r.first_seen_at === new Date().toISOString().slice(0,10)) ? "🆕 本日の新着" : "新着",
+              size: "xs", weight: "bold", color: "#FFFFFF",
+            }] },
           body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: [
             ...(r.salary_display ? [{ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR }] : []),
             ...(r.station_text ? [{ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "md" }] : []),
@@ -5444,13 +5540,36 @@ async function buildPhaseMessage(phase, entry, env) {
               action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
           ]},
         }));
+
+        // CTA バブル: 「もっと見たい？」担当者相談導線（カルーセル末尾に必ず入れる）
+        const ctaBubble = {
+          type: "bubble", size: "kilo",
+          header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: "#2f3b46",
+            contents: [{ type: "text", text: "ここに出るのは一部", size: "xs", weight: "bold", color: "#FFFFFF" }] },
+          body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "md", contents: [
+            { type: "text", text: "もっと条件に合う\n求人を探しませんか？", size: "md", weight: "bold", wrap: true, color: "#2f3b46" },
+            { type: "text", text: "・非公開の求人\n・病院との直接交渉が必要な求人\n・条件に合わせたオーダーメイド\n\nスタッフが個別にお探しします。", size: "xs", wrap: true, color: "#666666" },
+          ]},
+          footer: { type: "box", layout: "vertical", paddingAll: "12px", spacing: "sm", contents: [
+            { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
+              action: { type: "postback", label: "担当者に相談する", data: "rm=contact", displayText: "担当者に相談したい" } },
+          ]},
+        };
+
+        const allBubbles = [...jobBubbles, ctaBubble].slice(0, 10);
+
+        const headerText = expanded
+          ? `${areaLabel}エリアは本日の新着なし。直近1週間から${result.results.length}件👇\n\n※ハローワーク公開求人の一部を表示しています。`
+          : `${areaLabel}エリアの${rangeLabel} ${result.results.length}件👇\n\n※ハローワーク公開求人の一部を表示しています。`;
+
         return [
-          { type: "text", text: "最新のおすすめ求人です👇" },
-          { type: "flex", altText: "新着求人", contents: { type: "carousel", contents: bubbles.slice(0, 10) } },
-          { type: "text", text: "気になる求人はありましたか？",
+          { type: "text", text: headerText },
+          { type: "flex", altText: "新着求人", contents: { type: "carousel", contents: allBubbles } },
+          { type: "text", text: "気になる求人はありましたか？\n\n公開されていない求人や、条件に合わせた求人もあります。\n担当者に相談してみませんか？🌸",
             quickReply: { items: [
-              qrItem("もっと探す", "rm=start"),
               qrItem("担当者に相談", "rm=contact"),
+              qrItem("別エリアを見る", "rm=new_jobs_area"),
+              qrItem("もっと探す", "rm=start"),
             ]}
           },
         ];
@@ -6899,12 +7018,47 @@ function handleLinePostback(dataStr, entry) {
       entry.matchingOffset = 0;
       nextPhase = "il_area";
     } else if (val === "new_jobs") {
-      nextPhase = "rm_new_jobs_coming_soon";
+      // エリア設定済みなら即カルーセル表示、未設定ならエリア選択
+      const areaKey = (entry.area || '').replace('_il', '');
+      if (areaKey) {
+        nextPhase = "rm_new_jobs";
+      } else {
+        nextPhase = "rm_new_jobs_area_select";
+      }
+    } else if (val === "new_jobs_area") {
+      // 「別エリアを見る」: 強制的にエリア再選択
+      nextPhase = "rm_new_jobs_area_select";
     } else if (val === "contact") {
       nextPhase = "rm_contact_intro";
     } else if (val === "resume") {
       nextPhase = "rm_resume_start";
     }
+  }
+  // リッチメニュー新着求人: エリア選択 → 当該エリアの新着表示
+  else if (params.has("rm_new_jobs")) {
+    const areaKey = params.get("rm_new_jobs");
+    entry.unexpectedTextCount = 0;
+    const AREA_LABELS_RM = {
+      yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
+      sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
+      odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
+      tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
+    };
+    // entry.area が未設定の場合のみ新規セット。既に intake_light で選択済みなら上書きしない
+    // （新着閲覧のためだけに恒久的な希望エリアを書き換えるのは不適切なため）
+    if (!entry.area) {
+      entry.area = areaKey;
+      entry.areaLabel = AREA_LABELS_RM[areaKey] || areaKey;
+      // prefecture 推論
+      if (areaKey.startsWith('tokyo')) entry.prefecture = '東京都';
+      else if (areaKey.startsWith('chiba')) entry.prefecture = '千葉県';
+      else if (areaKey.startsWith('saitama')) entry.prefecture = '埼玉県';
+      else entry.prefecture = '神奈川県';
+    } else {
+      // 一時的に別エリアの新着を見るケース: セッション内で areaKey を一度だけ差し替え
+      entry._tempNewJobsArea = areaKey;
+    }
+    nextPhase = "rm_new_jobs";
   }
   // リッチメニュー担当者相談: 相談内容選択後→handoff
   else if (params.has("rm_contact")) {
@@ -7875,6 +8029,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "rm_new_jobs_coming_soon") {
           entry.phase = "rm_new_jobs_coming_soon";
           replyMessages = await buildPhaseMessage("rm_new_jobs_coming_soon", entry, env);
+        } else if (nextPhase === "rm_new_jobs_area_select") {
+          entry.phase = "rm_new_jobs_area_select";
+          replyMessages = await buildPhaseMessage("rm_new_jobs_area_select", entry, env);
         } else if (nextPhase === "rm_contact_intro") {
           entry.phase = "rm_contact_intro";
           replyMessages = await buildPhaseMessage("rm_contact_intro", entry, env);
