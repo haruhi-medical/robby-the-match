@@ -1801,6 +1801,11 @@ export default {
       return await handleResumeView(id, env);
     }
 
+    // ===== ナースロビー会員 マイページAPI (2026-04-22追加) =====
+    if (url.pathname === "/api/mypage-init" && request.method === "POST") {
+      return await handleMypageInit(request, env);
+    }
+
     return jsonResponse({ error: "Not Found" }, 404);
   },
 };
@@ -4186,13 +4191,13 @@ function buildSessionWelcome(sessionCtx, entry) {
     nextPhase: 'welcome',
     messages: [{
       type: 'text',
-      text: `${greet}、ナースロビーです🌸\n\n関東の看護師求人をお探しのサポートをします。\nまずは何から始めますか？\n\n💡 エリアだけ登録しておけば、新着求人が出た日にお届けします（1日1通・いつでも停止OK）`,
+      text: `${greet}、ナースロビーです🌸\n\n関東の看護師求人をお探しのサポートをします。\n新着求人は毎朝このLINEにお届けします（いつでも停止OK）\n\nまずは何から始めますか？`,
       quickReply: {
         items: [
-          qrItem('新着通知に登録', 'welcome=newjobs_optin'),
           qrItem('求人を見る', 'welcome=see_jobs'),
           qrItem('相場が知りたい', 'welcome=see_salary'),
           qrItem('相談したい', 'welcome=consult'),
+          qrItem('エリアを変える', 'welcome=newjobs_optin'),
         ],
       },
     }],
@@ -7835,6 +7840,33 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // リッチメニュー: デフォルト設定
         ctx.waitUntil(switchRichMenu(userId, RICH_MENU_STATES.default, env));
 
+        // 新着求人通知: friend追加時点で自動登録（opt-out設計）
+        // エリア推定: LP診断由来 entry.area → 郵便番号 → 駅名テキスト → 神奈川全域デフォルト
+        if (env?.LINE_SESSIONS) {
+          const autoArea = resolveNotifyAreaKey(entry) || 'kanagawa_all';
+          const autoLabel = getAreaLabel(autoArea);
+          entry.newjobsNotifyArea = autoArea;
+          entry.newjobsNotifyLabel = autoLabel;
+          entry.newjobsNotifyOptinAt = new Date().toISOString();
+          ctx.waitUntil((async () => {
+            try {
+              await env.LINE_SESSIONS.put(
+                `newjobs_notify:${userId}`,
+                JSON.stringify({
+                  userId,
+                  area: autoArea,
+                  areaLabel: autoLabel,
+                  subscribedAt: entry.newjobsNotifyOptinAt,
+                  source: "follow_auto",
+                })
+              );
+              console.log(`[NewJobsOptin] follow auto-enrolled user=${userId.slice(0,8)} area=${autoArea}`);
+            } catch (e) {
+              console.error(`[NewJobsOptin] follow auto-enroll failed: ${e.message}`);
+            }
+          })());
+        }
+
         // Slack通知（プロフィール情報付き）
         if (env.SLACK_BOT_TOKEN) {
           const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
@@ -7869,9 +7901,10 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       // --- unfollowイベント（友だち解除 / ブロック） ---
       if (event.type === "unfollow") {
         console.log(`[LINE] Unfollow: ${userId.slice(0, 8)}`);
-        // ナーチャリングKVを削除（Cron配信停止）
+        // ナーチャリング / 新着通知 / ハンドオフ KV を削除（Cron配信停止）
         if (env?.LINE_SESSIONS) {
           env.LINE_SESSIONS.delete(`nurture:${userId}`).catch((e) => { console.error(`[KV] nurture delete failed: ${e.message}`); });
+          env.LINE_SESSIONS.delete(`newjobs_notify:${userId}`).catch((e) => { console.error(`[KV] newjobs_notify delete failed: ${e.message}`); });
           env.LINE_SESSIONS.delete(`handoff:${userId}`).catch((e) => { console.error(`[KV] handoff delete failed: ${e.message}`); });
         }
         // Slack通知
@@ -11072,4 +11105,66 @@ function base64urlDecodeToString(b64) {
   const normal = padded.replace(/-/g, "+").replace(/_/g, "/");
   const bytes = Uint8Array.from(atob(normal), c => c.charCodeAt(0));
   return new TextDecoder().decode(bytes);
+}
+
+// ================================================================
+// ========== /api/mypage-init: LIFF本人照合→セッショントークン発行 ==========
+// ================================================================
+async function handleMypageInit(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ error: "invalid JSON" }, 400);
+  }
+
+  const { userId } = body;
+  if (!userId || typeof userId !== "string" || !/^U[a-f0-9]{32}$/.test(userId)) {
+    return jsonResponse({ error: "userIdが必須です" }, 400);
+  }
+
+  if (!env.LINE_SESSIONS) {
+    return jsonResponse({ error: "ストレージ未設定" }, 503);
+  }
+
+  const memberRaw = await env.LINE_SESSIONS.get(`member:${userId}`);
+  if (!memberRaw) {
+    return jsonResponse({ error: "まだ会員登録されていません" }, 404);
+  }
+
+  let member;
+  try {
+    member = JSON.parse(memberRaw);
+  } catch {
+    return jsonResponse({ error: "会員情報の読み込みに失敗しました" }, 500);
+  }
+
+  if (member.status === "deleted") {
+    return jsonResponse({ error: "退会済みです" }, 410);
+  }
+
+  // セッショントークン発行
+  let sessionToken;
+  try {
+    sessionToken = await generateMypageSessionToken(userId, env);
+  } catch (e) {
+    console.error("[MypageInit] token generation failed:", e.message);
+    return jsonResponse({ error: "認証エラー" }, 500);
+  }
+
+  // 履歴書の最終更新日時を取得（存在すれば）
+  let resumeUpdatedAt = null;
+  const resumeDataRaw = await env.LINE_SESSIONS.get(`member:${userId}:resume_data`);
+  if (resumeDataRaw) {
+    try {
+      const d = JSON.parse(resumeDataRaw);
+      resumeUpdatedAt = d.updatedAt || member.createdAt;
+    } catch {}
+  }
+
+  return jsonResponse({
+    sessionToken,
+    displayName: member.displayName || null,
+    resumeUpdatedAt,
+  });
 }
