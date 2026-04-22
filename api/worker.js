@@ -15,6 +15,8 @@ let globalSessionCount = { count: 0, windowStart: 0 }; // global hourly limit
 
 // 履歴書生成 レート制限ストア（IP単位 5回/24h）
 const resumeRateMap = new Map();
+// 会員化履歴書生成 レート制限ストア（handleMemberResumeGenerate 専用）
+const memberResumeRateMap = new Map();
 
 // Web→LINE セッション橋渡しストア（引き継ぎコード → Webセッションデータ）
 const webSessionMap = new Map();
@@ -11172,6 +11174,12 @@ async function handleMypageInit(request, env) {
   });
 }
 
+// Slack mrkdwn escape: *, _, ~, `, <, > を安全化
+function slackEscape(str) {
+  if (str == null) return "";
+  return String(str).replace(/[*_~`<>]/g, (c) => `\\${c}`);
+}
+
 // ================================================================
 // ========== /api/member-resume-generate: 会員化+履歴書生成 =========
 // ================================================================
@@ -11209,13 +11217,13 @@ async function handleMemberResumeGenerate(request, env, ctx) {
     return jsonResponse({ error: "トークンからユーザー情報を復元できません" }, 500);
   }
 
-  // IPレート制限（既存 resumeRateMap を流用）
+  // IPレート制限（memberResumeRateMap を使用。resumeRateMap と合算しない）
   const clientIp = request.headers.get("cf-connecting-ip") || "unknown";
   const now = Date.now();
-  let ipEntry = resumeRateMap.get(clientIp);
+  let ipEntry = memberResumeRateMap.get(clientIp);
   if (!ipEntry || now - ipEntry.windowStart > 86400000) {
     ipEntry = { count: 1, windowStart: now };
-    resumeRateMap.set(clientIp, ipEntry);
+    memberResumeRateMap.set(clientIp, ipEntry);
   } else {
     ipEntry.count++;
     if (ipEntry.count > 5) {
@@ -11297,14 +11305,20 @@ async function handleMemberResumeGenerate(request, env, ctx) {
     html = html.split(k).join(v);
   }
 
-  // 会員レコード作成 or 更新
+  // 会員レコード作成 or 更新（再登録時は createdAt/consentedAt を保持）
+  let prevMember = null;
+  try {
+    const existing = await env.LINE_SESSIONS.get(`member:${serverUserId}`);
+    if (existing) prevMember = JSON.parse(existing);
+  } catch {}
   const member = {
     userId: serverUserId,
-    createdAt: now,
-    consentedAt: now,
+    createdAt: prevMember?.createdAt ?? now,
+    consentedAt: prevMember?.consentedAt ?? now,
+    lastConsentedAt: now,
     displayName: `${data.lastName} ${data.firstName}`,
     status: "active",
-    version: 1,
+    version: (prevMember?.version ?? 0) + 1,
   };
   const resumeData = { ...data, updatedAt: now };
 
@@ -11328,7 +11342,7 @@ async function handleMemberResumeGenerate(request, env, ctx) {
       headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify({
         channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-        text: `🎉 *新規会員登録+履歴書作成*\nユーザー: \`${serverUserId}\`\n氏名: ${data.lastName}${data.firstName}\nマイページ: ${mypageUrl}`,
+        text: `🎉 *新規会員登録+履歴書作成*\nユーザー: \`${serverUserId}\`\n氏名: ${slackEscape(data.lastName)}${slackEscape(data.firstName)}\nマイページ: ${mypageUrl}`,
       }),
     }).catch(e => console.error("[MemberResume] slack notify failed:", e.message)));
   }
