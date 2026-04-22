@@ -18,6 +18,32 @@
 
 ---
 
+## 2026-04-22（水）履歴書システム セキュリティ強化 + 削除請求対応
+
+### 個人情報削除対応ログ
+| 時刻 | 対象 | KVキー | 対応者 | 根拠 |
+|------|------|--------|--------|------|
+| 2026-04-22 11:05 JST | 山田エリカ様 履歴書 | `resume:1ef7256b-818` | 代表 平島禎之 | 代表指示による削除 |
+
+**削除方法**: `wrangler kv key delete --binding LINE_SESSIONS --remote "resume:1ef7256b-818"`
+**検証**: 閲覧URL HTTP 404 確認 + KVリストから消滅確認済
+**旧URL**: `https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/resume-view/1ef7256b-818` （削除済・閲覧不可）
+**備考**: 個人情報保護法第35条（利用停止等）に基づく削除対応として記録。監督官庁対応時の証跡。
+
+### セキュリティ強化（Worker Version b641c186 / Commit 0145c26, ffb64bd）
+- `/api/resume-generate` に短期トークン認証（30分）+ IPレート制限（5回/24h）導入
+- 閲覧URLを 12→36桁UUID に拡張（2^128通り）
+- Referrer-Policy / Cache-Control / X-Frame-Options 等セキュリティヘッダー付与
+- フォームに個人情報同意チェック2つ必須化（プライバシー + OpenAI越境移転）
+- privacy.html 第11条にAI履歴書作成機能の条項新設
+- robots.txt に `/resume/` Disallow 追加
+
+### 生成済みドキュメント
+- `docs/audit/2026-04-22-resume-security/report.md` — 技術詳細監査レポート
+- `docs/audit/2026-04-22-resume-security/status-report.md` — 代表向け現状報告書
+
+---
+
 ## 2026-04-17（金）Meta広告 徹底分析 + 計測修復 + 1週間計測スタート
 
 ### セッション内容
@@ -4745,4 +4771,11 @@ AI Marketing PDCA:
    - 「厚木市の看護師転職ガイド」
    - 「看護師転職のためのスキルアップ方法」
    - 「神奈川県の看護師求人トレンド分析」
+
+### 🔎 競合監視（10:00:01）
+   - 「厚木市の看護師転職ガイド」
+   - 「看護師転職のためのスキルアップ方法」
+   - 「神奈川県の看護師求人トレンド分析」
+[pdca_ai_engine] job=competitor 完了 (exit=0)
+[INFO] commit済み（pushは日次レビューで一括）
 
