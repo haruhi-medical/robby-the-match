@@ -12,6 +12,7 @@
  */
 
 import { PHASES, updateCandidate } from "../state-machine.js";
+import { buildFirstDocumentsPrepMessage } from "./documents-prep.js";
 
 /**
  * 5ステップの定義
@@ -130,12 +131,7 @@ export async function handleApplyInfoTurn({ candidate, userText, db }) {
             "AIで自動作成します。\n\n" +
             "あと5つほど、書類作成のための質問をさせてください。",
         },
-        {
-          type: "text",
-          text:
-            "まず、看護師免許を取得された年月を教えてください。\n" +
-            "（例: 2020年3月）",
-        },
+        buildFirstDocumentsPrepMessage(),
       ],
       nextPhase: PHASES.DOCUMENTS_PREP_LICENSE,
     };

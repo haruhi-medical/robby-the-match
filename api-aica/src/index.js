@@ -25,6 +25,7 @@ import { runMatching } from "./phases/matching.js";
 import { handleJobQaTurn } from "./phases/job-qa.js";
 import { handleApplyConfirmTurn } from "./phases/apply.js";
 import { handleApplyInfoTurn, isApplyInfoPhase } from "./phases/apply-info.js";
+import { handleDocumentsPrepTurn, isDocumentsPrepPhase } from "./phases/documents-prep.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
 
 export default {
@@ -346,7 +347,32 @@ async function processEvent(event, env) {
       return;
     }
 
-    // MVP1範囲外（DOCUMENTS_PREP_LICENSE 以降）は暫定で Slack転送
+    // DOCUMENTS_PREP_* 状態: 書類作成ヒアリング5問
+    if (isDocumentsPrepPhase(candidate.phase)) {
+      const result = await handleDocumentsPrepTurn({ candidate, userText, db });
+
+      await logMessage(
+        db,
+        userId,
+        "assistant",
+        result.messages?.[0]?.text || `[documents-prep ${result.nextPhase}]`,
+        result.nextPhase,
+        0,
+        "documents-prep-template"
+      );
+
+      if (env.LINE_CHANNEL_ACCESS_TOKEN && result.messages) {
+        try {
+          await replyMessage(event.replyToken, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          console.warn("[line] reply failed, fallback to push:", err.message);
+          await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // MVP1範囲外（DOCUMENTS_GEN 以降）は暫定で Slack転送
     await forwardToSlack(candidate, userText, env);
   }
 }
