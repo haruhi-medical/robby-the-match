@@ -26,6 +26,8 @@ import { handleJobQaTurn } from "./phases/job-qa.js";
 import { handleApplyConfirmTurn } from "./phases/apply.js";
 import { handleApplyInfoTurn, isApplyInfoPhase } from "./phases/apply-info.js";
 import { handleDocumentsPrepTurn, isDocumentsPrepPhase } from "./phases/documents-prep.js";
+import { runDocumentGeneration } from "./phases/documents-gen.js";
+import { handleDocumentsReviewTurn, regenerateDocument } from "./phases/documents-review.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
 
 export default {
@@ -91,24 +93,24 @@ async function handleLineWebhook(request, env, ctx) {
   const events = payload.events || [];
 
   // 3秒以内に 200 を返す（LINE要件）
-  ctx.waitUntil(processEvents(events, env));
+  ctx.waitUntil(processEvents(events, env, ctx));
   return new Response("OK", { status: 200 });
 }
 
 /**
  * イベントを非同期で処理
  */
-async function processEvents(events, env) {
+async function processEvents(events, env, ctx) {
   for (const event of events) {
     try {
-      await processEvent(event, env);
+      await processEvent(event, env, ctx);
     } catch (err) {
       console.error("[process] event failed:", err.message, err.stack);
     }
   }
 }
 
-async function processEvent(event, env) {
+async function processEvent(event, env, ctx) {
   const userId = event.source?.userId;
   if (!userId) return;
 
@@ -369,10 +371,102 @@ async function processEvent(event, env) {
           await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
         }
       }
+
+      // 最終ステップ完了 → DOCUMENTS_GEN に遷移済み → 非同期で書類生成トリガー
+      if (result.nextPhase === PHASES.DOCUMENTS_GEN && ctx?.waitUntil) {
+        ctx.waitUntil(runDocumentGeneration({ candidateId: userId, env, db }));
+      }
       return;
     }
 
-    // MVP1範囲外（DOCUMENTS_GEN 以降）は暫定で Slack転送
+    // DOCUMENTS_GEN 状態: 生成中（ユーザー発言は待機応答）
+    if (candidate.phase === PHASES.DOCUMENTS_GEN) {
+      const msg = {
+        type: "text",
+        text:
+          "書類を作成中です。\n" +
+          "30秒〜1分ほどお待ちください。\n" +
+          "完成次第、3書類（履歴書/職務経歴書/志望動機書）を\n" +
+          "順にお送りします。",
+      };
+      await logMessage(db, userId, "assistant", msg.text, PHASES.DOCUMENTS_GEN, 0, "doc-gen-waiting");
+      if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+        try {
+          await replyMessage(event.replyToken, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          console.warn("[line] reply failed, fallback to push:", err.message);
+          await pushMessage(userId, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // DOCUMENTS_REVIEW 状態: 書類修正Q&A
+    if (candidate.phase === PHASES.DOCUMENTS_REVIEW) {
+      const result = await handleDocumentsReviewTurn({ candidate, userText, env, db });
+
+      // 修正要望 → 「修正中…」即返信 + 非同期で再生成
+      if (result.runRegen) {
+        const waitMsg = {
+          type: "text",
+          text:
+            `承知しました。「${result.runRegen.target === "motivation" ? "志望動機書" : result.runRegen.target === "career" ? "職務経歴書" : "履歴書"}」を修正します。\n` +
+            `30秒ほどお待ちください…`,
+        };
+        await logMessage(
+          db,
+          userId,
+          "assistant",
+          waitMsg.text,
+          PHASES.DOCUMENTS_REVIEW,
+          0,
+          "doc-review-regen-wait"
+        );
+        if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+          try {
+            await replyMessage(event.replyToken, [waitMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
+          } catch (err) {
+            console.warn("[line] reply failed, fallback to push:", err.message);
+            await pushMessage(userId, [waitMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
+          }
+        }
+        if (ctx?.waitUntil) {
+          ctx.waitUntil(
+            regenerateDocument({
+              candidateId: userId,
+              target: result.runRegen.target,
+              instruction: result.runRegen.instruction,
+              env,
+              db,
+            })
+          );
+        }
+        return;
+      }
+
+      // 承認 or 不明
+      await logMessage(
+        db,
+        userId,
+        "assistant",
+        result.messages?.[0]?.text || `[doc-review ${result.nextPhase}]`,
+        result.nextPhase,
+        0,
+        "doc-review-template"
+      );
+
+      if (env.LINE_CHANNEL_ACCESS_TOKEN && result.messages) {
+        try {
+          await replyMessage(event.replyToken, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          console.warn("[line] reply failed, fallback to push:", err.message);
+          await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // APPROVED 以降 は暫定で Slack転送
     await forwardToSlack(candidate, userText, env);
   }
 }
