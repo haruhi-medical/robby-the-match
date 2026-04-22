@@ -14,7 +14,7 @@ async function initMypageAuth() {
   }
 
   // 2. 既存セッションがまだ有効なら再利用
-  const stored = sessionStorage.getItem(SESSION_KEY);
+  const stored = localStorage.getItem(SESSION_KEY);
   if (stored) {
     try {
       const s = JSON.parse(stored);
@@ -80,7 +80,7 @@ async function initMypageAuth() {
   }
 
   const { sessionToken, userId, displayName, resumeUpdatedAt } = await res.json();
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
     sessionToken,
     userId,
     displayName,
@@ -92,7 +92,7 @@ async function initMypageAuth() {
 }
 
 async function apiCall(path, options = {}) {
-  const stored = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
+  const stored = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
   if (!stored.sessionToken) throw new Error('未認証');
   const headers = {
     ...options.headers,
@@ -102,6 +102,6 @@ async function apiCall(path, options = {}) {
 }
 
 function logout() {
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
   window.location.href = 'https://lin.ee/oUgDB3x';
 }
