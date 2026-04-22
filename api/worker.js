@@ -8417,7 +8417,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           } catch (e) {
             console.error("[Resume] token KV put failed:", e.message);
           }
-          const resumeFormUrl = `https://quads-nurse.com/resume/?token=${resumeToken}`;
+          const resumeFormUrl = `https://quads-nurse.com/resume/member/?token=${resumeToken}`;
           replyMessages = [
             {
               type: "text",
