@@ -1627,6 +1627,22 @@ export default {
       return handleLineWebhook(request, env, ctx);
     }
 
+    // 管理用: 新着求人 Push 手動発火（全購読者に即時配信。cronを待たずテスト用）
+    // body: { secret, fallbackDays?: number }  fallbackDays=7 で過去1週間も含める
+    if (url.pathname === "/api/admin/trigger-newjobs-push" && request.method === "POST") {
+      try {
+        const body = await request.json().catch(() => ({}));
+        if (!body.secret || body.secret !== env.LINE_PUSH_SECRET) {
+          return jsonResponse({ error: "Unauthorized" }, 401);
+        }
+        const fallbackDays = Number(body.fallbackDays) > 0 ? Number(body.fallbackDays) : 0;
+        ctx.waitUntil(handleScheduledNewJobsNotify(env, { fallbackDays }));
+        return jsonResponse({ ok: true, message: `newjobs push triggered (fallbackDays=${fallbackDays})` });
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500);
+      }
+    }
+
     // Slackから看護師にLINE返信するAPI
     if (url.pathname === "/api/line-push" && request.method === "POST") {
       try {
@@ -9755,11 +9771,13 @@ async function handleGetAnalytics(request, env) {
 // エリア登録ユーザー向けに「本日初出」の求人を最大3件Push。
 // 該当エリアに本日初出がなければ何も送らない（うざくしない）。
 // 「通知を止める」postback で KV レコード削除。
-async function handleScheduledNewJobsNotify(env) {
+async function handleScheduledNewJobsNotify(env, opts) {
   if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN || !env?.DB) {
     console.log("[NewJobsCron] 必要な env が揃っていないためスキップ");
     return;
   }
+  opts = opts || {};
+  const fallbackDays = Number(opts.fallbackDays) > 0 ? Number(opts.fallbackDays) : 0;
   const token = env.LINE_CHANNEL_ACCESS_TOKEN;
   const BRAND_COLOR = "#5a8fa8";
   let pushSuccess = 0;
@@ -9798,14 +9816,18 @@ async function handleScheduledNewJobsNotify(env) {
         }
 
         // 本日初出 + 派遣除外 + Sランク/Aランク優先で最大3件
-        const sql = `SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type
+        // 通常cron: fallbackDays=0（本日のみ）、テスト発火時: fallbackDays=7 で過去1週間も含める
+        const dateFilter = fallbackDays > 0
+          ? `first_seen_at >= date('now','localtime','-${fallbackDays} days')`
+          : `first_seen_at = date('now','localtime')`;
+        const sql = `SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type, first_seen_at
           FROM jobs
-          WHERE first_seen_at = date('now','localtime')
+          WHERE ${dateFilter}
             AND (emp_type IS NULL OR emp_type NOT LIKE '%派遣%')
             AND (title IS NULL OR title NOT LIKE '%派遣%')
             AND (rank = 'S' OR rank = 'A' OR rank = 'B')
             ${areaConditions.length ? ' AND ' + areaConditions.join(' AND ') : ''}
-          ORDER BY CASE rank WHEN 'S' THEN 3 WHEN 'A' THEN 2 ELSE 1 END DESC, score DESC
+          ORDER BY first_seen_at DESC, CASE rank WHEN 'S' THEN 3 WHEN 'A' THEN 2 ELSE 1 END DESC, score DESC
           LIMIT 3`;
         const result = await env.DB.prepare(sql).bind(...areaParams).all();
 
