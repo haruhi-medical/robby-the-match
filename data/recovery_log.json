@@ -23,7 +23,7 @@
     },
     "competitor": {
       "date": "2026-04-22",
-      "retries": 1,
+      "retries": 2,
       "status": "retrying",
       "last_error": "",
       "last_alert_ts": ""
