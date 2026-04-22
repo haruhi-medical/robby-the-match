@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>マイページ | ナースロビー</title>
+  <link rel="stylesheet" href="/mypage/mypage.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div id="loading" class="loading">読み込み中...</div>
+  <div id="app" class="container" style="display:none;">
+    <h1>🏠 マイページ</h1>
+    <p id="greeting" class="muted"></p>
+
+    <div class="card" id="resumeCard">
+      <h2>📄 履歴書</h2>
+      <p class="muted" id="resumeMeta">読み込み中...</p>
+      <a href="/mypage/resume/" class="btn btn-primary">確認・印刷する</a>
+      <a href="/mypage/resume/edit.html" class="btn btn-outline">編集する</a>
+    </div>
+
+    <div class="card">
+      <h3>🔜 近日中に追加予定</h3>
+      <ul>
+        <li>お気に入り求人の保存</li>
+        <li>希望条件の保存・変更</li>
+        <li>AI新着求人の定期配信（LINE通知）</li>
+      </ul>
+    </div>
+
+    <button class="btn btn-danger" id="deleteBtn">履歴書を削除する</button>
+    <a href="https://lin.ee/oUgDB3x" class="btn btn-outline">LINE公式に戻る</a>
+  </div>
+
+  <script src="/mypage/mypage.js"></script>
+  <script>
+    (async () => {
+      try {
+        const session = await initMypageAuth();
+        if (!session) return;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('greeting').textContent = `こんにちは、${session.displayName || 'ナースロビー会員'} 様`;
+        if (session.resumeUpdatedAt) {
+          const d = new Date(session.resumeUpdatedAt);
+          document.getElementById('resumeMeta').textContent = `最終更新: ${d.toLocaleString('ja-JP')}`;
+        } else {
+          document.getElementById('resumeMeta').textContent = '履歴書が未作成です';
+        }
+
+        document.getElementById('deleteBtn').addEventListener('click', async () => {
+          if (!confirm('履歴書を削除します。この操作は取り消せません。よろしいですか？')) return;
+          const res = await apiCall('/api/mypage-resume', { method: 'DELETE' });
+          if (res.ok) {
+            alert('削除しました');
+            window.location.reload();
+          } else {
+            alert('削除に失敗しました');
+          }
+        });
+      } catch (e) {
+        document.getElementById('loading').innerHTML = `<div class="error">エラー: ${e.message}</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>
