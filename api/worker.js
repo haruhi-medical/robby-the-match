@@ -769,6 +769,39 @@ function postalToAreaKey(postal7) {
   return POSTAL_PREFIX_TO_AREA[prefix] || null;
 }
 
+// 駅名・地名テキスト → エリアkey（AREA_CITY_MAPの市区町村名で逆引き）
+// 郵便番号形式以外のフリーテキスト入力（例: 「小田原」「横浜駅」「新宿」）に対応
+function textToAreaKey(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const t = raw.slice(0, 100);
+  for (const [key, cities] of Object.entries(AREA_CITY_MAP)) {
+    if (!cities || cities.length === 0) continue;
+    for (const city of cities) {
+      if (t.includes(city)) return key;
+      const core = city.replace(/[市区町村]$/, '');
+      if (core.length >= 2 && t.includes(core)) return key;
+    }
+  }
+  if (t.includes('神奈川')) return 'kanagawa_all';
+  if (t.includes('東京')) return 'tokyo_included';
+  if (t.includes('千葉')) return 'chiba_all';
+  if (t.includes('埼玉')) return 'saitama_all';
+  return null;
+}
+
+// 新着通知用のエリアkey決定: 郵便番号 → フリーテキスト → entry.area の優先順位
+// 郵便番号と地名テキストは「最新の入力」なので entry.area（ブロック前等の古いKV残存）より優先する
+function resolveNotifyAreaKey(entry) {
+  const byPostal = postalToAreaKey(entry?.intakePostal || '');
+  if (byPostal) return byPostal;
+  const byText = textToAreaKey(entry?.intakePostalRaw || '');
+  if (byText) return byText;
+  if (entry?.area && !entry.area.startsWith('undecided')) {
+    return entry.area.replace('_il', '');
+  }
+  return null;
+}
+
 // 全エリアkey → 日本語ラベル（複数箇所で使うので一元化）
 const AREA_LABEL_MAP = {
   // 神奈川
@@ -4012,10 +4045,9 @@ function buildIntakePostalQuestion() {
 }
 
 function buildIntakeHumanThanks(entry) {
-  // 郵便番号 or 既存エリアから新着通知エリアを自動判定（ワンタップ登録用）
-  const derivedAreaKey = (entry?.area && !entry.area.startsWith('undecided'))
-    ? entry.area.replace('_il', '')
-    : postalToAreaKey(entry?.intakePostal || '');
+  // 郵便番号 → フリーテキスト地名 → entry.area の優先順位で判定
+  // 既存 entry.area（ブロック前のLP診断由来等）より、3問目で入力された最新情報を優先する
+  const derivedAreaKey = resolveNotifyAreaKey(entry);
   const derivedAreaLabel = derivedAreaKey ? getAreaLabel(derivedAreaKey) : null;
 
   // 新着通知CTAのQR（エリア判定できたら1タップ、できなければエリア選択へ）
@@ -7083,17 +7115,14 @@ function handleLinePostback(dataStr, entry) {
     const val = params.get("intake_newjobs");
     entry.unexpectedTextCount = 0;
     if (val === "auto") {
-      // 既存 entry.area 優先、なければ郵便番号から推定
-      const areaKey = (entry.area && !entry.area.startsWith('undecided'))
-        ? entry.area.replace('_il', '')
-        : postalToAreaKey(entry.intakePostal || '');
+      // 郵便番号 → フリーテキスト地名 → entry.area の優先順で判定
+      const areaKey = resolveNotifyAreaKey(entry);
       if (areaKey) {
         entry.newjobsNotifyArea = areaKey;
         entry.newjobsNotifyLabel = getAreaLabel(areaKey);
         entry.newjobsNotifyOptinAt = new Date().toISOString();
         nextPhase = "newjobs_optin_done";
       } else {
-        // 推定失敗 → エリア選択にフォールバック
         nextPhase = "newjobs_optin_area";
       }
     }
