@@ -50,7 +50,7 @@ def section(title):
 # ============================================================
 section("1. UI 静的ページ (全て HTTP 200)")
 # ============================================================
-for path in ["/resume/", "/resume/member/", "/mypage/", "/mypage/auth.html", "/mypage/resume/", "/mypage/resume/edit.html"]:
+for path in ["/resume/", "/resume/member/", "/mypage/", "/mypage/auth.html", "/mypage/resume/", "/mypage/resume/edit.html", "/mypage/preferences/", "/mypage/favorites/"]:
     code, _, _ = req(SITE + path)
     check(f"GET {path}", code, 200)
 
@@ -147,7 +147,68 @@ except:
     check("resume_data parseable JSON", False, True)
 
 # ============================================================
-section("5. 不正シナリオ")
+section("6. Phase 2: 希望条件保存 API")
+# ============================================================
+# 未認証で GET → 401
+code, _, _ = req(WORKER + "/api/mypage-preferences")
+check("prefs GET no-auth", code, 401)
+
+# 未認証で POST → 401
+code, _, _ = req(WORKER + "/api/mypage-preferences", method="POST",
+  headers={"Content-Type": "application/json"},
+  body=json.dumps({"areas":["yokohama"]}).encode())
+check("prefs POST no-auth", code, 401)
+
+# 認証済み GET (石づか様) → 200
+code, _, body = req(WORKER + "/api/mypage-preferences",
+  headers={"Authorization": f"Bearer {session}"})
+check("prefs GET authed", code, 200)
+try:
+    d = json.loads(body)
+    check("prefs response has preferences key", "preferences" in d, True)
+except:
+    check("prefs response parseable", False, True)
+
+# ============================================================
+section("7. Phase 2: お気に入り求人 API")
+# ============================================================
+# 未認証で GET → 401
+code, _, _ = req(WORKER + "/api/mypage-favorites")
+check("fav GET no-auth", code, 401)
+
+# 未認証で POST → 401
+code, _, _ = req(WORKER + "/api/mypage-favorites", method="POST",
+  headers={"Content-Type": "application/json"}, body=b'{}')
+check("fav POST no-auth", code, 401)
+
+# 未認証で DELETE → 401
+code, _, _ = req(WORKER + "/api/mypage-favorites?jobId=x", method="DELETE")
+check("fav DELETE no-auth", code, 401)
+
+# 認証済み GET → 200
+code, _, body = req(WORKER + "/api/mypage-favorites",
+  headers={"Authorization": f"Bearer {session}"})
+check("fav GET authed", code, 200)
+try:
+    d = json.loads(body)
+    check("fav response has favorites key", "favorites" in d, True)
+    print(f"  お気に入り件数: {len(d.get('favorites', []))}")
+except:
+    check("fav response parseable", False, True)
+
+# 認証済み POST (無効なjobId) → 400
+code, _, _ = req(WORKER + "/api/mypage-favorites", method="POST",
+  headers={"Authorization": f"Bearer {session}", "Content-Type": "application/json"},
+  body=json.dumps({"jobId":""}).encode())
+check("fav POST empty-jobId", code, 400)
+
+# 認証済み DELETE (jobIdなし) → 400
+code, _, _ = req(WORKER + "/api/mypage-favorites", method="DELETE",
+  headers={"Authorization": f"Bearer {session}"})
+check("fav DELETE no-jobId", code, 400)
+
+# ============================================================
+section("8. 不正シナリオ")
 # ============================================================
 # 期限切れトークン
 expired_token = make_entry_token(USER_ID, SECRET, ttl_ms=-1000)
