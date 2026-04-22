@@ -10964,3 +10964,82 @@ async function handleResumeView(id, env) {
     },
   });
 }
+
+// ================================================================
+// ========== ナースロビー会員 マイページ機能（2026-04-22追加） ==========
+// ================================================================
+
+// HMAC-SHA256 で署名付きセッショントークンを生成（24h有効）
+// フォーマット: base64url(payload).base64url(signature)
+// payload = JSON{ userId, exp }
+async function generateMypageSessionToken(userId, env) {
+  const secret = env.CHAT_SECRET_KEY;  // 既存の HMAC secret を流用
+  if (!secret) throw new Error("CHAT_SECRET_KEY not configured");
+
+  const payload = JSON.stringify({
+    userId,
+    exp: Date.now() + 24 * 60 * 60 * 1000,
+  });
+  const payloadB64 = base64urlEncodeString(payload);
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payloadB64));
+  const sigB64 = base64urlEncode(sig);
+  return `${payloadB64}.${sigB64}`;
+}
+
+async function verifyMypageSessionToken(token, env) {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [payloadB64, sigB64] = parts;
+
+  const secret = env.CHAT_SECRET_KEY;
+  if (!secret) return null;
+
+  // 署名検証
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const expectedSig = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(payloadB64)
+  );
+  if (base64urlEncode(expectedSig) !== sigB64) return null;
+
+  // ペイロード確認
+  try {
+    const payload = JSON.parse(base64urlDecodeToString(payloadB64));
+    if (payload.exp < Date.now()) return null;
+    return payload;  // { userId, exp }
+  } catch {
+    return null;
+  }
+}
+
+// base64url ヘルパー（string版）
+// 既存の base64urlEncode (ArrayBuffer版) は worker.js 内に定義済み。ここでは string 用ヘルパーを追加。
+function base64urlEncodeString(str) {
+  return btoa(unescape(encodeURIComponent(str)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function base64urlDecodeToString(b64) {
+  const pad = b64.length % 4;
+  const padded = pad ? b64 + "=".repeat(4 - pad) : b64;
+  const normal = padded.replace(/-/g, "+").replace(/_/g, "/");
+  return decodeURIComponent(escape(atob(normal)));
+}
