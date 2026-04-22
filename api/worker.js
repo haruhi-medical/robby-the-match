@@ -5695,9 +5695,9 @@ async function buildPhaseMessage(phase, entry, env) {
       if (!env?.DB) {
         return [{ type: "text", text: "現在新着求人を取得できません。「お仕事探しをスタート」から求人を検索してみてください。" }];
       }
-      // _tempNewJobsArea（別エリア閲覧）優先、なければ entry.area を使用
-      const areaKey = ((entry._tempNewJobsArea || entry.area) || '').replace('_il', '');
-      // 使い捨ての一時エリアは今回の応答後に破棄
+      // entry.area を参照（「最後のユーザー選択を優先」で上流で上書き済み）
+      const areaKey = (entry.area || '').replace('_il', '');
+      // 旧データの掃除
       if (entry._tempNewJobsArea) delete entry._tempNewJobsArea;
       if (!areaKey) {
         entry.phase = "rm_new_jobs_area_select";
@@ -7184,15 +7184,13 @@ function handleLinePostback(dataStr, entry) {
       entry.newjobsNotifyArea = areaKey;
       entry.newjobsNotifyLabel = getAreaLabel(areaKey);
       entry.newjobsNotifyOptinAt = new Date().toISOString();
-      // entry.area が未設定なら同時に反映（以後のマッチング・リッチメニュー新着でも使い回す）
-      if (!entry.area) {
-        entry.area = areaKey;
-        entry.areaLabel = entry.newjobsNotifyLabel;
-        if (areaKey.startsWith('tokyo')) entry.prefecture = '東京都';
-        else if (areaKey.startsWith('chiba')) entry.prefecture = '千葉県';
-        else if (areaKey.startsWith('saitama')) entry.prefecture = '埼玉県';
-        else entry.prefecture = '神奈川県';
-      }
+      // 最後のユーザー選択を優先: entry.area を常に上書き
+      entry.area = areaKey;
+      entry.areaLabel = entry.newjobsNotifyLabel;
+      if (areaKey.startsWith('tokyo')) entry.prefecture = '東京都';
+      else if (areaKey.startsWith('chiba')) entry.prefecture = '千葉県';
+      else if (areaKey.startsWith('saitama')) entry.prefecture = '埼玉県';
+      else entry.prefecture = '神奈川県';
       nextPhase = "newjobs_optin_done";
     }
   }
@@ -7343,20 +7341,17 @@ function handleLinePostback(dataStr, entry) {
   else if (params.has("rm_new_jobs")) {
     const areaKey = params.get("rm_new_jobs");
     entry.unexpectedTextCount = 0;
-    // entry.area が未設定の場合のみ新規セット。既に intake_light で選択済みなら上書きしない
-    // （新着閲覧のためだけに恒久的な希望エリアを書き換えるのは不適切なため）
-    if (!entry.area) {
-      entry.area = areaKey;
-      entry.areaLabel = getAreaLabel(areaKey);
-      // prefecture 推論
-      if (areaKey.startsWith('tokyo')) entry.prefecture = '東京都';
-      else if (areaKey.startsWith('chiba')) entry.prefecture = '千葉県';
-      else if (areaKey.startsWith('saitama')) entry.prefecture = '埼玉県';
-      else entry.prefecture = '神奈川県';
-    } else {
-      // 一時的に別エリアの新着を見るケース: セッション内で areaKey を一度だけ差し替え
-      entry._tempNewJobsArea = areaKey;
-    }
+    // 最後のユーザー選択を優先: entry.area を常に上書き
+    // （別エリアを選んだら、マッチングもPush通知もそのエリアに切り替わる）
+    entry.area = areaKey;
+    entry.areaLabel = getAreaLabel(areaKey);
+    if (areaKey.startsWith('tokyo')) entry.prefecture = '東京都';
+    else if (areaKey.startsWith('chiba')) entry.prefecture = '千葉県';
+    else if (areaKey.startsWith('saitama')) entry.prefecture = '埼玉県';
+    else entry.prefecture = '神奈川県';
+    // 新着通知登録エリアも同時に上書き（Push配信もこのエリアに切り替える）
+    entry.newjobsNotifyArea = areaKey;
+    entry.newjobsNotifyLabel = entry.areaLabel;
     nextPhase = "rm_new_jobs";
   }
   // リッチメニュー担当者相談: 相談内容選択後→handoff
@@ -8364,6 +8359,25 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           replyMessages = await buildPhaseMessage("rm_contact_intro", entry, env);
         } else if (nextPhase === "rm_new_jobs") {
           entry.phase = "rm_new_jobs";
+          // エリア切替（rm_new_jobs=<area>由来）の場合、Push配信KVも同期
+          if (env?.LINE_SESSIONS && entry.newjobsNotifyArea) {
+            ctx.waitUntil((async () => {
+              try {
+                await env.LINE_SESSIONS.put(
+                  `newjobs_notify:${userId}`,
+                  JSON.stringify({
+                    userId,
+                    area: entry.newjobsNotifyArea,
+                    areaLabel: entry.newjobsNotifyLabel,
+                    subscribedAt: entry.newjobsNotifyOptinAt || new Date().toISOString(),
+                    source: "rm_area_select",
+                  })
+                );
+              } catch (e) {
+                console.error(`[NewJobsOptin] rm_new_jobs KV sync failed: ${e.message}`);
+              }
+            })());
+          }
           replyMessages = await buildPhaseMessage("rm_new_jobs", entry, env);
         } else if (nextPhase === "newjobs_optin_area") {
           entry.phase = "newjobs_optin_area";
