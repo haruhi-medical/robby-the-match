@@ -179,6 +179,37 @@
       text-align: center;
     }
     .status.error { color: var(--err); }
+
+    .consent {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .consent label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+    .consent input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .consent a { color: var(--primary); }
+    .consent .consent-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+    }
   </style>
 </head>
 <body>
@@ -338,6 +369,21 @@
         </div>
       </div>
 
+      <!-- ===== 個人情報同意 ===== -->
+      <div class="consent">
+        <label>
+          <input type="checkbox" id="consentPrivacy" required>
+          <span><a href="https://quads-nurse.com/privacy.html" target="_blank" rel="noopener">個人情報保護方針</a>に同意し、入力情報を履歴書作成および求人紹介業務に利用することを承諾します（必須）</span>
+        </label>
+        <label>
+          <input type="checkbox" id="consentAi" required>
+          <span>履歴書の志望動機生成のため、入力情報の一部を<b>OpenAI社（米国）のAI API</b>で処理することに同意します（必須）</span>
+        </label>
+        <div class="consent-note">
+          送信データはAIモデルの学習には使用されず、OpenAI社のAPIログは最大30日で削除されます。生成された履歴書はナースロビーのサーバーに7日間保存されます。
+        </div>
+      </div>
+
     </form>
   </div>
 
@@ -433,15 +479,40 @@
     addCareer();
     addLicense();
 
-    // ===== LIFF session_id 取得（将来LINE連携用） =====
+    // ===== LINE Bot側で発行された短期トークン取得 =====
     const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session_id') || '';
-    const userId = urlParams.get('user_id') || '';
+    const resumeToken = urlParams.get('token') || '';
+    // URLからトークンを即クリーンアップ（ブラウザ履歴・スクショ漏洩対策）
+    if (resumeToken && window.history && window.history.replaceState) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (!resumeToken) {
+      const s = document.getElementById('status');
+      if (s) {
+        s.className = 'status error';
+        s.textContent = 'このページはLINEの「履歴書を作成する」ボタンからのみアクセスできます。';
+      }
+    }
 
     // ===== Submit =====
     async function submitForm() {
       const btn = document.getElementById('submitBtn');
       const status = document.getElementById('status');
+
+      // 同意確認
+      const consentPrivacy = document.getElementById('consentPrivacy').checked;
+      const consentAi = document.getElementById('consentAi').checked;
+      if (!consentPrivacy || !consentAi) {
+        status.className = 'status error';
+        status.textContent = '個人情報保護方針およびAI処理への同意（2つのチェックボックス）が必要です。';
+        return;
+      }
+      if (!resumeToken) {
+        status.className = 'status error';
+        status.textContent = 'リンクが無効です。LINEからもう一度お試しください。';
+        return;
+      }
+
       btn.disabled = true;
       status.className = 'status';
       status.textContent = 'AIが志望動機と職務経歴を作成中... (30秒ほど)';
@@ -449,8 +520,9 @@
       // フォームデータを収集
       const form = document.getElementById('resumeForm');
       const data = {
-        sessionId,
-        userId,
+        token: resumeToken,
+        consentPrivacy: true,
+        consentAi: true,
         lastName: form.lastName.value,
         firstName: form.firstName.value,
         lastNameFurigana: form.lastNameFurigana.value,

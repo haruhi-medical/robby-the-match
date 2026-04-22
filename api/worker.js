@@ -13,6 +13,9 @@ const rateLimitMap = new Map();
 const phoneSessionMap = new Map(); // phone → { count, windowStart }
 let globalSessionCount = { count: 0, windowStart: 0 }; // global hourly limit
 
+// 履歴書生成 レート制限ストア（IP単位 5回/24h）
+const resumeRateMap = new Map();
+
 // Web→LINE セッション橋渡しストア（引き継ぎコード → Webセッションデータ）
 const webSessionMap = new Map();
 const WEB_SESSION_TTL = 86400000; // 24時間
@@ -7881,7 +7884,18 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "rm_resume_start") {
           // 新フロー: Webフォーム(LIFF)へ誘導してAI履歴書生成＋PDF保存導線
           entry.phase = "rm_resume_start";
-          const resumeFormUrl = `https://quads-nurse.com/resume/?user_id=${encodeURIComponent(userId)}`;
+          // 30分有効の短期トークンを発行し userId と紐付け保存（クライアント送信 userId は信用しない）
+          const resumeToken = crypto.randomUUID();
+          try {
+            await env.LINE_SESSIONS.put(
+              `resume_token:${resumeToken}`,
+              JSON.stringify({ userId, createdAt: Date.now() }),
+              { expirationTtl: 1800 }
+            );
+          } catch (e) {
+            console.error("[Resume] token KV put failed:", e.message);
+          }
+          const resumeFormUrl = `https://quads-nurse.com/resume/?token=${resumeToken}`;
           replyMessages = [
             {
               type: "text",
@@ -10164,9 +10178,78 @@ async function handleResumeGenerate(request, env, ctx) {
   } catch {
     return jsonResponse({ error: "invalid JSON" }, 400);
   }
+
+  // ===== 個人情報同意の確認 =====
+  if (data.consentPrivacy !== true || data.consentAi !== true) {
+    return jsonResponse({ error: "利用規約および AI 処理への同意が必要です" }, 400);
+  }
+
+  // ===== トークン検証（LINE Bot 側で発行した短期トークン）=====
+  if (!data.token || typeof data.token !== "string" || !/^[a-f0-9-]{36}$/.test(data.token)) {
+    return jsonResponse({ error: "履歴書作成リンクが無効です。LINEの『履歴書を作成する』ボタンからもう一度お試しください。" }, 403);
+  }
+  let serverUserId = null;
+  try {
+    const raw = await env.LINE_SESSIONS.get(`resume_token:${data.token}`);
+    if (!raw) {
+      return jsonResponse({ error: "履歴書作成リンクの有効期限が切れました（30分）。LINEからやり直してください。" }, 403);
+    }
+    const tokenData = JSON.parse(raw);
+    serverUserId = tokenData.userId || null;
+    // 使い切り: 成功時は後段で削除
+  } catch (e) {
+    console.error("[Resume] token verify failed:", e.message);
+    return jsonResponse({ error: "認証エラー" }, 500);
+  }
+
+  // ===== IP ベースレートリミット（5回 / 24h）=====
+  const clientIp = request.headers.get("cf-connecting-ip") || "unknown";
+  const now = Date.now();
+  let ipEntry = resumeRateMap.get(clientIp);
+  if (!ipEntry || now - ipEntry.windowStart > 86400000) {
+    ipEntry = { count: 1, windowStart: now };
+    resumeRateMap.set(clientIp, ipEntry);
+  } else {
+    ipEntry.count++;
+    if (ipEntry.count > 5) {
+      return jsonResponse({ error: "本日の履歴書作成回数の上限に達しました。明日またお試しください。" }, 429);
+    }
+  }
+
   if (!data.lastName || !data.firstName) {
     return jsonResponse({ error: "名前は必須です" }, 400);
   }
+
+  // ===== 入力長バリデーション =====
+  const limitStr = (v, max, field) => {
+    if (v == null) return "";
+    const s = String(v);
+    if (s.length > max) throw new Error(`${field} は ${max} 文字以内で入力してください`);
+    return s;
+  };
+  try {
+    limitStr(data.lastName, 50, "姓");
+    limitStr(data.firstName, 50, "名");
+    limitStr(data.lastNameFurigana, 50, "姓ふりがな");
+    limitStr(data.firstNameFurigana, 50, "名ふりがな");
+    limitStr(data.address, 200, "住所");
+    limitStr(data.addressFurigana, 300, "住所ふりがな");
+    limitStr(data.contactAddress, 200, "連絡先住所");
+    limitStr(data.phone, 20, "電話番号");
+    limitStr(data.email, 100, "メールアドレス");
+    limitStr(data.hint_change, 1000, "ヒント①");
+    limitStr(data.hint_strengths, 1000, "ヒント②");
+    limitStr(data.hint_wishes, 1000, "ヒント③");
+    limitStr(data.wishes, 2000, "本人希望");
+    if (Array.isArray(data.education) && data.education.length > 20) throw new Error("学歴は20件以内にしてください");
+    if (Array.isArray(data.career) && data.career.length > 30) throw new Error("職歴は30件以内にしてください");
+    if (Array.isArray(data.licenses) && data.licenses.length > 30) throw new Error("資格は30件以内にしてください");
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 400);
+  }
+
+  // サーバー側 userId を正として上書き（クライアント送信値は無視）
+  data.userId = serverUserId || data.userId;
 
   // AI志望動機生成
   const motivation = await generateMotivationWithAI(data, env);
@@ -10218,8 +10301,8 @@ async function handleResumeGenerate(request, env, ctx) {
     html = html.split(k).join(v);
   }
 
-  // KV保存（7日間）
-  const id = crypto.randomUUID().slice(0, 12);
+  // KV保存（7日間）— UUID全36文字で実質ブルートフォース不能に
+  const id = crypto.randomUUID();
   if (env?.LINE_SESSIONS) {
     try {
       await env.LINE_SESSIONS.put(`resume:${id}`, html, { expirationTtl: 7 * 86400 });
@@ -10227,6 +10310,11 @@ async function handleResumeGenerate(request, env, ctx) {
       console.error("[Resume] KV put failed:", e.message);
       return jsonResponse({ error: "保存に失敗しました" }, 500);
     }
+  }
+
+  // トークンは使い切り: 成功時に削除
+  if (env?.LINE_SESSIONS && data.token) {
+    ctx.waitUntil(env.LINE_SESSIONS.delete(`resume_token:${data.token}`).catch(() => {}));
   }
 
   // LINE userIdがあれば handoff notify に履歴書URLを追加送信
@@ -10257,7 +10345,8 @@ async function handleResumeGenerate(request, env, ctx) {
 }
 
 async function handleResumeView(id, env) {
-  if (!id || !/^[a-z0-9-]{6,40}$/.test(id)) {
+  // 旧12文字（slice(0,12)形式）と新36文字（UUIDフル）の両方を許容
+  if (!id || !/^[a-f0-9-]{11,40}$/.test(id)) {
     return new Response("Not Found", { status: 404 });
   }
   if (!env?.LINE_SESSIONS) {
@@ -10267,15 +10356,22 @@ async function handleResumeView(id, env) {
   if (!html) {
     return new Response("履歴書が見つかりません（有効期限切れまたは無効なID）", {
       status: 404,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Referrer-Policy": "no-referrer",
+        "Cache-Control": "no-store",
+      },
     });
   }
   return new Response(html, {
     status: 200,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "private, max-age=0, must-revalidate",
+      "Cache-Control": "no-store",
       "X-Robots-Tag": "noindex, nofollow",
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
     },
   });
 }
