@@ -4050,10 +4050,18 @@ function buildIntakeHumanThanks(entry) {
   const derivedAreaKey = resolveNotifyAreaKey(entry);
   const derivedAreaLabel = derivedAreaKey ? getAreaLabel(derivedAreaKey) : null;
 
-  // 新着通知CTAのQR（エリア判定できたら1タップ、できなければエリア選択へ）
-  const notifyQrItem = derivedAreaKey
-    ? qrItem(`新着通知ON（${derivedAreaLabel}）`, `intake_newjobs=auto`)
-    : qrItem("新着通知に登録", "welcome=newjobs_optin");
+  // opt-out設計: 3問完了した時点で新着通知は自動ON。
+  // エリア判定できれば「エリアを変える」「止める」を提示、できなければエリア選択に誘導。
+  const qrItems = derivedAreaKey
+    ? [
+        qrItem("エリアを変える", "welcome=newjobs_optin"),
+        qrItem("通知を止める", "newjobs_optin=stop"),
+        qrItem("求人を探す", "rm=start"),
+      ]
+    : [
+        qrItem("エリアを選ぶ", "welcome=newjobs_optin"),
+        qrItem("求人を探す", "rm=start"),
+      ];
 
   return [
     {
@@ -4063,14 +4071,9 @@ function buildIntakeHumanThanks(entry) {
     {
       type: "text",
       text: derivedAreaLabel
-        ? `📋 ご連絡をお待ちいただく間、${derivedAreaLabel}の新着求人が出たら朝10時にお届けすることもできます。\n\n下のボタンから1タップで登録できます👇`
-        : "📋 ご連絡をお待ちいただく間、新着求人の通知を受け取りませんか？\nエリアを選ぶだけで、該当エリアで新着が出た日にだけお届けします🌸",
-      quickReply: {
-        items: [
-          notifyQrItem,
-          qrItem("求人を探す", "rm=start"),
-        ],
-      },
+        ? `📋 ご連絡をお待ちいただく間、${derivedAreaLabel}の新着求人をお届けします。`
+        : "📋 ご連絡をお待ちいただく間、新着求人をお届けします。\nエリアを選んでください🌸",
+      quickReply: { items: qrItems },
     },
   ];
 }
@@ -5589,7 +5592,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "newjobs_optin_area":
       return [{
         type: "text",
-        text: "どのエリアの新着求人をお届けしますか？👇\n\n選んだエリアで新着が出た日の朝10時頃に、1日1通だけお届けします。\nいつでも停止できます。",
+        text: "どのエリアの新着求人をお届けしますか？👇\n\n1日1通まで・新着がない日は送りません・いつでも停止OK",
         quickReply: {
           items: [
             qrItem("横浜・川崎", "newjobs_optin=yokohama_kawasaki"),
@@ -5610,7 +5613,7 @@ async function buildPhaseMessage(phase, entry, env) {
       const label = entry.newjobsNotifyLabel || entry.areaLabel || "選択いただいたエリア";
       return [{
         type: "text",
-        text: `✅ 登録完了\n\n${label}エリアで新着求人が出た日に、朝10時頃にお届けします🌸\n\n・1日1通まで\n・新着がない日は送りません\n・いつでも停止できます\n\n今すぐ該当エリアの求人を見る場合はリッチメニューの「新着求人」をタップしてください。`,
+        text: `✅ 登録完了\n\n${label}エリアの新着求人をお届けします🌸\n\n・1日1通まで\n・新着がない日は送りません\n・いつでも停止OK\n\n今すぐ求人を見たい場合はリッチメニューの「新着求人」をタップ。`,
         quickReply: {
           items: [
             qrItem("今すぐ求人を見る", "rm=new_jobs"),
@@ -8842,6 +8845,32 @@ ${entry.rmCvQualifications || '看護師免許'}
           entry.handoffRequestedByUser = false;
           entry.handoffReason = "intake_human_complete";
           entry.messageCount = (entry.messageCount || 0) + 1;
+
+          // opt-out設計: 3問完了時点で新着通知を自動ON（郵便番号/駅名からエリア判定できた場合のみ）
+          const autoAreaKey = resolveNotifyAreaKey(entry);
+          if (autoAreaKey && env?.LINE_SESSIONS) {
+            entry.newjobsNotifyArea = autoAreaKey;
+            entry.newjobsNotifyLabel = getAreaLabel(autoAreaKey);
+            entry.newjobsNotifyOptinAt = new Date().toISOString();
+            ctx.waitUntil((async () => {
+              try {
+                await env.LINE_SESSIONS.put(
+                  `newjobs_notify:${userId}`,
+                  JSON.stringify({
+                    userId,
+                    area: autoAreaKey,
+                    areaLabel: getAreaLabel(autoAreaKey),
+                    subscribedAt: entry.newjobsNotifyOptinAt,
+                    source: "intake_auto",
+                  })
+                );
+                console.log(`[NewJobsOptin] auto-enrolled user=${userId.slice(0,8)} area=${autoAreaKey}`);
+              } catch (e) {
+                console.error(`[NewJobsOptin] auto-enroll failed: ${e.message}`);
+              }
+            })());
+          }
+
           await saveLineEntry(userId, entry, env);
           await lineReply(event.replyToken, buildIntakeHumanThanks(entry), channelAccessToken);
           // Slack通知
