@@ -5789,6 +5789,7 @@ async function buildPhaseMessage(phase, entry, env) {
           bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
           bodyContents.push({ type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true });
 
+          const empShort = (r.employer || '').slice(0, 20);
           return {
             type: "bubble", size: "kilo",
             header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
@@ -5799,8 +5800,9 @@ async function buildPhaseMessage(phase, entry, env) {
               }] },
             body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
             footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+              // message action: handoff中はsilentにSlack転送、handoff前は通常のテキスト処理
               { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
-                action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
+                action: { type: "message", label: "この施設について聞く", text: `${empShort}について相談したい` } }
             ]},
           };
         });
@@ -9860,6 +9862,7 @@ async function handleScheduledNewJobsNotify(env, opts) {
           bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
           bodyContents.push({ type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true });
 
+          const empShort = (r.employer || '').slice(0, 20);
           return {
             type: "bubble", size: "kilo",
             header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
@@ -9870,8 +9873,9 @@ async function handleScheduledNewJobsNotify(env, opts) {
               }] },
             body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
             footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+              // message action: handoff中はsilentにSlack転送、handoff前は通常テキスト処理
               { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
-                action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
+                action: { type: "message", label: "この施設について聞く", text: `${empShort}について相談したい` } }
             ]},
           };
         });
