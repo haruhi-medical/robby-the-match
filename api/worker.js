@@ -8985,21 +8985,35 @@ ${entry.rmCvQualifications || '看護師免許'}
         // 【安全チェック】handoff中なら handleFreeTextInput を呼ばずに直接沈黙
         if (entry.phase === "handoff") {
           console.log(`[LINE] Handoff silent (direct check): "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
+          // 新着カード経由の「〜について相談したい」は興味ある施設として扱い、軽い応答を返す
+          const facilityInquiryMatch = userText.match(/^(.{1,30})について相談したい$/);
+          if (facilityInquiryMatch) {
+            const facility = facilityInquiryMatch[1].trim();
+            entry.interestedFacility = facility;
+          }
           if (env.SLACK_BOT_TOKEN) {
             const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
             const profile = entry.extractedProfile || {};
             const areaLabel = entry.areaLabel || profile.area || "不明";
+            const tag = facilityInquiryMatch ? "🏥 *施設相談リクエスト（新着カード経由）*" : "*LINE受信（引き継ぎ済み・要返信）*";
             await fetch("https://slack.com/api/chat.postMessage", {
               method: "POST",
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({
                 channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-                text: `💬 *LINE受信（引き継ぎ済み・要返信）*\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
+                text: `💬 ${tag}\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
               }),
             }).catch((e) => { console.error(`[Slack] notification failed: ${e.message}`); });
           }
           await saveLineEntry(userId, entry, env);
-          continue; // LINE応答は絶対に送らない
+          // 新着カード経由の相談は「承知しました」を即返す（沈黙だと離脱するため）
+          if (facilityInquiryMatch) {
+            await lineReply(event.replyToken, [{
+              type: "text",
+              text: "ありがとうございます！\n担当者にお伝えしました。\n改めてご連絡いたしますので、少しお待ちください🌸",
+            }], channelAccessToken);
+          }
+          continue;
         }
 
         const prevPhase = entry.phase;
