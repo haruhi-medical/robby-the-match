@@ -10,12 +10,22 @@ CREATE TABLE IF NOT EXISTS candidates (
   axis TEXT,
   root_cause TEXT,
   profile_json TEXT,
+  -- Phase 10: 個人情報（応募時収集）
+  full_name TEXT,
+  full_name_kana TEXT,
+  birth_date TEXT,
+  phone TEXT,
+  current_workplace TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_candidates_phase ON candidates(phase);
 CREATE INDEX IF NOT EXISTS idx_candidates_updated_at ON candidates(updated_at);
+
+-- 既存テーブルへの ALTER（schema再適用で失敗しても無視）
+-- Phase 10 追加: 個人情報
+-- sqlite は ADD COLUMN IF NOT EXISTS 非対応のため、個別ファイル migrations/ で管理
 
 -- 会話ログ
 CREATE TABLE IF NOT EXISTS messages (

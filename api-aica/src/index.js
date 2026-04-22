@@ -22,6 +22,9 @@ import {
 import { handleIntakeTurn } from "./phases/intake.js";
 import { handleConditionTurn, buildConditionIntroMessage } from "./phases/condition.js";
 import { runMatching } from "./phases/matching.js";
+import { handleJobQaTurn } from "./phases/job-qa.js";
+import { handleApplyConfirmTurn } from "./phases/apply.js";
+import { handleApplyInfoTurn, isApplyInfoPhase } from "./phases/apply-info.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
 
 export default {
@@ -258,14 +261,92 @@ async function processEvent(event, env) {
       return;
     }
 
-    // MATCHING / JOB_QA 状態: 再マッチング要求 or 詳細Q&A
-    // MVP1前半では、「見せて」「もう一度」「他も」等の曖昧発言は re-match
+    // MATCHING / JOB_QA 状態: 意図分類 → 応募/再マッチング/詳細/Q&A
     if (candidate.phase === PHASES.MATCHING || candidate.phase === PHASES.JOB_QA) {
-      await runMatching({ candidate, env, db });
+      const result = await handleJobQaTurn({ candidate, userText, env, db });
+
+      if (result.rerunMatching) {
+        await runMatching({ candidate, env, db });
+        return;
+      }
+
+      await logMessage(
+        db,
+        userId,
+        "assistant",
+        result.messages?.[0]?.text || `[job-qa ${result.nextPhase}]`,
+        result.nextPhase,
+        0,
+        result.provider || "job-qa-template"
+      );
+
+      if (env.LINE_CHANNEL_ACCESS_TOKEN && result.messages) {
+        try {
+          await replyMessage(event.replyToken, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          console.warn("[line] reply failed, fallback to push:", err.message);
+          await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
       return;
     }
 
-    // MVP1範囲外（MATCHING以降）は暫定で Slack転送
+    // APPLY_CONFIRM 状態: 応募意思の最終確認
+    if (candidate.phase === PHASES.APPLY_CONFIRM) {
+      const result = await handleApplyConfirmTurn({ candidate, userText, db });
+
+      if (result.rerunMatching) {
+        await runMatching({ candidate, env, db });
+        return;
+      }
+
+      await logMessage(
+        db,
+        userId,
+        "assistant",
+        result.messages?.[0]?.text || `[apply-confirm ${result.nextPhase}]`,
+        result.nextPhase,
+        0,
+        "apply-confirm"
+      );
+
+      if (env.LINE_CHANNEL_ACCESS_TOKEN && result.messages) {
+        try {
+          await replyMessage(event.replyToken, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          console.warn("[line] reply failed, fallback to push:", err.message);
+          await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // APPLY_INFO_* 状態: 個人情報5問の収集
+    if (isApplyInfoPhase(candidate.phase)) {
+      const result = await handleApplyInfoTurn({ candidate, userText, db });
+
+      await logMessage(
+        db,
+        userId,
+        "assistant",
+        result.messages?.[0]?.text || `[apply-info ${result.nextPhase}]`,
+        result.nextPhase,
+        0,
+        "apply-info-template"
+      );
+
+      if (env.LINE_CHANNEL_ACCESS_TOKEN && result.messages) {
+        try {
+          await replyMessage(event.replyToken, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          console.warn("[line] reply failed, fallback to push:", err.message);
+          await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // MVP1範囲外（DOCUMENTS_PREP_LICENSE 以降）は暫定で Slack転送
     await forwardToSlack(candidate, userText, env);
   }
 }
