@@ -679,6 +679,96 @@ const EXTERNAL_JOBS = {
 // ---------- アキネーター候補数計算（D1対応） ----------
 // D1がある場合は17,913施設からSQLでカウント。なければインメモリFACILITY_DATABASE。
 // エリアマッピング: il_area選択値 → 所在地の市区名
+// 郵便番号（先頭3桁）→ 新着通知エリアkey の簡易マップ
+// 3問intake後の handoff 待機画面で「ワンタップ新着登録」に使う。
+// 未マッチは null を返して9エリア選択QRにフォールバック。
+const POSTAL_PREFIX_TO_AREA = {
+  // 神奈川: 横浜・川崎
+  "220": "yokohama_kawasaki", "221": "yokohama_kawasaki", "222": "yokohama_kawasaki",
+  "223": "yokohama_kawasaki", "224": "yokohama_kawasaki", "225": "yokohama_kawasaki",
+  "226": "yokohama_kawasaki", "227": "yokohama_kawasaki", "230": "yokohama_kawasaki",
+  "231": "yokohama_kawasaki", "232": "yokohama_kawasaki", "233": "yokohama_kawasaki",
+  "234": "yokohama_kawasaki", "235": "yokohama_kawasaki", "236": "yokohama_kawasaki",
+  "240": "yokohama_kawasaki", "241": "yokohama_kawasaki", "244": "yokohama_kawasaki",
+  "245": "yokohama_kawasaki",
+  "210": "yokohama_kawasaki", "211": "yokohama_kawasaki", "212": "yokohama_kawasaki",
+  "213": "yokohama_kawasaki", "214": "yokohama_kawasaki", "215": "yokohama_kawasaki",
+  "216": "yokohama_kawasaki",
+  // 神奈川: 横須賀・三浦
+  "237": "yokosuka_miura", "238": "yokosuka_miura", "239": "yokosuka_miura",
+  // 神奈川: 湘南・鎌倉
+  "247": "shonan_kamakura", "248": "shonan_kamakura", "249": "shonan_kamakura",
+  "251": "shonan_kamakura", "253": "shonan_kamakura",
+  // 神奈川: 相模原・県央
+  "228": "sagamihara_kenoh", "229": "sagamihara_kenoh", "242": "sagamihara_kenoh",
+  "243": "sagamihara_kenoh", "246": "sagamihara_kenoh", "252": "sagamihara_kenoh",
+  // 神奈川: 小田原・県西
+  "250": "odawara_kensei", "254": "odawara_kensei", "255": "odawara_kensei",
+  "256": "odawara_kensei", "257": "odawara_kensei", "258": "odawara_kensei",
+  "259": "odawara_kensei",
+  // 東京都（細分せず tokyo_included）
+  "100": "tokyo_included", "101": "tokyo_included", "102": "tokyo_included",
+  "103": "tokyo_included", "104": "tokyo_included", "105": "tokyo_included",
+  "106": "tokyo_included", "107": "tokyo_included", "108": "tokyo_included",
+  "110": "tokyo_included", "111": "tokyo_included", "112": "tokyo_included",
+  "113": "tokyo_included", "114": "tokyo_included", "115": "tokyo_included",
+  "116": "tokyo_included", "120": "tokyo_included", "121": "tokyo_included",
+  "122": "tokyo_included", "123": "tokyo_included", "124": "tokyo_included",
+  "125": "tokyo_included", "130": "tokyo_included", "131": "tokyo_included",
+  "132": "tokyo_included", "133": "tokyo_included", "134": "tokyo_included",
+  "135": "tokyo_included", "136": "tokyo_included", "140": "tokyo_included",
+  "141": "tokyo_included", "142": "tokyo_included", "143": "tokyo_included",
+  "144": "tokyo_included", "145": "tokyo_included", "146": "tokyo_included",
+  "150": "tokyo_included", "151": "tokyo_included", "152": "tokyo_included",
+  "153": "tokyo_included", "154": "tokyo_included", "155": "tokyo_included",
+  "156": "tokyo_included", "157": "tokyo_included", "158": "tokyo_included",
+  "160": "tokyo_included", "161": "tokyo_included", "162": "tokyo_included",
+  "163": "tokyo_included", "164": "tokyo_included", "165": "tokyo_included",
+  "166": "tokyo_included", "167": "tokyo_included", "168": "tokyo_included",
+  "169": "tokyo_included", "170": "tokyo_included", "171": "tokyo_included",
+  "173": "tokyo_included", "174": "tokyo_included", "175": "tokyo_included",
+  "176": "tokyo_included", "177": "tokyo_included", "178": "tokyo_included",
+  "179": "tokyo_included", "180": "tokyo_included", "181": "tokyo_included",
+  "182": "tokyo_included", "183": "tokyo_included", "184": "tokyo_included",
+  "185": "tokyo_included", "186": "tokyo_included", "187": "tokyo_included",
+  "188": "tokyo_included", "189": "tokyo_included", "190": "tokyo_included",
+  "191": "tokyo_included", "192": "tokyo_included", "193": "tokyo_included",
+  "194": "tokyo_included", "195": "tokyo_included", "196": "tokyo_included",
+  "197": "tokyo_included", "198": "tokyo_included",
+  // 埼玉
+  "330": "saitama_all", "331": "saitama_all", "332": "saitama_all",
+  "333": "saitama_all", "334": "saitama_all", "335": "saitama_all",
+  "336": "saitama_all", "337": "saitama_all", "338": "saitama_all",
+  "339": "saitama_all", "340": "saitama_all", "341": "saitama_all",
+  "342": "saitama_all", "343": "saitama_all", "344": "saitama_all",
+  "345": "saitama_all", "346": "saitama_all", "347": "saitama_all",
+  "348": "saitama_all", "349": "saitama_all", "350": "saitama_all",
+  "351": "saitama_all", "352": "saitama_all", "353": "saitama_all",
+  "354": "saitama_all", "355": "saitama_all", "356": "saitama_all",
+  "357": "saitama_all", "358": "saitama_all", "359": "saitama_all",
+  "360": "saitama_all", "361": "saitama_all", "362": "saitama_all",
+  "363": "saitama_all", "364": "saitama_all", "365": "saitama_all",
+  "366": "saitama_all", "367": "saitama_all", "368": "saitama_all",
+  "369": "saitama_all",
+  // 千葉
+  "260": "chiba_all", "261": "chiba_all", "262": "chiba_all", "263": "chiba_all",
+  "264": "chiba_all", "265": "chiba_all", "266": "chiba_all", "267": "chiba_all",
+  "270": "chiba_all", "271": "chiba_all", "272": "chiba_all", "273": "chiba_all",
+  "274": "chiba_all", "275": "chiba_all", "276": "chiba_all", "277": "chiba_all",
+  "278": "chiba_all", "279": "chiba_all", "280": "chiba_all", "281": "chiba_all",
+  "282": "chiba_all", "283": "chiba_all", "284": "chiba_all", "285": "chiba_all",
+  "286": "chiba_all", "287": "chiba_all", "288": "chiba_all", "289": "chiba_all",
+  "290": "chiba_all", "291": "chiba_all", "292": "chiba_all", "293": "chiba_all",
+  "294": "chiba_all", "295": "chiba_all", "296": "chiba_all", "297": "chiba_all",
+  "298": "chiba_all", "299": "chiba_all",
+};
+
+function postalToAreaKey(postal7) {
+  if (!postal7) return null;
+  const prefix = String(postal7).replace(/[^0-9]/g, '').slice(0, 3);
+  return POSTAL_PREFIX_TO_AREA[prefix] || null;
+}
+
 const AREA_CITY_MAP = {
   yokohama_kawasaki: ['横浜市', '川崎市'],
   shonan_kamakura: ['藤沢市', '茅ヶ崎市', '鎌倉市', '逗子市', '葉山町', '寒川町'],
@@ -3880,7 +3970,24 @@ function buildIntakePostalQuestion() {
   }];
 }
 
-function buildIntakeHumanThanks() {
+function buildIntakeHumanThanks(entry) {
+  // 郵便番号 or 既存エリアから新着通知エリアを自動判定（ワンタップ登録用）
+  const AREA_LABELS_THANKS = {
+    yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
+    sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
+    odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
+    tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
+  };
+  const derivedAreaKey = (entry?.area && !entry.area.startsWith('undecided'))
+    ? entry.area.replace('_il', '')
+    : postalToAreaKey(entry?.intakePostal || '');
+  const derivedAreaLabel = derivedAreaKey ? (AREA_LABELS_THANKS[derivedAreaKey] || derivedAreaKey) : null;
+
+  // 新着通知CTAのQR（エリア判定できたら1タップ、できなければエリア選択へ）
+  const notifyQrItem = derivedAreaKey
+    ? qrItem(`新着通知ON（${derivedAreaLabel}）`, `intake_newjobs=auto`)
+    : qrItem("新着通知に登録", "welcome=newjobs_optin");
+
   return [
     {
       type: "text",
@@ -3888,7 +3995,15 @@ function buildIntakeHumanThanks() {
     },
     {
       type: "text",
-      text: "📋 ご連絡をお待ちいただく間、下のメニューから求人検索もご利用いただけます 🔍",
+      text: derivedAreaLabel
+        ? `📋 ご連絡をお待ちいただく間、${derivedAreaLabel}の新着求人が出たら朝10時にお届けすることもできます。\n\n下のボタンから1タップで登録できます👇`
+        : "📋 ご連絡をお待ちいただく間、新着求人の通知を受け取りませんか？\nエリアを選ぶだけで、該当エリアで新着が出た日にだけお届けします🌸",
+      quickReply: {
+        items: [
+          notifyQrItem,
+          qrItem("求人を探す", "rm=start"),
+        ],
+      },
     },
   ];
 }
@@ -6941,6 +7056,32 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "newjobs_optin_area";
     }
   }
+  // 3問intake後の「待機画面」から郵便番号で自動判定してワンタップ登録
+  else if (params.has("intake_newjobs")) {
+    const val = params.get("intake_newjobs");
+    entry.unexpectedTextCount = 0;
+    if (val === "auto") {
+      const AREA_LABELS_THANKS2 = {
+        yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
+        sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
+        odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
+        tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
+      };
+      // 既存 entry.area 優先、なければ郵便番号から推定
+      const areaKey = (entry.area && !entry.area.startsWith('undecided'))
+        ? entry.area.replace('_il', '')
+        : postalToAreaKey(entry.intakePostal || '');
+      if (areaKey) {
+        entry.newjobsNotifyArea = areaKey;
+        entry.newjobsNotifyLabel = AREA_LABELS_THANKS2[areaKey] || areaKey;
+        entry.newjobsNotifyOptinAt = new Date().toISOString();
+        nextPhase = "newjobs_optin_done";
+      } else {
+        // 推定失敗 → エリア選択にフォールバック
+        nextPhase = "newjobs_optin_area";
+      }
+    }
+  }
   // 新着求人通知: エリア選択 → KV購読登録 → 完了メッセージ
   else if (params.has("newjobs_optin")) {
     const areaKey = params.get("newjobs_optin");
@@ -8669,7 +8810,7 @@ ${entry.rmCvQualifications || '看護師免許'}
           entry.handoffReason = "intake_human_complete";
           entry.messageCount = (entry.messageCount || 0) + 1;
           await saveLineEntry(userId, entry, env);
-          await lineReply(event.replyToken, buildIntakeHumanThanks(), channelAccessToken);
+          await lineReply(event.replyToken, buildIntakeHumanThanks(entry), channelAccessToken);
           // Slack通知
           ctx.waitUntil((async () => {
             if (!env.SLACK_BOT_TOKEN) return;
