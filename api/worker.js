@@ -1819,6 +1819,9 @@ export default {
     if (url.pathname === "/api/mypage-resume-edit" && request.method === "POST") {
       return await handleMypageResumeEdit(request, env, ctx);
     }
+    if (url.pathname === "/api/mypage-resume" && request.method === "DELETE") {
+      return await handleMypageResumeDelete(request, env, ctx);
+    }
 
     return jsonResponse({ error: "Not Found" }, 404);
   },
@@ -11524,4 +11527,56 @@ async function handleMypageResumeEdit(request, env, ctx) {
   }
 
   return jsonResponse({ success: true, updatedAt: now });
+}
+
+// ================================================================
+// ========== /api/mypage-resume (DELETE): 会員による履歴書削除 =====
+// ================================================================
+// 個人情報保護法第35条（利用停止等）対応。
+// 履歴書の :resume / :resume_data を削除、会員レコードは status=deleted で保持
+// （監督官庁対応時の証跡として、削除履歴を残す）。
+async function handleMypageResumeDelete(request, env, ctx) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/, "");
+  const payload = await verifyMypageSessionToken(token, env);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+
+  // 履歴書データを削除
+  try {
+    await env.LINE_SESSIONS.delete(`member:${payload.userId}:resume`);
+    await env.LINE_SESSIONS.delete(`member:${payload.userId}:resume_data`);
+  } catch (e) {
+    console.error("[MypageResumeDelete] KV delete failed:", e.message);
+    return jsonResponse({ error: "削除に失敗しました" }, 500);
+  }
+
+  // 会員レコードは status=deleted に更新（法令対応・証跡保持）
+  let memberData = null;
+  const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}`);
+  if (raw) {
+    try {
+      const m = JSON.parse(raw);
+      m.status = "deleted";
+      m.deletedAt = Date.now();
+      memberData = m;
+      await env.LINE_SESSIONS.put(`member:${payload.userId}`, JSON.stringify(m));
+    } catch (e) {
+      console.error("[MypageResumeDelete] member update failed:", e.message);
+    }
+  }
+
+  // Slack通知（削除ログ、証跡）
+  if (env.SLACK_BOT_TOKEN) {
+    const slackText = `🗑️ *会員による履歴書削除*\nユーザー: \`${payload.userId}\`\n時刻: ${new Date().toISOString()}\n会員status: ${memberData?.status || 'N/A'}`;
+    ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+        text: slackText,
+      }),
+    }).catch(() => {}));
+  }
+
+  return jsonResponse({ success: true });
 }
