@@ -39,8 +39,8 @@ export async function handleConditionTurn({ candidate, userText, env, db }) {
     displayName: candidate.display_name,
   });
 
-  // JSON Mode で呼び出し
-  const { text: rawReply, provider } = await generateResponse({
+  // 1回目呼び出し
+  let { text: rawReply, provider } = await generateResponse({
     systemPrompt,
     messages,
     env,
@@ -48,32 +48,39 @@ export async function handleConditionTurn({ candidate, userText, env, db }) {
     responseFormat: "json",
   });
 
-  // JSON parse
-  let parsed;
-  try {
-    parsed = JSON.parse(extractJson(rawReply));
-  } catch (err) {
-    console.error("[condition] JSON parse failed:", err.message);
-    // フォールバック: rawReply をそのまま返す
-    return {
-      reply: rawReply.length > 2 ? rawReply : "すみません、もう一度教えていただけますか？",
-      isComplete: false,
-      profile,
-      provider,
-    };
+  let parsed = tryParseJson(rawReply);
+  let replyText = parsed && typeof parsed.reply === "string" ? parsed.reply.trim() : "";
+
+  // reply が空だったら1回だけ再試行（明示的に reply 必須を強調）
+  if (!replyText) {
+    console.warn("[condition] empty reply on first try. raw=", rawReply?.slice(0, 400));
+    const retryPrompt =
+      systemPrompt +
+      "\n\n【重要・再試行】前回の応答で reply が空でした。" +
+      "必ず reply に200文字以内のメッセージ本文（次の質問 or 希望条件カルテ）を埋めてください。" +
+      "空の reply は禁止です。";
+    const retry = await generateResponse({
+      systemPrompt: retryPrompt,
+      messages,
+      env,
+      maxTokens: 900,
+      responseFormat: "json",
+    });
+    rawReply = retry.text;
+    provider = retry.provider;
+    parsed = tryParseJson(rawReply);
+    replyText = parsed && typeof parsed.reply === "string" ? parsed.reply.trim() : "";
   }
 
-  const extracted = parsed.extracted || {};
-  const isComplete = parsed.is_complete === true;
-  const replyText = parsed.reply || "";
+  const extracted = parsed?.extracted || {};
+  let isComplete = parsed?.is_complete === true;
 
-  // profile マージ（既存優先せず上書き。ただし空文字は無視）
+  // profile マージ（空文字・null は無視）
   const mergedProfile = { ...profile };
   for (const [k, v] of Object.entries(extracted)) {
     if (!CONDITION_FIELDS.find((f) => f.key === k)) continue;
     if (v === null || v === undefined || String(v).trim() === "") continue;
 
-    // 配列的な項目（fields_experienced / strengths / weaknesses）は既存に追記
     if (["fields_experienced", "strengths", "weaknesses"].includes(k) && mergedProfile[k]) {
       const existing = String(mergedProfile[k]);
       const newVal = String(v);
@@ -85,6 +92,21 @@ export async function handleConditionTurn({ candidate, userText, env, db }) {
     }
   }
 
+  // 最後の手段: reply がまだ空なら決定的フォールバック（不足フィールド質問 or 要約完成）
+  if (!replyText) {
+    console.warn("[condition] empty reply after retry, synthesizing fallback");
+    const essentialsMissing = findMissingEssentials(mergedProfile);
+    if (essentialsMissing.length === 0) {
+      replyText = buildStaticConditionSummary(mergedProfile, candidate.display_name);
+      isComplete = true;
+    } else {
+      const name = candidate.display_name ? `${candidate.display_name}さん` : "お客様";
+      const nextQ = buildNextQuestion(essentialsMissing[0], name);
+      replyText = nextQ;
+      isComplete = false;
+    }
+  }
+
   const nextPhase = isComplete ? PHASES.MATCHING : PHASES.CONDITION_HEARING;
 
   await updateCandidate(db, candidate.id, {
@@ -93,11 +115,74 @@ export async function handleConditionTurn({ candidate, userText, env, db }) {
   });
 
   return {
-    reply: replyText || "（応答なし）",
+    reply: replyText,
     isComplete,
     profile: mergedProfile,
     provider,
   };
+}
+
+function tryParseJson(raw) {
+  if (!raw) return null;
+  try {
+    return JSON.parse(extractJson(raw));
+  } catch (err) {
+    console.error("[condition] JSON parse failed:", err.message, "raw=", raw.slice(0, 300));
+    return null;
+  }
+}
+
+/** is_complete 判定に必要な主要フィールドのうち未収集のものを返す */
+function findMissingEssentials(profile) {
+  const essentials = [
+    "experience_years",
+    "fields_experienced",
+    "strengths",
+    "workstyle",
+    "facility_hope",
+    "area",
+    "salary_hope",
+    "timing",
+  ];
+  return essentials.filter((k) => !profile[k] || String(profile[k]).trim() === "");
+}
+
+/** 機械的な次の質問（AIがコケた時のフォールバック） */
+function buildNextQuestion(missingKey, name) {
+  const questions = {
+    experience_years: `${name}、看護師として何年目になりますか？\n（例: 5年目、10年目以上 など）`,
+    fields_experienced: `${name}、これまで主に経験された診療科・分野を教えてください。\n（例: 呼吸器内科、急性期、ICU など）`,
+    strengths: `${name}、得意なことや強みがあれば教えてください。\n（例: アセスメント、急変対応、患者指導 など）`,
+    workstyle: `${name}、希望の働き方はどれに近いですか？\n◇ 日勤のみ\n◇ 夜勤あり（月2-3回）\n◇ 夜勤あり（月4回以上）\n◇ パート・非常勤\n◇ 夜勤専従`,
+    facility_hope: `${name}、希望する施設の種類はありますか？\n◇ 急性期病院\n◇ 回復期・療養\n◇ クリニック・外来\n◇ 訪問看護\n◇ 介護施設\n◇ 精神科\n◇ こだわらない`,
+    area: `${name}、希望する勤務エリアを教えてください。\n（例: 横浜・川崎、小田原・県西、湘南 など）`,
+    salary_hope: `${name}、希望される年収や月給はありますか？\n（例: 現職と同水準維持、450万以上、こだわらない など）`,
+    timing: `${name}、入職の希望時期はいつごろですか？\n◇ できるだけ早く（1ヶ月以内）\n◇ 2-3ヶ月先\n◇ 半年以内\n◇ 半年以上先・情報収集段階`,
+  };
+  return questions[missingKey] || "次に伺いたい項目があります。少しだけお教えいただけますか？";
+}
+
+/** すべての主要項目が揃った際の静的要約（AIが要約出しそこねた時のフォールバック） */
+function buildStaticConditionSummary(profile, displayName) {
+  const name = displayName ? `${displayName}さん` : "お客様";
+  const p = (k) => profile[k] ? String(profile[k]) : "未設定";
+  return (
+    "希望条件を整理しました。\n\n" +
+    `【希望条件カルテ】\n` +
+    `◇ プロフィール\n` +
+    `  - 看護師経験: ${p("experience_years")}\n` +
+    `  - 現在の役割: ${p("current_position")}\n\n` +
+    `◇ 経験分野\n  - ${p("fields_experienced")}\n\n` +
+    `◇ 強み・スキル\n  - ${p("strengths")}\n\n` +
+    `◇ 希望条件\n` +
+    `  - 働き方: ${p("workstyle")}\n` +
+    `  - 希望施設: ${p("facility_hope")}\n` +
+    `  - エリア: ${p("area")}\n` +
+    `  - 給与: ${p("salary_hope")}\n` +
+    `  - 入職時期: ${p("timing")}\n\n` +
+    `この条件で、${name}にマッチする求人を神奈川県内から\n` +
+    `AIがお探しします。少しお待ちください。`
+  );
 }
 
 /** "text ```json {...}``` text" 形式からJSON部分を抽出 */
