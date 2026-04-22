@@ -31,6 +31,15 @@ import { handleDocumentsReviewTurn, regenerateDocument } from "./phases/document
 import { handleInterviewPrepTurn, wantsInterviewPrep, enterInterviewPrep } from "./phases/interview-prep.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
 import { transcribeAudioFromLine } from "./lib/transcribe.js";
+import {
+  wantsResume,
+  wantsContinueNow,
+  wantsPauseUntilLater,
+  resumeFrom,
+  pauseAt,
+  buildResumeMessage,
+  buildStage2EndChoice,
+} from "./lib/staging.js";
 
 export default {
   async fetch(request, env, ctx) {
@@ -269,6 +278,45 @@ async function processEvent(event, env, ctx) {
       return;
     }
 
+    // PAUSED + 「続きから」系キーワード → 再開
+    if (candidate.phase === PHASES.PAUSED && wantsResume(userText)) {
+      const resumedPhase = await resumeFrom({ candidate, db });
+      const refreshed = await env.AICA_DB
+        .prepare("SELECT * FROM candidates WHERE id = ?")
+        .bind(userId)
+        .first();
+      const welcomeBack = buildResumeMessage({ resumeToPhase: resumedPhase, candidate: refreshed || candidate });
+      await logMessage(db, userId, "assistant", welcomeBack.text, resumedPhase, 0, "staging-resume");
+      if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+        try {
+          await replyMessage(event.replyToken, [welcomeBack], env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          await pushMessage(userId, [welcomeBack], env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // PAUSED + 「続きから」以外の発言 → 「続きから」を促す
+    if (candidate.phase === PHASES.PAUSED) {
+      const profile = safeParseJson(candidate.profile_json);
+      const hasResumePoint = !!profile.resume_from;
+      const msg = {
+        type: "text",
+        text: hasResumePoint
+          ? "お帰りなさい。\n「続きから」とお送りいただければ、\n前回の続きから再開できます。"
+          : "お時間のある時に、また気軽にお声がけください。",
+      };
+      if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+        try {
+          await replyMessage(event.replyToken, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          await pushMessage(userId, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
     // 面接対策への割り込みエントリ（JOB_QA/APPLY_CONFIRM/APPLIED/APPROVED 等から）
     if (
       wantsInterviewPrep(userText) &&
@@ -500,15 +548,96 @@ async function processEvent(event, env, ctx) {
         }
       }
 
-      // 最終ステップ完了 → DOCUMENTS_GEN に遷移済み → 非同期で書類生成トリガー
-      if (result.nextPhase === PHASES.DOCUMENTS_GEN && ctx?.waitUntil) {
-        ctx.waitUntil(runDocumentGeneration({ candidateId: userId, env, db }));
+      // Stage 2→3 境界: stage2End=true なら選択肢提示のみ、生成はしない
+      // stage2End でない場合は従来通り（経由がないパスだが念のため後方互換）
+      if (result.stage2End) {
+        // 書類生成はここでは起動しない。ユーザーの選択待ち
+        return;
       }
       return;
     }
 
-    // DOCUMENTS_GEN 状態: 生成中（ユーザー発言は待機応答）
+    // DOCUMENTS_GEN 状態: 書類生成の選択肢 or 生成進行中
     if (candidate.phase === PHASES.DOCUMENTS_GEN) {
+      const profile = safeParseJson(candidate.profile_json);
+      const awaitingChoice = profile.awaiting_gen_choice === true;
+
+      // 選択肢待ち状態
+      if (awaitingChoice) {
+        if (wantsContinueNow(userText)) {
+          // 今すぐ生成トリガー
+          const newProfile = { ...profile };
+          delete newProfile.awaiting_gen_choice;
+          newProfile.gen_in_progress = true;
+          await updateCandidate(db, userId, { profile_json: JSON.stringify(newProfile) });
+
+          const msg = {
+            type: "text",
+            text:
+              "承知しました。書類を作成します。\n" +
+              "30秒〜1分ほどお待ちください。\n" +
+              "完成次第、3書類（履歴書/職務経歴書/志望動機書）を\n" +
+              "順にお送りします。",
+          };
+          await logMessage(db, userId, "assistant", msg.text, PHASES.DOCUMENTS_GEN, 0, "doc-gen-start");
+          if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+            try {
+              await replyMessage(event.replyToken, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+            } catch (err) {
+              await pushMessage(userId, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+            }
+          }
+          if (ctx?.waitUntil) {
+            ctx.waitUntil(runDocumentGeneration({ candidateId: userId, env, db }));
+          }
+          return;
+        }
+
+        if (wantsPauseUntilLater(userText)) {
+          // 面接前まで保留 → PAUSED + resume_from=DOCUMENTS_GEN
+          const newProfile = { ...profile };
+          delete newProfile.awaiting_gen_choice;
+          await updateCandidate(db, userId, { profile_json: JSON.stringify(newProfile) });
+          await pauseAt({
+            candidate: { ...candidate, profile_json: JSON.stringify(newProfile) },
+            resumeFromPhase: PHASES.DOCUMENTS_GEN,
+            db,
+          });
+
+          const msg = {
+            type: "text",
+            text:
+              "承知しました。\n" +
+              "書類作成は面接の前日までに済ませれば大丈夫です。\n\n" +
+              "面接日が決まったら、または作成したくなったら、\n" +
+              "「続きから」とメッセージを送ってください。\n" +
+              "そこから書類作成を開始します。\n\n" +
+              "お時間ありがとうございました。",
+          };
+          await logMessage(db, userId, "assistant", msg.text, PHASES.PAUSED, 0, "stage2-pause");
+          if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+            try {
+              await replyMessage(event.replyToken, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+            } catch (err) {
+              await pushMessage(userId, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+            }
+          }
+          return;
+        }
+
+        // 不明 → 選択肢再表示
+        const msg = buildStage2EndChoice();
+        if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+          try {
+            await replyMessage(event.replyToken, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+          } catch (err) {
+            await pushMessage(userId, [msg], env.LINE_CHANNEL_ACCESS_TOKEN);
+          }
+        }
+        return;
+      }
+
+      // 生成進行中 → 待機応答
       const msg = {
         type: "text",
         text:
@@ -602,4 +731,12 @@ async function processEvent(event, env, ctx) {
 async function forwardToSlack(candidate, userText, env) {
   // Phase 1 以降で実装。MVP0は console.log のみ
   console.log("[handoff-forward]", candidate.id, candidate.phase, userText);
+}
+
+function safeParseJson(s) {
+  try {
+    return s ? JSON.parse(s) : {};
+  } catch {
+    return {};
+  }
 }

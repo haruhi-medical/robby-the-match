@@ -10,6 +10,12 @@
 import { PHASES, updateCandidate } from "../state-machine.js";
 import { buildQuickReplyMessage } from "../lib/line.js";
 import { buildFirstApplyInfoMessage } from "./apply-info.js";
+import {
+  buildStage1EndChoice,
+  wantsContinueNow,
+  wantsPauseUntilLater,
+  pauseAt,
+} from "../lib/staging.js";
 
 /**
  * APPLY_CONFIRM 入口メッセージ
@@ -35,20 +41,66 @@ export function buildApplyConfirmMessage({ employer }) {
 export async function handleApplyConfirmTurn({ candidate, userText, db }) {
   const t = (userText || "").trim();
 
-  // 進める → Phase 10（個人情報収集）
-  if (/^(進め|はい|お願いします|OK|ok|進みます|進む$|進めて)/.test(t) || t === "進める") {
-    await updateCandidate(db, candidate.id, { phase: PHASES.APPLY_INFO_NAME });
+  const profile = safeParseJson(candidate.profile_json);
+  const employer = profile.apply_candidate_employer || "この求人";
+
+  // Step 1: 「進める」→ Stage 1→2 境界の選択肢を提示（今すぐ/明日以降）
+  // resume_from に APPLY_INFO_NAME を仮置き
+  if (
+    (/^(進め|はい|お願いします|OK|ok|進みます|進む$|進めて)/.test(t) || t === "進める") &&
+    !profile.stage12_choice_shown
+  ) {
+    const newProfile = { ...profile, stage12_choice_shown: true };
+    await updateCandidate(db, candidate.id, {
+      profile_json: JSON.stringify(newProfile),
+    });
+    return {
+      messages: [buildStage1EndChoice({ employer })],
+      nextPhase: PHASES.APPLY_CONFIRM,
+    };
+  }
+
+  // Step 2a: 「今すぐ続ける」→ Phase 10
+  if (profile.stage12_choice_shown && wantsContinueNow(t)) {
+    const newProfile = { ...profile };
+    delete newProfile.stage12_choice_shown;
+    await updateCandidate(db, candidate.id, {
+      phase: PHASES.APPLY_INFO_NAME,
+      profile_json: JSON.stringify(newProfile),
+    });
     return {
       messages: [
         {
           type: "text",
           text:
-            "承知しました。ありがとうございます。\n" +
-            "ここから、応募に必要な情報を5つだけお聞きします。",
+            "承知しました。\n" +
+            "ここから、応募に必要な情報をお聞きします。",
         },
         buildFirstApplyInfoMessage(),
       ],
       nextPhase: PHASES.APPLY_INFO_NAME,
+    };
+  }
+
+  // Step 2b: 「明日以降」→ PAUSED + resume_from=APPLY_INFO_NAME
+  if (profile.stage12_choice_shown && wantsPauseUntilLater(t)) {
+    const newProfile = { ...profile };
+    delete newProfile.stage12_choice_shown;
+    await updateCandidate(db, candidate.id, { profile_json: JSON.stringify(newProfile) });
+    await pauseAt({ candidate: { ...candidate, profile_json: JSON.stringify(newProfile) }, resumeFromPhase: PHASES.APPLY_INFO_NAME, db });
+    return {
+      messages: [
+        {
+          type: "text",
+          text:
+            "承知しました。\n" +
+            `${employer}への応募準備、ここまで保存しました。\n\n` +
+            "お時間のある時に「続きから」とメッセージを送ってください。\n" +
+            "そこから応募準備を再開できます。\n\n" +
+            "ゆっくり休んでください。",
+        },
+      ],
+      nextPhase: PHASES.PAUSED,
     };
   }
 
@@ -88,9 +140,13 @@ export async function handleApplyConfirmTurn({ candidate, userText, db }) {
     };
   }
 
-  // 不明 → 再確認メッセージ
-  const profile = safeParseJson(candidate.profile_json);
-  const employer = profile.apply_candidate_employer || "この求人";
+  // 不明 → 再確認メッセージ（前段で stage12_choice_shown が立っていれば再度選択肢を）
+  if (profile.stage12_choice_shown) {
+    return {
+      messages: [buildStage1EndChoice({ employer })],
+      nextPhase: PHASES.APPLY_CONFIRM,
+    };
+  }
   return {
     messages: [buildApplyConfirmMessage({ employer })],
     nextPhase: PHASES.APPLY_CONFIRM,

@@ -10,6 +10,7 @@
 
 import { PHASES, updateCandidate } from "../state-machine.js";
 import { buildQuickReplyMessage } from "../lib/line.js";
+import { buildStage2EndChoice, wantsContinueNow, wantsPauseUntilLater, pauseAt } from "../lib/staging.js";
 
 const STEPS = {
   [PHASES.DOCUMENTS_PREP_LICENSE]: {
@@ -108,26 +109,25 @@ export async function handleDocumentsPrepTurn({ candidate, userText, db }) {
     };
   }
 
+  // 最終ステップ完了時は awaiting_gen_choice フラグも立てる
+  const extraPatch = {};
+  if (step.next === PHASES.DOCUMENTS_GEN) {
+    const profile = safeParseJsonLocal(candidate.profile_json);
+    extraPatch.profile_json = JSON.stringify({ ...profile, awaiting_gen_choice: true });
+  }
+
   await updateCandidate(db, candidate.id, {
     [step.column]: result.value,
     phase: step.next,
+    ...extraPatch,
   });
 
-  // 最終ステップ（STRENGTHS）完了 → DOCUMENTS_GEN
+  // 最終ステップ（STRENGTHS）完了 → Stage 2→3 境界の選択肢を提示
   if (step.next === PHASES.DOCUMENTS_GEN) {
     return {
-      messages: [
-        {
-          type: "text",
-          text:
-            "情報ありがとうございます。\n" +
-            "今から履歴書・職務経歴書・志望動機書を作成します。\n" +
-            "30秒〜1分ほどお待ちください。\n\n" +
-            "（書類生成機能はまもなく実装します。\n" +
-            "　しばらくお待ちいただけますと幸いです。）",
-        },
-      ],
+      messages: [buildStage2EndChoice()],
       nextPhase: PHASES.DOCUMENTS_GEN,
+      stage2End: true, // index.js 側で書類生成を即トリガーしないためのシグナル
     };
   }
 
@@ -226,4 +226,12 @@ function validateStrengths(text) {
   if (!t) return { ok: false, error: "入力が空のようです。思いつかなければ「任せる」とお送りください" };
   if (t.length > 1000) return { ok: false, error: "入力が長すぎるようです" };
   return { ok: true, value: t };
+}
+
+function safeParseJsonLocal(s) {
+  try {
+    return s ? JSON.parse(s) : {};
+  } catch {
+    return {};
+  }
 }
