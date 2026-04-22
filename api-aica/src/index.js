@@ -30,6 +30,7 @@ import { runDocumentGeneration } from "./phases/documents-gen.js";
 import { handleDocumentsReviewTurn, regenerateDocument } from "./phases/documents-review.js";
 import { handleInterviewPrepTurn, wantsInterviewPrep, enterInterviewPrep } from "./phases/interview-prep.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
+import { transcribeAudioFromLine } from "./lib/transcribe.js";
 
 export default {
   async fetch(request, env, ctx) {
@@ -175,10 +176,92 @@ async function processEvent(event, env, ctx) {
     }
   }
 
+  // 音声メッセージ → Whisper で文字起こし → テキスト扱い
+  if (event.type === "message" && event.message?.type === "audio") {
+    if (!env.OPENAI_API_KEY || !env.LINE_CHANNEL_ACCESS_TOKEN) {
+      console.warn("[audio] OPENAI_API_KEY or LINE_CHANNEL_ACCESS_TOKEN missing, skipping transcription");
+      return;
+    }
+    let transcript;
+    try {
+      transcript = await transcribeAudioFromLine({
+        messageId: event.message.id,
+        accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+        openaiKey: env.OPENAI_API_KEY,
+      });
+    } catch (err) {
+      console.error("[audio] transcription failed:", err.message);
+      try {
+        await replyMessage(
+          event.replyToken,
+          [
+            {
+              type: "text",
+              text:
+                "申し訳ありません。\n" +
+                "音声メッセージの文字起こしに失敗しました。\n" +
+                "お手数ですが、もう一度お試しいただくか、\n" +
+                "テキストで入力してください。",
+            },
+          ],
+          env.LINE_CHANNEL_ACCESS_TOKEN
+        );
+      } catch {}
+      await logMessage(db, userId, "user", "[audio:transcribe-failed]", candidate.phase, candidate.turn_count, null);
+      return;
+    }
+
+    if (!transcript || transcript.length === 0) {
+      try {
+        await replyMessage(
+          event.replyToken,
+          [
+            {
+              type: "text",
+              text:
+                "音声は受け取りましたが、\n" +
+                "お声が聞き取れませんでした。\n" +
+                "もう一度、少しゆっくりお話しいただけますか？",
+            },
+          ],
+          env.LINE_CHANNEL_ACCESS_TOKEN
+        );
+      } catch {}
+      return;
+    }
+
+    // user発言として記録（voiceマーカー付き）
+    await logMessage(db, userId, "user", `[voice] ${transcript}`, candidate.phase, candidate.turn_count, "whisper");
+
+    // ack: 何を聞き取ったかを即返信（reply token 消費）
+    try {
+      const preview = transcript.length > 120 ? transcript.slice(0, 120) + "…" : transcript;
+      await replyMessage(
+        event.replyToken,
+        [
+          {
+            type: "text",
+            text: `🎤 音声を聞き取りました\n『${preview}』\n\n少しお待ちください…`,
+          },
+        ],
+        env.LINE_CHANNEL_ACCESS_TOKEN
+      );
+    } catch (err) {
+      console.warn("[audio] ack reply failed:", err.message);
+    }
+
+    // 以降の処理のために event.message を text 型に差し替え + reply token は消費済みに
+    event.message = { type: "text", text: transcript, _fromVoice: true };
+    event.replyToken = null; // 以降の replyMessage は必ず失敗 → push にフォールバック
+  }
+
   // テキストメッセージ
   if (event.type === "message" && event.message?.type === "text") {
     const userText = event.message.text;
-    await logMessage(db, userId, "user", userText, candidate.phase, candidate.turn_count, null);
+    const fromVoice = event.message._fromVoice === true;
+    if (!fromVoice) {
+      await logMessage(db, userId, "user", userText, candidate.phase, candidate.turn_count, null);
+    }
 
     // Handoff中（人間対応中）は BOT沈黙、Slack へのみ転送
     if (candidate.phase === PHASES.HANDOFF || candidate.phase === PHASES.EMERGENCY) {

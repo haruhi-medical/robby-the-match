@@ -28,6 +28,10 @@ export async function verifyLineSignature(body, signature, secret) {
  * Reply Message を送信（reply_tokenは10分以内・1回限り）
  */
 export async function replyMessage(replyToken, messages, accessToken) {
+  if (!replyToken) {
+    // 音声ackで既に消費済み等。呼び出し側の try/catch で push にフォールバックさせる
+    throw new Error("replyToken missing or already consumed");
+  }
   const body = {
     replyToken,
     messages: normalizeMessages(messages),
