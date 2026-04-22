@@ -28,6 +28,7 @@ import { handleApplyInfoTurn, isApplyInfoPhase } from "./phases/apply-info.js";
 import { handleDocumentsPrepTurn, isDocumentsPrepPhase } from "./phases/documents-prep.js";
 import { runDocumentGeneration } from "./phases/documents-gen.js";
 import { handleDocumentsReviewTurn, regenerateDocument } from "./phases/documents-review.js";
+import { handleInterviewPrepTurn, wantsInterviewPrep, enterInterviewPrep } from "./phases/interview-prep.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
 
 export default {
@@ -182,6 +183,50 @@ async function processEvent(event, env, ctx) {
     // Handoff中（人間対応中）は BOT沈黙、Slack へのみ転送
     if (candidate.phase === PHASES.HANDOFF || candidate.phase === PHASES.EMERGENCY) {
       await forwardToSlack(candidate, userText, env);
+      return;
+    }
+
+    // 面接対策への割り込みエントリ（JOB_QA/APPLY_CONFIRM/APPLIED/APPROVED 等から）
+    if (
+      wantsInterviewPrep(userText) &&
+      candidate.phase !== PHASES.INTERVIEW_PREP &&
+      !isIntakePhase(candidate.phase) &&
+      candidate.phase !== PHASES.CONDITION_HEARING &&
+      !isApplyInfoPhase(candidate.phase) &&
+      !isDocumentsPrepPhase(candidate.phase)
+    ) {
+      const result = await enterInterviewPrep({ candidate, db });
+      await logMessage(db, userId, "assistant", "[interview-prep-menu]", result.nextPhase, 0, "interview-prep-menu");
+      if (env.LINE_CHANNEL_ACCESS_TOKEN && result.messages) {
+        try {
+          await replyMessage(event.replyToken, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // 面接対策フェーズ: メニュー / 想定Q&A / 模擬面接 / 逆質問のコツ / 終了
+    if (candidate.phase === PHASES.INTERVIEW_PREP) {
+      const result = await handleInterviewPrepTurn({ candidate, userText, env, db });
+      await logMessage(
+        db,
+        userId,
+        "assistant",
+        result.messages?.[0]?.text || `[interview-prep ${result.nextPhase}]`,
+        result.nextPhase,
+        0,
+        result.provider || "interview-prep-template"
+      );
+      if (env.LINE_CHANNEL_ACCESS_TOKEN && result.messages) {
+        try {
+          await replyMessage(event.replyToken, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          console.warn("[line] reply failed, fallback to push:", err.message);
+          await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
       return;
     }
 
