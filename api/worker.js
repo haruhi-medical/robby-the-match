@@ -5745,7 +5745,7 @@ async function buildPhaseMessage(phase, entry, env) {
           "(emp_type IS NULL OR emp_type NOT LIKE '%派遣%')",
           "(title IS NULL OR title NOT LIKE '%派遣%')",
         ];
-        const selectCols = 'SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type, first_seen_at FROM jobs';
+        const selectCols = 'SELECT employer, title, salary_display, bonus_text, holidays, rank, score, station_text, shift1, work_location, emp_type, contract_period, insurance, first_seen_at FROM jobs';
 
         // Step1: 本日初出
         const todayConds = [...baseConditions, "first_seen_at = date('now','localtime')", ...areaConditions];
@@ -5775,27 +5775,35 @@ async function buildPhaseMessage(phase, entry, env) {
           }];
         }
 
-        // カルーセル生成（求人5件）
-        const jobBubbles = result.results.map((r, i) => ({
-          type: "bubble", size: "kilo",
-          header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
-            contents: [{
-              type: "text",
-              text: (!expanded && r.first_seen_at === new Date().toISOString().slice(0,10)) ? "🆕 本日の新着" : "新着",
-              size: "xs", weight: "bold", color: "#FFFFFF",
-            }] },
-          body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: [
-            ...(r.salary_display ? [{ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR }] : []),
-            ...(r.station_text ? [{ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "md" }] : []),
-            ...(r.holidays ? [{ type: "text", text: `🗓 年間休日 ${r.holidays}日`, size: "sm", color: "#333333", margin: "xs" }] : []),
-            { type: "separator", margin: "lg", color: "#E8E8E8" },
-            { type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true },
-          ]},
-          footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
-            { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
-              action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
-          ]},
-        }));
+        // カルーセル生成（求人5件）- マッチング検索のbuildJobBubbleと同じ項目順で揃える
+        const jobBubbles = result.results.map((r, i) => {
+          const bodyContents = [];
+          if (r.salary_display) bodyContents.push({ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR });
+          if (r.bonus_text) bodyContents.push({ type: "text", text: `+ 賞与 ${(r.bonus_text || '').slice(0, 30)}`, size: "sm", color: "#999999", margin: "xs" });
+          const shift = (r.shift1 || '').replace(/\(1\)/g, '').trim().slice(0, 20);
+          if (shift) bodyContents.push({ type: "text", text: `🕐 ${shift}`, size: "sm", color: "#333333", margin: "md" });
+          if (r.station_text) bodyContents.push({ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "xs" });
+          if (r.holidays) bodyContents.push({ type: "text", text: `🗓 年間休日 ${r.holidays}日`, size: "sm", color: "#333333", margin: "xs" });
+          if (r.contract_period) bodyContents.push({ type: "text", text: `📋 ${(r.contract_period || '').slice(0, 30)}`, size: "sm", color: "#333333", margin: "xs" });
+          if (r.insurance) bodyContents.push({ type: "text", text: `🏥 ${(r.insurance || '').slice(0, 40)}`, size: "xs", color: "#666666", margin: "xs", wrap: true });
+          bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
+          bodyContents.push({ type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true });
+
+          return {
+            type: "bubble", size: "kilo",
+            header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
+              contents: [{
+                type: "text",
+                text: (!expanded && r.first_seen_at === new Date().toISOString().slice(0,10)) ? "🆕 本日の新着" : "新着",
+                size: "xs", weight: "bold", color: "#FFFFFF",
+              }] },
+            body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
+            footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+              { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
+                action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
+            ]},
+          };
+        });
 
         // CTA バブル: 「もっと見たい？」担当者相談導線（カルーセル末尾に必ず入れる）
         const ctaBubble = {
@@ -9820,7 +9828,7 @@ async function handleScheduledNewJobsNotify(env, opts) {
         const dateFilter = fallbackDays > 0
           ? `first_seen_at >= date('now','localtime','-${fallbackDays} days')`
           : `first_seen_at = date('now','localtime')`;
-        const sql = `SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type, first_seen_at
+        const sql = `SELECT employer, title, salary_display, bonus_text, holidays, rank, score, station_text, shift1, work_location, emp_type, contract_period, insurance, first_seen_at
           FROM jobs
           WHERE ${dateFilter}
             AND (emp_type IS NULL OR emp_type NOT LIKE '%派遣%')
@@ -9837,28 +9845,36 @@ async function handleScheduledNewJobsNotify(env, opts) {
           continue;
         }
 
-        // Flex カルーセル構築（rm_new_jobs と同じフォーマットで揃える）
+        // Flex カルーセル構築（rm_new_jobs / マッチング検索と同じフォーマットで揃える）
         const todayStr = new Date().toISOString().slice(0, 10);
-        const bubbles = result.results.map((r) => ({
-          type: "bubble", size: "kilo",
-          header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
-            contents: [{
-              type: "text",
-              text: r.first_seen_at === todayStr ? "🆕 本日の新着" : "新着",
-              size: "xs", weight: "bold", color: "#FFFFFF",
-            }] },
-          body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: [
-            ...(r.salary_display ? [{ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR }] : []),
-            ...(r.station_text ? [{ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "md" }] : []),
-            ...(r.holidays ? [{ type: "text", text: `🗓 年間休日 ${r.holidays}日`, size: "sm", color: "#333333", margin: "xs" }] : []),
-            { type: "separator", margin: "lg", color: "#E8E8E8" },
-            { type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true },
-          ]},
-          footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
-            { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
-              action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
-          ]},
-        }));
+        const bubbles = result.results.map((r) => {
+          const bodyContents = [];
+          if (r.salary_display) bodyContents.push({ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR });
+          if (r.bonus_text) bodyContents.push({ type: "text", text: `+ 賞与 ${(r.bonus_text || '').slice(0, 30)}`, size: "sm", color: "#999999", margin: "xs" });
+          const shift = (r.shift1 || '').replace(/\(1\)/g, '').trim().slice(0, 20);
+          if (shift) bodyContents.push({ type: "text", text: `🕐 ${shift}`, size: "sm", color: "#333333", margin: "md" });
+          if (r.station_text) bodyContents.push({ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "xs" });
+          if (r.holidays) bodyContents.push({ type: "text", text: `🗓 年間休日 ${r.holidays}日`, size: "sm", color: "#333333", margin: "xs" });
+          if (r.contract_period) bodyContents.push({ type: "text", text: `📋 ${(r.contract_period || '').slice(0, 30)}`, size: "sm", color: "#333333", margin: "xs" });
+          if (r.insurance) bodyContents.push({ type: "text", text: `🏥 ${(r.insurance || '').slice(0, 40)}`, size: "xs", color: "#666666", margin: "xs", wrap: true });
+          bodyContents.push({ type: "separator", margin: "lg", color: "#E8E8E8" });
+          bodyContents.push({ type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true });
+
+          return {
+            type: "bubble", size: "kilo",
+            header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
+              contents: [{
+                type: "text",
+                text: r.first_seen_at === todayStr ? "🆕 本日の新着" : "新着",
+                size: "xs", weight: "bold", color: "#FFFFFF",
+              }] },
+            body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
+            footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+              { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
+                action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
+            ]},
+          };
+        });
 
         // CTA バブル（非公開求人訴求）
         bubbles.push({
