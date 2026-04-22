@@ -5766,7 +5766,7 @@ async function buildPhaseMessage(phase, entry, env) {
         if (!result || !result.results || result.results.length === 0) {
           return [{
             type: "text",
-            text: `${areaLabel}エリアの公開新着はありませんでした。\n\n※ここに出るのはハローワーク公開求人の一部のみです。\n非公開の求人や、条件に合わせてお探しするオーダーメイド求人は担当者にご相談ください🌸`,
+            text: `${areaLabel}エリアの新着はありませんでした。\n\n非公開の求人や、条件に合わせてお探しするオーダーメイド求人は担当者にご相談ください🌸`,
             quickReply: { items: [
               qrItem("担当者に相談", "rm=contact"),
               qrItem("別エリアを選ぶ", "rm=new_jobs_area"),
@@ -5815,8 +5815,8 @@ async function buildPhaseMessage(phase, entry, env) {
         const allBubbles = [...jobBubbles, ctaBubble].slice(0, 10);
 
         const headerText = expanded
-          ? `${areaLabel}エリアは本日の新着なし。直近1週間から${result.results.length}件👇\n\n※ハローワーク公開求人の一部を表示しています。`
-          : `${areaLabel}エリアの${rangeLabel} ${result.results.length}件👇\n\n※ハローワーク公開求人の一部を表示しています。`;
+          ? `${areaLabel}エリアは本日の新着なし。直近1週間から${result.results.length}件👇`
+          : `${areaLabel}エリアの${rangeLabel} ${result.results.length}件👇`;
 
         return [
           { type: "text", text: headerText },
@@ -9837,11 +9837,16 @@ async function handleScheduledNewJobsNotify(env, opts) {
           continue;
         }
 
-        // Flex カルーセル構築
+        // Flex カルーセル構築（rm_new_jobs と同じフォーマットで揃える）
+        const todayStr = new Date().toISOString().slice(0, 10);
         const bubbles = result.results.map((r) => ({
           type: "bubble", size: "kilo",
           header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
-            contents: [{ type: "text", text: `🆕 本日の新着 [${r.rank || ''}ランク]`, size: "xs", weight: "bold", color: "#FFFFFF" }] },
+            contents: [{
+              type: "text",
+              text: r.first_seen_at === todayStr ? "🆕 本日の新着" : "新着",
+              size: "xs", weight: "bold", color: "#FFFFFF",
+            }] },
           body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: [
             ...(r.salary_display ? [{ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR }] : []),
             ...(r.station_text ? [{ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "md" }] : []),
@@ -9870,7 +9875,7 @@ async function handleScheduledNewJobsNotify(env, opts) {
           ]},
         });
 
-        const headerText = `${areaLabel}エリアの本日の新着 ${result.results.length}件👇\n\n※ハローワーク公開求人の一部を表示しています。`;
+        const headerText = `${areaLabel}エリアの新着求人 ${result.results.length}件👇`;
 
         const messages = [
           { type: "text", text: headerText },
