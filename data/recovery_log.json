@@ -22,11 +22,11 @@
       "last_alert_ts": "2026-03-13T08:30:48.764844"
     },
     "competitor": {
-      "date": "2026-04-01",
-      "retries": 3,
-      "status": "retry_exhausted",
-      "last_error": "exit_code=1",
-      "last_alert_ts": "2026-04-01T10:30:19.439578"
+      "date": "2026-04-22",
+      "retries": 1,
+      "status": "retrying",
+      "last_error": "",
+      "last_alert_ts": ""
     },
     "content": {
       "date": "2026-04-09",
