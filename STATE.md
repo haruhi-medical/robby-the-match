@@ -1,16 +1,34 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-04-22 14:30 by 競合監視
+# 最終更新: 2026-04-22 by 新着求人システム完成
 
-## 🏁 2026-04-22 本日の成果（新着求人 完全自動配信）
-- ✅ D1 jobs に `first_seen_at` カラム追加（31日分スナップショット履歴から逆算）
-- ✅ リッチメニュー「新着求人」: 9エリア別 + 本日初出 → 0件時7日フォールバック、CTAバブルで非公開求人訴求
-- ✅ LINE友だち追加で `newjobs_notify` KV自動登録（opt-out設計）
-- ✅ エリア推定: LP診断 → 郵便番号(3桁プレフィクス) → 駅名テキスト(AREA_CITY_MAP逆引き) → 神奈川全域デフォルト
-- ✅ unfollow で自動KV削除
-- ✅ 毎朝10時JST cron: 購読エリアの本日初出S/A/B求人を最大3件Push（0件なら送らない）
-- ✅ 3箇所のAREA_LABELS重複排除 → `getAreaLabel()` に一元化（tokyo_south等の英字表示バグ修正）
-- Worker Version: 2dd046b1 / commit 498c8f5
-- Welcome文言: 「新着求人は毎朝このLINEにお届けします（いつでも停止OK）」
+## 🏁 2026-04-22 本日の成果（新着求人システム完全実装）
+
+### 核心機能
+- ✅ **D1 jobs に `first_seen_at` カラム追加**（31日分スナップショット履歴から逆算、毎朝06:30 cron で自動更新）
+- ✅ **リッチメニュー「本日の新着求人」**: エリア別検索 + 本日初出優先 → 0件時7日フォールバック + 非公開求人CTAバブル
+- ✅ **LINE友だち追加で `newjobs_notify` KV 自動登録**（完全 opt-out 設計、ブロックで自動解除）
+- ✅ **エリア自動推定**: LP診断 → 郵便番号(POSTAL_PREFIX_TO_AREA 3桁) → 駅名テキスト(AREA_CITY_MAP 逆引き) → 神奈川全域デフォルト
+- ✅ **毎朝10時JST Push cron**: 購読エリアの本日初出 S/A/B ランク求人を最大3件Push（0件なら送らない）
+- ✅ **管理用手動発火エンドポイント**: POST `/api/admin/trigger-newjobs-push` (secret+fallbackDays option)
+- ✅ **3問intake完了で entry.area も郵便番号/駅名から上書き**
+- ✅ **エリア選択優先ルール統一**: 最後のユーザー選択を優先（LP → 郵便番号 → 「エリアを変える」QR → リッチメニュー新着エリア選択、全て entry.area を上書き）
+
+### バグ修正（同日対応）
+- ✅ 5箇所のローカル AREA_LABELS マップを `getAreaLabel()` に一元化（tokyo_south 等の英字表示バグ根治）
+- ✅ ブロック後のKV残存 entry.area を郵便番号/駅名が上書きするよう resolveNotifyAreaKey() 追加
+- ✅ handoff guard で「この施設について聞く」message が沈黙していた問題→ 正規表現で検出して即返信 + entry.interestedFacility 保存
+- ✅ 新着求人Push 末尾QR をリッチメニューが覆い隠していた → 末尾テキスト+QR削除
+- ✅ Pushカードの「[Sランク]」表示削除、検索カードと項目完全統一（月給/賞与/勤務時間/駅/休日/契約期間/加入保険/施設名）
+- ✅ Welcome・待機画面・登録完了メッセージから「朝10時」「1日1通」等の説明削除 → 『定期的に新着求人も配信しております』に簡素化
+- ✅ カルーセル末尾「ハローワーク公開求人の一部」注釈削除
+
+### Worker / commit
+- 最終 Worker Version: `f7aeba79`
+- 最終 commit: `3a26bd4` (main/master 両branch 同期)
+- デプロイ回数: 約10回（段階的改善）
+
+### 詳細メモリ
+- [新着求人通知システム](.claude/projects/-Users-robby2/memory/project_newjobs_notify.md)
 
 ## 🏁 2026-04-18 本日の成果（セッション中）
 - ✅ Phase 2 #33 訪問看護ST投入: facilities 24,488→29,549件（訪問看護ST +5,061件、関東4都県、厚労省関東信越厚生局 ZIP）
@@ -27,7 +45,7 @@
 - autoresearch復旧方式（claude auth login vs .envにANTHROPIC_API_KEY）
 
 ---
-# 最終更新: 2026-04-22 14:30 by 競合監視
+# 最終更新: 2026-04-22 15:04 by コンテンツ生成
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
