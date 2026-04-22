@@ -1413,6 +1413,8 @@ export default {
     // ナーチャリング配信は1日1回のcronのみ（01:00 UTC = 10:00 JST）
     if (event.cron === "0 1 * * *") {
       ctx.waitUntil(handleScheduledNurture(env));
+      // 新着求人Push通知: エリア登録ユーザーに本日初出求人を配信
+      ctx.waitUntil(handleScheduledNewJobsNotify(env));
     }
     // ハンドオフフォロー + 失敗Push再送は15分おき
     ctx.waitUntil(handleScheduledHandoffFollowup(env));
@@ -3989,6 +3991,7 @@ function buildSessionWelcome(sessionCtx, entry) {
 
   // 全入口共通メッセージ（shindan/area_page以外）
   // #6 welcome QR 3択化 / #13 welcomeコピー短縮（約50文字）
+  // 2026-04-22: エリアだけ登録で新着通知を受け取る軽量opt-in導線を追加
   const nowHour = new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo", hour: "numeric", hour12: false });
   const hr = parseInt(nowHour, 10);
   let greet = 'こんにちは';
@@ -3998,9 +4001,10 @@ function buildSessionWelcome(sessionCtx, entry) {
     nextPhase: 'welcome',
     messages: [{
       type: 'text',
-      text: `${greet}、ナースロビーです。まずはどのエリアで働きたいですか？`,
+      text: `${greet}、ナースロビーです🌸\n\n関東の看護師求人をお探しのサポートをします。\nまずは何から始めますか？\n\n💡 エリアだけ登録しておけば、新着求人が出た日にお届けします（1日1通・いつでも停止OK）`,
       quickReply: {
         items: [
+          qrItem('新着通知に登録', 'welcome=newjobs_optin'),
           qrItem('求人を見る', 'welcome=see_jobs'),
           qrItem('相場が知りたい', 'welcome=see_salary'),
           qrItem('相談したい', 'welcome=consult'),
@@ -5397,6 +5401,49 @@ async function buildPhaseMessage(phase, entry, env) {
       return [{
         type: "text",
         text: "✅ 逆指名リクエスト受付\n\n「ここで働きたい」という病院名・施設名を\nメッセージで送ってください。\n\n例）\n・横浜市立大学附属病院\n・聖マリアンナ医科大学病院\n・小田原市立病院\n\n※ 担当者が24時間以内に採用可能性をお調べしてご連絡します。※ お名前や連絡先は先方に開示しません。",
+      }];
+
+    // ===== 新着求人通知 Opt-In: エリア選択 =====
+    case "newjobs_optin_area":
+      return [{
+        type: "text",
+        text: "どのエリアの新着求人をお届けしますか？👇\n\n選んだエリアで新着が出た日の朝10時頃に、1日1通だけお届けします。\nいつでも停止できます。",
+        quickReply: {
+          items: [
+            qrItem("横浜・川崎", "newjobs_optin=yokohama_kawasaki"),
+            qrItem("湘南・鎌倉", "newjobs_optin=shonan_kamakura"),
+            qrItem("相模原・県央", "newjobs_optin=sagamihara_kenoh"),
+            qrItem("横須賀・三浦", "newjobs_optin=yokosuka_miura"),
+            qrItem("小田原・県西", "newjobs_optin=odawara_kensei"),
+            qrItem("東京", "newjobs_optin=tokyo_included"),
+            qrItem("千葉", "newjobs_optin=chiba_all"),
+            qrItem("埼玉", "newjobs_optin=saitama_all"),
+            qrItem("神奈川すべて", "newjobs_optin=kanagawa_all"),
+          ],
+        },
+      }];
+
+    // ===== 新着求人通知 Opt-In: 登録完了 =====
+    case "newjobs_optin_done": {
+      const label = entry.newjobsNotifyLabel || entry.areaLabel || "選択いただいたエリア";
+      return [{
+        type: "text",
+        text: `✅ 登録完了\n\n${label}エリアで新着求人が出た日に、朝10時頃にお届けします🌸\n\n・1日1通まで\n・新着がない日は送りません\n・いつでも停止できます\n\n今すぐ該当エリアの求人を見る場合はリッチメニューの「新着求人」をタップしてください。`,
+        quickReply: {
+          items: [
+            qrItem("今すぐ求人を見る", "rm=new_jobs"),
+            qrItem("担当者に相談", "rm=contact"),
+            qrItem("通知を止める", "newjobs_optin=stop"),
+          ],
+        },
+      }];
+    }
+
+    // ===== 新着求人通知 Opt-Out: 停止完了 =====
+    case "newjobs_optin_stopped":
+      return [{
+        type: "text",
+        text: "新着求人通知を停止しました。\n\nまた受け取りたくなったら、リッチメニューや「新着通知」と送ってください🌸",
       }];
 
     // ===== リッチメニュー: 新着求人（エリア選択） =====
@@ -6889,6 +6936,39 @@ function handleLinePostback(dataStr, entry) {
       } else {
         nextPhase = "il_area";
       }
+    } else if (val === "newjobs_optin") {
+      // エリアだけ登録 → 新着求人Push通知オプトイン
+      nextPhase = "newjobs_optin_area";
+    }
+  }
+  // 新着求人通知: エリア選択 → KV購読登録 → 完了メッセージ
+  else if (params.has("newjobs_optin")) {
+    const areaKey = params.get("newjobs_optin");
+    entry.unexpectedTextCount = 0;
+    const AREA_LABELS_NJ = {
+      yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
+      sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
+      odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
+      tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
+    };
+    if (areaKey === "stop") {
+      // 通知停止（Push内の「通知を止める」ボタンから到達）
+      entry._newjobsOptoutRequested = true;
+      nextPhase = "newjobs_optin_stopped";
+    } else {
+      entry.newjobsNotifyArea = areaKey;
+      entry.newjobsNotifyLabel = AREA_LABELS_NJ[areaKey] || areaKey;
+      entry.newjobsNotifyOptinAt = new Date().toISOString();
+      // entry.area が未設定なら同時に反映（以後のマッチング・リッチメニュー新着でも使い回す）
+      if (!entry.area) {
+        entry.area = areaKey;
+        entry.areaLabel = entry.newjobsNotifyLabel;
+        if (areaKey.startsWith('tokyo')) entry.prefecture = '東京都';
+        else if (areaKey.startsWith('chiba')) entry.prefecture = '千葉県';
+        else if (areaKey.startsWith('saitama')) entry.prefecture = '埼玉県';
+        else entry.prefecture = '神奈川県';
+      }
+      nextPhase = "newjobs_optin_done";
     }
   }
   // 同意取得（legacy: redirect to intake_light）
@@ -8038,6 +8118,44 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else if (nextPhase === "rm_new_jobs") {
           entry.phase = "rm_new_jobs";
           replyMessages = await buildPhaseMessage("rm_new_jobs", entry, env);
+        } else if (nextPhase === "newjobs_optin_area") {
+          entry.phase = "newjobs_optin_area";
+          replyMessages = await buildPhaseMessage("newjobs_optin_area", entry, env);
+        } else if (nextPhase === "newjobs_optin_done") {
+          entry.phase = "newjobs_optin_done";
+          // KV購読者レコード書き込み（購読開始）
+          if (env?.LINE_SESSIONS && entry.newjobsNotifyArea) {
+            try {
+              await env.LINE_SESSIONS.put(
+                `newjobs_notify:${userId}`,
+                JSON.stringify({
+                  userId,
+                  area: entry.newjobsNotifyArea,
+                  areaLabel: entry.newjobsNotifyLabel,
+                  subscribedAt: entry.newjobsNotifyOptinAt || new Date().toISOString(),
+                })
+              );
+              console.log(`[NewJobsOptin] subscribed user=${userId.slice(0,8)} area=${entry.newjobsNotifyArea}`);
+            } catch (e) {
+              console.error(`[NewJobsOptin] KV put failed: ${e.message}`);
+            }
+          }
+          replyMessages = await buildPhaseMessage("newjobs_optin_done", entry, env);
+        } else if (nextPhase === "newjobs_optin_stopped") {
+          entry.phase = "newjobs_optin_stopped";
+          // KV購読者レコード削除（購読停止）
+          if (env?.LINE_SESSIONS) {
+            try {
+              await env.LINE_SESSIONS.delete(`newjobs_notify:${userId}`);
+              delete entry.newjobsNotifyArea;
+              delete entry.newjobsNotifyLabel;
+              delete entry._newjobsOptoutRequested;
+              console.log(`[NewJobsOptin] unsubscribed user=${userId.slice(0,8)}`);
+            } catch (e) {
+              console.error(`[NewJobsOptin] KV delete failed: ${e.message}`);
+            }
+          }
+          replyMessages = await buildPhaseMessage("newjobs_optin_stopped", entry, env);
         } else if (nextPhase === "rm_resume_start") {
           // 新フロー: Webフォーム(LIFF)へ誘導してAI履歴書生成＋PDF保存導線
           entry.phase = "rm_resume_start";
@@ -9379,6 +9497,146 @@ async function handleGetAnalytics(request, env) {
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
   }
+}
+
+// ========== 新着求人 Push通知 cron（毎朝10時JST） ==========
+// エリア登録ユーザー向けに「本日初出」の求人を最大3件Push。
+// 該当エリアに本日初出がなければ何も送らない（うざくしない）。
+// 「通知を止める」postback で KV レコード削除。
+async function handleScheduledNewJobsNotify(env) {
+  if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN || !env?.DB) {
+    console.log("[NewJobsCron] 必要な env が揃っていないためスキップ");
+    return;
+  }
+  const token = env.LINE_CHANNEL_ACCESS_TOKEN;
+  const BRAND_COLOR = "#5a8fa8";
+  let pushSuccess = 0;
+  let pushSkipZero = 0;
+  let pushFailed = 0;
+
+  try {
+    const keys = await kvListAll(env.LINE_SESSIONS, "newjobs_notify:");
+    console.log(`[NewJobsCron] 購読者 ${keys.length} 件を処理`);
+
+    for (const key of keys) {
+      try {
+        const raw = await env.LINE_SESSIONS.get(key.name, { cacheTtl: 60 });
+        if (!raw) continue;
+        const sub = JSON.parse(raw);
+        const userId = sub.userId;
+        const areaKey = sub.area;
+        const areaLabel = sub.areaLabel || areaKey;
+        if (!userId || !areaKey) continue;
+
+        // エリアフィルタ構築（rm_new_jobs と同じロジック）
+        const areaConditions = [];
+        const areaParams = [];
+        const cities = AREA_CITY_MAP[areaKey];
+        if (cities && cities.length > 0) {
+          areaConditions.push(`(${cities.map(() => 'work_location LIKE ?').join(' OR ')})`);
+          cities.forEach(c => areaParams.push(`%${c}%`));
+        } else if (areaKey === 'kanagawa_all') {
+          areaConditions.push('prefecture = ?'); areaParams.push('神奈川県');
+        } else if (areaKey === 'tokyo_included' || areaKey === 'tokyo_23ku') {
+          areaConditions.push('prefecture = ?'); areaParams.push('東京都');
+        } else if (areaKey === 'chiba_all') {
+          areaConditions.push('prefecture = ?'); areaParams.push('千葉県');
+        } else if (areaKey === 'saitama_all') {
+          areaConditions.push('prefecture = ?'); areaParams.push('埼玉県');
+        }
+
+        // 本日初出 + 派遣除外 + Sランク/Aランク優先で最大3件
+        const sql = `SELECT employer, title, salary_display, holidays, rank, score, station_text, work_location, emp_type
+          FROM jobs
+          WHERE first_seen_at = date('now','localtime')
+            AND (emp_type IS NULL OR emp_type NOT LIKE '%派遣%')
+            AND (title IS NULL OR title NOT LIKE '%派遣%')
+            AND (rank = 'S' OR rank = 'A' OR rank = 'B')
+            ${areaConditions.length ? ' AND ' + areaConditions.join(' AND ') : ''}
+          ORDER BY CASE rank WHEN 'S' THEN 3 WHEN 'A' THEN 2 ELSE 1 END DESC, score DESC
+          LIMIT 3`;
+        const result = await env.DB.prepare(sql).bind(...areaParams).all();
+
+        if (!result || !result.results || result.results.length === 0) {
+          // 0件なら送らない（うざくしない）
+          pushSkipZero++;
+          continue;
+        }
+
+        // Flex カルーセル構築
+        const bubbles = result.results.map((r) => ({
+          type: "bubble", size: "kilo",
+          header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
+            contents: [{ type: "text", text: `🆕 本日の新着 [${r.rank || ''}ランク]`, size: "xs", weight: "bold", color: "#FFFFFF" }] },
+          body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: [
+            ...(r.salary_display ? [{ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR }] : []),
+            ...(r.station_text ? [{ type: "text", text: `📍 ${(r.station_text || '').slice(0, 20)}`, size: "sm", color: "#333333", margin: "md" }] : []),
+            ...(r.holidays ? [{ type: "text", text: `🗓 年間休日 ${r.holidays}日`, size: "sm", color: "#333333", margin: "xs" }] : []),
+            { type: "separator", margin: "lg", color: "#E8E8E8" },
+            { type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true },
+          ]},
+          footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+            { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
+              action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent((r.employer||'').slice(0,20))}`, displayText: `${(r.employer||'').slice(0,20)}について聞きたい` } }
+          ]},
+        }));
+
+        // CTA バブル（非公開求人訴求）
+        bubbles.push({
+          type: "bubble", size: "kilo",
+          header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: "#2f3b46",
+            contents: [{ type: "text", text: "ここに出るのは一部", size: "xs", weight: "bold", color: "#FFFFFF" }] },
+          body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "md", contents: [
+            { type: "text", text: "非公開求人もあります", size: "md", weight: "bold", wrap: true, color: "#2f3b46" },
+            { type: "text", text: "条件に合わせてスタッフが個別にお探しします。", size: "xs", wrap: true, color: "#666666" },
+          ]},
+          footer: { type: "box", layout: "vertical", paddingAll: "12px", spacing: "sm", contents: [
+            { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
+              action: { type: "postback", label: "担当者に相談する", data: "rm=contact", displayText: "担当者に相談したい" } },
+          ]},
+        });
+
+        const headerText = `${areaLabel}エリアの本日の新着 ${result.results.length}件👇\n\n※ハローワーク公開求人の一部を表示しています。`;
+
+        const messages = [
+          { type: "text", text: headerText },
+          { type: "flex", altText: `${areaLabel}の新着求人 ${result.results.length}件`, contents: { type: "carousel", contents: bubbles } },
+          {
+            type: "text",
+            text: "気になる求人があれば担当者までお気軽に！\n\n新着通知の停止はボタンからどうぞ👇",
+            quickReply: {
+              items: [
+                { type: "action", action: { type: "postback", label: "担当者に相談", data: "rm=contact", displayText: "担当者に相談したい" } },
+                { type: "action", action: { type: "postback", label: "エリアを変える", data: "welcome=newjobs_optin", displayText: "通知エリアを変える" } },
+                { type: "action", action: { type: "postback", label: "通知を止める", data: "newjobs_optin=stop", displayText: "新着通知を停止" } },
+              ],
+            },
+          },
+        ];
+
+        const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify({ to: userId, messages }),
+        });
+
+        if (pushRes.ok) {
+          pushSuccess++;
+        } else {
+          pushFailed++;
+          const body = await pushRes.text().catch(() => "");
+          console.error(`[NewJobsCron] push failed user=${userId.slice(0,8)} status=${pushRes.status} body=${body.slice(0,200)}`);
+        }
+      } catch (e) {
+        pushFailed++;
+        console.error(`[NewJobsCron] ${key.name}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    console.error(`[NewJobsCron] fatal: ${e.message}`);
+  }
+
+  console.log(`[NewJobsCron] done: sent=${pushSuccess} zero_skip=${pushSkipZero} failed=${pushFailed}`);
 }
 
 // KV list() の全件取得（ページネーション対応）
