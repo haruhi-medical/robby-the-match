@@ -5828,16 +5828,11 @@ async function buildPhaseMessage(phase, entry, env) {
           ? `${areaLabel}エリアは本日の新着なし。直近1週間から${result.results.length}件👇`
           : `${areaLabel}エリアの${rangeLabel} ${result.results.length}件👇`;
 
+        // QR付きの末尾テキストはリッチメニューを隠すので削除
+        // CTAバブル末尾で担当者相談導線は確保済み
         return [
           { type: "text", text: headerText },
           { type: "flex", altText: "新着求人", contents: { type: "carousel", contents: allBubbles } },
-          { type: "text", text: "気になる求人はありましたか？\n\n公開されていない求人や、条件に合わせた求人もあります。\n担当者に相談してみませんか？🌸",
-            quickReply: { items: [
-              qrItem("担当者に相談", "rm=contact"),
-              qrItem("別エリアを見る", "rm=new_jobs_area"),
-              qrItem("もっと探す", "rm=start"),
-            ]}
-          },
         ];
       } catch (e) {
         console.error(`[RichMenu] new_jobs error: ${e.message}`);
@@ -9897,20 +9892,11 @@ async function handleScheduledNewJobsNotify(env, opts) {
 
         const headerText = `${areaLabel}エリアの新着求人 ${result.results.length}件👇`;
 
+        // QR付きテキストを最後に置くとリッチメニューが隠れるので削除
+        // CTAバブルの「担当者に相談する」で十分。他操作はリッチメニューから。
         const messages = [
           { type: "text", text: headerText },
           { type: "flex", altText: `${areaLabel}の新着求人 ${result.results.length}件`, contents: { type: "carousel", contents: bubbles } },
-          {
-            type: "text",
-            text: "気になる求人があれば担当者までお気軽に！\n\n新着通知の停止はボタンからどうぞ👇",
-            quickReply: {
-              items: [
-                { type: "action", action: { type: "postback", label: "担当者に相談", data: "rm=contact", displayText: "担当者に相談したい" } },
-                { type: "action", action: { type: "postback", label: "エリアを変える", data: "welcome=newjobs_optin", displayText: "通知エリアを変える" } },
-                { type: "action", action: { type: "postback", label: "通知を止める", data: "newjobs_optin=stop", displayText: "新着通知を停止" } },
-              ],
-            },
-          },
         ];
 
         const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
