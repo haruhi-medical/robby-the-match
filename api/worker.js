@@ -769,6 +769,47 @@ function postalToAreaKey(postal7) {
   return POSTAL_PREFIX_TO_AREA[prefix] || null;
 }
 
+// 全エリアkey → 日本語ラベル（複数箇所で使うので一元化）
+const AREA_LABEL_MAP = {
+  // 神奈川
+  yokohama_kawasaki: "横浜・川崎",
+  shonan_kamakura: "湘南・鎌倉",
+  sagamihara_kenoh: "相模原・県央",
+  yokosuka_miura: "横須賀・三浦",
+  odawara_kensei: "小田原・県西",
+  kanagawa_all: "神奈川全域",
+  // 東京
+  tokyo_included: "東京",
+  tokyo_23ku: "東京23区",
+  tokyo_central: "東京都心",
+  tokyo_east: "東京城東",
+  tokyo_south: "東京城南",
+  tokyo_nw: "東京城西・城北",
+  tokyo_tama: "多摩",
+  // 千葉
+  chiba_all: "千葉",
+  chiba_tokatsu: "東葛（船橋・松戸）",
+  chiba_uchibo: "内房（千葉・市原）",
+  chiba_inba: "印旛（成田・佐倉）",
+  chiba_sotobo: "外房（館山・茂原）",
+  // 埼玉
+  saitama_all: "埼玉",
+  saitama_south: "埼玉南部",
+  saitama_east: "埼玉東部",
+  saitama_west: "埼玉西部",
+  saitama_north: "埼玉北部",
+  // 未指定
+  undecided: "ご希望エリア",
+  kanagawa_il: "神奈川",
+  tokyo_il: "東京",
+};
+
+function getAreaLabel(areaKey) {
+  if (!areaKey) return "ご希望エリア";
+  const clean = String(areaKey).replace('_il', '');
+  return AREA_LABEL_MAP[clean] || AREA_LABEL_MAP[areaKey] || "ご希望エリア";
+}
+
 const AREA_CITY_MAP = {
   yokohama_kawasaki: ['横浜市', '川崎市'],
   shonan_kamakura: ['藤沢市', '茅ヶ崎市', '鎌倉市', '逗子市', '葉山町', '寒川町'],
@@ -3972,16 +4013,10 @@ function buildIntakePostalQuestion() {
 
 function buildIntakeHumanThanks(entry) {
   // 郵便番号 or 既存エリアから新着通知エリアを自動判定（ワンタップ登録用）
-  const AREA_LABELS_THANKS = {
-    yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
-    sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
-    odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
-    tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
-  };
   const derivedAreaKey = (entry?.area && !entry.area.startsWith('undecided'))
     ? entry.area.replace('_il', '')
     : postalToAreaKey(entry?.intakePostal || '');
-  const derivedAreaLabel = derivedAreaKey ? (AREA_LABELS_THANKS[derivedAreaKey] || derivedAreaKey) : null;
+  const derivedAreaLabel = derivedAreaKey ? getAreaLabel(derivedAreaKey) : null;
 
   // 新着通知CTAのQR（エリア判定できたら1タップ、できなければエリア選択へ）
   const notifyQrItem = derivedAreaKey
@@ -5613,20 +5648,7 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
       try {
-        // エリア名ラベル（表示用）
-        const AREA_LABELS_RM = {
-          yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
-          sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
-          odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
-          tokyo_included: "東京", tokyo_23ku: "東京23区", tokyo_central: "都心",
-          tokyo_east: "城東", tokyo_south: "城南", tokyo_nw: "城西・城北", tokyo_tama: "多摩",
-          chiba_all: "千葉", chiba_tokatsu: "東葛", chiba_uchibo: "内房",
-          chiba_inba: "印旛", chiba_sotobo: "外房",
-          saitama_all: "埼玉", saitama_south: "埼玉南部", saitama_east: "埼玉東部",
-          saitama_west: "埼玉西部", saitama_north: "埼玉北部",
-          undecided: "全エリア",
-        };
-        const areaLabel = AREA_LABELS_RM[areaKey] || areaKey;
+        const areaLabel = getAreaLabel(areaKey);
 
         // エリアフィルタ構築
         const areaConditions = [];
@@ -7061,19 +7083,13 @@ function handleLinePostback(dataStr, entry) {
     const val = params.get("intake_newjobs");
     entry.unexpectedTextCount = 0;
     if (val === "auto") {
-      const AREA_LABELS_THANKS2 = {
-        yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
-        sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
-        odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
-        tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
-      };
       // 既存 entry.area 優先、なければ郵便番号から推定
       const areaKey = (entry.area && !entry.area.startsWith('undecided'))
         ? entry.area.replace('_il', '')
         : postalToAreaKey(entry.intakePostal || '');
       if (areaKey) {
         entry.newjobsNotifyArea = areaKey;
-        entry.newjobsNotifyLabel = AREA_LABELS_THANKS2[areaKey] || areaKey;
+        entry.newjobsNotifyLabel = getAreaLabel(areaKey);
         entry.newjobsNotifyOptinAt = new Date().toISOString();
         nextPhase = "newjobs_optin_done";
       } else {
@@ -7086,19 +7102,13 @@ function handleLinePostback(dataStr, entry) {
   else if (params.has("newjobs_optin")) {
     const areaKey = params.get("newjobs_optin");
     entry.unexpectedTextCount = 0;
-    const AREA_LABELS_NJ = {
-      yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
-      sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
-      odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
-      tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
-    };
     if (areaKey === "stop") {
       // 通知停止（Push内の「通知を止める」ボタンから到達）
       entry._newjobsOptoutRequested = true;
       nextPhase = "newjobs_optin_stopped";
     } else {
       entry.newjobsNotifyArea = areaKey;
-      entry.newjobsNotifyLabel = AREA_LABELS_NJ[areaKey] || areaKey;
+      entry.newjobsNotifyLabel = getAreaLabel(areaKey);
       entry.newjobsNotifyOptinAt = new Date().toISOString();
       // entry.area が未設定なら同時に反映（以後のマッチング・リッチメニュー新着でも使い回す）
       if (!entry.area) {
@@ -7259,17 +7269,11 @@ function handleLinePostback(dataStr, entry) {
   else if (params.has("rm_new_jobs")) {
     const areaKey = params.get("rm_new_jobs");
     entry.unexpectedTextCount = 0;
-    const AREA_LABELS_RM = {
-      yokohama_kawasaki: "横浜・川崎", shonan_kamakura: "湘南・鎌倉",
-      sagamihara_kenoh: "相模原・県央", yokosuka_miura: "横須賀・三浦",
-      odawara_kensei: "小田原・県西", kanagawa_all: "神奈川全域",
-      tokyo_included: "東京", chiba_all: "千葉", saitama_all: "埼玉",
-    };
     // entry.area が未設定の場合のみ新規セット。既に intake_light で選択済みなら上書きしない
     // （新着閲覧のためだけに恒久的な希望エリアを書き換えるのは不適切なため）
     if (!entry.area) {
       entry.area = areaKey;
-      entry.areaLabel = AREA_LABELS_RM[areaKey] || areaKey;
+      entry.areaLabel = getAreaLabel(areaKey);
       // prefecture 推論
       if (areaKey.startsWith('tokyo')) entry.prefecture = '東京都';
       else if (areaKey.startsWith('chiba')) entry.prefecture = '千葉県';
