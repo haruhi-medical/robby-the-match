@@ -8918,6 +8918,16 @@ ${entry.rmCvQualifications || '看護師免許'}
 
           // opt-out設計: 3問完了時点で新着通知を自動ON（郵便番号/駅名からエリア判定できた場合のみ）
           const autoAreaKey = resolveNotifyAreaKey(entry);
+          if (autoAreaKey) {
+            // マッチング用 entry.area も最新の郵便番号/駅名入力に統一
+            // （LP診断由来の古い entry.area が残っていても、3問目で入力された情報が最新として優先）
+            entry.area = autoAreaKey;
+            entry.areaLabel = getAreaLabel(autoAreaKey);
+            if (autoAreaKey.startsWith('tokyo')) entry.prefecture = '東京都';
+            else if (autoAreaKey.startsWith('chiba')) entry.prefecture = '千葉県';
+            else if (autoAreaKey.startsWith('saitama')) entry.prefecture = '埼玉県';
+            else entry.prefecture = '神奈川県';
+          }
           if (autoAreaKey && env?.LINE_SESSIONS) {
             entry.newjobsNotifyArea = autoAreaKey;
             entry.newjobsNotifyLabel = getAreaLabel(autoAreaKey);
