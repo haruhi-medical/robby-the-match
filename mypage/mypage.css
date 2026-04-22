@@ -1,29 +1,44 @@
+/* mypage.css — ブランドカラー準拠（docs/design-tokens.css 同期） */
 :root {
-  --primary: #1a7f64;
-  --primary-dark: #166851;
-  --text: #1a1a1a;
-  --text-muted: #666;
-  --border: #e0e0e0;
-  --bg-tint: #f5faf7;
-  --err: #d03c3c;
+  /* ブランドプライマリ: ティール/青 */
+  --primary: #1A6B8A;
+  --primary-dark: #0F4A62;
+  --primary-light: #E8F4F8;
+
+  /* CTA: 行動喚起緑（ボタン専用） */
+  --cta: #2D9F6F;
+  --cta-dark: #258A5E;
+
+  /* アクセント: コーラル */
+  --accent: #E8756D;
+
+  /* テキスト・背景 */
+  --text: #2C2C2C;
+  --text-muted: #6B7280;
+  --border: #E0E7EC;
+  --bg-tint: #F6FAFC;
+  --err: #C55A53;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
   color: var(--text);
-  background: #f9f9f9;
+  background: #F9FBFC;
   line-height: 1.6;
   font-size: 15px;
 }
 .container { max-width: 640px; margin: 0 auto; padding: 24px 20px 120px; }
 h1 { font-size: 1.4rem; margin: 0 0 8px; color: var(--primary); }
+h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--primary); }
+h3 { font-size: 1rem; margin: 0 0 10px; color: var(--text); }
 .card {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(15, 74, 98, 0.06);
+  border: 1px solid var(--border);
 }
 .btn {
   display: inline-block;
@@ -36,11 +51,14 @@ h1 { font-size: 1.4rem; margin: 0 0 8px; color: var(--primary); }
   text-decoration: none;
   margin-right: 8px;
   margin-bottom: 8px;
+  transition: background-color .15s ease, color .15s ease;
 }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary { background: var(--cta); color: #fff; }
+.btn-primary:hover { background: var(--cta-dark); }
 .btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+.btn-outline:hover { background: var(--primary-light); }
 .btn-danger { background: #fff; color: var(--err); border: 1px solid var(--err); }
+.btn-danger:hover { background: #FDF3F2; }
 .loading { text-align: center; padding: 40px; color: var(--text-muted); }
-.error { color: var(--err); padding: 12px; background: #fff; border-radius: 8px; }
+.error { color: var(--err); padding: 12px; background: #fff; border-radius: 8px; border: 1px solid var(--err); }
 .muted { color: var(--text-muted); font-size: 0.85rem; }

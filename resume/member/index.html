@@ -7,13 +7,15 @@
   <title>ナースロビー会員登録 + AI履歴書作成 | ナースロビー</title>
   <style>
     :root {
-      --primary: #1a7f64;
-      --primary-dark: #166851;
+      --primary: #1A6B8A;
+      --primary-dark: #0F4A62;
+      --cta: #2D9F6F;
+      --cta-dark: #258A5E;
       --text: #1a1a1a;
       --text-muted: #666;
-      --border: #e0e0e0;
-      --bg-tint: #f5faf7;
-      --err: #d03c3c;
+      --border: #E0E7EC;
+      --bg-tint: #F6FAFC;
+      --err: #C55A53;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
@@ -160,7 +162,7 @@
     }
     .submit-btn {
       width: 100%;
-      background: var(--primary);
+      background: var(--cta);
       color: #fff;
       border: none;
       padding: 14px;
@@ -169,7 +171,7 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .submit-btn:hover { background: var(--primary-dark); }
+    .submit-btn:hover { background: var(--cta-dark); }
     .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
 
     .status {
