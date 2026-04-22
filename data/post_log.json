@@ -782,5 +782,14 @@
     "status": "failed",
     "method": "meta_business_suite",
     "error": "Claude in Chrome MCP not connected (3 retries). Queue entry id=196 left as ready for next scheduled run."
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_給与_0407_04",
+    "content_id": "ai_給与_0407_04",
+    "timestamp": "2026-04-22T21:17:18",
+    "status": "error",
+    "method": "meta_business_suite",
+    "error": "Chrome CDP接続失敗。詳細はログを確認。port 9223未起動 or タブ0個の可能性。"
   }
 ]

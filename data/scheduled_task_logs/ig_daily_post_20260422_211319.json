@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-04-22T21:13:19.155830+09:00",
+  "task": "instagram-daily-post",
+  "result": "failed",
+  "reason": "Claude-in-Chrome extension not connected; cannot drive Meta Business Suite.",
+  "retries": 4,
+  "candidate_content_id": "ai_給与_0407_04",
+  "candidate_queue_id": 197,
+  "slack_notified": false,
+  "slack_notify_failure_reason": "Sandbox egress blocked (HTTP 403 from proxy on slack.com CONNECT).",
+  "queue_mutation": "none",
+  "next_steps": [
+    "Confirm Chrome is open on Mac Mini and Claude-in-Chrome extension is signed in.",
+    "Optionally run `python3 scripts/ig_post_meta_suite.py` manually (requires Chrome --remote-debugging-port=9223).",
+    "Re-run the instagram-daily-post scheduled task after the extension is reachable."
+  ]
+}
