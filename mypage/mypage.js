@@ -1,36 +1,31 @@
 // mypage.js — HMAC署名URLトークン認証方式（LIFF不要版）
-// URL の `?t=<signed-token>` から userId を復元し、セッショントークンに交換する
+// 毎回 /api/mypage-init を叩いて最新データを取得する（localStorage はセッション継続用のみ）
 const WORKER_BASE = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev';
 const SESSION_KEY = 'nursrobby_mypage_session';
 
 async function initMypageAuth() {
-  // 1. URL に ?t= があればそれで初回認証
+  // 1. URL に ?t= があればそれで認証（初回 or 新規会員化後のリダイレクト）
   const urlParams = new URLSearchParams(window.location.search);
   const entryToken = urlParams.get('t');
   if (entryToken && window.history && window.history.replaceState) {
-    // URLからtoken消して履歴に残さない（ブラウザ履歴・スクショ漏洩対策）
     const clean = window.location.pathname + window.location.hash;
     window.history.replaceState({}, '', clean);
   }
 
-  // 2. 既存セッションがまだ有効なら再利用
+  // 2. 既存 sessionToken を localStorage から取得（認証継続用）
+  let existingSessionToken = null;
   const stored = localStorage.getItem(SESSION_KEY);
   if (stored) {
     try {
       const s = JSON.parse(stored);
       if (s.expiresAt > Date.now() && s.sessionToken) {
-        return {
-          sessionToken: s.sessionToken,
-          userId: s.userId,
-          displayName: s.displayName,
-          resumeUpdatedAt: s.resumeUpdatedAt,
-        };
+        existingSessionToken = s.sessionToken;
       }
     } catch {}
   }
 
-  // 3. entryToken がなければ認証誘導
-  if (!entryToken) {
+  // 3. 認証情報がなければ誘導
+  if (!entryToken && !existingSessionToken) {
     document.body.innerHTML = `
       <div class="container">
         <h1>🔒 マイページ認証</h1>
@@ -43,14 +38,18 @@ async function initMypageAuth() {
     return null;
   }
 
-  // 4. entryToken をサーバーに送ってセッショントークンに交換
+  // 4. mypage-init を毎回叩いて最新の会員情報を取得
+  //    entryToken 優先（新規リダイレクト時は最新セッション発行）、なければ既存 sessionToken で再認証
+  const body = entryToken ? { entryToken } : { sessionToken: existingSessionToken };
   const res = await fetch(WORKER_BASE + '/api/mypage-init', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ entryToken }),
+    body: JSON.stringify(body),
   });
 
   if (res.status === 404) {
+    // 退会済み or 未登録
+    localStorage.removeItem(SESSION_KEY);
     document.body.innerHTML = `
       <div class="container">
         <h1>まだ会員登録されていません</h1>
@@ -64,6 +63,8 @@ async function initMypageAuth() {
   }
 
   if (res.status === 403) {
+    // セッション期限切れ → localStorage をクリアして再認証誘導
+    localStorage.removeItem(SESSION_KEY);
     document.body.innerHTML = `
       <div class="container">
         <h1>🔒 リンクの有効期限切れ</h1>
@@ -80,6 +81,7 @@ async function initMypageAuth() {
   }
 
   const { sessionToken, userId, displayName, resumeUpdatedAt } = await res.json();
+  // 最新情報で localStorage 上書き
   localStorage.setItem(SESSION_KEY, JSON.stringify({
     sessionToken,
     userId,

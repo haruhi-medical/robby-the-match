@@ -11437,12 +11437,19 @@ async function handleMypageInit(request, env) {
     return jsonResponse({ error: "invalid JSON" }, 400);
   }
 
-  // 新方式: HMAC署名付き entryToken で認証（LIFF不要、URL ?t= 経由）
+  // 新方式: HMAC署名付き entryToken または sessionToken で認証
   let userId = null;
   if (body.entryToken && typeof body.entryToken === "string") {
     const payload = await verifyMypageSessionToken(body.entryToken, env);
     if (!payload) {
       return jsonResponse({ error: "トークンが無効または期限切れです。LINEで新しいマイページリンクを取得してください。" }, 403);
+    }
+    userId = payload.userId;
+  } else if (body.sessionToken && typeof body.sessionToken === "string") {
+    // 既存 localStorage の sessionToken で再認証（毎回最新データを取りに来る）
+    const payload = await verifyMypageSessionToken(body.sessionToken, env);
+    if (!payload) {
+      return jsonResponse({ error: "セッションの有効期限が切れました。LINEで新しいマイページリンクを取得してください。" }, 403);
     }
     userId = payload.userId;
   } else if (body.userId) {
@@ -11452,7 +11459,7 @@ async function handleMypageInit(request, env) {
     }
     userId = body.userId;
   } else {
-    return jsonResponse({ error: "entryToken または userId が必須です" }, 400);
+    return jsonResponse({ error: "entryToken/sessionToken または userId が必須です" }, 400);
   }
 
   if (!env.LINE_SESSIONS) {
