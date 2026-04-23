@@ -20,33 +20,46 @@ import { updateCandidate, logMessage } from "../state-machine.js";
 import { generateResponse } from "../lib/openai.js";
 import { postToSlack } from "../lib/slack.js";
 
-const RECOMMENDATION_PROMPT = `あなたは看護師専門の人材紹介会社のキャリアアドバイザーです。
-以下の候補者情報から、病院向け「キャリアシート」の【担当者推薦コメント】を生成してください。
+/** 候補者のprofileに明記されていない限り、AIに使わせない禁止語 */
+const FORBIDDEN_WORDS_IF_UNMENTIONED = [
+  "子育て", "子供", "お子さま", "育児", "育休", "産休",
+  "家族", "家庭", "夫", "妻", "配偶者", "介護",
+  "残業", "有給", "有休", "休日出勤", "サービス残業",
+  "ハラスメント", "パワハラ", "うつ",
+  "労働環境", "離職率",
+];
 
-【出力形式】
-下記3セクションをそのまま返してください（Markdown・コードブロック・JSON禁止）。
+const RECOMMENDATION_PROMPT = `あなたは看護師専門の人材紹介会社のキャリアアドバイザーです。
+病院向け「キャリアシート」の【担当者推薦コメント】を、下記のデータのみで生成してください。
+
+【最重要・絶対遵守】
+- データに明記されていない事実・語・推測を**絶対に書かない**
+- 以下のワードはデータの【候補者の実発言】に出現した場合のみ使用可:
+  子育て / 子供 / 育児 / 育休 / 産休 / 家族 / 家庭 / 夫 / 妻 / 介護 /
+  残業 / 有給 / 有休 / 休日出勤 / サービス残業 / 離職率 / パワハラ
+- 悩みの「軸」ラベル（例:「労働時間」「人間関係」）から、具体内容を補完しない
+  例: 軸=「労働時間」→ "残業少なく" と書くのは禁止。発言にあれば引用OK
+- 期間の補完禁止（「3年間」「4年目から」等、データにない数字は書かない）
+- 役職の創作禁止（「主任」「副師長」等、現役割に書かれていないものは使わない）
+
+【出力形式】3セクション、プレーンテキスト、Markdown/JSON/HTML/絵文字禁止
 
 【ご経験】
-{経験年数・分野・役割・担当した患者層を3-5行で。具体的な診療科名・役割名・年数を明記。事実のみ。}
+経験年数・分野・現役割を2-4行で事実のみ。
+データにある語をそのまま使う。推測・補完禁止。
 
 【スキル】
-{候補者が語った具体スキルを4-6項目、箇条書き。抽象語（「コミュニケーション能力」等）禁止、
- 具体場面（「新人プリセプター3年」「呼吸器内科の急変対応を月1-2件経験」等）で書く。}
+"得意・強み" と "書類強み" に記された内容を、そのまま箇条書き（3-5項目）。
+勝手にスキル名を追加しない。
 
 【コメント】
-{250-400字。以下を必ず含める:
- - 候補者の性格・志向（心理ヒアリングからの引用、本人の言葉をそのまま使う）
- - 何に価値を置いて転職したいのか（根本原因を婉曲に）
- - 病院側に即戦力として期待できるポイント
- - 「お人柄としては、◯◯な方とお見受けしております」で締めるのが定型
-}
+150-300字。以下の順で構成:
+1. 経験の要約（1文）
+2. 希望条件のうち明記されているものを1文で紹介（エリア・給与・働き方・時期のうち明記されたもの）
+3. 「お人柄としては、◯◯な方とお見受けしております」で締める
+   ◯◯は "得意・強み" から導ける単語1つだけ（例: "リーダーシップのある" "責任感のある"）
 
-【ルール】
-・候補者が実際に発言した内容と矛盾しない
-・誇張（「必ず活躍します」「抜群の即戦力」等）禁止
-・看護師現場語（申し送り・プリセプター・アセスメント・日勤リーダー等）を使う
-・絵文字・Markdown・HTML禁止。プレーンテキストのみ
-・候補者の個人特定情報（本名・勤務先・学校名・駅名・住所）は書かない`;
+書けない場合は短くまとめる。不足は "（要確認）" と明示。嘘より空白が良い。`;
 
 /**
  * キャリアシート生成エントリ
@@ -70,22 +83,57 @@ export async function generateCareerSheet({ candidateId, env, db }) {
     return { serial: candidate.career_sheet_serial };
   }
 
+  // 候補者の実発言を抽出（ハルシネーション防止用の事実ソース）
+  const quotes = await extractCandidateQuotes(env.AICA_DB, candidateId);
+
   // AI推薦コメント生成
   let recommendation = "";
   let provider = "none";
   try {
-    const blob = buildCandidateBlob(candidate, profile);
+    const blob = buildCandidateBlob(candidate, profile, quotes);
     const r = await generateResponse({
       systemPrompt: RECOMMENDATION_PROMPT,
       messages: [{ role: "user", content: blob }],
       env,
-      maxTokens: 1100,
+      maxTokens: 800,
     });
     recommendation = r.text;
     provider = r.provider;
+
+    // 禁止語チェック: 候補者の実発言になく、かつ profile/書類情報にもない禁止語が
+    // 推薦コメントに混入していたら、1回だけ再試行（明示的な排除指示付き）
+    const leaked = findHallucinatedWords(recommendation, candidate, profile, quotes);
+    if (leaked.length > 0) {
+      console.warn("[career-sheet] hallucinated words detected:", leaked);
+      const retryPrompt =
+        RECOMMENDATION_PROMPT +
+        "\n\n【再試行・厳密モード】前回の出力に以下の禁止語が混入しました: " +
+        leaked.join(", ") +
+        "。これらの語は今回の候補者データと発言履歴に**一切出現していません**。" +
+        "絶対に使わないでください。書く事実が不足する場合は、該当セクションを短く削り、『（要確認）』と明示してください。";
+      const retry = await generateResponse({
+        systemPrompt: retryPrompt,
+        messages: [{ role: "user", content: blob }],
+        env,
+        maxTokens: 800,
+      });
+      const leakedRetry = findHallucinatedWords(retry.text, candidate, profile, quotes);
+      if (leakedRetry.length === 0) {
+        recommendation = retry.text;
+        provider = retry.provider + "-retry";
+      } else {
+        // 2回目も混入 → 禁止語をマスクして採用（最終防衛）
+        console.warn("[career-sheet] retry still has leaks:", leakedRetry);
+        recommendation = maskForbiddenWords(retry.text, leakedRetry);
+        provider = retry.provider + "-masked";
+      }
+    }
   } catch (err) {
     console.error("[career-sheet] recommendation AI failed:", err.message);
-    recommendation = `【ご経験】\n${profile.experience_years || "-"} / ${profile.fields_experienced || "-"}\n\n【スキル】\n${profile.strengths || "-"}\n\n【コメント】\n（AI生成失敗: ${err.message}）`;
+    recommendation =
+      `【ご経験】\n${profile.experience_years || "-"}年目 / ${profile.fields_experienced || "-"}\n\n` +
+      `【スキル】\n${profile.strengths || "-"}\n\n` +
+      `【コメント】\n（AI生成失敗: ${err.message}。社長による手動記載が必要）`;
   }
 
   // シリアル番号（NR-YYYYMMDD-XXXX）
@@ -240,16 +288,81 @@ function ageOf(birthStr) {
 }
 
 // ============================================================
+// 候補者の実発言を抽出（ハルシネーション防止のファクトソース）
+// ============================================================
+async function extractCandidateQuotes(db, candidateId) {
+  try {
+    const res = await db
+      .prepare(
+        `SELECT content, phase FROM messages
+         WHERE candidate_id = ? AND role = 'user'
+         ORDER BY created_at DESC LIMIT 40`
+      )
+      .bind(candidateId)
+      .all();
+    const rows = res.results || [];
+    const quotes = [];
+    for (const r of rows) {
+      let t = (r.content || "").trim();
+      if (t.startsWith("[voice] ")) t = t.slice(8).trim();
+      if (t.length < 5) continue;
+      if (t.length > 250) t = t.slice(0, 250) + "…";
+      quotes.push(t);
+    }
+    return quotes.slice(0, 15);
+  } catch (err) {
+    console.warn("[career-sheet] quotes extraction failed:", err.message);
+    return [];
+  }
+}
+
+/**
+ * 推薦コメントに混入した禁止語を検出。
+ * 候補者の発言履歴 + profile + 書類情報に出現しない禁止語のみを問題視する。
+ */
+function findHallucinatedWords(text, candidate, profile, quotes) {
+  if (!text) return [];
+  const corpus = [
+    candidate.root_cause || "",
+    candidate.work_history || "",
+    candidate.apply_strengths || "",
+    ...Object.values(profile || {}).filter((v) => typeof v === "string"),
+    ...quotes,
+  ].join("\n");
+
+  const leaked = [];
+  for (const word of FORBIDDEN_WORDS_IF_UNMENTIONED) {
+    if (text.includes(word) && !corpus.includes(word)) {
+      leaked.push(word);
+    }
+  }
+  return leaked;
+}
+
+/** 禁止語を伏せ字化（最終防衛） */
+function maskForbiddenWords(text, words) {
+  let out = text;
+  for (const w of words) {
+    out = out.split(w).join("（※）");
+  }
+  return out + "\n\n（注: 自動生成で推測が混入したため、一部をマスクしました）";
+}
+
+// ============================================================
 // AIに渡すデータブロブ
 // ============================================================
-function buildCandidateBlob(candidate, profile) {
+function buildCandidateBlob(candidate, profile, quotes = []) {
   const lines = [];
   lines.push("【候補者情報（匿名化用）】");
   lines.push(`年齢: ${ageOf(candidate.birth_date) || "？"}歳`);
   lines.push(`看護師経験: ${profile.experience_years || "？"}`);
   lines.push(`現役割: ${profile.current_position || "？"}`);
   lines.push(`経験分野: ${profile.fields_experienced || "？"}`);
-  lines.push(`得意・強み: ${profile.strengths || "？"} / ${candidate.apply_strengths || ""}`);
+  // apply_strengths が「任せる」「特になし」等の非情報的回答なら無視
+  const applyStr = candidate.apply_strengths && !/^(任せる|特になし|なし|思いつかない|わからない)$/.test(candidate.apply_strengths.trim())
+    ? candidate.apply_strengths
+    : "";
+  lines.push(`得意・強み: ${profile.strengths || "？"}${applyStr ? " / " + applyStr : ""}`);
   lines.push(`苦手: ${profile.weaknesses || "？"}`);
   lines.push(`希望施設: ${profile.facility_hope || "？"}`);
   lines.push(`希望の理由: ${profile.facility_reason || "？"}`);
@@ -267,7 +380,32 @@ function buildCandidateBlob(candidate, profile) {
   lines.push(`免許取得: ${candidate.license_acquired || "？"}`);
   lines.push(`勤務歴: ${candidate.work_history || "？"}`);
   lines.push(`保有資格: ${candidate.certifications || "特になし"}`);
+  if (quotes.length > 0) {
+    lines.push("");
+    lines.push("【候補者の実発言（この範囲のみ引用可）】");
+    quotes.forEach((q, i) => {
+      lines.push(`  ${i + 1}) ${q}`);
+    });
+  }
   return lines.join("\n");
+}
+
+function formatExperienceYears(v) {
+  if (v === null || v === undefined || String(v).trim() === "") return "未確認";
+  const s = String(v).trim();
+  // 数値のみなら「X年目」に
+  if (/^\d+$/.test(s)) return `${s}年目`;
+  // 「10」が混在した「10年」「10年目」等はそのまま
+  return s;
+}
+
+function formatLicense(v) {
+  if (!v) return "未確認";
+  const s = String(v).trim();
+  // ISO形式 "2016-03" を「2016年3月」に
+  const m = s.match(/^(\d{4})-(\d{1,2})$/);
+  if (m) return `${m[1]}年${parseInt(m[2], 10)}月`;
+  return s;
 }
 
 function labelOfAxis(axis) {
@@ -300,8 +438,8 @@ function renderCareerSheetHtml({ serial, candidate, profile, initials, ageStr, r
     updated,
     initials: escapeHtml(initials),
     age: escapeHtml(ageStr),
-    license: escapeHtml(candidate.license_acquired || "未確認"),
-    experience_years: escapeHtml(profile.experience_years || "未確認"),
+    license: escapeHtml(formatLicense(candidate.license_acquired)),
+    experience_years: escapeHtml(formatExperienceYears(profile.experience_years)),
     fields_experienced: escapeHtml(profile.fields_experienced || "未確認"),
     current_position: escapeHtml(profile.current_position || "未確認"),
     workstyle: escapeHtml(profile.workstyle || "未確認"),

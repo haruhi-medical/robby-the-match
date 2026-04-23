@@ -89,6 +89,11 @@ export default {
       return handleCareerSheetView(csMatch[1], env);
     }
 
+    // 管理: キャリアシートを手動生成（既存候補者向けバックフィル）
+    if (url.pathname === "/admin/career-sheet/generate" && request.method === "POST") {
+      return handleAdminCareerSheetGenerate(request, env);
+    }
+
     return new Response("Not Found", { status: 404 });
   },
 
@@ -801,6 +806,82 @@ async function processEvent(event, env, ctx) {
 async function forwardToSlack(candidate, userText, env) {
   // Phase 1 以降で実装。MVP0は console.log のみ
   console.log("[handoff-forward]", candidate.id, candidate.phase, userText);
+}
+
+/**
+ * 管理エンドポイント: キャリアシートを1名または複数名分を即時生成
+ * Body: { candidateId: "Uxxx" }  or  { mode: "backfill_all" }
+ * Auth: Authorization: Bearer <AICA_ADMIN_KEY>
+ */
+async function handleAdminCareerSheetGenerate(request, env) {
+  const authHeader = request.headers.get("Authorization") || "";
+  const expected = env.AICA_ADMIN_KEY || "";
+  if (!expected) {
+    return new Response(JSON.stringify({ error: "AICA_ADMIN_KEY not configured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (authHeader !== `Bearer ${expected}`) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: "invalid JSON" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const results = [];
+
+  if (body.candidateId) {
+    try {
+      const r = await generateCareerSheet({ candidateId: body.candidateId, env, db: env.AICA_DB });
+      results.push({ candidateId: body.candidateId, ok: true, serial: r?.serial, url: r?.url });
+    } catch (err) {
+      results.push({ candidateId: body.candidateId, ok: false, error: err.message });
+    }
+  } else if (body.mode === "backfill_all") {
+    // 条件ヒアリングを越えていて serial が無い候補者をスキャン
+    const rows = await env.AICA_DB
+      .prepare(
+        `SELECT id FROM candidates
+         WHERE career_sheet_serial IS NULL
+           AND profile_json IS NOT NULL
+           AND phase IN ('matching','job_qa','apply_confirm','apply_info_name',
+                         'apply_info_kana','apply_info_birth','apply_info_phone','apply_info_workplace',
+                         'documents_prep_license','documents_prep_school','documents_prep_history',
+                         'documents_prep_certs','documents_prep_strengths','documents_gen',
+                         'documents_review','approved','applied','paused')
+         LIMIT 50`
+      )
+      .all();
+    for (const row of rows.results || []) {
+      try {
+        const r = await generateCareerSheet({ candidateId: row.id, env, db: env.AICA_DB });
+        results.push({ candidateId: row.id, ok: true, serial: r?.serial, url: r?.url });
+      } catch (err) {
+        results.push({ candidateId: row.id, ok: false, error: err.message });
+      }
+    }
+  } else {
+    return new Response(
+      JSON.stringify({ error: "provide candidateId or mode=backfill_all" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  return new Response(JSON.stringify({ results }, null, 2), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 /** キャリアシート HTML を D1 から取得して返す（社長営業用） */
