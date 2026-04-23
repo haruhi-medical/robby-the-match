@@ -1,5 +1,83 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-04-23 マイページUI統一 微調整完了
+# 最終更新: 2026-04-23 夜 by LINE Bot UX大改修セッション
+
+## 🏁 2026-04-23 夜 セッション総括 (LINE Bot 大改修) — 最終 Worker `bc3d8589`
+
+全コミット: 52bbad1 → ad3c60c → f024ba7 → 9cbfe6e → c0479fc → 6c65f6a → 66eb6a4 → 4b11ad8 → d6018a2 → 943de01
+
+### マイページ
+- 認証失敗フォールバック画面を auth.html デザインに統一 (絵文字全廃、SVGアイコン化)
+- 全5画面 (index/preferences/favorites/resume/edit) でロゴヘッダー保持
+- スクショ: `docs/audit/2026-04-22-resume-security/screenshots/v3_*.png`
+
+### 「気になる求人」(旧お気に入り)
+- ⭐保存 postback ボタンを4種カルーセル全部に追加
+  (matching / 新着Push / リッチメニュー新着 / フォールバック施設)
+- fav_add ハンドラを3段検索化 (matchingResults→lastShownJobs→D1直引き)
+- 「お気に入り」→「気になる」業界標準語に一斉リネーム
+  (LINE Bot ボタン文言/返信/マイページUI 全部 / KV/API/パスは保持)
+
+### リッチメニューv3 (richmenu-51903fc26a2da8f99bb7ae769c285b35)
+- 画像: `assets/richmenu/richmenu_v3_20260423.png` (2500x1686, 753KB)
+- 5タイル: お仕事探しスタート / NEW新着求人 / **MYPAGE** / CONTACT / SUPPORT
+- areas座標 Pillow解析でピクセル単位測定
+- rm=mypage postback inline ハンドラ追加 (会員→HMAC URL / 非会員→30秒登録Flex)
+- 7ペルソナ静的解析テスト 14項目全PASS (`scripts/test_richmenu_personas.py`)
+
+### LINE Bot UX 統一・改修
+- 新着カード「この施設について聞く」→「読み取れませんでした」バグ修正
+  (handleFreeTextInput 最先頭に「○○について相談したい」全フェーズ共通マッチ追加)
+- 「担当者に引き継ぎました」メッセージを buildHandoffConfirmationText() に集約
+  (5パターン散在を全経路統一)
+- 年収相場(info_detour)導線をBotから全廃 (7箇所削除)
+  → 全ユーザー matching_preview 直行に統一
+- 3問完了サンクス画面のQR (rm=start/welcome=newjobs_optin) 削除
+  → リッチメニュー誘導文言に変更 (毎朝→定期的に / お仕事探しスタート説明追加)
+- rm=start を賢くして entry.area 保持時は il_facility_type 直行
+  (「別システム稼働した感」根本解消)
+
+### 残課題 (緊急度低)
+- salary-check/index.html リファクタ (相場比較→求人件数段階表示) 未着手
+  → 22日前のメモ参照 `~/.claude/projects/-Users-robby2/memory/project_next_task.md`
+  → Bot動線ゼロになったので緊急度低
+- 4状態リッチメニュー (hearing/matched/handoff) は当面 default 流用
+  → 必要なら専用画像作成
+- lineReply 失敗時 (LINE API 5xx) のリカバリ try/catch なし → 監視で観察
+
+---
+
+## 🏁 2026-04-23 夕方 Meta広告監査+計測修復+Clarity統合 (前セッション)
+
+## 🏁 2026-04-23 夕方 Meta広告監査 → 計測修復 → Clarity日次レポート
+
+### Meta広告監査 (docs/audit/2026-04-23-meta/META-ADS-REPORT.md)
+- 総合スコア 34/100 (F)
+- v7キャンペーン7日 (04-16〜04-22): ¥13,909 / Lead(CTAクリック)2件 / 本物Lead(CompleteRegistration) 広告レポート上0件
+- Pixel本体は CompleteRegistration 受信確認済み (4/22に14件、4/23に1件)
+- 明日2026-04-24が1週間テスト判定日。現時点では🔴破綻確定ゾーンだが、計測バグ排除後に真の判定
+
+### 計測修復 (commit df217e7)
+- 真因: LP(quads-nurse.com)↔Worker(workers.dev) クロスドメインで _fbp/_fbc Cookie が伝わらず、CAPI送信時に attribution 失敗
+- 修正1: LP側で document.cookie から _fbp/_fbc を読み、/api/line-start の URL param に付与
+- 修正2: Worker 側で URL param を優先、Cookieフォールバック
+- 修正3: CAPI user_data に phone/email を SHA256 hash 送信 (EMQ向上)、external_id もhash送信
+- 修正4: meta_ads_report.py に CompleteRegistration 列追加、CPA 2種 (クリック/登録) 表示
+- Worker version: 0cc2647a-e88f-4b5c-a421-991760fe9030
+- 効果: 今後24-48hの新規クリックから fbp/fbc が流れ、数日以内に広告レポートに本物Lead反映見込み
+
+### Clarity 日次レポート (commit a9ac69c)
+- scripts/clarity_report.py 新規追加 (284行)
+- cron: 毎朝 08:15 JST に #ロビー小田原人材紹介 へ自動配信
+- 取得: セッション/Bot比率/スクロール/レイジ/デッドクリック/Quick Back/JSエラー/ページ別Top5/UTM別Top5
+- 閾値アラート: RageClick≥10, DeadClick≥20, ScrollDepth<40%, BotRatio≥30%
+- **残作業 (社長手動1分)**: clarity.microsoft.com → Settings → Data Export → API token生成 → .envのCLARITY_API_TOKENに記入
+- .env に CLARITY_PROJECT_ID=vmaobifgm0 プリセット済み、CLARITY_API_TOKEN 空欄
+
+### 追加検出 (判断待ち)
+- ACTIVE広告セットがもう1つ放置: `kanagawa_nurse_25-40F` (LANDING_PAGE_VIEWS最適化、配信¥0)
+- 現広告セット `nurse_kanagawa_lead_IG+FB` の optimization_goal=LEAD (LPクリック最適化) → 本物LeadのCompleteRegistration最適化に変えたいが学習リセット伴う
+
+---
 
 ## 🏁 2026-04-23 マイページUI統一 微調整 (commit 52bbad1)
 - mypage.js の認証失敗フォールバックを auth.html デザインに統一
@@ -89,7 +167,7 @@
 - autoresearch復旧方式（claude auth login vs .envにANTHROPIC_API_KEY）
 
 ---
-# 最終更新: 2026-04-23 10:00 by SEO朝サイクル
+# 最終更新: 2026-04-23 15:04 by コンテンツ生成
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
