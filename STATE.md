@@ -1,5 +1,14 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-04-23 マイページUI統一完了
+# 最終更新: 2026-04-23 マイページUI統一 微調整完了
+
+## 🏁 2026-04-23 マイページUI統一 微調整 (commit 52bbad1)
+- mypage.js の認証失敗フォールバックを auth.html デザインに統一
+  - `document.body.innerHTML` 全置換 → `renderMypageNotice()` ヘルパーに集約
+  - 5画面 (index/preferences/favorites/resume/resume/edit) でロゴヘッダー保持
+  - 🔒🔌 絵文字 → SVG (lock/wifi-off/user-plus/clock) に置換、絵文字全廃完遂
+  - body 直下の hero/form/loading/app/sticky-bar を一括非表示 (edit.html漏れ対応)
+- 検証: Playwright iPhoneビューポートで全6URL再撮影、全画面でデザイン統一確認
+- スクショ: `docs/audit/2026-04-22-resume-security/screenshots/v3_*.png`
 
 ## 🏁 2026-04-23 別セッション作業: 会員制ナースロビー完全構築 + UI整備
 - 履歴書作成画面 UI完璧化 (絵文字全廃・ロゴ入り・ヒーロー・信頼フッター)
@@ -7,7 +16,7 @@
 - 学歴フォームに入学/卒業両方の年月
 - マイページ群8ファイル UI統一 (commit 87d898d)
 - **次回起動時必読**: `docs/audit/2026-04-22-resume-security/handoff-next-session.md`
-- 次のタスク: マイページ実機UI確認+微調整
+- 次のタスク: 代表の実機LINEで認証付き全フロー確認 (履歴書→マイページ→編集→希望条件→お気に入り)
 
 ## 🏁 2026-04-23 本日の成果（AICA MVP2 + キャリアシート）
 
