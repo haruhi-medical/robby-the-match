@@ -5066,11 +5066,25 @@ async function buildPhaseMessage(phase, entry, env) {
           },
           footer: {
             type: "box", layout: "vertical", paddingAll: "12px",
-            contents: [{
-              type: "button", style: "primary", height: "sm",
-              color: BRAND_COLOR,
-              action: { type: "postback", label: "この施設について聞く", data: `match=detail&idx=${idx}`, displayText: `${name}について聞きたい` },
-            }],
+            contents: [
+              {
+                type: "button", style: "primary", height: "sm",
+                color: BRAND_COLOR,
+                action: { type: "postback", label: "この施設について聞く", data: `match=detail&idx=${idx}`, displayText: `${name}について聞きたい` },
+              },
+              {
+                type: "button",
+                style: "secondary",
+                height: "sm",
+                margin: "sm",
+                action: {
+                  type: "postback",
+                  label: "⭐ 保存",
+                  data: `fav_add=${encodeURIComponent(job.jobId || job.id || job.n || job.employer || `job_${idx}`)}&src=match`,
+                  displayText: "この求人を保存しました",
+                },
+              },
+            ],
           },
         };
       }
@@ -6583,13 +6597,26 @@ function buildFacilityFlexBubble(job, index, opts) {
     },
     footer: {
       type: "box", layout: "vertical", spacing: "sm",
-      contents: [{
-        type: "button",
-        style: "primary",
-        color: "#2D9F6F",
-        height: "sm",
-        action: { type: "postback", label: "この求人を詳しく見る", data: `match=detail&idx=${index}`, displayText: `${name}の詳細を見る` },
-      }],
+      contents: [
+        {
+          type: "button",
+          style: "primary",
+          color: "#2D9F6F",
+          height: "sm",
+          action: { type: "postback", label: "この求人を詳しく見る", data: `match=detail&idx=${index}`, displayText: `${name}の詳細を見る` },
+        },
+        {
+          type: "button",
+          style: "secondary",
+          height: "sm",
+          action: {
+            type: "postback",
+            label: "⭐ 保存",
+            data: `fav_add=${encodeURIComponent(job.jobId || job.id || job.n || job.employer || `job_${index}`)}&src=match`,
+            displayText: "この求人を保存しました",
+          },
+        },
+      ],
     },
   };
 }
@@ -7981,6 +8008,129 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
 
         const dataStr = event.postback.data;
+
+        // ============ ⭐ お気に入り保存 (T1) ============
+        if (dataStr.startsWith("fav_add=")) {
+          const params = new URLSearchParams(dataStr);
+          const jobId = (params.get("fav_add") || "unknown").slice(0, 100);
+
+          // 会員判定
+          const memberRaw = await env.LINE_SESSIONS.get(`member:${userId}`);
+          let isMember = false;
+          if (memberRaw) {
+            try {
+              const m = JSON.parse(memberRaw);
+              isMember = m.status === "active" || m.status === "lite";
+            } catch {}
+          }
+
+          if (isMember) {
+            // 会員: favorites KV に保存（最大50件）
+            const favRaw = await env.LINE_SESSIONS.get(`member:${userId}:favorites`);
+            let list = [];
+            if (favRaw) {
+              try { list = JSON.parse(favRaw) || []; } catch {}
+            }
+            // entry.matchingResults から求人スナップショットを探す
+            let snapshot = {};
+            try {
+              const sess = entry.matchingResults || [];
+              const decodedJobId = decodeURIComponent(jobId);
+              const match = sess.find(r => (r.jobId || r.id || r.n || r.employer) === decodedJobId || r.n === decodedJobId || r.employer === decodedJobId);
+              if (match) {
+                snapshot = {
+                  title: (match.title || match.t || "").slice(0, 300),
+                  facility: (match.employer || match.n || "").slice(0, 300),
+                  area: (match.work_location || match.loc || match.area || "").slice(0, 300),
+                  salaryMin: typeof match.salaryMin === "number" ? match.salaryMin : null,
+                  salaryMax: typeof match.salaryMax === "number" ? match.salaryMax : null,
+                };
+                // null/undefined を除外
+                Object.keys(snapshot).forEach(k => snapshot[k] == null && delete snapshot[k]);
+              }
+            } catch {}
+
+            const existingIdx = list.findIndex(x => x.jobId === jobId);
+            const entryObj = { jobId, savedAt: Date.now(), snapshot };
+            if (existingIdx >= 0) {
+              list[existingIdx] = entryObj;
+            } else {
+              list.unshift(entryObj);
+            }
+            if (list.length > 50) list = list.slice(0, 50);
+
+            await env.LINE_SESSIONS.put(`member:${userId}:favorites`, JSON.stringify(list));
+
+            await lineReply(event.replyToken, [{
+              type: "text",
+              text: `⭐ お気に入りに保存しました（${list.length}件/50件）\n\nマイページ「お気に入り求人」でいつでも確認できます。`,
+            }], channelAccessToken);
+            continue;
+          }
+
+          // 非会員: 会員登録誘導 + 30分有効トークン発行
+          const liteToken = crypto.randomUUID();
+          try {
+            await env.LINE_SESSIONS.put(
+              `resume_token:${liteToken}`,
+              JSON.stringify({ userId, createdAt: Date.now() }),
+              { expirationTtl: 1800 }
+            );
+          } catch (e) {
+            console.error("[FavAdd] token KV put failed:", e.message);
+          }
+          const liteUrl = `https://quads-nurse.com/resume/member-lite/?token=${liteToken}`;
+
+          await lineReply(event.replyToken, [
+            {
+              type: "text",
+              text: "⭐ お気に入り保存は「ナースロビー会員」限定の機能です",
+            },
+            {
+              type: "flex",
+              altText: "会員登録で使える機能",
+              contents: {
+                type: "bubble",
+                body: {
+                  type: "box",
+                  layout: "vertical",
+                  spacing: "md",
+                  contents: [
+                    { type: "text", text: "🌱 会員登録(無料)で使える機能", weight: "bold", size: "lg", color: "#1A6B8A" },
+                    { type: "separator" },
+                    {
+                      type: "box", layout: "vertical", spacing: "sm",
+                      contents: [
+                        { type: "text", text: "⭐ 気になる求人をお気に入り保存", size: "sm", color: "#333333", wrap: true },
+                        { type: "text", text: "🎯 希望条件を保存→毎朝あなた専用の新着求人が届く", size: "sm", color: "#333333", wrap: true },
+                        { type: "text", text: "📄 AI履歴書の保管・編集・PDF印刷", size: "sm", color: "#333333", wrap: true },
+                        { type: "text", text: "🏠 マイページで一元管理", size: "sm", color: "#333333", wrap: true },
+                      ],
+                    },
+                    { type: "separator" },
+                    { type: "text", text: "📝 登録は30秒・お名前と電話だけ", size: "xs", color: "#666666", wrap: true, margin: "md" },
+                  ],
+                },
+                footer: {
+                  type: "box",
+                  layout: "vertical",
+                  contents: [{
+                    type: "button",
+                    style: "primary",
+                    color: "#2D9F6F",
+                    action: {
+                      type: "uri",
+                      label: "🌱 30秒で会員登録する",
+                      uri: liteUrl,
+                    },
+                  }],
+                },
+              },
+            },
+          ], channelAccessToken);
+          continue;
+        }
+        // ============ T1 ここまで ============
 
         // 【intake_qual】資格選択 → 年代選択へ（1問目→2問目）
         if (entry.phase === "intake_qual" && dataStr.startsWith("intake=qual&")) {
