@@ -5111,9 +5111,9 @@ async function buildPhaseMessage(phase, entry, env) {
                 margin: "sm",
                 action: {
                   type: "postback",
-                  label: "⭐ 保存",
+                  label: "⭐ 気になる",
                   data: `fav_add=${encodeURIComponent(job.jobId || job.id || job.n || job.employer || `job_${idx}`)}&src=match`,
-                  displayText: "この求人を保存しました",
+                  displayText: "この求人が気になる",
                 },
               },
             ],
@@ -5193,7 +5193,7 @@ async function buildPhaseMessage(phase, entry, env) {
               },
               {
                 type: "button", style: "secondary", height: "sm",
-                action: { type: "postback", label: "⭐ 保存", data: `fav_add=${encodeURIComponent(fac.id || fac.n || `fac_${name}`)}&src=fallback`, displayText: "この施設を保存しました" },
+                action: { type: "postback", label: "⭐ 気になる", data: `fav_add=${encodeURIComponent(fac.id || fac.n || `fac_${name}`)}&src=fallback`, displayText: "この施設が気になる" },
               },
             ],
           },
@@ -5875,7 +5875,7 @@ async function buildPhaseMessage(phase, entry, env) {
               { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
                 action: { type: "message", label: "この施設について聞く", text: `${empShort}について相談したい` } },
               { type: "button", style: "secondary", height: "sm",
-                action: { type: "postback", label: "⭐ 保存", data: `fav_add=${encodeURIComponent(favJobId)}&src=newjobs`, displayText: "この求人を保存しました" } }
+                action: { type: "postback", label: "⭐ 気になる", data: `fav_add=${encodeURIComponent(favJobId)}&src=newjobs`, displayText: "この求人が気になる" } }
             ]},
           };
         });
@@ -6663,9 +6663,9 @@ function buildFacilityFlexBubble(job, index, opts) {
           height: "sm",
           action: {
             type: "postback",
-            label: "⭐ 保存",
+            label: "⭐ 気になる",
             data: `fav_add=${encodeURIComponent(job.jobId || job.id || job.n || job.employer || `job_${index}`)}&src=match`,
-            displayText: "この求人を保存しました",
+            displayText: "この求人が気になる",
           },
         },
       ],
@@ -8061,7 +8061,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
         const dataStr = event.postback.data;
 
-        // ============ ⭐ お気に入り保存 (T1) ============
+        // ============ ⭐ 気になる求人 追加 (T1) ============
         if (dataStr.startsWith("fav_add=")) {
           const params = new URLSearchParams(dataStr);
           const jobId = (params.get("fav_add") || "unknown").slice(0, 100);
@@ -8134,7 +8134,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
             await lineReply(event.replyToken, [{
               type: "text",
-              text: `⭐ お気に入りに保存しました（${list.length}件/50件）\n\nマイページ「お気に入り求人」でいつでも確認できます。`,
+              text: `⭐ 気になるリストに追加しました（${list.length}件/50件）\n\nマイページ「気になる求人」でいつでも確認できます。`,
             }], channelAccessToken);
             continue;
           }
@@ -8155,7 +8155,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           await lineReply(event.replyToken, [
             {
               type: "text",
-              text: "⭐ お気に入り保存は「ナースロビー会員」限定の機能です",
+              text: "⭐ 気になる求人の保存は「ナースロビー会員」限定の機能です",
             },
             {
               type: "flex",
@@ -8172,7 +8172,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
                     {
                       type: "box", layout: "vertical", spacing: "sm",
                       contents: [
-                        { type: "text", text: "⭐ 気になる求人をお気に入り保存", size: "sm", color: "#333333", wrap: true },
+                        { type: "text", text: "⭐ 気になる求人をマイページに保存", size: "sm", color: "#333333", wrap: true },
                         { type: "text", text: "🎯 希望条件を保存→毎朝あなた専用の新着求人が届く", size: "sm", color: "#333333", wrap: true },
                         { type: "text", text: "📄 AI履歴書の保管・編集・PDF印刷", size: "sm", color: "#333333", wrap: true },
                         { type: "text", text: "🏠 マイページで一元管理", size: "sm", color: "#333333", wrap: true },
@@ -12085,7 +12085,7 @@ async function handleMypagePreferencesSave(request, env) {
 }
 
 // ================================================================
-// ========== /api/mypage-favorites: お気に入り求人保存 ==========
+// ========== /api/mypage-favorites: 気になる求人 ==========
 // ================================================================
 // KV構造: member:<userId>:favorites = JSON array (最大50件、配列全体で1エントリ)
 // [{ jobId, savedAt, snapshot: {title, facility, area, salaryMin, salaryMax, facilityType} }]
@@ -12352,7 +12352,7 @@ async function handleMemberLiteRegister(request, env, ctx) {
   if (env.LINE_CHANNEL_ACCESS_TOKEN) {
     ctx.waitUntil(linePushWithFallback(serverUserId, [{
       type: "text",
-      text: `✨ ナースロビー会員になりました\n\nこれで「お気に入り求人」や「希望条件」を保存できます。\n履歴書はいつでもマイページから作成できます。\n\n🏠 マイページ\n${mypageUrl}`,
+      text: `✨ ナースロビー会員になりました\n\nこれで「気になる求人」や「希望条件」を保存できます。\n履歴書はいつでもマイページから作成できます。\n\n🏠 マイページ\n${mypageUrl}`,
     }], env, { tag: "member_lite_welcome" }));
   }
 
@@ -12408,7 +12408,7 @@ async function buildMemberSignupPromoFlex(userId, env) {
           { type: "text", text: "🌱 ナースロビー会員(無料)になると…", weight: "bold", size: "md", color: "#1A6B8A", wrap: true },
           { type: "separator" },
           { type: "box", layout: "vertical", spacing: "sm", contents: [
-            { type: "text", text: "⭐ 気になる求人を「お気に入り」保存", size: "sm", color: "#333333", wrap: true },
+            { type: "text", text: "⭐ 気になる求人をマイページに保存", size: "sm", color: "#333333", wrap: true },
             { type: "text", text: "🎯 希望条件を設定→毎朝あなた専用の新着求人が自動で届く", size: "sm", color: "#333333", wrap: true },
             { type: "text", text: "📄 AI履歴書の保管・編集・PDF印刷", size: "sm", color: "#333333", wrap: true },
             { type: "text", text: "🏠 マイページで情報を一元管理", size: "sm", color: "#333333", wrap: true },

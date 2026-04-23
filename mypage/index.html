@@ -82,13 +82,13 @@
         </div>
       </div>
 
-      <!-- お気に入りカード -->
+      <!-- 気になる求人カード -->
       <div class="card" id="favCard">
         <div class="card-header">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
-          <h2>お気に入り求人</h2>
+          <h2>気になる求人</h2>
         </div>
         <p class="muted" id="favMeta">0件</p>
         <div style="margin-top:12px;">
@@ -97,7 +97,7 @@
               <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
               <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
             </svg>
-            お気に入り一覧を見る
+            気になる求人を見る
           </a>
         </div>
       </div>
@@ -111,8 +111,9 @@
           近日中に追加予定
         </h3>
         <ul>
-          <li>AI新着求人の定期配信（LINE通知）</li>
-          <li>LINE Botで求人に保存ボタン追加</li>
+          <li>応募履歴トラッキング（応募先・面接日・結果）</li>
+          <li>面接対策AI（過去質問の予習）</li>
+          <li>病院からのスカウト受信（許諾あり）</li>
         </ul>
       </div>
 
@@ -133,7 +134,7 @@
 
   <div aria-live="polite" class="sr-only" id="ariaLive"></div>
 
-  <script src="/mypage/mypage.js?v=20260423e"></script>
+  <script src="/mypage/mypage.js?v=20260423f"></script>
   <script>
     (async () => {
       try {
@@ -161,13 +162,13 @@
           }
         } catch {}
 
-        // お気に入り件数
+        // 気になる求人件数
         try {
           const fr = await apiCall('/api/mypage-favorites');
           if (fr.ok) {
             const fd = await fr.json();
             const n = (fd.favorites || []).length;
-            document.getElementById('favMeta').textContent = n > 0 ? `${n}件保存中` : '0件';
+            document.getElementById('favMeta').textContent = `${n}件`;
           }
         } catch {}
 
