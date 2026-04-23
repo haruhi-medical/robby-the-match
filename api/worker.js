@@ -1853,6 +1853,9 @@ export default {
     if (url.pathname === "/api/mypage-favorites" && request.method === "DELETE") {
       return await handleMypageFavoritesDelete(request, env);
     }
+    if (url.pathname === "/api/member-lite-register" && request.method === "POST") {
+      return await handleMemberLiteRegister(request, env, ctx);
+    }
 
     return jsonResponse({ error: "Not Found" }, 404);
   },
@@ -11884,4 +11887,166 @@ async function handleMypageFavoritesDelete(request, env) {
     return jsonResponse({ error: "削除に失敗しました" }, 500);
   }
   return jsonResponse({ success: true, deleted: before - list.length, count: list.length });
+}
+
+// ================================================================
+// ========== /api/member-lite-register: 最小プロフ会員化 ==========
+// ================================================================
+// ルートB: 履歴書なしでも会員化できる軽量ルート。
+// 既存 handleMemberResumeGenerate と資格・同意ロジックを共通化。
+async function handleMemberLiteRegister(request, env, ctx) {
+  let data;
+  try { data = await request.json(); }
+  catch { return jsonResponse({ error: "invalid JSON" }, 400); }
+
+  // 同意確認（プライバシーのみ。OpenAI処理は履歴書を作らないので不要）
+  if (data.consentPrivacy !== true) {
+    return jsonResponse({ error: "利用規約および個人情報保護方針への同意が必要です" }, 400);
+  }
+
+  // トークン検証（LINE Botが発行した30分短期トークン）
+  if (!data.token || typeof data.token !== "string" || !/^[a-f0-9-]{36}$/.test(data.token)) {
+    return jsonResponse({ error: "登録リンクが無効です。LINEからやり直してください。" }, 403);
+  }
+  let serverUserId = null;
+  try {
+    const raw = await env.LINE_SESSIONS.get(`resume_token:${data.token}`);
+    if (!raw) {
+      return jsonResponse({ error: "登録リンクの有効期限が切れました（30分）。LINEからやり直してください。" }, 403);
+    }
+    const tokenData = JSON.parse(raw);
+    serverUserId = tokenData.userId || null;
+  } catch (e) {
+    console.error("[MemberLite] token verify failed:", e.message);
+    return jsonResponse({ error: "認証エラー" }, 500);
+  }
+  if (!serverUserId) {
+    return jsonResponse({ error: "トークンからユーザー情報を復元できません" }, 500);
+  }
+
+  // IPレート制限（memberResumeRateMap を流用 — 同一IPからの会員化試行は合算で制限）
+  const clientIp = request.headers.get("cf-connecting-ip") || "unknown";
+  const now = Date.now();
+  let ipEntry = memberResumeRateMap.get(clientIp);
+  if (!ipEntry || now - ipEntry.windowStart > 86400000) {
+    ipEntry = { count: 1, windowStart: now };
+    memberResumeRateMap.set(clientIp, ipEntry);
+  } else {
+    ipEntry.count++;
+    if (ipEntry.count > 5) {
+      return jsonResponse({ error: "本日の会員登録試行回数の上限に達しました。" }, 429);
+    }
+  }
+
+  // 必須項目+入力長
+  if (!data.lastName || !data.firstName) {
+    return jsonResponse({ error: "お名前は必須です" }, 400);
+  }
+  if (!data.phone) {
+    return jsonResponse({ error: "電話番号は必須です" }, 400);
+  }
+  const limitStr = (v, max, field) => {
+    if (v == null) return "";
+    const s = String(v);
+    if (s.length > max) throw new Error(`${field} は ${max} 文字以内`);
+    return s;
+  };
+  try {
+    limitStr(data.lastName, 50, "姓");
+    limitStr(data.firstName, 50, "名");
+    limitStr(data.lastNameFurigana, 50, "姓ふりがな");
+    limitStr(data.firstNameFurigana, 50, "名ふりがな");
+    limitStr(data.phone, 20, "電話番号");
+    limitStr(data.email, 100, "メールアドレス");
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 400);
+  }
+
+  // 既存会員レコード読み込み（createdAt/consentedAt 保持、versionインクリメント）
+  let prevMember = null;
+  try {
+    const existing = await env.LINE_SESSIONS.get(`member:${serverUserId}`);
+    if (existing) prevMember = JSON.parse(existing);
+  } catch {}
+
+  const member = {
+    userId: serverUserId,
+    createdAt: prevMember?.createdAt ?? now,
+    consentedAt: prevMember?.consentedAt ?? now,
+    lastConsentedAt: now,
+    displayName: `${data.lastName} ${data.firstName}`,
+    status: prevMember?.status === "active" ? "active" : "lite",  // 履歴書未作成 = lite
+    phone: data.phone,  // ライト会員のみ電話番号を直接保持（連絡用）
+    email: data.email || prevMember?.email || null,
+    lastNameFurigana: data.lastNameFurigana || null,
+    firstNameFurigana: data.firstNameFurigana || null,
+    version: (prevMember?.version ?? 0) + 1,
+    registrationRoute: prevMember?.registrationRoute ?? "lite",
+  };
+
+  try {
+    await env.LINE_SESSIONS.put(`member:${serverUserId}`, JSON.stringify(member));
+  } catch (e) {
+    console.error("[MemberLite] KV put failed:", e.message);
+    return jsonResponse({ error: "登録に失敗しました" }, 500);
+  }
+
+  // 希望エリアを preferences に保存（選択があれば）
+  if (data.preferredArea && typeof data.preferredArea === "string" && data.preferredArea.length < 50) {
+    const prefsRaw = await env.LINE_SESSIONS.get(`member:${serverUserId}:preferences`);
+    let existingPrefs = {};
+    if (prefsRaw) {
+      try { existingPrefs = JSON.parse(prefsRaw); } catch {}
+    }
+    const merged = {
+      ...existingPrefs,
+      areas: existingPrefs.areas && existingPrefs.areas.length > 0 ? existingPrefs.areas : [data.preferredArea],
+      updatedAt: now,
+      version: (existingPrefs.version ?? 0) + 1,
+    };
+    try {
+      await env.LINE_SESSIONS.put(`member:${serverUserId}:preferences`, JSON.stringify(merged));
+    } catch {}
+  }
+
+  // トークン使い切り削除
+  ctx.waitUntil(env.LINE_SESSIONS.delete(`resume_token:${data.token}`).catch(() => {}));
+
+  // マイページエントリートークン発行
+  let entryToken;
+  try {
+    entryToken = await generateMypageSessionToken(serverUserId, env);
+  } catch (e) {
+    console.error("[MemberLite] entry token failed:", e.message);
+    entryToken = null;
+  }
+  const mypageUrl = entryToken
+    ? `https://quads-nurse.com/mypage/?t=${entryToken}`
+    : `https://quads-nurse.com/mypage/`;
+
+  // Slack通知
+  if (env.SLACK_BOT_TOKEN) {
+    ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+        text: `🌱 *ライト会員登録*（履歴書未作成）\nユーザー: \`${serverUserId}\`\n氏名: ${slackEscape(data.lastName)}${slackEscape(data.firstName)}\n電話: ${slackEscape(data.phone)}\nマイページ: ${mypageUrl}`,
+      }),
+    }).catch(e => console.error("[MemberLite] slack notify failed:", e.message)));
+  }
+
+  // LINE Push
+  if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+    ctx.waitUntil(linePushWithFallback(serverUserId, [{
+      type: "text",
+      text: `✨ ナースロビー会員になりました\n\nこれで「お気に入り求人」や「希望条件」を保存できます。\n履歴書はいつでもマイページから作成できます。\n\n🏠 マイページ\n${mypageUrl}`,
+    }], env, { tag: "member_lite_welcome" }));
+  }
+
+  return jsonResponse({
+    success: true,
+    mypageUrl,
+    memberStatus: member.status,
+  });
 }
