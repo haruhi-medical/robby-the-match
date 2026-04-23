@@ -16,6 +16,7 @@ import { pushMessage, buildQuickReplyMessage } from "../lib/line.js";
 import { generateResponse } from "../lib/openai.js";
 import { buildDocumentsMessages } from "./documents-gen.js";
 import { notifyHandoff } from "../lib/slack.js";
+import { runHospitalSendPrep } from "./hospital-send.js";
 
 /**
  * DOCUMENTS_REVIEW の1ターン処理
@@ -28,25 +29,6 @@ export async function handleDocumentsReviewTurn({ candidate, userText, env, db }
   if (isApproval(t)) {
     await updateCandidate(db, candidate.id, { phase: PHASES.APPROVED });
 
-    // Slack へ「書類承認済み・病院送付待ち」通知（Phase 14で人間1ボタン承認）
-    try {
-      const profile = safeParseJson(candidate.profile_json);
-      const employer = profile.apply_candidate_employer || "(応募先未設定)";
-      await notifyHandoff({
-        candidateId: candidate.id,
-        displayName: candidate.display_name,
-        reason: `書類承認済み → ${employer} への送付準備`,
-        phase: PHASES.APPROVED,
-        summary:
-          `候補者が3書類（履歴書/職務経歴書/志望動機書）を承認しました。\n` +
-          `応募先: ${employer}\n` +
-          `→ 社長確認 → 病院送付のフローへ`,
-        env,
-      });
-    } catch (err) {
-      console.warn("[doc-review] slack notify failed:", err.message);
-    }
-
     return {
       messages: [
         {
@@ -55,11 +37,12 @@ export async function handleDocumentsReviewTurn({ candidate, userText, env, db }
             "承認ありがとうございます。\n" +
             "この書類で応募を進めます。\n\n" +
             "弊社で最終確認ののち、応募先へ送付します。\n" +
-            "進捗は1時間以内にご連絡します。\n\n" +
+            "送付完了は翌営業日までにご連絡します。\n\n" +
             "しばらくお待ちください。",
         },
       ],
       nextPhase: PHASES.APPROVED,
+      triggerHospitalSend: true, // index.js 側で非同期トリガー
     };
   }
 

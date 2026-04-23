@@ -28,6 +28,7 @@ import { handleApplyInfoTurn, isApplyInfoPhase } from "./phases/apply-info.js";
 import { handleDocumentsPrepTurn, isDocumentsPrepPhase } from "./phases/documents-prep.js";
 import { runDocumentGeneration } from "./phases/documents-gen.js";
 import { handleDocumentsReviewTurn, regenerateDocument } from "./phases/documents-review.js";
+import { runHospitalSendPrep } from "./phases/hospital-send.js";
 import { handleInterviewPrepTurn, wantsInterviewPrep, enterInterviewPrep } from "./phases/interview-prep.js";
 import { getJobByKjno, formatJobDetail } from "./lib/jobs.js";
 import { transcribeAudioFromLine } from "./lib/transcribe.js";
@@ -744,10 +745,40 @@ async function processEvent(event, env, ctx) {
           await pushMessage(userId, result.messages, env.LINE_CHANNEL_ACCESS_TOKEN);
         }
       }
+
+      // 承認された → 非同期で病院送付準備（推薦文AI生成 + D1記録 + Slack通知）
+      if (result.triggerHospitalSend && ctx?.waitUntil) {
+        ctx.waitUntil(
+          runHospitalSendPrep({ candidateId: userId, env, db, ctx }).catch((err) => {
+            console.error("[hospital-send] prep failed:", err.message, err.stack);
+          })
+        );
+      }
       return;
     }
 
-    // APPROVED 以降 は暫定で Slack転送
+    // APPROVED 状態: 社長の病院送付を待機中の待機応答
+    if (candidate.phase === PHASES.APPROVED) {
+      const waitMsg = {
+        type: "text",
+        text:
+          "現在、弊社で書類の最終確認を行っています。\n" +
+          "応募先への送付完了は翌営業日までにご連絡します。\n\n" +
+          "この間も、面接対策など別のお手伝いができます。\n" +
+          "「面接対策」とお送りいただければ、想定Q&Aや模擬面接が可能です。",
+      };
+      await logMessage(db, userId, "assistant", waitMsg.text, PHASES.APPROVED, 0, "approved-waiting");
+      if (env.LINE_CHANNEL_ACCESS_TOKEN) {
+        try {
+          await replyMessage(event.replyToken, [waitMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
+        } catch (err) {
+          await pushMessage(userId, [waitMsg], env.LINE_CHANNEL_ACCESS_TOKEN);
+        }
+      }
+      return;
+    }
+
+    // APPLIED 以降は暫定で Slack転送
     await forwardToSlack(candidate, userText, env);
   }
 }
