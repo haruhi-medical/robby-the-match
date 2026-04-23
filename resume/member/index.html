@@ -98,30 +98,90 @@
       display: block;
     }
 
-    /* ===== TRUST BADGES ===== */
-    .trust-badges {
-      background: var(--primary);
-      padding: 12px 24px;
+    /* ===== HERO ===== */
+    .hero {
+      background: linear-gradient(180deg, #fff 0%, var(--bg-tint) 100%);
+      padding: 28px 24px 24px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 4px 10px;
+      border-radius: 99px;
+      margin-bottom: 12px;
+    }
+    .hero-title {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      letter-spacing: 0.01em;
+      margin-bottom: 10px;
+    }
+    .hero-title .accent { color: var(--primary); }
+    .hero-lead {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      max-width: 480px;
+      margin: 0 auto 16px;
+    }
+    .hero-meta {
       display: flex;
-      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .hero-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .hero-meta span::before {
+      content: '';
+      width: 4px; height: 4px;
+      background: var(--cta);
+      border-radius: 50%;
+    }
+    @media (max-width: 400px) {
+      .hero { padding: 22px 20px 20px; }
+      .hero-title { font-size: 1.35rem; }
+    }
+
+    /* ===== TRUST BADGES (slim) ===== */
+    .trust-badges {
+      background: #fff;
+      padding: 10px 20px;
+      display: flex;
+      gap: 6px 14px;
       flex-wrap: wrap;
       justify-content: center;
+      border-bottom: 1px solid var(--border);
+      font-size: 10.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
     }
     .trust-badge {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
-      color: rgba(255,255,255,0.9);
-      font-size: 11px;
+      gap: 4px;
       font-weight: 500;
-      letter-spacing: 0.02em;
       white-space: nowrap;
     }
     .trust-badge svg {
-      width: 14px;
-      height: 14px;
+      width: 11px;
+      height: 11px;
       flex-shrink: 0;
-      opacity: 0.9;
+      color: var(--primary);
+      opacity: 0.75;
     }
 
     /* ===== CONTAINER ===== */
@@ -577,31 +637,43 @@
     <img src="/assets/logo-nursrobby.png" alt="ナースロビー" height="40">
   </header>
 
-  <!-- Trust Badges -->
+  <!-- Hero: AI履歴書作成の価値訴求 -->
+  <section class="hero">
+    <span class="hero-eyebrow">看護師専用</span>
+    <h1 class="hero-title"><span class="accent">AIが仕上げる</span><br>看護師の履歴書</h1>
+    <p class="hero-lead">
+      事実情報を入力するだけ。志望動機と職務経歴の文章は<br>
+      看護師専門AIがあなたの言葉で丁寧に書き上げます。
+    </p>
+    <div class="hero-meta" aria-label="仕様">
+      <span>入力 約10分</span>
+      <span>JIS規格A3準拠</span>
+      <span>PDF保存・印刷対応</span>
+      <span>マイページで編集</span>
+    </div>
+  </section>
+
+  <!-- Trust Badges (slim) -->
   <div class="trust-badges" role="list" aria-label="信頼・安全の保証">
     <div class="trust-badge" role="listitem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
-      </svg>
-      SSL暗号化通信
+      </svg>SSL暗号化通信
     </div>
     <div class="trust-badge" role="listitem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      </svg>
-      有料職業紹介事業許可
+      </svg>有料職業紹介事業許可
     </div>
     <div class="trust-badge" role="listitem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
-      </svg>
-      個人情報保護方針準拠
+      </svg>個人情報保護方針準拠
     </div>
     <div class="trust-badge" role="listitem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-      </svg>
-      AI処理データは30日で削除
+      </svg>AI処理データは30日削除
     </div>
   </div>
 
@@ -622,16 +694,6 @@
 
   <main>
     <div class="container">
-
-      <!-- Intro -->
-      <div class="page-intro">
-        <div class="page-intro-title">会員登録 + AI履歴書作成</div>
-        <div class="page-intro-desc">
-          このフォームを送信すると<b>ナースロビー会員</b>として登録されます。
-          入力情報をもとにAIが丁寧な志望動機を生成し、
-          マイページでいつでも確認・編集・PDF印刷できます。
-        </div>
-      </div>
 
       <!-- Token Error -->
       <div class="token-error" id="tokenError" role="alert">
