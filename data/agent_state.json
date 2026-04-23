@@ -2,7 +2,7 @@
   "lastRun": {
     "ai_marketing_orchestrator": "2026-04-22T06:00:03",
     "health_monitor": "2026-04-22T07:00:20",
-    "competitor_analyst": "2026-04-23T10:00:01",
+    "competitor_analyst": "2026-04-23T10:00:10",
     "content_creator": "2026-04-22T15:04:07",
     "sns_poster": "2026-04-22T21:17:18",
     "daily_reviewer": "2026-04-22T23:00:33",
@@ -15,7 +15,7 @@
   "status": {
     "ai_marketing_orchestrator": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "running",
+    "competitor_analyst": "completed",
     "content_creator": "completed",
     "sns_poster": "completed",
     "daily_reviewer": "completed",
