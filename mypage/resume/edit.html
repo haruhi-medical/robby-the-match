@@ -4,471 +4,511 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
   <title>履歴書を編集 | ナースロビー マイページ</title>
-  <style>
-    :root {
-      --primary: #1A6B8A;
-      --primary-dark: #0F4A62;
-      --cta: #2D9F6F;
-      --cta-dark: #258A5E;
-      --text: #1a1a1a;
-      --text-muted: #666;
-      --border: #E0E7EC;
-      --bg-tint: #F6FAFC;
-      --err: #C55A53;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
-      color: var(--text);
-      background: #f9f9f9;
-      line-height: 1.6;
-      font-size: 15px;
-    }
-    .container {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 24px 20px 120px;
-    }
-    h1 {
-      font-size: 1.4rem;
-      margin: 0 0 8px;
-      color: var(--primary);
-    }
-    .lead {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin: 0 0 24px;
-      background: var(--bg-tint);
-      padding: 12px 16px;
-      border-radius: 10px;
-      border-left: 3px solid var(--primary);
-    }
-    .lead b { color: var(--primary); }
-    .section {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-    .section h2 {
-      font-size: 1.05rem;
-      margin: 0 0 4px;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section .hint {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin: 0 0 14px;
-    }
-    .field {
-      margin-bottom: 14px;
-    }
-    .field label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
-    .field label .required {
-      color: var(--err);
-      margin-left: 4px;
-    }
-    .field input[type="text"],
-    .field input[type="email"],
-    .field input[type="tel"],
-    .field input[type="date"],
-    .field input[type="number"],
-    .field select,
-    .field textarea {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 16px; /* iOS zoom防止 */
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--text);
-      font-family: inherit;
-    }
-    .field textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .field input:focus, .field textarea:focus, .field select:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-    .field-row {
-      display: flex;
-      gap: 8px;
-    }
-    .field-row .field { flex: 1; }
-
-    .history-item {
-      padding: 12px;
-      background: var(--bg-tint);
-      border-radius: 8px;
-      margin-bottom: 10px;
-      position: relative;
-    }
-    .history-item .remove-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: transparent;
-      border: none;
-      color: var(--err);
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .add-btn {
-      background: transparent;
-      color: var(--primary);
-      border: 1px dashed var(--primary);
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      width: 100%;
-    }
-    .add-btn:hover { background: var(--bg-tint); }
-
-    .ai-hint {
-      font-size: 0.8rem;
-      background: #fff8e1;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border-left: 3px solid #f7b500;
-      margin-bottom: 12px;
-      color: #6b5500;
-    }
-    .ai-hint b { color: #b47f00; }
-
-    .submit-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-      z-index: 100;
-    }
-    .submit-btn {
-      width: 100%;
-      background: var(--cta);
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .submit-btn:hover { background: var(--cta-dark); }
-    .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
-
-    .status {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-top: 8px;
-      text-align: center;
-    }
-    .status.error { color: var(--err); }
-
-    .consent {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
-      line-height: 1.7;
-    }
-    .consent label {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      cursor: pointer;
-      padding: 8px 0;
-    }
-    .consent input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .consent a { color: var(--primary); }
-    .consent .consent-note {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed var(--border);
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/mypage/mypage.css">
   <script src="/mypage/mypage.js?v=20260423b"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>&#9999;&#65039; 履歴書を編集</h1>
-    <p class="lead">
-      内容を更新して保存すると、<b>AIが志望動機を再生成</b>し履歴書が更新されます。
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <img src="/assets/logo-nursrobby.png" alt="ナースロビー" height="40">
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <span class="hero-eyebrow">マイページ</span>
+    <h1 class="hero-title"><span class="accent">履歴書を編集</span></h1>
+    <p class="hero-lead">
+      内容を更新して保存するとAIが志望動機を再生成します。
     </p>
+    <div class="hero-meta" aria-label="特徴">
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        既存データ自動入力
+      </span>
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        AI志望動機を再生成
+      </span>
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        PDF保存・印刷
+      </span>
+    </div>
+  </section>
 
-    <form id="resumeForm">
-      <!-- ===== 基本情報 ===== -->
-      <div class="section">
-        <h2>👤 基本情報</h2>
-        <p class="hint">履歴書に載せる情報です</p>
+  <div aria-live="polite" class="sr-only" id="ariaLive"></div>
 
-        <div class="field-row">
-          <div class="field">
-            <label>姓（ふりがな）<span class="required">*</span></label>
-            <input type="text" name="lastNameFurigana" required placeholder="たなか">
+  <main>
+    <div class="container">
+
+      <form id="resumeForm" novalidate>
+
+        <!-- Step 01: 基本情報 -->
+        <section class="section" aria-labelledby="step1-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">01</span>
+            <div>
+              <div class="section-title" id="step1-title">基本情報</div>
+              <div class="section-hint">履歴書に記載する氏名と連絡先</div>
+            </div>
           </div>
-          <div class="field">
-            <label>名（ふりがな）<span class="required">*</span></label>
-            <input type="text" name="firstNameFurigana" required placeholder="みさき">
+          <div class="section-body">
+            <div class="field-row">
+              <div class="field">
+                <label for="lastNameFurigana">姓（ふりがな）<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="lastNameFurigana" name="lastNameFurigana" required
+                  autocomplete="family-name" placeholder="たなか" aria-required="true">
+              </div>
+              <div class="field">
+                <label for="firstNameFurigana">名（ふりがな）<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="firstNameFurigana" name="firstNameFurigana" required
+                  autocomplete="given-name" placeholder="みさき" aria-required="true">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="lastName">姓<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="lastName" name="lastName" required
+                  autocomplete="family-name" placeholder="田中" aria-required="true">
+              </div>
+              <div class="field">
+                <label for="firstName">名<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="firstName" name="firstName" required
+                  autocomplete="given-name" placeholder="美咲" aria-required="true">
+              </div>
+            </div>
+            <div class="field">
+              <label for="birthDate">生年月日<span class="req" aria-label="必須">必須</span></label>
+              <input type="date" id="birthDate" name="birthDate" required
+                autocomplete="bday" aria-required="true">
+            </div>
+            <div class="field">
+              <label for="gender">性別<span class="req" aria-label="必須">必須</span></label>
+              <select id="gender" name="gender" required aria-required="true">
+                <option value="">選択してください</option>
+                <option value="女">女性</option>
+                <option value="男">男性</option>
+                <option value="回答しない">回答しない</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="phone">電話番号<span class="req" aria-label="必須">必須</span></label>
+              <input type="tel" id="phone" name="phone" required
+                autocomplete="tel" inputmode="tel" placeholder="090-1234-5678" aria-required="true">
+            </div>
+            <div class="field">
+              <label for="email">メールアドレス（任意・担当者連絡用）</label>
+              <input type="email" id="email" name="email"
+                autocomplete="email" inputmode="email" placeholder="example@example.com">
+            </div>
           </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>姓<span class="required">*</span></label>
-            <input type="text" name="lastName" required placeholder="田中">
+        </section>
+
+        <!-- Step 02: 現住所 -->
+        <section class="section" aria-labelledby="step2-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">02</span>
+            <div>
+              <div class="section-title" id="step2-title">現住所</div>
+              <div class="section-hint">履歴書に記載する住所</div>
+            </div>
           </div>
-          <div class="field">
-            <label>名<span class="required">*</span></label>
-            <input type="text" name="firstName" required placeholder="美咲">
+          <div class="section-body">
+            <div class="field">
+              <label for="postalCode">郵便番号<span class="req" aria-label="必須">必須</span></label>
+              <input type="text" id="postalCode" name="postalCode" required
+                autocomplete="postal-code" inputmode="numeric"
+                placeholder="250-0011" pattern="\d{3}-?\d{4}" aria-required="true">
+            </div>
+            <div class="field">
+              <label for="address">住所<span class="req" aria-label="必須">必須</span></label>
+              <input type="text" id="address" name="address" required
+                autocomplete="street-address" placeholder="神奈川県横浜市中区..." aria-required="true">
+            </div>
+            <div class="field">
+              <label for="addressFurigana">住所（ふりがな）</label>
+              <input type="text" id="addressFurigana" name="addressFurigana"
+                placeholder="かながわけん よこはまし...">
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div class="field">
-          <label>生年月日<span class="required">*</span></label>
-          <input type="date" name="birthDate" required>
-        </div>
+        <!-- Step 03: 連絡先（任意） -->
+        <section class="section" aria-labelledby="step3-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">03</span>
+            <div>
+              <div class="section-title" id="step3-title">連絡先（現住所以外・任意）</div>
+              <div class="section-hint">帰省先など、現住所と異なる場合のみ記入</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="field">
+              <label for="contactPostalCode">郵便番号</label>
+              <input type="text" id="contactPostalCode" name="contactPostalCode"
+                autocomplete="postal-code" inputmode="numeric"
+                placeholder="250-0011" pattern="\d{3}-?\d{4}">
+            </div>
+            <div class="field">
+              <label for="contactAddress">住所</label>
+              <input type="text" id="contactAddress" name="contactAddress"
+                autocomplete="street-address" placeholder="（空欄可）">
+            </div>
+            <div class="field">
+              <label for="contactAddressFurigana">住所（ふりがな）</label>
+              <input type="text" id="contactAddressFurigana" name="contactAddressFurigana" placeholder="">
+            </div>
+            <div class="field">
+              <label for="contactPhone">電話番号</label>
+              <input type="tel" id="contactPhone" name="contactPhone"
+                autocomplete="tel" inputmode="tel" placeholder="">
+            </div>
+          </div>
+        </section>
 
-        <div class="field">
-          <label>性別<span class="required">*</span></label>
-          <select name="gender" required>
-            <option value="">選択してください</option>
-            <option value="女">女</option>
-            <option value="男">男</option>
-            <option value="回答しない">回答しない</option>
-          </select>
-        </div>
+        <!-- Step 04: 学歴 -->
+        <section class="section" aria-labelledby="step4-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">04</span>
+            <div>
+              <div class="section-title" id="step4-title">学歴</div>
+              <div class="section-hint">看護学校・大学・専門学校など（入学・卒業を分けて記載）</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div id="educationList" aria-label="学歴リスト"></div>
+            <button type="button" class="add-btn" onclick="addEducation()" aria-label="学歴を追加">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              追加する
+            </button>
+          </div>
+        </section>
 
-        <div class="field">
-          <label>電話番号<span class="required">*</span></label>
-          <input type="tel" name="phone" required placeholder="090-1234-5678">
-        </div>
+        <!-- Step 05: 職歴 -->
+        <section class="section" aria-labelledby="step5-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">05</span>
+            <div>
+              <div class="section-title" id="step5-title">職歴</div>
+              <div class="section-hint">勤務先と配属先・業務内容</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div id="careerList" aria-label="職歴リスト"></div>
+            <button type="button" class="add-btn" onclick="addCareer()" aria-label="職歴を追加">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              追加する
+            </button>
+          </div>
+        </section>
 
-        <div class="field">
-          <label>メールアドレス（任意・担当者連絡用）</label>
-          <input type="email" name="email" placeholder="example@example.com">
-        </div>
-      </div>
+        <!-- Step 06: 免許・資格 -->
+        <section class="section" aria-labelledby="step6-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">06</span>
+            <div>
+              <div class="section-title" id="step6-title">免許・資格</div>
+              <div class="section-hint">看護師免許、BLS、認定資格など</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div id="licenseList" aria-label="資格リスト"></div>
+            <button type="button" class="add-btn" onclick="addLicense()" aria-label="資格を追加">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              追加する
+            </button>
+          </div>
+        </section>
 
-      <!-- ===== 現住所 ===== -->
-      <div class="section">
-        <h2>📮 現住所</h2>
-        <div class="field">
-          <label>郵便番号<span class="required">*</span></label>
-          <input type="text" name="postalCode" required placeholder="250-0011" pattern="\d{3}-?\d{4}">
-        </div>
-        <div class="field">
-          <label>住所<span class="required">*</span></label>
-          <input type="text" name="address" required placeholder="神奈川県横浜市中央区...">
-        </div>
-        <div class="field">
-          <label>住所（ふりがな）</label>
-          <input type="text" name="addressFurigana" placeholder="かながわけん よこはまし...">
-        </div>
-      </div>
+        <!-- Step 07: 志望動機のヒント -->
+        <section class="section" aria-labelledby="step7-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">07</span>
+            <div>
+              <div class="section-title" id="step7-title">志望動機のヒント</div>
+              <div class="section-hint">AIが志望動機を生成する素材になります</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="ai-hint-box" role="note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>
+                <b>AIが担当する部分：</b>
+                下記の3問をもとに、看護師専門のキャリアアドバイザーが書くような
+                志望動機を自動生成します。箇条書き・短文でOKです。
+              </span>
+            </div>
+            <div class="field">
+              <label for="hint_change">今の職場で「変えたい」と思うこと</label>
+              <textarea id="hint_change" name="hint_change"
+                placeholder="例：夜勤が多くて体力的につらい / 人間関係 / キャリアアップしたい"
+                aria-label="変えたいこと（任意）"></textarea>
+            </div>
+            <div class="field">
+              <label for="hint_strengths">自分の強み・得意なこと（箇条書き可）</label>
+              <textarea id="hint_strengths" name="hint_strengths"
+                placeholder="例：急性期での判断力 / 患者への傾聴 / チームリーダー経験"
+                aria-label="強み・得意なこと（任意）"></textarea>
+            </div>
+            <div class="field">
+              <label for="hint_wishes">次の職場で大事にしたいこと</label>
+              <textarea id="hint_wishes" name="hint_wishes"
+                placeholder="例：ワークライフバランス / 教育体制 / 専門性を深められる環境"
+                aria-label="大事にしたいこと（任意）"></textarea>
+            </div>
+          </div>
+        </section>
 
-      <!-- ===== 連絡先（現住所以外・任意） ===== -->
-      <div class="section">
-        <h2>📮 連絡先（現住所以外・任意）</h2>
-        <p class="hint">現住所以外に連絡を希望する場合のみ記入してください</p>
-        <div class="field">
-          <label>郵便番号</label>
-          <input type="text" name="contactPostalCode" placeholder="250-0011" pattern="\d{3}-?\d{4}">
-        </div>
-        <div class="field">
-          <label>住所</label>
-          <input type="text" name="contactAddress" placeholder="（空欄可）">
-        </div>
-        <div class="field">
-          <label>住所（ふりがな）</label>
-          <input type="text" name="contactAddressFurigana" placeholder="">
-        </div>
-        <div class="field">
-          <label>電話</label>
-          <input type="tel" name="contactPhone" placeholder="">
-        </div>
-      </div>
+        <!-- Step 08: 本人希望 -->
+        <section class="section" aria-labelledby="step8-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">08</span>
+            <div>
+              <div class="section-title" id="step8-title">本人希望（任意）</div>
+              <div class="section-hint">勤務地・給与・勤務形態などの希望</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="field">
+              <label for="wishes">希望条件（自由記入）</label>
+              <textarea id="wishes" name="wishes"
+                placeholder="例：勤務地：神奈川県内、勤務形態：日勤のみ希望、入職時期：応相談"
+                aria-label="本人希望（任意）"></textarea>
+            </div>
+          </div>
+        </section>
 
-      <!-- ===== 学歴 ===== -->
-      <div class="section">
-        <h2>🎓 学歴</h2>
-        <p class="hint">看護学校・大学・専門学校など</p>
-        <div id="educationList"></div>
-        <button type="button" class="add-btn" onclick="addEducation()">+ 学歴を追加</button>
-      </div>
+        <!-- Trust Footer -->
+        <aside class="trust-footer" aria-label="あなたの情報を安全にお預かりします">
+          <div class="trust-footer-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            あなたの情報は安全にお預かりします
+          </div>
+          <div class="trust-list">
+            <div class="trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+              </svg>
+              <span><b>SSL暗号化通信</b>で送信 — 第三者に盗聴されません</span>
+            </div>
+            <div class="trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span><b>有料職業紹介事業許可</b>取得の正規サービス</span>
+            </div>
+            <div class="trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+              </svg>
+              <span><b>AI処理データは30日で自動削除</b> — 学習には使われません</span>
+            </div>
+          </div>
+        </aside>
 
-      <!-- ===== 職歴 ===== -->
-      <div class="section">
-        <h2>💼 職歴</h2>
-        <p class="hint">勤務先（病院・クリニック等）と配属先・業務内容</p>
-        <div id="careerList"></div>
-        <button type="button" class="add-btn" onclick="addCareer()">+ 職歴を追加</button>
-      </div>
+      </form>
+    </div>
+  </main>
 
-      <!-- ===== 免許・資格 ===== -->
-      <div class="section">
-        <h2>📜 免許・資格</h2>
-        <p class="hint">看護師免許、BLS、認定資格など</p>
-        <div id="licenseList"></div>
-        <button type="button" class="add-btn" onclick="addLicense()">+ 資格を追加</button>
-      </div>
-
-      <!-- ===== 志望動機のヒント ===== -->
-      <div class="section">
-        <h2>✨ 志望動機のヒント</h2>
-        <p class="hint">この3問の回答から、AIが丁寧な志望動機を生成します</p>
-
-        <div class="ai-hint">
-          <b>AIが担当する部分</b>：下記の「ヒント」を元に、看護師専門のキャリアアドバイザーが書くような志望動機を生成します。
-        </div>
-
-        <div class="field">
-          <label>① 今の職場で「変えたい」と思うこと</label>
-          <textarea name="hint_change" placeholder="例：夜勤が多くて体力的にキツい / 人間関係がしんどい / キャリアアップしたい"></textarea>
-        </div>
-        <div class="field">
-          <label>② 自分の強み・得意なこと（箇条書き可）</label>
-          <textarea name="hint_strengths" placeholder="例：急性期での判断力 / 患者様への傾聴 / チームリーダー経験"></textarea>
-        </div>
-        <div class="field">
-          <label>③ 次の職場で大事にしたいこと</label>
-          <textarea name="hint_wishes" placeholder="例：ワークライフバランス / 教育体制 / 専門性を深められる環境"></textarea>
-        </div>
-      </div>
-
-      <!-- ===== 本人希望欄 ===== -->
-      <div class="section">
-        <h2>📝 本人希望欄</h2>
-        <p class="hint">勤務地・給与・勤務形態などの希望</p>
-        <div class="field">
-          <label>希望条件（自由記入）</label>
-          <textarea name="wishes" placeholder="例：勤務地：神奈川県内、勤務形態：日勤のみ希望、入職時期：応相談"></textarea>
-        </div>
-      </div>
-
-    </form>
-  </div>
-
-  <div class="submit-bar">
-    <button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()">
-      更新を保存する
+  <!-- Submit Bar -->
+  <div class="submit-bar" role="contentinfo" aria-label="送信エリア">
+    <button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()"
+      aria-label="更新を保存する">
+      <span class="spinner" aria-hidden="true"></span>
+      <span id="submitBtnLabel">更新を保存する</span>
     </button>
-    <div class="status" id="status"></div>
+    <div class="status-msg" id="statusMsg" aria-live="polite" aria-atomic="true"></div>
   </div>
 
   <script>
     // ===== 学歴 / 職歴 / 資格 動的追加 =====
+    const trashIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+
     function addEducation() {
       const html = `
-        <div class="history-item">
-          <button type="button" class="remove-btn" onclick="this.parentElement.remove()">削除</button>
+        <div class="history-item" role="group" aria-label="学歴">
+          <button type="button" class="remove-btn" onclick="this.closest('.history-item').remove()" aria-label="この学歴を削除">
+            ${trashIcon}削除
+          </button>
           <div class="field-row">
             <div class="field">
-              <label>年</label>
-              <input type="number" name="edu_year[]" placeholder="2018" min="1950" max="2030">
+              <label>入学年</label>
+              <input type="number" name="edu_enter_year[]" placeholder="2014" min="1950" max="2035"
+                inputmode="numeric" aria-label="入学年">
             </div>
             <div class="field">
               <label>月</label>
-              <input type="number" name="edu_month[]" placeholder="3" min="1" max="12">
+              <input type="number" name="edu_enter_month[]" placeholder="4" min="1" max="12"
+                inputmode="numeric" aria-label="入学月">
             </div>
           </div>
           <div class="field">
             <label>学校名・学部学科</label>
-            <input type="text" name="edu_desc[]" placeholder="○○看護大学 看護学部 卒業">
+            <input type="text" name="edu_school[]" placeholder="○○看護大学 看護学部"
+              aria-label="学校名・学部学科">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>卒業年</label>
+              <input type="number" name="edu_grad_year[]" placeholder="2018" min="1950" max="2035"
+                inputmode="numeric" aria-label="卒業年">
+            </div>
+            <div class="field">
+              <label>月</label>
+              <input type="number" name="edu_grad_month[]" placeholder="3" min="1" max="12"
+                inputmode="numeric" aria-label="卒業月">
+            </div>
           </div>
         </div>`;
       document.getElementById('educationList').insertAdjacentHTML('beforeend', html);
     }
+
     function addCareer() {
       const html = `
-        <div class="history-item">
-          <button type="button" class="remove-btn" onclick="this.parentElement.remove()">削除</button>
+        <div class="history-item" role="group" aria-label="職歴">
+          <button type="button" class="remove-btn" onclick="this.closest('.history-item').remove()" aria-label="この職歴を削除">
+            ${trashIcon}削除
+          </button>
           <div class="field-row">
             <div class="field">
-              <label>年（入職）</label>
-              <input type="number" name="car_start_year[]" placeholder="2018" min="1950" max="2030">
+              <label>入職年</label>
+              <input type="number" name="car_start_year[]" placeholder="2018" min="1950" max="2035"
+                inputmode="numeric" aria-label="入職年">
             </div>
             <div class="field">
               <label>月</label>
-              <input type="number" name="car_start_month[]" placeholder="4" min="1" max="12">
+              <input type="number" name="car_start_month[]" placeholder="4" min="1" max="12"
+                inputmode="numeric" aria-label="入職月">
             </div>
           </div>
           <div class="field">
             <label>施設名（匿名化OK：「○○病院」等）</label>
-            <input type="text" name="car_facility[]" placeholder="医療法人○○会 △△病院">
+            <input type="text" name="car_facility[]" placeholder="医療法人○○会 △△病院"
+              aria-label="施設名">
           </div>
           <div class="field">
             <label>配属・業務内容（具体的に）</label>
-            <textarea name="car_detail[]" placeholder="例：急性期内科病棟（40床）、プリセプター経験2年、化学療法管理、CVカテ介助など"></textarea>
+            <textarea name="car_detail[]" placeholder="例：急性期内科病棟（40床）、プリセプター経験2年、化学療法管理など"
+              aria-label="配属・業務内容"></textarea>
           </div>
           <div class="field-row">
             <div class="field">
-              <label>退職年（現職なら空欄）</label>
-              <input type="number" name="car_end_year[]" placeholder="" min="1950" max="2030">
+              <label>退職年（現職は空欄）</label>
+              <input type="number" name="car_end_year[]" placeholder="" min="1950" max="2035"
+                inputmode="numeric" aria-label="退職年（任意）">
             </div>
             <div class="field">
-              <label>月</label>
-              <input type="number" name="car_end_month[]" placeholder="" min="1" max="12">
+              <label>退職月</label>
+              <input type="number" name="car_end_month[]" placeholder="" min="1" max="12"
+                inputmode="numeric" aria-label="退職月（任意）">
             </div>
           </div>
         </div>`;
       document.getElementById('careerList').insertAdjacentHTML('beforeend', html);
     }
+
     function addLicense() {
       const html = `
-        <div class="history-item">
-          <button type="button" class="remove-btn" onclick="this.parentElement.remove()">削除</button>
+        <div class="history-item" role="group" aria-label="資格">
+          <button type="button" class="remove-btn" onclick="this.closest('.history-item').remove()" aria-label="この資格を削除">
+            ${trashIcon}削除
+          </button>
           <div class="field-row">
             <div class="field">
-              <label>年</label>
-              <input type="number" name="lic_year[]" placeholder="2018" min="1950" max="2030">
+              <label>取得年</label>
+              <input type="number" name="lic_year[]" placeholder="2018" min="1950" max="2035"
+                inputmode="numeric" aria-label="取得年">
             </div>
             <div class="field">
               <label>月</label>
-              <input type="number" name="lic_month[]" placeholder="3" min="1" max="12">
+              <input type="number" name="lic_month[]" placeholder="3" min="1" max="12"
+                inputmode="numeric" aria-label="取得月">
             </div>
           </div>
           <div class="field">
             <label>資格名</label>
-            <input type="text" name="lic_name[]" placeholder="正看護師免許 取得">
+            <input type="text" name="lic_name[]" placeholder="正看護師免許 取得"
+              aria-label="資格名">
           </div>
         </div>`;
       document.getElementById('licenseList').insertAdjacentHTML('beforeend', html);
     }
 
-    // ===== マイページセッショントークン取得（mypage.js 経由） =====
-    // 編集画面は既存会員のみ。LIFF認証→セッショントークン → 既存データ取得 → フォーム初期化
+    /* ===== 郵便番号→住所自動入力 (zipcloud API) ===== */
+    async function lookupPostalCode(zipInput, addrInput, furiganaInput, statusSlot) {
+      const digits = (zipInput.value || '').replace(/\D/g, '');
+      if (digits.length !== 7) return;
+      if (statusSlot) statusSlot.textContent = '住所を検索中...';
+      try {
+        const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${digits}`);
+        if (!res.ok) throw new Error('API エラー');
+        const data = await res.json();
+        if (data.status !== 200 || !data.results || !data.results[0]) {
+          if (statusSlot) statusSlot.textContent = '郵便番号が見つかりませんでした';
+          return;
+        }
+        const r = data.results[0];
+        const fullAddr = `${r.address1}${r.address2}${r.address3}`;
+        const fullKana = `${r.kana1 || ''}${r.kana2 || ''}${r.kana3 || ''}`
+          .normalize('NFKC')
+          .replace(/[ァ-ヶ]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
+        if (addrInput && (!addrInput.value || addrInput.value.trim().length < 3)) {
+          addrInput.value = fullAddr;
+        }
+        if (furiganaInput && (!furiganaInput.value || furiganaInput.value.trim().length < 3)) {
+          furiganaInput.value = fullKana;
+        }
+        if (statusSlot) statusSlot.textContent = '住所を自動入力しました（番地以降をご記入ください）';
+        if (addrInput) {
+          addrInput.focus();
+          try { addrInput.setSelectionRange(addrInput.value.length, addrInput.value.length); } catch {}
+        }
+      } catch (e) {
+        if (statusSlot) statusSlot.textContent = '住所検索に失敗しました（手動で入力してください）';
+      }
+    }
+
+    function bindZipLookup(zipName, addrName, furiganaName) {
+      const zip = document.querySelector(`input[name="${zipName}"]`);
+      const addr = document.querySelector(`input[name="${addrName}"]`);
+      const fur = document.querySelector(`input[name="${furiganaName}"]`);
+      if (!zip) return;
+      const note = document.createElement('div');
+      note.setAttribute('aria-live', 'polite');
+      note.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:4px;min-height:14px;';
+      zip.parentNode.appendChild(note);
+      const handler = () => lookupPostalCode(zip, addr, fur, note);
+      zip.addEventListener('blur', handler);
+      zip.addEventListener('input', () => { if (zip.value.replace(/\D/g, '').length === 7) handler(); });
+    }
+
+    /* ===== セッション・データ読み込み ===== */
     let mypageSession = null;
 
     async function loadExistingData() {
       try {
         mypageSession = await initMypageAuth();
         if (!mypageSession) return false;
+
+        bindZipLookup('postalCode', 'address', 'addressFurigana');
+        bindZipLookup('contactPostalCode', 'contactAddress', 'contactAddressFurigana');
 
         const res = await apiCall('/api/mypage-resume-data');
         if (!res.ok) {
@@ -481,7 +521,6 @@
         }
         const data = await res.json();
 
-        // フォームに既存データを流し込む
         const form = document.getElementById('resumeForm');
         const setField = (name, value) => {
           const el = form.querySelector(`[name="${name}"]`);
@@ -507,15 +546,26 @@
         setField('hint_wishes', data.hint_wishes);
         setField('wishes', data.wishes);
 
-        // 動的リスト（学歴・職歴・資格）は初期 add した空要素を消してから再追加
+        // 学歴（入学/卒業分解して既存edu_year/edu_month/edu_descから復元）
         document.getElementById('educationList').innerHTML = '';
-        (data.education || []).forEach(() => addEducation());
-        (data.education || []).forEach((item, i) => {
-          document.querySelectorAll('[name="edu_year[]"]')[i].value = item.edu_year || '';
-          document.querySelectorAll('[name="edu_month[]"]')[i].value = item.edu_month || '';
-          document.querySelectorAll('[name="edu_desc[]"]')[i].value = item.edu_desc || '';
-        });
-        if ((data.education || []).length === 0) addEducation();
+        const edu = data.education || [];
+        // サーバーデータが「入学」「卒業」の2行ペアで来る場合を想定
+        // 学校ごとにグループ化する
+        const eduGroups = groupEducationItems(edu);
+        if (eduGroups.length > 0) {
+          eduGroups.forEach(g => {
+            addEducation();
+            const items = document.querySelectorAll('#educationList .history-item');
+            const item = items[items.length - 1];
+            item.querySelector('[name="edu_school[]"]').value = g.school || '';
+            item.querySelector('[name="edu_enter_year[]"]').value = g.enterYear || '';
+            item.querySelector('[name="edu_enter_month[]"]').value = g.enterMonth || '';
+            item.querySelector('[name="edu_grad_year[]"]').value = g.gradYear || '';
+            item.querySelector('[name="edu_grad_month[]"]').value = g.gradMonth || '';
+          });
+        } else {
+          addEducation();
+        }
 
         document.getElementById('careerList').innerHTML = '';
         (data.career || []).forEach(() => addCareer());
@@ -540,32 +590,54 @@
 
         return true;
       } catch (e) {
-        const s = document.getElementById('status');
-        if (s) {
-          s.className = 'status error';
-          s.textContent = 'エラー: ' + e.message;
-        }
+        const s = document.getElementById('statusMsg');
+        if (s) { s.className = 'status-msg error'; s.textContent = 'エラー: ' + e.message; }
         return false;
       }
     }
 
-    // ページロード時に既存データ取得
+    // edu_year/edu_month/edu_desc 形式を学校ごとにグループ化（「入学」「卒業」を対応付け）
+    function groupEducationItems(items) {
+      const groups = {};
+      items.forEach(it => {
+        const desc = it.edu_desc || '';
+        const isEnter = desc.includes('入学');
+        const isGrad = desc.includes('卒業');
+        // 学校名を desc から抽出
+        const school = desc.replace(/\s*(入学|卒業)\s*$/, '').trim();
+        const key = school || `__idx_${Object.keys(groups).length}`;
+        if (!groups[key]) groups[key] = { school };
+        if (isEnter) { groups[key].enterYear = it.edu_year || ''; groups[key].enterMonth = it.edu_month || ''; }
+        else if (isGrad) { groups[key].gradYear = it.edu_year || ''; groups[key].gradMonth = it.edu_month || ''; }
+        else { groups[key].enterYear = it.edu_year || ''; groups[key].enterMonth = it.edu_month || ''; }
+      });
+      return Object.values(groups);
+    }
+
     loadExistingData();
 
-    // ===== Submit =====
+    /* ===== Submit ===== */
     async function submitForm() {
       const btn = document.getElementById('submitBtn');
-      const status = document.getElementById('status');
+      const label = document.getElementById('submitBtnLabel');
+      const statusMsg = document.getElementById('statusMsg');
+      const ariaLive = document.getElementById('ariaLive');
+
+      const setStatus = (msg, type) => {
+        statusMsg.textContent = msg;
+        statusMsg.className = 'status-msg' + (type ? ' ' + type : '');
+        ariaLive.textContent = msg;
+      };
 
       if (!mypageSession) {
-        status.className = 'status error';
-        status.textContent = '認証が必要です。マイページから開き直してください。';
+        setStatus('認証が必要です。マイページから開き直してください。', 'error');
         return;
       }
 
       btn.disabled = true;
-      status.className = 'status';
-      status.textContent = 'AIが志望動機を再生成中... (30秒ほど)';
+      btn.classList.add('loading');
+      label.textContent = 'AIが志望動機を再生成中...';
+      setStatus('約30秒お待ちください。このページを閉じないでください。', '');
 
       const form = document.getElementById('resumeForm');
       const data = {
@@ -588,9 +660,9 @@
         hint_strengths: form.hint_strengths.value,
         hint_wishes: form.hint_wishes.value,
         wishes: form.wishes.value,
-        education: collectRepeating(form, ['edu_year', 'edu_month', 'edu_desc']),
-        career: collectRepeating(form, ['car_start_year', 'car_start_month', 'car_facility', 'car_detail', 'car_end_year', 'car_end_month']),
-        licenses: collectRepeating(form, ['lic_year', 'lic_month', 'lic_name']),
+        education: collectEducation(form),
+        career: collectRepeating(form, ['car_start_year','car_start_month','car_facility','car_detail','car_end_year','car_end_month']),
+        licenses: collectRepeating(form, ['lic_year','lic_month','lic_name']),
       };
 
       try {
@@ -605,31 +677,48 @@
         }
         const result = await res.json();
         if (result.success) {
-          alert('✅ 履歴書を更新しました。マイページへ戻ります。');
-          window.location.href = '/mypage/';
+          btn.classList.remove('loading');
+          label.textContent = '更新が完了しました';
+          setStatus('履歴書を更新しました。マイページへ戻ります。', 'success');
+          setTimeout(() => { window.location.href = '/mypage/'; }, 1500);
         } else {
           throw new Error('更新に失敗しました');
         }
       } catch (e) {
-        status.className = 'status error';
-        status.textContent = 'エラー: ' + e.message;
+        btn.classList.remove('loading');
         btn.disabled = false;
+        label.textContent = '更新を保存する';
+        setStatus('エラー: ' + e.message, 'error');
       }
     }
 
+    function collectEducation(form) {
+      const schools = Array.from(form.querySelectorAll('[name="edu_school[]"]')).map(i => i.value.trim());
+      const ey = Array.from(form.querySelectorAll('[name="edu_enter_year[]"]')).map(i => i.value.trim());
+      const em = Array.from(form.querySelectorAll('[name="edu_enter_month[]"]')).map(i => i.value.trim());
+      const gy = Array.from(form.querySelectorAll('[name="edu_grad_year[]"]')).map(i => i.value.trim());
+      const gm = Array.from(form.querySelectorAll('[name="edu_grad_month[]"]')).map(i => i.value.trim());
+      const items = [];
+      const n = Math.max(schools.length, ey.length, gy.length);
+      for (let i = 0; i < n; i++) {
+        const school = schools[i] || '';
+        if (!school && !ey[i] && !gy[i]) continue;
+        if (ey[i]) items.push({ edu_year: ey[i], edu_month: em[i] || '', edu_desc: school ? `${school} 入学` : '入学' });
+        if (gy[i]) items.push({ edu_year: gy[i], edu_month: gm[i] || '', edu_desc: school ? `${school} 卒業` : '卒業' });
+      }
+      return items;
+    }
+
     function collectRepeating(form, fields) {
-      const max = Math.max(...fields.map(f => (form.querySelectorAll(`[name="${f}[]"]`) || []).length));
+      const max = Math.max(...fields.map(f => form.querySelectorAll(`[name="${f}[]"]`).length), 0);
       const items = [];
       for (let i = 0; i < max; i++) {
         const item = {};
         fields.forEach(f => {
           const el = form.querySelectorAll(`[name="${f}[]"]`)[i];
-          item[f] = el ? el.value : '';
+          item[f] = el ? el.value.trim() : '';
         });
-        // 全て空ならスキップ
-        if (Object.values(item).some(v => v && v.trim())) {
-          items.push(item);
-        }
+        if (Object.values(item).some(v => v !== '')) items.push(item);
       }
       return items;
     }

@@ -7,66 +7,57 @@
   <meta http-equiv="Referrer-Policy" content="no-referrer">
   <meta http-equiv="Cache-Control" content="no-store">
   <title>お気に入り求人 | ナースロビー マイページ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/mypage/mypage.css">
-  <style>
-    .fav-item {
-      border-bottom: 1px solid var(--border);
-      padding: 14px 0;
-      position: relative;
-    }
-    .fav-item:last-child { border-bottom: none; }
-    .fav-title {
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--primary);
-      margin: 0 0 6px;
-    }
-    .fav-meta {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-    .fav-salary {
-      color: var(--cta);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-    .fav-remove {
-      position: absolute;
-      top: 14px;
-      right: 0;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--err);
-      font-size: 0.78rem;
-      padding: 4px 10px;
-      border-radius: 14px;
-      cursor: pointer;
-    }
-    .fav-remove:hover { background: #FDF3F2; }
-    .empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-    }
-    .empty .big-icon { font-size: 3rem; margin-bottom: 10px; }
-  </style>
 </head>
 <body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <img src="/assets/logo-nursrobby.png" alt="ナースロビー" height="40">
+  </header>
+
   <div id="loading" class="loading">読み込み中...</div>
-  <div id="app" class="container" style="display:none;">
-    <h1>⭐ お気に入り求人</h1>
-    <p class="muted" id="meta">0件</p>
 
-    <div id="list" class="card"></div>
+  <div id="app" style="display:none;">
+    <main class="container">
 
-    <div id="empty" class="card empty" style="display:none;">
-      <div class="big-icon">🔍</div>
-      <p>まだお気に入り求人がありません</p>
-      <p class="muted">LINEで求人を検索して⭐ボタンで保存できます<br>（近日中にLINE Botで対応予定）</p>
-    </div>
+      <!-- Page Title -->
+      <div class="page-title-area">
+        <div class="page-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          お気に入り求人
+        </div>
+        <p class="page-subtitle" id="meta">0件</p>
+      </div>
 
-    <a href="/mypage/" class="btn btn-outline">← マイページへ戻る</a>
+      <!-- リスト -->
+      <div id="list" class="card" style="display:none;"></div>
+
+      <!-- 空状態 -->
+      <div id="empty" class="card" style="display:none;">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <p style="font-weight:600; margin-bottom:6px;">まだお気に入りがありません</p>
+          <p class="muted">LINEで求人を検索して保存できます<br>（近日中にLINE Botで対応予定）</p>
+        </div>
+      </div>
+
+      <a href="/mypage/" class="btn btn-outline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        マイページへ戻る
+      </a>
+
+    </main>
   </div>
 
   <script src="/mypage/mypage.js?v=20260423b"></script>
@@ -84,6 +75,10 @@
       if (min) return `月給 ${(min/10000).toFixed(0)}万円〜`;
       return `月給 〜${(max/10000).toFixed(0)}万円`;
     }
+
+    const trashSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>`;
+    const pinSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+    const yenSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><line x1="7" y1="12" x2="17" y2="12"/></svg>`;
 
     function render(list) {
       const container = document.getElementById('list');
@@ -103,27 +98,28 @@
       container.innerHTML = list.map(item => {
         const s = item.snapshot || {};
         const date = new Date(item.savedAt).toLocaleDateString('ja-JP');
+        const salary = fmtYen(s.salaryMin, s.salaryMax);
         return `
           <div class="fav-item" data-jobid="${esc(item.jobId)}">
             <div class="fav-title">${esc(s.title || s.facility || item.jobId)}</div>
             ${s.facility && s.title ? `<div class="fav-meta">${esc(s.facility)}</div>` : ''}
-            ${s.area ? `<div class="fav-meta">📍 ${esc(s.area)}</div>` : ''}
-            ${fmtYen(s.salaryMin, s.salaryMax) ? `<div class="fav-salary">💰 ${fmtYen(s.salaryMin, s.salaryMax)}</div>` : ''}
-            <div class="fav-meta">保存日: ${date}</div>
-            <button type="button" class="fav-remove" data-jobid="${esc(item.jobId)}">✖ 削除</button>
+            ${s.area ? `<div class="fav-meta">${pinSvg} ${esc(s.area)}</div>` : ''}
+            ${salary ? `<div class="fav-salary">${yenSvg} ${salary}</div>` : ''}
+            <div class="fav-meta" style="margin-top:4px;">保存日: ${date}</div>
+            <button type="button" class="fav-remove" data-jobid="${esc(item.jobId)}" aria-label="お気に入りを削除">
+              ${trashSvg}削除
+            </button>
           </div>`;
       }).join('');
 
       // 削除ボタン
       container.querySelectorAll('.fav-remove').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-          const jobId = e.target.dataset.jobid;
-          if (!confirm(`このお気に入りを削除しますか？`)) return;
+          const jobId = e.currentTarget.dataset.jobid;
+          if (!confirm('このお気に入りを削除しますか？')) return;
           try {
             const res = await apiCall(`/api/mypage-favorites?jobId=${encodeURIComponent(jobId)}`, { method: 'DELETE' });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            // 再レンダー
             const reload = await apiCall('/api/mypage-favorites');
             if (reload.ok) {
               const rd = await reload.json();
@@ -150,8 +146,8 @@
         render(data.favorites || []);
       } catch (e) {
         document.getElementById('loading').innerHTML =
-          `<div class="container"><div class="error">エラー: ${e.message}</div>
-          <a href="/mypage/" class="btn btn-outline">マイページへ戻る</a></div>`;
+          `<div class="container"><div class="error-box">エラー: ${e.message}</div>
+          <a href="/mypage/" class="btn btn-outline" style="margin-top:12px;">マイページへ戻る</a></div>`;
       }
     })();
   </script>

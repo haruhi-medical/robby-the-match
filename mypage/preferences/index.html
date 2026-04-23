@@ -7,136 +7,172 @@
   <meta http-equiv="Referrer-Policy" content="no-referrer">
   <meta http-equiv="Cache-Control" content="no-store">
   <title>希望条件 | ナースロビー マイページ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/mypage/mypage.css">
   <style>
-    .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; color: var(--primary); }
-    .field .hint { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 8px; }
-    .choices { display: flex; flex-wrap: wrap; gap: 6px; }
-    .choices label {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px;
-      font-size: 0.85rem; font-weight: 400; color: var(--text);
-      cursor: pointer; background: #fff; transition: all .15s ease;
-      margin-bottom: 0;
-    }
-    .choices label.checked { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 600; }
-    .choices input[type="checkbox"], .choices input[type="radio"] { display: none; }
     input[type="number"], select, textarea {
-      width: 100%; padding: 10px 12px; font-size: 16px;
-      border: 1px solid var(--border); border-radius: 8px; background: #fff;
-      color: var(--text); font-family: inherit;
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--text);
+      font-family: "Noto Sans JP", "Hiragino Sans", -apple-system, sans-serif;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
     }
     textarea { resize: vertical; min-height: 80px; }
-    .submit-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
-      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.08); z-index: 100;
+    input[type="number"]:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(26,107,138,0.12);
     }
-    .submit-btn {
-      width: 100%; background: var(--cta); color: #fff; border: none;
-      padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    .pref-label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
     }
-    .submit-btn:hover { background: var(--cta-dark); }
-    .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
-    .status { font-size: 0.85rem; text-align: center; margin-top: 8px; color: var(--text-muted); }
-    .status.error { color: var(--err); }
-    .status.success { color: var(--cta); }
+    .pref-hint { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 8px; }
+    .pref-field { margin-bottom: 20px; }
+    .pref-field:last-child { margin-bottom: 0; }
   </style>
 </head>
 <body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <img src="/assets/logo-nursrobby.png" alt="ナースロビー" height="40">
+  </header>
+
   <div id="loading" class="loading">読み込み中...</div>
-  <div id="app" class="container" style="display:none; padding-bottom: 120px;">
-    <h1>🎯 希望条件</h1>
-    <p class="muted">保存した条件に合う新着求人が届きます（機能追加予定）</p>
 
-    <div class="card">
-      <div class="field">
-        <label>希望エリア</label>
-        <p class="hint">複数選択OK</p>
-        <div class="choices" id="areasGroup">
-          <label data-value="yokohama"><input type="checkbox" value="yokohama">横浜</label>
-          <label data-value="kawasaki"><input type="checkbox" value="kawasaki">川崎</label>
-          <label data-value="sagamihara"><input type="checkbox" value="sagamihara">相模原</label>
-          <label data-value="yokosuka_miura"><input type="checkbox" value="yokosuka_miura">横須賀三浦</label>
-          <label data-value="kenou"><input type="checkbox" value="kenou">県央</label>
-          <label data-value="shonan_east"><input type="checkbox" value="shonan_east">湘南東部</label>
-          <label data-value="shonan_west"><input type="checkbox" value="shonan_west">湘南西部</label>
-          <label data-value="kensei"><input type="checkbox" value="kensei">県西</label>
-          <label data-value="tokyo"><input type="checkbox" value="tokyo">東京</label>
-          <label data-value="chiba"><input type="checkbox" value="chiba">千葉</label>
-          <label data-value="saitama"><input type="checkbox" value="saitama">埼玉</label>
+  <div id="app" style="display:none; padding-bottom: 120px;">
+    <main class="container">
+
+      <!-- Page Title -->
+      <div class="page-title-area">
+        <div class="page-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          希望条件
         </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="field">
-        <label>施設タイプ</label>
-        <p class="hint">複数選択OK</p>
-        <div class="choices" id="facilityTypesGroup">
-          <label data-value="acute"><input type="checkbox" value="acute">急性期</label>
-          <label data-value="recovery"><input type="checkbox" value="recovery">回復期</label>
-          <label data-value="chronic"><input type="checkbox" value="chronic">慢性期</label>
-          <label data-value="clinic"><input type="checkbox" value="clinic">クリニック</label>
-          <label data-value="visiting"><input type="checkbox" value="visiting">訪問看護</label>
-          <label data-value="care"><input type="checkbox" value="care">介護施設</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="field">
-        <label>働き方</label>
-        <p class="hint">複数選択OK</p>
-        <div class="choices" id="workStyleGroup">
-          <label data-value="regular"><input type="checkbox" value="regular">常勤(日勤+夜勤)</label>
-          <label data-value="day_only"><input type="checkbox" value="day_only">日勤のみ</label>
-          <label data-value="night_only"><input type="checkbox" value="night_only">夜勤専従</label>
-          <label data-value="part_time"><input type="checkbox" value="part_time">パート</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="field">
-        <label>希望月給の最低ライン（円/月、任意）</label>
-        <p class="hint">この額以上の求人を優先的にお知らせします</p>
-        <input type="number" id="salaryMin" min="0" max="2000000" step="10000" placeholder="例: 300000">
+        <p class="page-subtitle">保存した条件に合う新着求人が届きます（近日対応）</p>
       </div>
 
-      <div class="field">
-        <label>夜勤可否</label>
-        <div class="choices" id="nightShiftGroup">
-          <label data-value="true"><input type="radio" name="nightShift" value="true">夜勤OK</label>
-          <label data-value="false"><input type="radio" name="nightShift" value="false">日勤のみ希望</label>
+      <!-- 希望エリア -->
+      <div class="card">
+        <div class="pref-field">
+          <span class="pref-label">希望エリア</span>
+          <p class="pref-hint">複数選択OK</p>
+          <div class="choices" id="areasGroup">
+            <label data-value="yokohama"><input type="checkbox" value="yokohama">横浜</label>
+            <label data-value="kawasaki"><input type="checkbox" value="kawasaki">川崎</label>
+            <label data-value="sagamihara"><input type="checkbox" value="sagamihara">相模原</label>
+            <label data-value="yokosuka_miura"><input type="checkbox" value="yokosuka_miura">横須賀三浦</label>
+            <label data-value="kenou"><input type="checkbox" value="kenou">県央</label>
+            <label data-value="shonan_east"><input type="checkbox" value="shonan_east">湘南東部</label>
+            <label data-value="shonan_west"><input type="checkbox" value="shonan_west">湘南西部</label>
+            <label data-value="kensei"><input type="checkbox" value="kensei">県西</label>
+            <label data-value="tokyo"><input type="checkbox" value="tokyo">東京</label>
+            <label data-value="chiba"><input type="checkbox" value="chiba">千葉</label>
+            <label data-value="saitama"><input type="checkbox" value="saitama">埼玉</label>
+          </div>
         </div>
       </div>
 
-      <div class="field">
-        <label>転職時期</label>
-        <select id="transferTiming">
-          <option value="">選択してください</option>
-          <option value="immediately">すぐにでも</option>
-          <option value="1_3_months">1〜3ヶ月以内</option>
-          <option value="6_months">半年以内</option>
-          <option value="1_year">1年以内</option>
-          <option value="undecided">未定・情報収集中</option>
-        </select>
+      <!-- 施設タイプ -->
+      <div class="card">
+        <div class="pref-field">
+          <span class="pref-label">施設タイプ</span>
+          <p class="pref-hint">複数選択OK</p>
+          <div class="choices" id="facilityTypesGroup">
+            <label data-value="acute"><input type="checkbox" value="acute">急性期</label>
+            <label data-value="recovery"><input type="checkbox" value="recovery">回復期</label>
+            <label data-value="chronic"><input type="checkbox" value="chronic">慢性期</label>
+            <label data-value="clinic"><input type="checkbox" value="clinic">クリニック</label>
+            <label data-value="visiting"><input type="checkbox" value="visiting">訪問看護</label>
+            <label data-value="care"><input type="checkbox" value="care">介護施設</label>
+          </div>
+        </div>
       </div>
 
-      <div class="field">
-        <label>その他の希望（自由記入）</label>
-        <textarea id="note" placeholder="例：子育て中のため日勤中心希望、駅チカ優先など"></textarea>
+      <!-- 働き方 -->
+      <div class="card">
+        <div class="pref-field">
+          <span class="pref-label">働き方</span>
+          <p class="pref-hint">複数選択OK</p>
+          <div class="choices" id="workStyleGroup">
+            <label data-value="regular"><input type="checkbox" value="regular">常勤(日勤+夜勤)</label>
+            <label data-value="day_only"><input type="checkbox" value="day_only">日勤のみ</label>
+            <label data-value="night_only"><input type="checkbox" value="night_only">夜勤専従</label>
+            <label data-value="part_time"><input type="checkbox" value="part_time">パート</label>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <a href="/mypage/" class="btn btn-outline">← マイページへ戻る</a>
+      <!-- その他条件 -->
+      <div class="card">
+        <div class="pref-field">
+          <span class="pref-label">希望月給の最低ライン（任意）</span>
+          <p class="pref-hint">この額以上の求人を優先してお知らせします</p>
+          <input type="number" id="salaryMin" min="0" max="2000000" step="10000" placeholder="例: 300000">
+        </div>
+
+        <div class="pref-field">
+          <span class="pref-label">夜勤可否</span>
+          <div class="choices" id="nightShiftGroup">
+            <label data-value="true"><input type="radio" name="nightShift" value="true">夜勤OK</label>
+            <label data-value="false"><input type="radio" name="nightShift" value="false">日勤のみ希望</label>
+          </div>
+        </div>
+
+        <div class="pref-field">
+          <span class="pref-label">転職時期</span>
+          <select id="transferTiming">
+            <option value="">選択してください</option>
+            <option value="immediately">すぐにでも</option>
+            <option value="1_3_months">1〜3ヶ月以内</option>
+            <option value="6_months">半年以内</option>
+            <option value="1_year">1年以内</option>
+            <option value="undecided">未定・情報収集中</option>
+          </select>
+        </div>
+
+        <div class="pref-field">
+          <span class="pref-label">その他の希望（自由記入）</span>
+          <textarea id="note" placeholder="例：子育て中のため日勤中心希望、駅チカ優先など"></textarea>
+        </div>
+      </div>
+
+      <a href="/mypage/" class="btn btn-outline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        マイページへ戻る
+      </a>
+
+    </main>
   </div>
 
+  <!-- Submit Bar -->
   <div class="submit-bar" id="submitBar" style="display:none;">
-    <button type="button" class="submit-btn" id="submitBtn">希望条件を保存する</button>
-    <div class="status" id="status"></div>
+    <button type="button" class="submit-btn" id="submitBtn" aria-label="希望条件を保存する">
+      希望条件を保存する
+    </button>
+    <div class="status-msg" id="statusMsg" aria-live="polite" aria-atomic="true"></div>
   </div>
 
   <script src="/mypage/mypage.js?v=20260423b"></script>
@@ -149,9 +185,7 @@
       if (input.type === 'radio') {
         label.parentElement.querySelectorAll('label').forEach(l => l.classList.remove('checked'));
       }
-      setTimeout(() => {
-        label.classList.toggle('checked', input.checked);
-      }, 0);
+      setTimeout(() => { label.classList.toggle('checked', input.checked); }, 0);
     }
 
     document.querySelectorAll('.choices label').forEach(label => {
@@ -195,9 +229,9 @@
 
     async function savePrefs() {
       const btn = document.getElementById('submitBtn');
-      const status = document.getElementById('status');
+      const status = document.getElementById('statusMsg');
       btn.disabled = true;
-      status.className = 'status';
+      status.className = 'status-msg';
       status.textContent = '保存中...';
 
       const nightShiftVal = document.querySelector('#nightShiftGroup input:checked')?.value;
@@ -222,11 +256,11 @@
           const err = await res.json();
           throw new Error(err.error || `HTTP ${res.status}`);
         }
-        status.className = 'status success';
-        status.textContent = '✅ 保存しました';
+        status.className = 'status-msg success';
+        status.textContent = '保存しました';
         setTimeout(() => { status.textContent = ''; btn.disabled = false; }, 2000);
       } catch (e) {
-        status.className = 'status error';
+        status.className = 'status-msg error';
         status.textContent = 'エラー: ' + e.message;
         btn.disabled = false;
       }
@@ -243,8 +277,8 @@
         document.getElementById('submitBtn').addEventListener('click', savePrefs);
       } catch (e) {
         document.getElementById('loading').innerHTML =
-          `<div class="container"><div class="error">エラー: ${e.message}</div>
-          <a href="/mypage/" class="btn btn-outline">マイページへ戻る</a></div>`;
+          `<div class="container"><div class="error-box">エラー: ${e.message}</div>
+          <a href="/mypage/" class="btn btn-outline" style="margin-top:12px;">マイページへ戻る</a></div>`;
       }
     })();
   </script>
