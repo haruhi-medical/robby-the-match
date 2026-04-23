@@ -5184,12 +5184,18 @@ async function buildPhaseMessage(phase, entry, env) {
           },
           body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
           footer: {
-            type: "box", layout: "vertical", paddingAll: "12px",
-            contents: [{
-              type: "button", style: "primary", height: "sm",
-              color: BRAND_COLOR,
-              action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent(name)}`, displayText: `${name}の条件を確認したい` },
-            }],
+            type: "box", layout: "vertical", paddingAll: "12px", spacing: "sm",
+            contents: [
+              {
+                type: "button", style: "primary", height: "sm",
+                color: BRAND_COLOR,
+                action: { type: "postback", label: "この施設について聞く", data: `handoff=ok&facility=${encodeURIComponent(name)}`, displayText: `${name}の条件を確認したい` },
+              },
+              {
+                type: "button", style: "secondary", height: "sm",
+                action: { type: "postback", label: "⭐ 保存", data: `fav_add=${encodeURIComponent(fac.id || fac.n || `fac_${name}`)}&src=fallback`, displayText: "この施設を保存しました" },
+              },
+            ],
           },
         };
       }
@@ -5809,7 +5815,7 @@ async function buildPhaseMessage(phase, entry, env) {
           "(emp_type IS NULL OR emp_type NOT LIKE '%派遣%')",
           "(title IS NULL OR title NOT LIKE '%派遣%')",
         ];
-        const selectCols = 'SELECT employer, title, salary_display, bonus_text, holidays, rank, score, station_text, shift1, work_location, emp_type, contract_period, insurance, first_seen_at FROM jobs';
+        const selectCols = 'SELECT id, employer, title, salary_display, bonus_text, holidays, rank, score, station_text, shift1, work_location, emp_type, contract_period, insurance, first_seen_at, salary_min, salary_max FROM jobs';
 
         // Step1: 本日初出
         const todayConds = [...baseConditions, "first_seen_at = date('now','localtime')", ...areaConditions];
@@ -5854,6 +5860,7 @@ async function buildPhaseMessage(phase, entry, env) {
           bodyContents.push({ type: "text", text: (r.employer || '').slice(0, 25), size: "xs", color: "#999999", margin: "md", wrap: true });
 
           const empShort = (r.employer || '').slice(0, 20);
+          const favJobId = String(r.id || r.employer || `newjobs_${i}`);
           return {
             type: "bubble", size: "kilo",
             header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: BRAND_COLOR,
@@ -5863,10 +5870,12 @@ async function buildPhaseMessage(phase, entry, env) {
                 size: "xs", weight: "bold", color: "#FFFFFF",
               }] },
             body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "none", contents: bodyContents },
-            footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+            footer: { type: "box", layout: "vertical", paddingAll: "12px", spacing: "sm", contents: [
               // message action: handoff中はsilentにSlack転送、handoff前は通常のテキスト処理
               { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
-                action: { type: "message", label: "この施設について聞く", text: `${empShort}について相談したい` } }
+                action: { type: "message", label: "この施設について聞く", text: `${empShort}について相談したい` } },
+              { type: "button", style: "secondary", height: "sm",
+                action: { type: "postback", label: "⭐ 保存", data: `fav_add=${encodeURIComponent(favJobId)}&src=newjobs`, displayText: "この求人を保存しました" } }
             ]},
           };
         });
@@ -5887,6 +5896,17 @@ async function buildPhaseMessage(phase, entry, env) {
         };
 
         const allBubbles = [...jobBubbles, ctaBubble].slice(0, 10);
+
+        // ⭐保存ボタン用に最終表示中の求人スナップショットを entry に保存
+        // fav_add postback ハンドラがこれを見て favorites のスナップショットを構築する
+        entry.lastShownJobs = result.results.map(r => ({
+          jobId: String(r.id || r.employer || ''),
+          title: r.title || '',
+          employer: r.employer || '',
+          work_location: r.work_location || '',
+          salaryMin: typeof r.salary_min === 'number' ? r.salary_min : null,
+          salaryMax: typeof r.salary_max === 'number' ? r.salary_max : null,
+        }));
 
         const headerText = expanded
           ? `${areaLabel}エリアは本日の新着なし。直近1週間から${result.results.length}件👇`
@@ -8063,24 +8083,43 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             if (favRaw) {
               try { list = JSON.parse(favRaw) || []; } catch {}
             }
-            // entry.matchingResults から求人スナップショットを探す
+            // entry.matchingResults / entry.lastShownJobs / D1 直引きの順で
+            // 求人スナップショットを探す
             let snapshot = {};
             try {
-              const sess = entry.matchingResults || [];
               const decodedJobId = decodeURIComponent(jobId);
-              const match = sess.find(r => (r.jobId || r.id || r.n || r.employer) === decodedJobId || r.n === decodedJobId || r.employer === decodedJobId);
+              const idMatch = (r) => {
+                const candidates = [r.jobId, r.id, r.n, r.employer];
+                return candidates.some(c => c != null && String(c) === decodedJobId);
+              };
+              const candidates = [
+                ...(entry.matchingResults || []),
+                ...(entry.lastShownJobs || []),
+              ];
+              let match = candidates.find(idMatch);
+              // KV にも無ければ D1 jobs から id 検索（src=newjobs / src=match で id 直保存ケース）
+              if (!match && /^\d+$/.test(decodedJobId) && env.DB) {
+                try {
+                  const row = await env.DB.prepare(
+                    'SELECT id, employer, title, work_location, salary_min, salary_max FROM jobs WHERE id = ? LIMIT 1'
+                  ).bind(parseInt(decodedJobId, 10)).first();
+                  if (row) match = row;
+                } catch (e) { console.warn('[FavAdd] D1 lookup failed:', e.message); }
+              }
               if (match) {
                 snapshot = {
                   title: (match.title || match.t || "").slice(0, 300),
                   facility: (match.employer || match.n || "").slice(0, 300),
                   area: (match.work_location || match.loc || match.area || "").slice(0, 300),
-                  salaryMin: typeof match.salaryMin === "number" ? match.salaryMin : null,
-                  salaryMax: typeof match.salaryMax === "number" ? match.salaryMax : null,
+                  salaryMin: typeof match.salaryMin === "number" ? match.salaryMin :
+                             typeof match.salary_min === "number" ? match.salary_min : null,
+                  salaryMax: typeof match.salaryMax === "number" ? match.salaryMax :
+                             typeof match.salary_max === "number" ? match.salary_max : null,
                 };
-                // null/undefined を除外
-                Object.keys(snapshot).forEach(k => snapshot[k] == null && delete snapshot[k]);
+                // null/undefined / 空文字を除外
+                Object.keys(snapshot).forEach(k => (snapshot[k] == null || snapshot[k] === "") && delete snapshot[k]);
               }
-            } catch {}
+            } catch (e) { console.warn('[FavAdd] snapshot build failed:', e.message); }
 
             const existingIdx = list.findIndex(x => x.jobId === jobId);
             const entryObj = { jobId, savedAt: Date.now(), snapshot };
