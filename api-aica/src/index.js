@@ -48,13 +48,25 @@ export default {
 
     // Health check
     if (url.pathname === "/health") {
+      const deep = url.searchParams.get("deep") === "1";
+      const base = {
+        status: "ok",
+        version: env.AICA_VERSION || "0.1.0",
+        timestamp: new Date().toISOString(),
+      };
+      if (!deep) {
+        return new Response(JSON.stringify(base), {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      const deps = await checkDependencies(env);
+      const overall = Object.values(deps).every((d) => d.ok) ? "ok" : "degraded";
       return new Response(
-        JSON.stringify({
-          status: "ok",
-          version: env.AICA_VERSION || "0.1.0",
-          timestamp: new Date().toISOString(),
-        }),
-        { headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ ...base, status: overall, deps }),
+        {
+          status: overall === "ok" ? 200 : 503,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -750,5 +762,75 @@ function safeParseJson(s) {
     return s ? JSON.parse(s) : {};
   } catch {
     return {};
+  }
+}
+
+/** /health?deep=1 用の依存疎通チェック */
+async function checkDependencies(env) {
+  const result = {};
+
+  result.aica_db = await timedCheck(async () => {
+    const res = await env.AICA_DB.prepare("SELECT 1 AS ok").first();
+    if (!res || res.ok !== 1) throw new Error("unexpected result");
+  });
+
+  result.nurse_db = await timedCheck(async () => {
+    if (!env.NURSE_DB) throw new Error("NURSE_DB not bound");
+    const res = await env.NURSE_DB.prepare("SELECT COUNT(*) AS c FROM jobs").first();
+    if (!res) throw new Error("unexpected result");
+  });
+
+  result.aica_sessions = await timedCheck(async () => {
+    if (!env.AICA_SESSIONS) throw new Error("AICA_SESSIONS not bound");
+    const key = "__health_probe__";
+    await env.AICA_SESSIONS.put(key, String(Date.now()), { expirationTtl: 60 });
+    const v = await env.AICA_SESSIONS.get(key);
+    if (!v) throw new Error("read-back failed");
+  });
+
+  result.openai = await timedCheck(async () => {
+    if (!env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY missing");
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const r = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: "ok" }],
+          max_tokens: 2,
+        }),
+        signal: ctrl.signal,
+      });
+      if (!r.ok) throw new Error(`status ${r.status}`);
+    } finally {
+      clearTimeout(timeout);
+    }
+  });
+
+  result.line = await timedCheck(async () => {
+    if (!env.LINE_CHANNEL_ACCESS_TOKEN) throw new Error("LINE_CHANNEL_ACCESS_TOKEN missing");
+    if (!env.LINE_CHANNEL_SECRET) throw new Error("LINE_CHANNEL_SECRET missing");
+  });
+
+  result.slack = await timedCheck(async () => {
+    if (!env.SLACK_BOT_TOKEN) throw new Error("SLACK_BOT_TOKEN missing");
+    if (!env.SLACK_CHANNEL_AICA) throw new Error("SLACK_CHANNEL_AICA missing");
+  });
+
+  return result;
+}
+
+async function timedCheck(fn) {
+  const start = Date.now();
+  try {
+    await fn();
+    return { ok: true, latency_ms: Date.now() - start };
+  } catch (err) {
+    return { ok: false, latency_ms: Date.now() - start, error: err.message };
   }
 }
