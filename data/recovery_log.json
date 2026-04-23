@@ -3,12 +3,12 @@
     "seo_batch": {
       "date": "2026-04-23",
       "retries": 2,
-      "status": "retrying",
+      "status": "recovered",
       "last_error": "",
       "last_alert_ts": ""
     },
     "healthcheck": {
-      "date": "2026-04-02",
+      "date": "2026-04-23",
       "retries": 1,
       "status": "recovered",
       "last_error": "",
