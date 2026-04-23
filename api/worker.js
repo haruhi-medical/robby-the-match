@@ -5688,6 +5688,102 @@ async function buildPhaseMessage(phase, entry, env) {
         },
       }];
 
+    // ===== リッチメニュー: マイページ（会員→URL発行 / 非会員→登録誘導） =====
+    case "rm_mypage": {
+      const userId = entry._tempUserIdForMypage || null;
+      delete entry._tempUserIdForMypage;
+      const memberRaw = userId ? await env.LINE_SESSIONS.get(`member:${userId}`) : null;
+      let isMember = false;
+      if (memberRaw) {
+        try {
+          const m = JSON.parse(memberRaw);
+          isMember = m.status === "active" || m.status === "lite";
+        } catch {}
+      }
+
+      if (isMember && userId) {
+        // 会員: HMAC署名URL発行 → ボタンで開かせる
+        let mypageUrl = "https://quads-nurse.com/mypage/";
+        try {
+          const token = await generateMypageSessionToken(userId, env);
+          mypageUrl = `https://quads-nurse.com/mypage/?t=${token}`;
+        } catch (e) {
+          console.error("[rm_mypage] token gen failed:", e.message);
+        }
+        return [{
+          type: "flex",
+          altText: "マイページを開く",
+          contents: {
+            type: "bubble",
+            body: {
+              type: "box", layout: "vertical", spacing: "md",
+              contents: [
+                { type: "text", text: "🏠 マイページ", weight: "bold", size: "lg", color: "#1A6B8A" },
+                { type: "text", text: "履歴書 / 気になる求人 / 希望条件を確認・編集できます。", size: "sm", color: "#333333", wrap: true },
+                { type: "text", text: "リンクは24時間有効です。", size: "xs", color: "#999999", wrap: true, margin: "md" },
+              ],
+            },
+            footer: {
+              type: "box", layout: "vertical",
+              contents: [{
+                type: "button", style: "primary", color: "#2D9F6F",
+                action: { type: "uri", label: "マイページを開く", uri: mypageUrl },
+              }],
+            },
+          },
+        }];
+      }
+
+      // 非会員: 30秒登録誘導
+      const liteToken = crypto.randomUUID();
+      try {
+        await env.LINE_SESSIONS.put(
+          `resume_token:${liteToken}`,
+          JSON.stringify({ userId, createdAt: Date.now() }),
+          { expirationTtl: 1800 }
+        );
+      } catch (e) {
+        console.error("[rm_mypage] token KV put failed:", e.message);
+      }
+      const liteUrl = `https://quads-nurse.com/resume/member-lite/?token=${liteToken}`;
+
+      return [
+        { type: "text", text: "🏠 マイページは「ナースロビー会員」になると使えます" },
+        {
+          type: "flex",
+          altText: "30秒で会員登録",
+          contents: {
+            type: "bubble",
+            body: {
+              type: "box", layout: "vertical", spacing: "md",
+              contents: [
+                { type: "text", text: "🌱 会員登録(無料)で使える機能", weight: "bold", size: "lg", color: "#1A6B8A" },
+                { type: "separator" },
+                {
+                  type: "box", layout: "vertical", spacing: "sm",
+                  contents: [
+                    { type: "text", text: "⭐ 気になる求人をマイページに保存", size: "sm", color: "#333333", wrap: true },
+                    { type: "text", text: "🎯 希望条件→毎朝あなた専用の新着求人が届く", size: "sm", color: "#333333", wrap: true },
+                    { type: "text", text: "📄 AI履歴書の保管・編集・PDF印刷", size: "sm", color: "#333333", wrap: true },
+                    { type: "text", text: "🏠 マイページで一元管理", size: "sm", color: "#333333", wrap: true },
+                  ],
+                },
+                { type: "separator" },
+                { type: "text", text: "📝 登録は30秒・お名前と電話だけ", size: "xs", color: "#666666", wrap: true, margin: "md" },
+              ],
+            },
+            footer: {
+              type: "box", layout: "vertical",
+              contents: [{
+                type: "button", style: "primary", color: "#2D9F6F",
+                action: { type: "uri", label: "🌱 30秒で会員登録する", uri: liteUrl },
+              }],
+            },
+          },
+        },
+      ];
+    }
+
     // ===== 逆指名フロー: 施設名入力プロンプト =====
     case "reverse_nomination_input":
       return [{
@@ -7432,6 +7528,9 @@ function handleLinePostback(dataStr, entry) {
       nextPhase = "rm_contact_intro";
     } else if (val === "resume") {
       nextPhase = "rm_resume_start";
+    } else if (val === "mypage") {
+      // マイページ: 会員→HMAC署名URL発行、非会員→登録誘導
+      nextPhase = "rm_mypage";
     }
   }
   // リッチメニュー新着求人: エリア選択 → 当該エリアの新着表示
@@ -8810,6 +8909,10 @@ ${entry.rmCvQualifications || '看護師免許'}
             }), { expirationTtl: 604800 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); }); // 7日TTL
           }
         } else if (nextPhase) {
+          // rm_mypage は会員判定+HMAC URL発行のため userId を一時的に entry に渡す
+          if (nextPhase === "rm_mypage") {
+            entry._tempUserIdForMypage = userId;
+          }
           replyMessages = await buildPhaseMessage(nextPhase, entry, env);
         }
 
