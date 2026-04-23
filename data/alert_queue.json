@@ -25,5 +25,14 @@
     "enqueued_at": "2026-04-21T12:15:11",
     "retries": 0,
     "last_error": null
+  },
+  {
+    "channel": "C09A7U4TV4G",
+    "text": "⚠️ *Instagram投稿タスク: 失敗*\n• スケジュール実行: 2026-04-23 (木)\n• 対象エントリ: queue id=198 / content_id=ai_ある_0407_05\n• 失敗理由: Claude in Chrome MCP 未接続 (3回リトライ後も接続できず)\n• 対応: 本日の自動投稿を中止。エントリは status=ready のまま次回実行に繰り越し。\n• post_log.jsonに失敗エントリを追記済み。\n• 手動対応: Chrome拡張のサインイン / Chrome起動 / MCPブリッジ(port 9223) を確認してください。",
+    "blocks": null,
+    "thread_ts": null,
+    "enqueued_at": "2026-04-23T12:13:14",
+    "retries": 0,
+    "last_error": "bot_exception_ProxyError"
   }
 ]

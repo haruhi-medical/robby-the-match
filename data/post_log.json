@@ -791,5 +791,23 @@
     "status": "error",
     "method": "meta_business_suite",
     "error": "Chrome CDP接続失敗。詳細はログを確認。port 9223未起動 or タブ0個の可能性。"
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_ある_0407_05",
+    "content_id": "ai_ある_0407_05",
+    "timestamp": "2026-04-23T17:22:19",
+    "status": "error",
+    "method": "meta_business_suite",
+    "error": "Chrome CDP接続失敗。詳細はログを確認。port 9223未起動 or タブ0個の可能性。"
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_ある_0407_05",
+    "content_id": "ai_ある_0407_05",
+    "timestamp": "2026-04-23T12:12:59",
+    "status": "failed",
+    "method": "meta_business_suite",
+    "error": "Claude in Chrome MCP not connected (3 retries). Queue entry id=198 left as ready for next scheduled run."
   }
 ]
