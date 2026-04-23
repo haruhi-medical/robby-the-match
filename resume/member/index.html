@@ -1160,22 +1160,34 @@
       const html = `
         <div class="history-item" id="${id}" role="group" aria-label="学歴 ${eduCount}">
           <button type="button" class="remove-btn" onclick="removeItem('${id}')" aria-label="この学歴を削除">削除</button>
+          <div class="field">
+            <label>学校名・学部学科</label>
+            <input type="text" name="edu_school[]" placeholder="○○看護大学 看護学部"
+              aria-label="学校名・学部学科">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>入学年</label>
+              <input type="number" name="edu_enter_year[]" placeholder="2014" min="1950" max="2035"
+                inputmode="numeric" aria-label="入学年">
+            </div>
+            <div class="field">
+              <label>月</label>
+              <input type="number" name="edu_enter_month[]" placeholder="4" min="1" max="12"
+                inputmode="numeric" aria-label="入学月">
+            </div>
+          </div>
           <div class="field-row">
             <div class="field">
               <label>卒業年</label>
-              <input type="number" name="edu_year[]" placeholder="2018" min="1950" max="2035"
+              <input type="number" name="edu_grad_year[]" placeholder="2018" min="1950" max="2035"
                 inputmode="numeric" aria-label="卒業年">
             </div>
             <div class="field">
               <label>月</label>
-              <input type="number" name="edu_month[]" placeholder="3" min="1" max="12"
+              <input type="number" name="edu_grad_month[]" placeholder="3" min="1" max="12"
                 inputmode="numeric" aria-label="卒業月">
             </div>
-          </div>
-          <div class="field">
-            <label>学校名・学部学科</label>
-            <input type="text" name="edu_desc[]" placeholder="○○看護大学 看護学部 卒業"
-              aria-label="学校名・学部学科">
           </div>
         </div>`;
       document.getElementById('educationList').insertAdjacentHTML('beforeend', html);
@@ -1280,6 +1292,38 @@
       return items;
     }
 
+    // 学歴は1校につきUIでは1ブロック(学校名+入学年月+卒業年月)だが、
+    // サーバー/履歴書フォーマットは1行=1イベント(edu_year/edu_month/edu_desc)なので
+    // 送信時に「入学」「卒業」の2行に分解する。
+    function collectEducation(form) {
+      const schools = Array.from(form.querySelectorAll('[name="edu_school[]"]')).map(i=>i.value.trim());
+      const ey = Array.from(form.querySelectorAll('[name="edu_enter_year[]"]')).map(i=>i.value.trim());
+      const em = Array.from(form.querySelectorAll('[name="edu_enter_month[]"]')).map(i=>i.value.trim());
+      const gy = Array.from(form.querySelectorAll('[name="edu_grad_year[]"]')).map(i=>i.value.trim());
+      const gm = Array.from(form.querySelectorAll('[name="edu_grad_month[]"]')).map(i=>i.value.trim());
+      const items = [];
+      const n = Math.max(schools.length, ey.length, gy.length);
+      for (let i = 0; i < n; i++) {
+        const school = schools[i] || '';
+        if (!school && !ey[i] && !gy[i]) continue;
+        if (ey[i]) {
+          items.push({
+            edu_year: ey[i],
+            edu_month: em[i] || '',
+            edu_desc: school ? `${school} 入学` : '入学',
+          });
+        }
+        if (gy[i]) {
+          items.push({
+            edu_year: gy[i],
+            edu_month: gm[i] || '',
+            edu_desc: school ? `${school} 卒業` : '卒業',
+          });
+        }
+      }
+      return items;
+    }
+
     /* ===== SUBMIT ===== */
     async function submitForm() {
       const btn = document.getElementById('submitBtn');
@@ -1350,7 +1394,7 @@
         hint_strengths:      form.hint_strengths.value.trim(),
         hint_wishes:         form.hint_wishes.value.trim(),
         wishes:              form.wishes.value.trim(),
-        education: collectRepeating(form, ['edu_year','edu_month','edu_desc']),
+        education: collectEducation(form),
         career:    collectRepeating(form, ['car_start_year','car_start_month','car_facility','car_detail','car_end_year','car_end_month']),
         licenses:  collectRepeating(form, ['lic_year','lic_month','lic_name']),
       };
