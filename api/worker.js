@@ -3072,8 +3072,8 @@ function handleCORS(request, env) {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": origin || "*",
-      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Expose-Headers": "X-RateLimit-Remaining, Retry-After",
       "Access-Control-Max-Age": "86400",
     },
@@ -11708,11 +11708,21 @@ async function handleMemberResumeGenerate(request, env, ctx) {
 // ========== /api/mypage-resume: 履歴書HTML取得 (GET) ==========
 // ================================================================
 async function handleMypageResume(request, env) {
+  const origin = getResponseOrigin(request, env);
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "GET, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
+  };
   const authHeader = request.headers.get("Authorization") || "";
   const token = authHeader.replace(/^Bearer\s+/, "");
   const payload = await verifyMypageSessionToken(token, env);
   if (!payload) {
-    return new Response("Unauthorized", { status: 401 });
+    return new Response("Unauthorized", {
+      status: 401,
+      headers: { "Content-Type": "text/plain; charset=utf-8", ...corsHeaders },
+    });
   }
 
   const html = await env.LINE_SESSIONS.get(`member:${payload.userId}:resume`);
@@ -11723,6 +11733,7 @@ async function handleMypageResume(request, env) {
         "Content-Type": "text/plain; charset=utf-8",
         "Referrer-Policy": "no-referrer",
         "Cache-Control": "no-store",
+        ...corsHeaders,
       },
     });
   }
@@ -11735,6 +11746,7 @@ async function handleMypageResume(request, env) {
       "Referrer-Policy": "no-referrer",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "SAMEORIGIN",
+      ...corsHeaders,
     },
   });
 }
@@ -11743,19 +11755,27 @@ async function handleMypageResume(request, env) {
 // ========== /api/mypage-resume-data (GET): 編集フォーム初期値用 ====
 // ================================================================
 async function handleMypageResumeData(request, env) {
+  const origin = getResponseOrigin(request, env);
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
+  };
   const authHeader = request.headers.get("Authorization") || "";
   const token = authHeader.replace(/^Bearer\s+/, "");
   const payload = await verifyMypageSessionToken(token, env);
-  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401);
+  if (!payload) return jsonResponse({ error: "Unauthorized" }, 401, origin);
 
   const raw = await env.LINE_SESSIONS.get(`member:${payload.userId}:resume_data`);
-  if (!raw) return jsonResponse({ error: "Not Found" }, 404);
+  if (!raw) return jsonResponse({ error: "Not Found" }, 404, origin);
   return new Response(raw, {
     status: 200,
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": "no-store",
       "Referrer-Policy": "no-referrer",
+      ...corsHeaders,
     },
   });
 }
