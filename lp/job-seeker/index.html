@@ -1139,6 +1139,11 @@
 
       var WORKER_BASE = 'https://robby-the-match-api.robby-the-robot-2026.workers.dev';
 
+      function readCookie(name) {
+        var m = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+        return m ? decodeURIComponent(m[1]) : '';
+      }
+
       function lineUrl(defaultSource, intent) {
         // utm_source があれば優先、なければ位置ベースの既定
         var actualSource = utmSource || defaultSource;
@@ -1149,6 +1154,15 @@
         if (utmCampaign) qs += '&campaign=' + encodeURIComponent(utmCampaign);
         if (utmContent) qs += '&ad_id=' + encodeURIComponent(utmContent);
         if (utmId) qs += '&adset_id=' + encodeURIComponent(utmId);
+        // Meta Pixel dedup: LP同一ドメインのfbp/fbc Cookieを明示的にWorkerへ渡す
+        // (クロスドメインCookieは送られないため、CAPI attribution のために必須)
+        var fbp = readCookie('_fbp');
+        var fbc = readCookie('_fbc');
+        if (fbp) qs += '&fbp=' + encodeURIComponent(fbp);
+        if (fbc) qs += '&fbc=' + encodeURIComponent(fbc);
+        // fbclid(広告クリック識別子)も継承 — Metaが_fbcに変換可能
+        var fbclid = urlParams.get('fbclid') || '';
+        if (fbclid) qs += '&fbclid=' + encodeURIComponent(fbclid);
         return WORKER_BASE + '/api/line-start' + qs;
       }
 

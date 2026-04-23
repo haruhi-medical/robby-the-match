@@ -150,12 +150,18 @@ def format_report(insights, daily=False):
         total_clicks += clicks
         total_spend += spend
 
-        # Leadアクション抽出
+        # Lead / CompleteRegistration 抽出
+        # Lead = LP CTAクリック、CompleteRegistration = LINE友達追加（本物Lead）
         leads = 0
+        cregs = 0
         actions = row.get("actions", [])
         for action in actions:
-            if action.get("action_type") in ["lead", "offsite_conversion.fb_pixel_lead"]:
-                leads += int(action.get("value", 0))
+            atype = action.get("action_type")
+            val = int(action.get("value", 0))
+            if atype in ("lead", "offsite_conversion.fb_pixel_lead"):
+                leads += val
+            elif atype in ("complete_registration", "offsite_conversion.fb_pixel_complete_registration"):
+                cregs += val
 
         date_str = ""
         if daily and "date_start" in row:
@@ -166,7 +172,9 @@ def format_report(insights, daily=False):
         lines.append(f"  表示: {impressions:,} | リーチ: {reach:,} | クリック: {clicks}")
         lines.append(f"  消化: ¥{spend:,.0f} | CPC: ¥{float(cpc):,.1f} | CTR: {float(ctr):.2f}%")
         if leads > 0:
-            lines.append(f"  🎯 Lead: {leads}件")
+            lines.append(f"  🎯 Lead(CTAクリック): {leads}件")
+        if cregs > 0:
+            lines.append(f"  🏆 CompleteRegistration(LINE登録): {cregs}件")
         lines.append("")
 
     # サマリ
@@ -258,8 +266,16 @@ def _cron_daily_report():
         return rows[0] if rows else {}
 
     def _extract_cv(row):
+        """LP CTAクリック (Lead) — 旧基準"""
         for a in row.get("actions", []):
             if a.get("action_type") in ("lead", "offsite_conversion.fb_pixel_lead"):
+                return int(a.get("value", 0))
+        return 0
+
+    def _extract_creg(row):
+        """本物Lead = CompleteRegistration (LINE友達追加) — 新基準"""
+        for a in row.get("actions", []):
+            if a.get("action_type") in ("complete_registration", "offsite_conversion.fb_pixel_complete_registration"):
                 return int(a.get("value", 0))
         return 0
 
@@ -271,8 +287,12 @@ def _cron_daily_report():
         sp = float(row.get("spend", 0))
         ctr = float(row.get("ctr", 0))
         cv = _extract_cv(row)
+        creg = _extract_creg(row)
         cpa = sp / cv if cv > 0 else None
-        return {"impressions": imp, "clicks": clk, "spend": sp, "ctr": ctr, "conversions": cv, "cpa": cpa}
+        cpa_creg = sp / creg if creg > 0 else None
+        return {"impressions": imp, "clicks": clk, "spend": sp, "ctr": ctr,
+                "conversions": cv, "cpa": cpa,
+                "cregs": creg, "cpa_creg": cpa_creg}
 
     print(f"[INFO] Meta cron report: {yesterday}")
     t = _parse(_fetch_day(yesterday))
@@ -287,8 +307,10 @@ def _cron_daily_report():
         {"type": "mrkdwn", "text": f"*インプレッション*\n{format_number(t['impressions'])}{trend_emoji(t['impressions'], y.get('impressions'))}"},
         {"type": "mrkdwn", "text": f"*クリック*\n{format_number(t['clicks'])}{trend_emoji(t['clicks'], y.get('clicks'))}"},
         {"type": "mrkdwn", "text": f"*CTR*\n{format_percent(t['ctr'])}{trend_emoji(t['ctr'], y.get('ctr'))}"},
-        {"type": "mrkdwn", "text": f"*CV (LINE登録)*\n{format_number(t['conversions'])}{trend_emoji(t['conversions'], y.get('conversions'))}"},
-        {"type": "mrkdwn", "text": f"*CPA*\n{format_currency(t['cpa']) if t['cpa'] else '-'}{trend_emoji(t.get('cpa'), y.get('cpa'))}"},
+        {"type": "mrkdwn", "text": f"*Lead(CTAクリック)*\n{format_number(t['conversions'])}{trend_emoji(t['conversions'], y.get('conversions'))}"},
+        {"type": "mrkdwn", "text": f"*🏆LINE登録(本物Lead)*\n{format_number(t['cregs'])}{trend_emoji(t['cregs'], y.get('cregs'))}"},
+        {"type": "mrkdwn", "text": f"*CPA(クリック)*\n{format_currency(t['cpa']) if t['cpa'] else '-'}{trend_emoji(t.get('cpa'), y.get('cpa'))}"},
+        {"type": "mrkdwn", "text": f"*CPA(LINE登録)*\n{format_currency(t['cpa_creg']) if t['cpa_creg'] else '-'}{trend_emoji(t.get('cpa_creg'), y.get('cpa_creg'))}"},
     ]
     blocks = [
         {"type": "header", "text": {"type": "plain_text", "text": f"📊 Meta広告レポート {yesterday}"}},
@@ -310,7 +332,8 @@ def _cron_daily_report():
             ci = int(c.get("impressions", 0))
             cc = int(c.get("clicks", 0))
             ccv = _extract_cv(c)
-            lines.append(f"• *{cn}*: ¥{cs:,.0f} | {ci:,}imp | {cc}click | {ccv}CV")
+            ccreg = _extract_creg(c)
+            lines.append(f"• *{cn}*: ¥{cs:,.0f} | {ci:,}imp | {cc}click | {ccv}Lead | {ccreg}🏆登録")
         blocks.append({"type": "divider"})
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*キャンペーン別内訳*\n" + "\n".join(lines)}})
 

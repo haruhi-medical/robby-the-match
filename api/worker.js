@@ -106,11 +106,14 @@ async function trackFunnelEvent(eventName, userId, entry, env, ctx) {
         // fbp/fbc は handleLineStart で session に保存されていれば流用
         const fbp = entry?.webSessionData?.fbp || undefined;
         const fbc = entry?.webSessionData?.fbc || undefined;
+        // EMQ向上: 電話番号が取得済みなら hash して送る
+        const phone = entry?.phoneNumber || entry?.phone || undefined;
         ctx.waitUntil(sendMetaConversionEvent(env, metaEventName, userId, eventData, {
           eventId,
           actionSource: "chat",   // LINE Bot = chat
           fbp,
           fbc,
+          phone,
         }));
       }
     }
@@ -124,17 +127,45 @@ async function trackFunnelEvent(eventName, userId, entry, env, ctx) {
   }
 }
 
+// SHA256 hex (Meta CAPI PII hashing用)。Workers の crypto.subtle を使う。
+async function sha256Hex(str) {
+  if (!str) return null;
+  const buf = new TextEncoder().encode(String(str).trim().toLowerCase());
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// 日本の電話番号を Meta要件 E.164 風（国コード付き、数字のみ）に正規化してから hash
+// 例: "090-1234-5678" → "819012345678"
+function normalizePhoneForMeta(phone) {
+  if (!phone) return null;
+  const digits = String(phone).replace(/\D/g, "");
+  if (!digits) return null;
+  // 先頭0を81(日本)に置換
+  if (digits.startsWith("0")) return "81" + digits.slice(1);
+  if (digits.startsWith("81")) return digits;
+  return digits;
+}
+
 async function sendMetaConversionEvent(env, eventName, userId, data, opts) {
   try {
     if (!env?.META_ACCESS_TOKEN || !env?.META_PIXEL_ID) return;
     opts = opts || {};
     const url = `https://graph.facebook.com/v19.0/${env.META_PIXEL_ID}/events?access_token=${env.META_ACCESS_TOKEN}`;
-    const userData = { external_id: userId ? [userId] : [] };
+    const userData = { external_id: userId ? [await sha256Hex(userId)] : [] };
     // fbp/fbc/ua/ip を付けて match quality を上げつつ、Browser Pixel と dedup する
     if (opts.fbp) userData.fbp = opts.fbp;
     if (opts.fbc) userData.fbc = opts.fbc;
     if (opts.clientIp) userData.client_ip_address = opts.clientIp;
     if (opts.userAgent) userData.client_user_agent = opts.userAgent;
+    // EMQ向上: phone / email を正規化してSHA256 hash送信
+    if (opts.phone) {
+      const normalized = normalizePhoneForMeta(opts.phone);
+      if (normalized) userData.ph = [await sha256Hex(normalized)];
+    }
+    if (opts.email) {
+      userData.em = [await sha256Hex(opts.email)];
+    }
 
     const eventPayload = {
       event_name: eventName,
@@ -3299,13 +3330,14 @@ async function handleLineStart(url, env, request, ctx) {
     // session_idなしの場合は自動生成（広告リンク等）
     const effectiveSessionId = sessionId || crypto.randomUUID();
 
-    // ===== fbp / fbc クッキー抽出（CAPI dedup + match quality 向上用） =====
-    // #31 Phase 2: follow イベント時にも CAPI を発火するため、KV にも保存して引き継ぐ
+    // ===== fbp / fbc 取得（CAPI dedup + match quality 向上用）=====
+    // LPはquads-nurse.com、Workerはworkers.devでクロスドメインのため Cookie は届かない。
+    // LP側が URL param で fbp/fbc を渡す前提 → 無ければ Cookie ヘッダ（同ドメイン経由時のため）を試す。
     const _cookieHeaderForSession = request?.headers?.get('Cookie') || '';
     const _fbpMatchSession = _cookieHeaderForSession.match(/(?:^|;\s*)_fbp=([^;]+)/);
     const _fbcMatchSession = _cookieHeaderForSession.match(/(?:^|;\s*)_fbc=([^;]+)/);
-    let _fbpSession = _fbpMatchSession ? _fbpMatchSession[1] : null;
-    let _fbcSession = _fbcMatchSession ? _fbcMatchSession[1] : null;
+    let _fbpSession = url.searchParams.get('fbp') || (_fbpMatchSession ? _fbpMatchSession[1] : null);
+    let _fbcSession = url.searchParams.get('fbc') || (_fbcMatchSession ? _fbcMatchSession[1] : null);
     if (!_fbcSession && fbclid) {
       _fbcSession = `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}`;
     }
