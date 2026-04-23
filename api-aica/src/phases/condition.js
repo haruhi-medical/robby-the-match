@@ -15,6 +15,9 @@ import {
 } from "../state-machine.js";
 import { buildConditionSystemPrompt, CONDITION_FIELDS } from "../prompts.js";
 import { generateResponse } from "../lib/openai.js";
+import { generateCareerSheet } from "./career-sheet.js";
+
+export { generateCareerSheet }; // index.js が ctx.waitUntil で呼べるように再エクスポート
 
 /**
  * 条件ヒアリングの1ターン

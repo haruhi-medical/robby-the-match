@@ -21,6 +21,7 @@ import {
 } from "./state-machine.js";
 import { handleIntakeTurn } from "./phases/intake.js";
 import { handleConditionTurn, buildConditionIntroMessage } from "./phases/condition.js";
+import { generateCareerSheet } from "./phases/career-sheet.js";
 import { runMatching } from "./phases/matching.js";
 import { handleJobQaTurn } from "./phases/job-qa.js";
 import { handleApplyConfirmTurn } from "./phases/apply.js";
@@ -80,6 +81,12 @@ export default {
     // LINE webhook
     if (url.pathname === "/webhook/line" && request.method === "POST") {
       return handleLineWebhook(request, env, ctx);
+    }
+
+    // キャリアシート HTML 閲覧（社長・営業用。noindex）
+    const csMatch = url.pathname.match(/^\/career-sheet\/([A-Za-z0-9_-]+)$/);
+    if (csMatch && request.method === "GET") {
+      return handleCareerSheetView(csMatch[1], env);
     }
 
     return new Response("Not Found", { status: 404 });
@@ -461,6 +468,14 @@ async function processEvent(event, env, ctx) {
         if (latestCandidate) {
           await runMatching({ candidate: latestCandidate, env, db });
         }
+        // キャリアシート自動生成（候補者には見えない / 社長営業用 Layer 1）
+        if (ctx?.waitUntil) {
+          ctx.waitUntil(
+            generateCareerSheet({ candidateId: userId, env, db }).catch((err) => {
+              console.error("[career-sheet] gen failed:", err.message, err.stack);
+            })
+          );
+        }
       }
       return;
     }
@@ -786,6 +801,33 @@ async function processEvent(event, env, ctx) {
 async function forwardToSlack(candidate, userText, env) {
   // Phase 1 以降で実装。MVP0は console.log のみ
   console.log("[handoff-forward]", candidate.id, candidate.phase, userText);
+}
+
+/** キャリアシート HTML を D1 から取得して返す（社長営業用） */
+async function handleCareerSheetView(serial, env) {
+  if (!env.AICA_DB) {
+    return new Response("DB not bound", { status: 500 });
+  }
+  try {
+    const row = await env.AICA_DB
+      .prepare("SELECT career_sheet_html FROM candidates WHERE career_sheet_serial = ?")
+      .bind(serial)
+      .first();
+    if (!row || !row.career_sheet_html) {
+      return new Response("Career sheet not found", { status: 404 });
+    }
+    return new Response(row.career_sheet_html, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "X-Robots-Tag": "noindex, nofollow",
+        "Cache-Control": "private, max-age=60",
+      },
+    });
+  } catch (err) {
+    console.error("[career-sheet-view] failed:", err.message);
+    return new Response("Internal error", { status: 500 });
+  }
 }
 
 function safeParseJson(s) {
