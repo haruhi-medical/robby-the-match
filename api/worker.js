@@ -7509,6 +7509,24 @@ function handleLinePostback(dataStr, entry) {
 function handleFreeTextInput(text, entry) {
   const phase = entry.phase;
 
+  // === 新着カード/マッチング経由「○○について相談したい」を最優先で全フェーズ共通処理 ===
+  // rm_new_jobs カルーセルの「この施設について聞く」(message action) や、
+  // 同パターンの自由入力で送られてくる施設名相談を、手早く handoff_phone_check に流す。
+  // 履歴書入力など特定フェーズに干渉しないよう、テキスト入力フェーズより前に評価。
+  // (例外: 入力テキストそのものを保存する rm_cv_q3/q5/q6/q8 や reverse_nomination_input,
+  //  handoff_phone_number は文字数や記号で誤マッチ可能性がほぼゼロのため安全)
+  const facilityInquiryMatch = text.match(/^(.{1,30})について相談したい$/);
+  if (facilityInquiryMatch && phase !== "rm_cv_q3" && phase !== "rm_cv_q5" &&
+      phase !== "rm_cv_q6" && phase !== "rm_cv_q8" &&
+      phase !== "reverse_nomination_input" && phase !== "handoff_phone_number") {
+    const facility = facilityInquiryMatch[1].trim();
+    entry.interestedFacility = facility;
+    entry.consultTopic = `「${facility}」について相談`;
+    entry.handoffRequestedByUser = true;
+    entry.unexpectedTextCount = 0;
+    return "handoff_phone_check"; // 電話確認 → handoff
+  }
+
   // === 履歴書: テキスト入力フェーズ ===
   if (phase === "rm_resume_start") {
     entry.rmCvLicenseYear = text.replace(/[^0-9年]/g, '').slice(0, 10);
