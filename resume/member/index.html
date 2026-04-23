@@ -9,7 +9,7 @@
   <title>会員登録 + AI履歴書作成 | ナースロビー</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ===== TOKENS ===== */
     :root {
@@ -85,30 +85,17 @@
 
     /* ===== HEADER ===== */
     .site-header {
-      background: var(--primary-dark);
-      padding: 16px 24px;
+      background: #fff;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
     }
     .site-header img {
       height: 40px;
       width: auto;
       display: block;
-      filter: brightness(0) invert(1);
-    }
-    .site-header-text {}
-    .site-header-name {
-      font-size: 13px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.95);
-      letter-spacing: 0.04em;
-    }
-    .site-header-sub {
-      font-size: 10px;
-      color: rgba(255,255,255,0.6);
-      letter-spacing: 0.03em;
-      margin-top: 1px;
     }
 
     /* ===== TRUST BADGES ===== */
@@ -154,7 +141,7 @@
       box-shadow: var(--shadow-sm);
     }
     .page-intro-title {
-      font-family: "Noto Serif JP", serif;
+      font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
       font-size: 1.15rem;
       font-weight: 600;
       color: var(--primary-dark);
@@ -205,7 +192,7 @@
       gap: 14px;
     }
     .step-num {
-      font-family: "Noto Serif JP", serif;
+      font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--primary);
@@ -219,7 +206,7 @@
     }
     .section-title-wrap {}
     .section-title {
-      font-family: "Noto Serif JP", serif;
+      font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
       font-size: 1.0rem;
       font-weight: 600;
       color: var(--text);
@@ -387,7 +374,7 @@
       border: 1.5px solid var(--border);
     }
     .consent-section-title {
-      font-family: "Noto Serif JP", serif;
+      font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--text);
@@ -532,7 +519,7 @@
     }
     .success-icon svg { width: 32px; height: 32px; color: #fff; }
     .success-title {
-      font-family: "Noto Serif JP", serif;
+      font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
       font-size: 1.3rem;
       font-weight: 600;
       color: var(--text);
@@ -586,12 +573,8 @@
   </div>
 
   <!-- Site Header -->
-  <header class="site-header" style="padding-top: calc(16px + 52px);">
+  <header class="site-header" style="padding-top: calc(14px + 52px);">
     <img src="/assets/logo-nursrobby.png" alt="ナースロビー" height="40">
-    <div class="site-header-text">
-      <div class="site-header-name">ナースロビー</div>
-      <div class="site-header-sub">看護師紹介サービス — 有料職業紹介事業許可取得</div>
-    </div>
   </header>
 
   <!-- Trust Badges -->
