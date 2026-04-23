@@ -2,7 +2,7 @@
   "jobs": {
     "seo_batch": {
       "date": "2026-04-23",
-      "retries": 1,
+      "retries": 2,
       "status": "retrying",
       "last_error": "",
       "last_alert_ts": ""
