@@ -8246,6 +8246,15 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               }
             }
           }
+          // ===== T2: 非会員に会員登録メリット誘導Flex（LINE上限5件に注意）=====
+          try {
+            if (replyMessages && replyMessages.length < 5) {
+              const promoFlex = await buildMemberSignupPromoFlex(userId, env);
+              if (promoFlex) replyMessages.push(promoFlex);
+            }
+          } catch (e) {
+            console.error("[T2] matching_preview promo flex failed:", e.message);
+          }
           // Slack notification for intake completion
           if (env.SLACK_BOT_TOKEN) {
             const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
@@ -8278,6 +8287,15 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             entry.matchingOffset = newOffset;
             await generateLineMatching(entry, env, newOffset);
             replyMessages = await buildPhaseMessage("matching_browse", entry, env);
+            // ===== T2: 非会員に会員登録メリット誘導Flex =====
+            try {
+              if (replyMessages && replyMessages.length < 5) {
+                const promoFlex = await buildMemberSignupPromoFlex(userId, env);
+                if (promoFlex) replyMessages.push(promoFlex);
+              }
+            } catch (e) {
+              console.error("[T2] matching_browse promo flex failed:", e.message);
+            }
           }
         }
         // ===== matching（matching_preview/browseから「気になる」選択時） =====
@@ -12245,4 +12263,77 @@ async function handleMemberLiteRegister(request, env, ctx) {
     mypageUrl,
     memberStatus: member.status,
   });
+}
+
+// ================================================================
+// ========== T2: matching後会員登録誘導 ヘルパー ==========
+// ================================================================
+// 非会員にのみ会員登録メリットFlexを返す。会員(active/lite)なら null。
+async function buildMemberSignupPromoFlex(userId, env) {
+  // 会員判定
+  try {
+    const memberRaw = await env.LINE_SESSIONS.get(`member:${userId}`, { cacheTtl: 60 });
+    if (memberRaw) {
+      const m = JSON.parse(memberRaw);
+      if (m.status === "active" || m.status === "lite") {
+        return null; // 既に会員
+      }
+    }
+  } catch (e) {
+    console.error("[MemberSignupPromo] member check failed:", e.message);
+  }
+
+  // resume_token 発行（30分有効）
+  const liteToken = crypto.randomUUID();
+  try {
+    await env.LINE_SESSIONS.put(
+      `resume_token:${liteToken}`,
+      JSON.stringify({ userId, createdAt: Date.now() }),
+      { expirationTtl: 1800 }
+    );
+  } catch (e) {
+    console.error("[MemberSignupPromo] token put failed:", e.message);
+    return null;
+  }
+  const liteUrl = `https://quads-nurse.com/resume/member-lite/?token=${liteToken}`;
+
+  return {
+    type: "flex",
+    altText: "ナースロビー会員登録のご案内",
+    contents: {
+      type: "bubble",
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "md",
+        contents: [
+          { type: "text", text: "🌱 ナースロビー会員(無料)になると…", weight: "bold", size: "md", color: "#1A6B8A", wrap: true },
+          { type: "separator" },
+          { type: "box", layout: "vertical", spacing: "sm", contents: [
+            { type: "text", text: "⭐ 気になる求人を「お気に入り」保存", size: "sm", color: "#333333", wrap: true },
+            { type: "text", text: "🎯 希望条件を設定→毎朝あなた専用の新着求人が自動で届く", size: "sm", color: "#333333", wrap: true },
+            { type: "text", text: "📄 AI履歴書の保管・編集・PDF印刷", size: "sm", color: "#333333", wrap: true },
+            { type: "text", text: "🏠 マイページで情報を一元管理", size: "sm", color: "#333333", wrap: true },
+          ]},
+          { type: "separator" },
+          { type: "text", text: "📝 お名前と電話だけ・30秒で登録完了", size: "xs", color: "#666666", wrap: true, margin: "md" },
+          { type: "text", text: "※ LINEで引き続き静かに転職活動できます", size: "xxs", color: "#999999", wrap: true, margin: "sm" },
+        ],
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [{
+          type: "button",
+          style: "primary",
+          color: "#2D9F6F",
+          action: {
+            type: "uri",
+            label: "🌱 30秒で会員登録する",
+            uri: liteUrl,
+          },
+        }],
+      },
+    },
+  };
 }
