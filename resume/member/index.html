@@ -4,81 +4,255 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>ナースロビー会員登録 + AI履歴書作成 | ナースロビー</title>
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>会員登録 + AI履歴書作成 | ナースロビー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600&display=swap" rel="stylesheet">
   <style>
+    /* ===== TOKENS ===== */
     :root {
-      --primary: #1A6B8A;
-      --primary-dark: #0F4A62;
-      --cta: #2D9F6F;
-      --cta-dark: #258A5E;
-      --text: #1a1a1a;
-      --text-muted: #666;
-      --border: #E0E7EC;
-      --bg-tint: #F6FAFC;
-      --err: #C55A53;
+      --primary:       #1A6B8A;
+      --primary-dark:  #0F4A62;
+      --primary-light: #E8F4F8;
+      --cta:           #2D9F6F;
+      --cta-dark:      #258A5E;
+      --accent:        #D4A843;
+      --accent-light:  #FFF8E8;
+      --secondary:     #E8756D;
+      --text:          #2C2C2C;
+      --text-muted:    #6B7280;
+      --border:        #E0E7EC;
+      --border-focus:  #1A6B8A;
+      --bg-page:       #F5F8FA;
+      --bg-card:       #FFFFFF;
+      --bg-tint:       #F0F7FB;
+      --err:           #C55A53;
+      --err-bg:        #FEF2F2;
+      --radius-sm:     8px;
+      --radius-md:     12px;
+      --radius-lg:     16px;
+      --shadow-sm:     0 1px 4px rgba(0,0,0,0.06);
+      --shadow-md:     0 4px 16px rgba(0,0,0,0.08);
     }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      font-family: "Noto Sans JP", "Hiragino Sans", -apple-system, sans-serif;
       color: var(--text);
-      background: #f9f9f9;
-      line-height: 1.6;
+      background: var(--bg-page);
+      line-height: 1.65;
       font-size: 15px;
+      -webkit-font-smoothing: antialiased;
     }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px 8px;
+    }
+    .progress-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .progress-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 0.03em;
+    }
+    .progress-label span { color: var(--primary); font-weight: 700; }
+
+    /* ===== HEADER ===== */
+    .site-header {
+      background: var(--primary-dark);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .site-header img {
+      height: 40px;
+      width: auto;
+      display: block;
+      filter: brightness(0) invert(1);
+    }
+    .site-header-text {}
+    .site-header-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.95);
+      letter-spacing: 0.04em;
+    }
+    .site-header-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.03em;
+      margin-top: 1px;
+    }
+
+    /* ===== TRUST BADGES ===== */
+    .trust-badges {
+      background: var(--primary);
+      padding: 12px 24px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.9);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .trust-badge svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+
+    /* ===== CONTAINER ===== */
     .container {
       max-width: 640px;
       margin: 0 auto;
-      padding: 24px 20px 120px;
+      padding: 24px 16px 140px;
     }
-    h1 {
-      font-size: 1.4rem;
-      margin: 0 0 8px;
-      color: var(--primary);
+
+    /* ===== PAGE INTRO ===== */
+    .page-intro {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 20px 20px 18px;
+      margin-bottom: 20px;
+      border-left: 4px solid var(--primary);
+      box-shadow: var(--shadow-sm);
     }
-    .lead {
+    .page-intro-title {
+      font-family: "Noto Serif JP", serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+    }
+    .page-intro-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .page-intro-desc b { color: var(--primary); font-weight: 700; }
+
+    /* ===== TOKEN ERROR ===== */
+    .token-error {
+      background: var(--err-bg);
+      border: 1px solid #FECACA;
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .token-error-title {
+      font-weight: 700;
+      color: var(--err);
       font-size: 0.9rem;
-      color: var(--text-muted);
-      margin: 0 0 24px;
-      background: var(--bg-tint);
-      padding: 12px 16px;
-      border-radius: 10px;
-      border-left: 3px solid var(--primary);
+      margin-bottom: 4px;
     }
-    .lead b { color: var(--primary); }
+    .token-error-body {
+      font-size: 0.83rem;
+      color: #991B1B;
+      line-height: 1.6;
+    }
+
+    /* ===== SECTION ===== */
     .section {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 0;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
     }
-    .section h2 {
-      font-size: 1.05rem;
-      margin: 0 0 4px;
-      color: var(--primary);
+    .section-header {
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
       display: flex;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 14px;
     }
-    .section .hint {
-      font-size: 0.8rem;
+    .step-num {
+      font-family: "Noto Serif JP", serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--primary-light);
+      border-radius: 6px;
+      padding: 3px 8px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .section-title-wrap {}
+    .section-title {
+      font-family: "Noto Serif JP", serif;
+      font-size: 1.0rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    .section-hint {
+      font-size: 0.78rem;
       color: var(--text-muted);
-      margin: 0 0 14px;
+      margin-top: 2px;
+      line-height: 1.5;
     }
+    .section-body {
+      padding: 18px 20px;
+    }
+
+    /* ===== FIELDS ===== */
     .field {
       margin-bottom: 14px;
     }
+    .field:last-child { margin-bottom: 0; }
     .field label {
       display: block;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       font-weight: 500;
+      letter-spacing: 0.01em;
     }
-    .field label .required {
+    .field label .req {
       color: var(--err);
-      margin-left: 4px;
+      margin-left: 3px;
+      font-size: 0.78rem;
+      font-weight: 600;
     }
     .field input[type="text"],
     .field input[type="email"],
@@ -88,465 +262,944 @@
     .field select,
     .field textarea {
       width: 100%;
-      padding: 10px 12px;
-      font-size: 16px; /* iOS zoom防止 */
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 16px;
+      font-family: inherit;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
       background: #fff;
       color: var(--text);
-      font-family: inherit;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
     }
     .field textarea {
       resize: vertical;
-      min-height: 80px;
+      min-height: 88px;
+      line-height: 1.65;
     }
-    .field input:focus, .field textarea:focus, .field select:focus {
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(26,107,138,0.12);
     }
     .field-row {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
     .field-row .field { flex: 1; }
+    .field-note {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
 
+    /* ===== HISTORY ITEMS ===== */
     .history-item {
-      padding: 12px;
+      padding: 14px;
       background: var(--bg-tint);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       margin-bottom: 10px;
+      border: 1px solid #DDE8F0;
       position: relative;
     }
     .history-item .remove-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 10px;
+      right: 12px;
       background: transparent;
       border: none;
       color: var(--err);
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: inherit;
+      min-height: 28px;
+      transition: background 0.15s;
     }
+    .history-item .remove-btn:hover { background: var(--err-bg); }
+    .history-item .field:last-child { margin-bottom: 0; }
+
+    /* ===== ADD BUTTON ===== */
     .add-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       background: transparent;
       color: var(--primary);
-      border: 1px dashed var(--primary);
-      padding: 10px 16px;
-      border-radius: 8px;
+      border: 1.5px dashed var(--primary);
+      padding: 11px 16px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
+      font-weight: 500;
+      font-family: inherit;
       width: 100%;
+      letter-spacing: 0.01em;
+      transition: background 0.15s;
+      min-height: 44px;
     }
-    .add-btn:hover { background: var(--bg-tint); }
+    .add-btn:hover { background: var(--primary-light); }
+    .add-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-    .ai-hint {
-      font-size: 0.8rem;
-      background: #fff8e1;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border-left: 3px solid #f7b500;
+    /* ===== AI HINT BOX ===== */
+    .ai-hint-box {
+      background: var(--accent-light);
+      border: 1px solid #EDD898;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 0.82rem;
+      color: #6B4C00;
+      line-height: 1.6;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .ai-hint-box svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: var(--accent);
+    }
+    .ai-hint-box b { color: #8B6200; }
+
+    /* ===== CONSENT SECTION ===== */
+    .consent-section {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
       margin-bottom: 12px;
-      color: #6b5500;
+      box-shadow: var(--shadow-sm);
+      border: 1.5px solid var(--border);
     }
-    .ai-hint b { color: #b47f00; }
+    .consent-section-title {
+      font-family: "Noto Serif JP", serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .consent-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .consent-item + .consent-item { border-top: 1px dashed var(--border); }
+    .consent-check {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      accent-color: var(--cta);
+      cursor: pointer;
+    }
+    .consent-text {
+      font-size: 0.84rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .consent-text a {
+      color: var(--primary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .consent-note {
+      background: var(--bg-tint);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+      line-height: 1.65;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .consent-note svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: var(--text-muted);
+    }
 
+    /* ===== SUBMIT BAR ===== */
     .submit-bar {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: #fff;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 -2px 16px rgba(0,0,0,0.1);
       z-index: 100;
     }
     .submit-btn {
       width: 100%;
-      background: var(--cta);
+      background: linear-gradient(135deg, var(--cta) 0%, var(--cta-dark) 100%);
       color: #fff;
       border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 1rem;
+      padding: 15px 24px;
+      border-radius: 12px;
+      font-size: 1.0rem;
       font-weight: 700;
+      font-family: inherit;
       cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.18s, transform 0.12s;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(45,159,111,0.35);
     }
-    .submit-btn:hover { background: var(--cta-dark); }
-    .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+    .submit-btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
+    .submit-btn:active:not(:disabled) { transform: translateY(0); }
+    .submit-btn:disabled {
+      background: #B0B7C3;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .submit-btn .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+    .submit-btn.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .status {
-      font-size: 0.85rem;
+    .status-msg {
+      font-size: 0.82rem;
       color: var(--text-muted);
       margin-top: 8px;
       text-align: center;
+      min-height: 1.2em;
+      line-height: 1.5;
     }
-    .status.error { color: var(--err); }
+    .status-msg.error { color: var(--err); font-weight: 500; }
+    .status-msg.success { color: var(--cta-dark); font-weight: 600; }
 
-    .consent {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
-      line-height: 1.7;
+    /* ===== SUCCESS OVERLAY ===== */
+    .success-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.96);
+      z-index: 300;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
     }
-    .consent label {
+    .success-overlay.visible { display: flex; }
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--cta);
+      border-radius: 50%;
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      cursor: pointer;
-      padding: 8px 0;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
     }
-    .consent input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      margin-top: 2px;
+    .success-icon svg { width: 32px; height: 32px; color: #fff; }
+    .success-title {
+      font-family: "Noto Serif JP", serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
     }
-    .consent a { color: var(--primary); }
-    .consent .consent-note {
-      font-size: 0.78rem;
+    .success-desc {
+      font-size: 0.88rem;
       color: var(--text-muted);
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed var(--border);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    .success-loading {
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* ===== ARIA LIVE REGION ===== */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (min-width: 680px) {
+      .container { padding: 28px 24px 140px; }
+      .section-header { padding: 18px 24px 16px; }
+      .section-body { padding: 20px 24px; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      .submit-bar { padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); }
+      .submit-btn { min-height: 44px; padding: 10px 24px; font-size: 0.95rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎉 会員登録 + AI履歴書作成</h1>
-    <p class="lead">
-      このフォームを送信すると<b>ナースロビー会員</b>として登録され、<br>
-      履歴書はマイページでいつでも確認・編集・PDF印刷できます ✨
-    </p>
 
-    <form id="resumeForm">
-      <!-- ===== 基本情報 ===== -->
-      <div class="section">
-        <h2>👤 基本情報</h2>
-        <p class="hint">履歴書に載せる情報です</p>
-
-        <div class="field-row">
-          <div class="field">
-            <label>姓（ふりがな）<span class="required">*</span></label>
-            <input type="text" name="lastNameFurigana" required placeholder="たなか">
-          </div>
-          <div class="field">
-            <label>名（ふりがな）<span class="required">*</span></label>
-            <input type="text" name="firstNameFurigana" required placeholder="みさき">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>姓<span class="required">*</span></label>
-            <input type="text" name="lastName" required placeholder="田中">
-          </div>
-          <div class="field">
-            <label>名<span class="required">*</span></label>
-            <input type="text" name="firstName" required placeholder="美咲">
-          </div>
-        </div>
-
-        <div class="field">
-          <label>生年月日<span class="required">*</span></label>
-          <input type="date" name="birthDate" required>
-        </div>
-
-        <div class="field">
-          <label>性別<span class="required">*</span></label>
-          <select name="gender" required>
-            <option value="">選択してください</option>
-            <option value="女">女</option>
-            <option value="男">男</option>
-            <option value="回答しない">回答しない</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>電話番号<span class="required">*</span></label>
-          <input type="tel" name="phone" required placeholder="090-1234-5678">
-        </div>
-
-        <div class="field">
-          <label>メールアドレス（任意・担当者連絡用）</label>
-          <input type="email" name="email" placeholder="example@example.com">
-        </div>
-      </div>
-
-      <!-- ===== 現住所 ===== -->
-      <div class="section">
-        <h2>📮 現住所</h2>
-        <div class="field">
-          <label>郵便番号<span class="required">*</span></label>
-          <input type="text" name="postalCode" required placeholder="250-0011" pattern="\d{3}-?\d{4}">
-        </div>
-        <div class="field">
-          <label>住所<span class="required">*</span></label>
-          <input type="text" name="address" required placeholder="神奈川県横浜市中央区...">
-        </div>
-        <div class="field">
-          <label>住所（ふりがな）</label>
-          <input type="text" name="addressFurigana" placeholder="かながわけん よこはまし...">
-        </div>
-      </div>
-
-      <!-- ===== 連絡先（現住所以外・任意） ===== -->
-      <div class="section">
-        <h2>📮 連絡先（現住所以外・任意）</h2>
-        <p class="hint">現住所以外に連絡を希望する場合のみ記入してください</p>
-        <div class="field">
-          <label>郵便番号</label>
-          <input type="text" name="contactPostalCode" placeholder="250-0011" pattern="\d{3}-?\d{4}">
-        </div>
-        <div class="field">
-          <label>住所</label>
-          <input type="text" name="contactAddress" placeholder="（空欄可）">
-        </div>
-        <div class="field">
-          <label>住所（ふりがな）</label>
-          <input type="text" name="contactAddressFurigana" placeholder="">
-        </div>
-        <div class="field">
-          <label>電話</label>
-          <input type="tel" name="contactPhone" placeholder="">
-        </div>
-      </div>
-
-      <!-- ===== 学歴 ===== -->
-      <div class="section">
-        <h2>🎓 学歴</h2>
-        <p class="hint">看護学校・大学・専門学校など</p>
-        <div id="educationList"></div>
-        <button type="button" class="add-btn" onclick="addEducation()">+ 学歴を追加</button>
-      </div>
-
-      <!-- ===== 職歴 ===== -->
-      <div class="section">
-        <h2>💼 職歴</h2>
-        <p class="hint">勤務先（病院・クリニック等）と配属先・業務内容</p>
-        <div id="careerList"></div>
-        <button type="button" class="add-btn" onclick="addCareer()">+ 職歴を追加</button>
-      </div>
-
-      <!-- ===== 免許・資格 ===== -->
-      <div class="section">
-        <h2>📜 免許・資格</h2>
-        <p class="hint">看護師免許、BLS、認定資格など</p>
-        <div id="licenseList"></div>
-        <button type="button" class="add-btn" onclick="addLicense()">+ 資格を追加</button>
-      </div>
-
-      <!-- ===== 志望動機のヒント ===== -->
-      <div class="section">
-        <h2>✨ 志望動機のヒント</h2>
-        <p class="hint">この3問の回答から、AIが丁寧な志望動機を生成します</p>
-
-        <div class="ai-hint">
-          <b>AIが担当する部分</b>：下記の「ヒント」を元に、看護師専門のキャリアアドバイザーが書くような志望動機を生成します。
-        </div>
-
-        <div class="field">
-          <label>① 今の職場で「変えたい」と思うこと</label>
-          <textarea name="hint_change" placeholder="例：夜勤が多くて体力的にキツい / 人間関係がしんどい / キャリアアップしたい"></textarea>
-        </div>
-        <div class="field">
-          <label>② 自分の強み・得意なこと（箇条書き可）</label>
-          <textarea name="hint_strengths" placeholder="例：急性期での判断力 / 患者様への傾聴 / チームリーダー経験"></textarea>
-        </div>
-        <div class="field">
-          <label>③ 次の職場で大事にしたいこと</label>
-          <textarea name="hint_wishes" placeholder="例：ワークライフバランス / 教育体制 / 専門性を深められる環境"></textarea>
-        </div>
-      </div>
-
-      <!-- ===== 本人希望欄 ===== -->
-      <div class="section">
-        <h2>📝 本人希望欄</h2>
-        <p class="hint">勤務地・給与・勤務形態などの希望</p>
-        <div class="field">
-          <label>希望条件（自由記入）</label>
-          <textarea name="wishes" placeholder="例：勤務地：神奈川県内、勤務形態：日勤のみ希望、入職時期：応相談"></textarea>
-        </div>
-      </div>
-
-      <!-- ===== 個人情報同意 ===== -->
-      <div class="consent">
-        <label>
-          <input type="checkbox" id="consentPrivacy" required>
-          <span><a href="https://quads-nurse.com/privacy.html" target="_blank" rel="noopener">利用規約・個人情報保護方針</a>に同意し、<b>ナースロビー会員として登録します</b>。入力情報は履歴書作成および求人紹介業務に利用されます（必須）</span>
-        </label>
-        <label>
-          <input type="checkbox" id="consentAi" required>
-          <span>履歴書の志望動機生成のため、入力情報の一部を<b>OpenAI社（米国）のAI API</b>で処理することに同意します（必須）</span>
-        </label>
-        <div class="consent-note">
-          送信データはAIモデルの学習には使用されず、OpenAI社のAPIログは最大30日で削除されます。生成された履歴書はナースロビーのサーバーに7日間保存されます。
-        </div>
-      </div>
-
-    </form>
+  <!-- Progress Bar -->
+  <div class="progress-wrap" role="navigation" aria-label="フォームの進捗">
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label">Step <span id="progressLabel">1</span> / 9</div>
   </div>
 
-  <div class="submit-bar">
-    <button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()">
-      履歴書を作成する
+  <!-- Site Header -->
+  <header class="site-header" style="padding-top: calc(16px + 52px);">
+    <img src="/assets/logo-nursrobby.png" alt="ナースロビー" height="40">
+    <div class="site-header-text">
+      <div class="site-header-name">ナースロビー</div>
+      <div class="site-header-sub">看護師紹介サービス — 有料職業紹介事業許可取得</div>
+    </div>
+  </header>
+
+  <!-- Trust Badges -->
+  <div class="trust-badges" role="list" aria-label="信頼・安全の保証">
+    <div class="trust-badge" role="listitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+      </svg>
+      SSL暗号化通信
+    </div>
+    <div class="trust-badge" role="listitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      有料職業紹介事業許可
+    </div>
+    <div class="trust-badge" role="listitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+      </svg>
+      個人情報保護方針準拠
+    </div>
+    <div class="trust-badge" role="listitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+      </svg>
+      AI処理データは30日で削除
+    </div>
+  </div>
+
+  <!-- Aria Live for screen readers -->
+  <div aria-live="polite" aria-atomic="true" class="sr-only" id="ariaLive"></div>
+
+  <!-- Success Overlay -->
+  <div class="success-overlay" id="successOverlay" role="status" aria-label="登録完了">
+    <div class="success-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="success-title">会員登録が完了しました</div>
+    <div class="success-desc">ナースロビーへようこそ。<br>AI履歴書を生成中です。マイページへ移動します。</div>
+    <div class="success-loading">移動中...</div>
+  </div>
+
+  <main>
+    <div class="container">
+
+      <!-- Intro -->
+      <div class="page-intro">
+        <div class="page-intro-title">会員登録 + AI履歴書作成</div>
+        <div class="page-intro-desc">
+          このフォームを送信すると<b>ナースロビー会員</b>として登録されます。
+          入力情報をもとにAIが丁寧な志望動機を生成し、
+          マイページでいつでも確認・編集・PDF印刷できます。
+        </div>
+      </div>
+
+      <!-- Token Error -->
+      <div class="token-error" id="tokenError" role="alert">
+        <div class="token-error-title">アクセスできません</div>
+        <div class="token-error-body">
+          このページはLINEの「履歴書を作成する」ボタンからのみアクセスできます。
+          LINEを開いて再度お試しください。
+        </div>
+      </div>
+
+      <form id="resumeForm" novalidate>
+
+        <!-- Step 01: 基本情報 -->
+        <section class="section" data-step="1" aria-labelledby="step1-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">01</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step1-title">基本情報</div>
+              <div class="section-hint">履歴書に記載する氏名と連絡先</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="field-row">
+              <div class="field">
+                <label for="lastNameFurigana">姓（ふりがな）<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="lastNameFurigana" name="lastNameFurigana" required
+                  autocomplete="family-name" placeholder="たなか"
+                  aria-required="true">
+              </div>
+              <div class="field">
+                <label for="firstNameFurigana">名（ふりがな）<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="firstNameFurigana" name="firstNameFurigana" required
+                  autocomplete="given-name" placeholder="みさき"
+                  aria-required="true">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="lastName">姓<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="lastName" name="lastName" required
+                  autocomplete="family-name" placeholder="田中"
+                  aria-required="true">
+              </div>
+              <div class="field">
+                <label for="firstName">名<span class="req" aria-label="必須">必須</span></label>
+                <input type="text" id="firstName" name="firstName" required
+                  autocomplete="given-name" placeholder="美咲"
+                  aria-required="true">
+              </div>
+            </div>
+            <div class="field">
+              <label for="birthDate">生年月日<span class="req" aria-label="必須">必須</span></label>
+              <input type="date" id="birthDate" name="birthDate" required
+                autocomplete="bday" aria-required="true">
+            </div>
+            <div class="field">
+              <label for="gender">性別<span class="req" aria-label="必須">必須</span></label>
+              <select id="gender" name="gender" required aria-required="true">
+                <option value="">選択してください</option>
+                <option value="女">女性</option>
+                <option value="男">男性</option>
+                <option value="回答しない">回答しない</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="phone">電話番号<span class="req" aria-label="必須">必須</span></label>
+              <input type="tel" id="phone" name="phone" required
+                autocomplete="tel" inputmode="tel" placeholder="090-1234-5678"
+                aria-required="true">
+            </div>
+            <div class="field">
+              <label for="email">メールアドレス（任意・担当者連絡用）</label>
+              <input type="email" id="email" name="email"
+                autocomplete="email" inputmode="email" placeholder="example@example.com">
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 02: 現住所 -->
+        <section class="section" data-step="2" aria-labelledby="step2-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">02</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step2-title">現住所</div>
+              <div class="section-hint">履歴書に記載する住所</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="field">
+              <label for="postalCode">郵便番号<span class="req" aria-label="必須">必須</span></label>
+              <input type="text" id="postalCode" name="postalCode" required
+                autocomplete="postal-code" inputmode="numeric"
+                placeholder="250-0011" pattern="\d{3}-?\d{4}"
+                aria-required="true">
+            </div>
+            <div class="field">
+              <label for="address">住所<span class="req" aria-label="必須">必須</span></label>
+              <input type="text" id="address" name="address" required
+                autocomplete="street-address" placeholder="神奈川県横浜市中区..."
+                aria-required="true">
+            </div>
+            <div class="field">
+              <label for="addressFurigana">住所（ふりがな）</label>
+              <input type="text" id="addressFurigana" name="addressFurigana"
+                placeholder="かながわけん よこはまし...">
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 03: 連絡先（任意） -->
+        <section class="section" data-step="3" aria-labelledby="step3-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">03</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step3-title">連絡先（現住所以外・任意）</div>
+              <div class="section-hint">帰省先など、現住所と異なる場合のみ記入</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="field">
+              <label for="contactPostalCode">郵便番号</label>
+              <input type="text" id="contactPostalCode" name="contactPostalCode"
+                autocomplete="postal-code" inputmode="numeric"
+                placeholder="250-0011" pattern="\d{3}-?\d{4}">
+            </div>
+            <div class="field">
+              <label for="contactAddress">住所</label>
+              <input type="text" id="contactAddress" name="contactAddress"
+                autocomplete="street-address" placeholder="">
+            </div>
+            <div class="field">
+              <label for="contactAddressFurigana">住所（ふりがな）</label>
+              <input type="text" id="contactAddressFurigana" name="contactAddressFurigana" placeholder="">
+            </div>
+            <div class="field">
+              <label for="contactPhone">電話番号</label>
+              <input type="tel" id="contactPhone" name="contactPhone"
+                autocomplete="tel" inputmode="tel" placeholder="">
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 04: 学歴 -->
+        <section class="section" data-step="4" aria-labelledby="step4-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">04</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step4-title">学歴</div>
+              <div class="section-hint">看護学校・大学・専門学校など</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div id="educationList" aria-label="学歴リスト"></div>
+            <button type="button" class="add-btn" onclick="addEducation()" aria-label="学歴を追加">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              追加する
+            </button>
+          </div>
+        </section>
+
+        <!-- Step 05: 職歴 -->
+        <section class="section" data-step="5" aria-labelledby="step5-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">05</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step5-title">職歴</div>
+              <div class="section-hint">勤務先と配属先・業務内容</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div id="careerList" aria-label="職歴リスト"></div>
+            <button type="button" class="add-btn" onclick="addCareer()" aria-label="職歴を追加">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              追加する
+            </button>
+          </div>
+        </section>
+
+        <!-- Step 06: 免許・資格 -->
+        <section class="section" data-step="6" aria-labelledby="step6-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">06</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step6-title">免許・資格</div>
+              <div class="section-hint">看護師免許、BLS、認定資格など</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div id="licenseList" aria-label="資格リスト"></div>
+            <button type="button" class="add-btn" onclick="addLicense()" aria-label="資格を追加">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              追加する
+            </button>
+          </div>
+        </section>
+
+        <!-- Step 07: 志望動機のヒント -->
+        <section class="section" data-step="7" aria-labelledby="step7-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">07</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step7-title">志望動機のヒント</div>
+              <div class="section-hint">AIが志望動機を生成する素材になります</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="ai-hint-box" role="note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>
+                <b>AIが担当する部分：</b>
+                下記の3問をもとに、看護師専門のキャリアアドバイザーが書くような
+                志望動機を自動生成します。箇条書き・短文でOKです。
+              </span>
+            </div>
+            <div class="field">
+              <label for="hint_change">今の職場で「変えたい」と思うこと</label>
+              <textarea id="hint_change" name="hint_change"
+                placeholder="例：夜勤が多くて体力的につらい / 人間関係 / キャリアアップしたい"
+                aria-label="変えたいこと（任意）"></textarea>
+            </div>
+            <div class="field">
+              <label for="hint_strengths">自分の強み・得意なこと（箇条書き可）</label>
+              <textarea id="hint_strengths" name="hint_strengths"
+                placeholder="例：急性期での判断力 / 患者への傾聴 / チームリーダー経験"
+                aria-label="強み・得意なこと（任意）"></textarea>
+            </div>
+            <div class="field">
+              <label for="hint_wishes">次の職場で大事にしたいこと</label>
+              <textarea id="hint_wishes" name="hint_wishes"
+                placeholder="例：ワークライフバランス / 教育体制 / 専門性を深められる環境"
+                aria-label="大事にしたいこと（任意）"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 08: 本人希望 -->
+        <section class="section" data-step="8" aria-labelledby="step8-title">
+          <div class="section-header">
+            <span class="step-num" aria-hidden="true">08</span>
+            <div class="section-title-wrap">
+              <div class="section-title" id="step8-title">本人希望（任意）</div>
+              <div class="section-hint">勤務地・給与・勤務形態などの希望</div>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="field">
+              <label for="wishes">希望条件（自由記入）</label>
+              <textarea id="wishes" name="wishes"
+                placeholder="例：勤務地：神奈川県内、勤務形態：日勤のみ希望、入職時期：応相談"
+                aria-label="本人希望（任意）"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 09: 同意事項 -->
+        <section class="consent-section" data-step="9" aria-labelledby="step9-title">
+          <div class="consent-section-title" id="step9-title">
+            Step 09 — 同意事項（必須）
+          </div>
+          <label class="consent-item" for="consentPrivacy">
+            <input type="checkbox" class="consent-check" id="consentPrivacy" required
+              aria-required="true">
+            <span class="consent-text">
+              <a href="https://quads-nurse.com/privacy.html" target="_blank" rel="noopener noreferrer">
+                利用規約・個人情報保護方針
+              </a>に同意し、<strong>ナースロビー会員として登録します</strong>。
+              入力情報は履歴書作成および求人紹介業務に利用されます。
+            </span>
+          </label>
+          <label class="consent-item" for="consentAi">
+            <input type="checkbox" class="consent-check" id="consentAi" required
+              aria-required="true">
+            <span class="consent-text">
+              履歴書の志望動機生成のため、入力情報の一部を
+              <strong>OpenAI社（米国）のAI API</strong>で処理することに同意します。
+            </span>
+          </label>
+          <div class="consent-note" role="note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>
+              送信データはAIモデルの学習には使用されません。
+              OpenAI社のAPIログは最大30日で削除されます。
+              生成された履歴書はナースロビーのサーバーに7日間保存されます。
+            </span>
+          </div>
+        </section>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- Submit Bar -->
+  <div class="submit-bar" role="contentinfo" aria-label="送信エリア">
+    <button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()"
+      aria-label="履歴書を作成して会員登録する">
+      <span class="spinner" aria-hidden="true"></span>
+      <span id="submitBtnLabel">履歴書を作成する</span>
     </button>
-    <div class="status" id="status"></div>
+    <div class="status-msg" id="statusMsg" aria-live="polite" aria-atomic="true"></div>
   </div>
 
   <script>
-    // ===== 学歴 / 職歴 / 資格 動的追加 =====
+    /* ===== TOKEN ===== */
+    const urlParams = new URLSearchParams(window.location.search);
+    const resumeToken = urlParams.get('token') || '';
+    if (resumeToken && window.history && window.history.replaceState) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (!resumeToken) {
+      document.getElementById('tokenError').style.display = 'block';
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('statusMsg').textContent = 'LINEから再度アクセスしてください。';
+      document.getElementById('statusMsg').className = 'status-msg error';
+    }
+
+    /* ===== PROGRESS BAR ===== */
+    const sections = Array.from(document.querySelectorAll('[data-step]'));
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+    const total = 9;
+
+    const observer = new IntersectionObserver(entries => {
+      let maxVisible = 0;
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const step = parseInt(e.target.dataset.step, 10);
+          if (step > maxVisible) maxVisible = step;
+        }
+      });
+      if (maxVisible > 0) {
+        progressFill.style.width = ((maxVisible / total) * 100) + '%';
+        progressLabel.textContent = maxVisible;
+      }
+    }, { threshold: 0.3 });
+
+    sections.forEach(s => observer.observe(s));
+
+    /* ===== DYNAMIC ITEMS ===== */
+    let eduCount = 0, carCount = 0, licCount = 0;
+
+    function makeId(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 8); }
+
     function addEducation() {
+      eduCount++;
+      const id = makeId('edu');
       const html = `
-        <div class="history-item">
-          <button type="button" class="remove-btn" onclick="this.parentElement.remove()">削除</button>
+        <div class="history-item" id="${id}" role="group" aria-label="学歴 ${eduCount}">
+          <button type="button" class="remove-btn" onclick="removeItem('${id}')" aria-label="この学歴を削除">削除</button>
           <div class="field-row">
             <div class="field">
-              <label>年</label>
-              <input type="number" name="edu_year[]" placeholder="2018" min="1950" max="2030">
+              <label>卒業年</label>
+              <input type="number" name="edu_year[]" placeholder="2018" min="1950" max="2035"
+                inputmode="numeric" aria-label="卒業年">
             </div>
             <div class="field">
               <label>月</label>
-              <input type="number" name="edu_month[]" placeholder="3" min="1" max="12">
+              <input type="number" name="edu_month[]" placeholder="3" min="1" max="12"
+                inputmode="numeric" aria-label="卒業月">
             </div>
           </div>
           <div class="field">
             <label>学校名・学部学科</label>
-            <input type="text" name="edu_desc[]" placeholder="○○看護大学 看護学部 卒業">
+            <input type="text" name="edu_desc[]" placeholder="○○看護大学 看護学部 卒業"
+              aria-label="学校名・学部学科">
           </div>
         </div>`;
       document.getElementById('educationList').insertAdjacentHTML('beforeend', html);
     }
+
     function addCareer() {
+      carCount++;
+      const id = makeId('car');
       const html = `
-        <div class="history-item">
-          <button type="button" class="remove-btn" onclick="this.parentElement.remove()">削除</button>
+        <div class="history-item" id="${id}" role="group" aria-label="職歴 ${carCount}">
+          <button type="button" class="remove-btn" onclick="removeItem('${id}')" aria-label="この職歴を削除">削除</button>
           <div class="field-row">
             <div class="field">
-              <label>年（入職）</label>
-              <input type="number" name="car_start_year[]" placeholder="2018" min="1950" max="2030">
+              <label>入職年</label>
+              <input type="number" name="car_start_year[]" placeholder="2018" min="1950" max="2035"
+                inputmode="numeric" aria-label="入職年">
             </div>
             <div class="field">
               <label>月</label>
-              <input type="number" name="car_start_month[]" placeholder="4" min="1" max="12">
+              <input type="number" name="car_start_month[]" placeholder="4" min="1" max="12"
+                inputmode="numeric" aria-label="入職月">
             </div>
           </div>
           <div class="field">
-            <label>施設名（匿名化OK：「○○病院」等）</label>
-            <input type="text" name="car_facility[]" placeholder="医療法人○○会 △△病院">
+            <label>施設名（「○○病院」等、匿名化可）</label>
+            <input type="text" name="car_facility[]" placeholder="医療法人○○会 △△病院"
+              aria-label="施設名">
           </div>
           <div class="field">
             <label>配属・業務内容（具体的に）</label>
-            <textarea name="car_detail[]" placeholder="例：急性期内科病棟（40床）、プリセプター経験2年、化学療法管理、CVカテ介助など"></textarea>
+            <textarea name="car_detail[]" placeholder="例：急性期内科病棟（40床）、プリセプター経験2年、化学療法管理など"
+              aria-label="配属・業務内容"></textarea>
           </div>
           <div class="field-row">
             <div class="field">
-              <label>退職年（現職なら空欄）</label>
-              <input type="number" name="car_end_year[]" placeholder="" min="1950" max="2030">
+              <label>退職年（現職は空欄）</label>
+              <input type="number" name="car_end_year[]" placeholder="" min="1950" max="2035"
+                inputmode="numeric" aria-label="退職年（任意）">
             </div>
             <div class="field">
-              <label>月</label>
-              <input type="number" name="car_end_month[]" placeholder="" min="1" max="12">
+              <label>退職月</label>
+              <input type="number" name="car_end_month[]" placeholder="" min="1" max="12"
+                inputmode="numeric" aria-label="退職月（任意）">
             </div>
           </div>
         </div>`;
       document.getElementById('careerList').insertAdjacentHTML('beforeend', html);
     }
+
     function addLicense() {
+      licCount++;
+      const id = makeId('lic');
       const html = `
-        <div class="history-item">
-          <button type="button" class="remove-btn" onclick="this.parentElement.remove()">削除</button>
+        <div class="history-item" id="${id}" role="group" aria-label="資格 ${licCount}">
+          <button type="button" class="remove-btn" onclick="removeItem('${id}')" aria-label="この資格を削除">削除</button>
           <div class="field-row">
             <div class="field">
-              <label>年</label>
-              <input type="number" name="lic_year[]" placeholder="2018" min="1950" max="2030">
+              <label>取得年</label>
+              <input type="number" name="lic_year[]" placeholder="2018" min="1950" max="2035"
+                inputmode="numeric" aria-label="取得年">
             </div>
             <div class="field">
               <label>月</label>
-              <input type="number" name="lic_month[]" placeholder="3" min="1" max="12">
+              <input type="number" name="lic_month[]" placeholder="3" min="1" max="12"
+                inputmode="numeric" aria-label="取得月">
             </div>
           </div>
           <div class="field">
             <label>資格名</label>
-            <input type="text" name="lic_name[]" placeholder="正看護師免許 取得">
+            <input type="text" name="lic_name[]" placeholder="正看護師免許 取得"
+              aria-label="資格名">
           </div>
         </div>`;
       document.getElementById('licenseList').insertAdjacentHTML('beforeend', html);
     }
 
-    // 初期表示で1件ずつ追加
+    function removeItem(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    /* 初期表示：1件ずつ */
     addEducation();
     addCareer();
     addLicense();
 
-    // ===== LINE Bot側で発行された短期トークン取得 =====
-    const urlParams = new URLSearchParams(window.location.search);
-    const resumeToken = urlParams.get('token') || '';
-    // URLからトークンを即クリーンアップ（ブラウザ履歴・スクショ漏洩対策）
-    if (resumeToken && window.history && window.history.replaceState) {
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-    if (!resumeToken) {
-      const s = document.getElementById('status');
-      if (s) {
-        s.className = 'status error';
-        s.textContent = 'このページはLINEの「履歴書を作成する」ボタンからのみアクセスできます。';
+    /* ===== COLLECT REPEATING ===== */
+    function collectRepeating(form, fields) {
+      const counts = fields.map(f => form.querySelectorAll(`[name="${f}[]"]`).length);
+      const max = Math.max(...counts, 0);
+      const items = [];
+      for (let i = 0; i < max; i++) {
+        const item = {};
+        fields.forEach(f => {
+          const el = form.querySelectorAll(`[name="${f}[]"]`)[i];
+          item[f] = el ? el.value.trim() : '';
+        });
+        if (Object.values(item).some(v => v !== '')) {
+          items.push(item);
+        }
       }
+      return items;
     }
 
-    // ===== Submit =====
+    /* ===== SUBMIT ===== */
     async function submitForm() {
       const btn = document.getElementById('submitBtn');
-      const status = document.getElementById('status');
+      const label = document.getElementById('submitBtnLabel');
+      const statusMsg = document.getElementById('statusMsg');
+      const ariaLive = document.getElementById('ariaLive');
 
-      // 同意確認
+      const setStatus = (msg, type) => {
+        statusMsg.textContent = msg;
+        statusMsg.className = 'status-msg' + (type ? ' ' + type : '');
+        ariaLive.textContent = msg;
+      };
+
+      /* 同意チェック */
       const consentPrivacy = document.getElementById('consentPrivacy').checked;
       const consentAi = document.getElementById('consentAi').checked;
       if (!consentPrivacy || !consentAi) {
-        status.className = 'status error';
-        status.textContent = '個人情報保護方針およびAI処理への同意（2つのチェックボックス）が必要です。';
+        setStatus('2つの同意チェックボックスにチェックを入れてください。', 'error');
+        document.getElementById('consentPrivacy').scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
+
+      /* トークン確認 */
       if (!resumeToken) {
-        status.className = 'status error';
-        status.textContent = 'リンクが無効です。LINEからもう一度お試しください。';
+        setStatus('リンクが無効です。LINEから再度お試しください。', 'error');
         return;
       }
 
-      btn.disabled = true;
-      status.className = 'status';
-      status.textContent = 'AIが志望動機と職務経歴を作成中... (30秒ほど)';
-
-      // フォームデータを収集
+      /* 必須フィールド確認 */
       const form = document.getElementById('resumeForm');
+      const requiredFields = ['lastName','firstName','lastNameFurigana','firstNameFurigana','birthDate','gender','phone','postalCode','address'];
+      for (const fname of requiredFields) {
+        const el = form[fname];
+        if (!el || !el.value.trim()) {
+          el && el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el && el.focus();
+          setStatus('必須項目をすべて入力してください。', 'error');
+          return;
+        }
+      }
+
+      /* 送信中 */
+      btn.disabled = true;
+      btn.classList.add('loading');
+      label.textContent = 'AIが志望動機を作成中です...';
+      setStatus('約30秒お待ちください。このページを閉じないでください。', '');
+
       const data = {
         token: resumeToken,
         consentPrivacy: true,
         consentAi: true,
-        lastName: form.lastName.value,
-        firstName: form.firstName.value,
-        lastNameFurigana: form.lastNameFurigana.value,
-        firstNameFurigana: form.firstNameFurigana.value,
-        birthDate: form.birthDate.value,
-        gender: form.gender.value,
-        phone: form.phone.value,
-        email: form.email.value,
-        postalCode: form.postalCode.value,
-        address: form.address.value,
-        addressFurigana: form.addressFurigana.value,
-        contactPostalCode: form.contactPostalCode.value,
-        contactAddress: form.contactAddress.value,
-        contactAddressFurigana: form.contactAddressFurigana.value,
-        contactPhone: form.contactPhone.value,
-        hint_change: form.hint_change.value,
-        hint_strengths: form.hint_strengths.value,
-        hint_wishes: form.hint_wishes.value,
-        wishes: form.wishes.value,
-        education: collectRepeating(form, ['edu_year', 'edu_month', 'edu_desc']),
-        career: collectRepeating(form, ['car_start_year', 'car_start_month', 'car_facility', 'car_detail', 'car_end_year', 'car_end_month']),
-        licenses: collectRepeating(form, ['lic_year', 'lic_month', 'lic_name']),
+        lastName:            form.lastName.value.trim(),
+        firstName:           form.firstName.value.trim(),
+        lastNameFurigana:    form.lastNameFurigana.value.trim(),
+        firstNameFurigana:   form.firstNameFurigana.value.trim(),
+        birthDate:           form.birthDate.value,
+        gender:              form.gender.value,
+        phone:               form.phone.value.trim(),
+        email:               form.email.value.trim(),
+        postalCode:          form.postalCode.value.trim(),
+        address:             form.address.value.trim(),
+        addressFurigana:     form.addressFurigana.value.trim(),
+        contactPostalCode:   form.contactPostalCode.value.trim(),
+        contactAddress:      form.contactAddress.value.trim(),
+        contactAddressFurigana: form.contactAddressFurigana.value.trim(),
+        contactPhone:        form.contactPhone.value.trim(),
+        hint_change:         form.hint_change.value.trim(),
+        hint_strengths:      form.hint_strengths.value.trim(),
+        hint_wishes:         form.hint_wishes.value.trim(),
+        wishes:              form.wishes.value.trim(),
+        education: collectRepeating(form, ['edu_year','edu_month','edu_desc']),
+        career:    collectRepeating(form, ['car_start_year','car_start_month','car_facility','car_detail','car_end_year','car_end_month']),
+        licenses:  collectRepeating(form, ['lic_year','lic_month','lic_name']),
       };
 
       try {
@@ -556,39 +1209,30 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
+
         if (!res.ok) {
           const errText = await res.text();
-          throw new Error(`HTTP ${res.status}: ${errText.slice(0, 100)}`);
+          throw new Error(`HTTP ${res.status}: ${errText.slice(0, 120)}`);
         }
+
         const result = await res.json();
         if (result.success && result.mypageUrl) {
-          alert('✨ ナースロビー会員になりました！マイページへ移動します。');
-          window.location.href = result.mypageUrl;
+          /* 成功 */
+          btn.classList.remove('loading');
+          label.textContent = '完了しました';
+          setStatus('', '');
+          document.getElementById('successOverlay').classList.add('visible');
+          ariaLive.textContent = '会員登録が完了しました。マイページへ移動します。';
+          setTimeout(() => { window.location.href = result.mypageUrl; }, 1500);
         } else {
-          throw new Error('会員登録に失敗しました');
+          throw new Error('会員登録に失敗しました。サポートにお問い合わせください。');
         }
       } catch (e) {
-        status.className = 'status error';
-        status.textContent = 'エラー: ' + e.message;
+        btn.classList.remove('loading');
         btn.disabled = false;
+        label.textContent = '履歴書を作成する';
+        setStatus('エラー: ' + e.message, 'error');
       }
-    }
-
-    function collectRepeating(form, fields) {
-      const max = Math.max(...fields.map(f => (form.querySelectorAll(`[name="${f}[]"]`) || []).length));
-      const items = [];
-      for (let i = 0; i < max; i++) {
-        const item = {};
-        fields.forEach(f => {
-          const el = form.querySelectorAll(`[name="${f}[]"]`)[i];
-          item[f] = el ? el.value : '';
-        });
-        // 全て空ならスキップ
-        if (Object.values(item).some(v => v && v.trim())) {
-          items.push(item);
-        }
-      }
-      return items;
     }
   </script>
 </body>
