@@ -10009,6 +10009,25 @@ async function handleScheduledNewJobsNotify(env, opts) {
         const areaLabel = sub.areaLabel || areaKey;
         if (!userId || !areaKey) continue;
 
+        // T3 (会員精密マッチ): 会員なら preferences を考慮
+        let memberPrefs = null;
+        let isActiveMember = false;
+        try {
+          const memberRaw = await env.LINE_SESSIONS.get(`member:${userId}`, { cacheTtl: 60 });
+          if (memberRaw) {
+            const m = JSON.parse(memberRaw);
+            if (m.status === "active" || m.status === "lite") {
+              isActiveMember = true;
+              const prefsRaw = await env.LINE_SESSIONS.get(`member:${userId}:preferences`, { cacheTtl: 60 });
+              if (prefsRaw) {
+                try { memberPrefs = JSON.parse(prefsRaw); } catch {}
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`[NewJobsCron] member prefs lookup failed for ${userId.slice(0, 8)}: ${e.message}`);
+        }
+
         // エリアフィルタ構築（rm_new_jobs と同じロジック）
         const areaConditions = [];
         const areaParams = [];
@@ -10031,6 +10050,18 @@ async function handleScheduledNewJobsNotify(env, opts) {
         const dateFilter = fallbackDays > 0
           ? `first_seen_at >= date('now','localtime','-${fallbackDays} days')`
           : `first_seen_at = date('now','localtime')`;
+
+        // T3: 会員preferencesで追加フィルタ
+        const prefConditions = [];
+        const prefParams = [];
+        if (isActiveMember && memberPrefs) {
+          // 夜勤NG
+          if (memberPrefs.nightShiftOk === false) {
+            prefConditions.push(`(shift1 IS NULL OR shift1 NOT LIKE '%夜%' OR shift1 LIKE '%日勤%')`);
+          }
+          // 施設タイプ/給与最低ラインは現状DBスキーマに対応カラムがないため将来拡張
+        }
+
         const sql = `SELECT employer, title, salary_display, bonus_text, holidays, rank, score, station_text, shift1, work_location, emp_type, contract_period, insurance, first_seen_at
           FROM jobs
           WHERE ${dateFilter}
@@ -10038,9 +10069,11 @@ async function handleScheduledNewJobsNotify(env, opts) {
             AND (title IS NULL OR title NOT LIKE '%派遣%')
             AND (rank = 'S' OR rank = 'A' OR rank = 'B')
             ${areaConditions.length ? ' AND ' + areaConditions.join(' AND ') : ''}
+            ${prefConditions.length ? ' AND ' + prefConditions.join(' AND ') : ''}
           ORDER BY first_seen_at DESC, CASE rank WHEN 'S' THEN 3 WHEN 'A' THEN 2 ELSE 1 END DESC, score DESC
           LIMIT 3`;
-        const result = await env.DB.prepare(sql).bind(...areaParams).all();
+        const bindParams = [...areaParams, ...prefParams];
+        const result = await env.DB.prepare(sql).bind(...bindParams).all();
 
         if (!result || !result.results || result.results.length === 0) {
           // 0件なら送らない（うざくしない）
@@ -10052,6 +10085,16 @@ async function handleScheduledNewJobsNotify(env, opts) {
         const todayStr = new Date().toISOString().slice(0, 10);
         const bubbles = result.results.map((r) => {
           const bodyContents = [];
+          // T3: 会員なら「希望条件マッチ」ヘッダを先頭に
+          if (isActiveMember) {
+            bodyContents.push({
+              type: "text",
+              text: "🎯 希望条件にマッチ",
+              size: "xs",
+              color: "#2D9F6F",
+              weight: "bold",
+            });
+          }
           if (r.salary_display) bodyContents.push({ type: "text", text: r.salary_display, size: "xl", weight: "bold", color: BRAND_COLOR });
           if (r.bonus_text) bodyContents.push({ type: "text", text: `+ 賞与 ${(r.bonus_text || '').slice(0, 30)}`, size: "sm", color: "#999999", margin: "xs" });
           const shift = (r.shift1 || '').replace(/\(1\)/g, '').trim().slice(0, 20);
@@ -10096,7 +10139,10 @@ async function handleScheduledNewJobsNotify(env, opts) {
           ]},
         });
 
-        const headerText = `${areaLabel}エリアの新着求人 ${result.results.length}件👇`;
+        // T3: 会員向けはパーソナライズされたヘッダーテキスト
+        const headerText = isActiveMember
+          ? `🎯 あなたの希望条件にマッチした新着求人 ${result.results.length}件👇`
+          : `${areaLabel}エリアの新着求人 ${result.results.length}件👇`;
 
         // QR付きテキストを最後に置くとリッチメニューが隠れるので削除
         // CTAバブルの「担当者に相談する」で十分。他操作はリッチメニューから。
