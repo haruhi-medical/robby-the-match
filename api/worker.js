@@ -4138,7 +4138,7 @@ function buildIntakeHumanThanks(entry) {
   const derivedAreaKey = resolveNotifyAreaKey(entry);
   const derivedAreaLabel = derivedAreaKey ? getAreaLabel(derivedAreaKey) : null;
   const areaText = derivedAreaLabel
-    ? `📬 ${derivedAreaLabel}の新着求人を毎朝お届けします。`
+    ? `📬 定期的に${derivedAreaLabel}の新着求人をお届けします。`
     : "📬 定期的に新着求人をお届けします。";
 
   // 2026-04-23 社長指示: 3問完了後の「求人を探す」「エリアを選ぶ」QRは
@@ -4152,7 +4152,7 @@ function buildIntakeHumanThanks(entry) {
     },
     {
       type: "text",
-      text: `${areaText}\n\n下のメニューから\n・本日の新着求人を見る\n・マイページで履歴書を作成\n・担当に相談する\nなど、ご自由にお使いください🌸`,
+      text: `${areaText}\n\n下のメニューから\n・お仕事探しをスタート（あなたにぴったりの求人を検索）\n・本日の新着求人を見る\n・マイページで履歴書を作成\n・担当に相談する\nなど、ご自由にお使いください🌸`,
     },
   ];
 }
