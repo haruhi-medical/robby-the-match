@@ -13,13 +13,17 @@ const MYPAGE_ICONS = {
 };
 
 function renderMypageNotice({ icon, title, bodyHtml, primary, secondary, detail }) {
-  const loading = document.getElementById('loading');
-  const app = document.getElementById('app');
-  if (loading) loading.style.display = 'none';
-  if (app) app.style.display = 'none';
   // 既存の通知ブロックを除去（再表示対応）
   const prev = document.getElementById('mypageNotice');
   if (prev) prev.remove();
+  // body直下の要素のうち site-header と script 以外を非表示
+  // （edit.html等のhero/form構造、loading/app、sticky submit-bar等を全部隠す）
+  Array.from(document.body.children).forEach(el => {
+    if (el.tagName === 'SCRIPT' || el.tagName === 'NOSCRIPT') return;
+    if (el.classList && el.classList.contains('site-header')) return;
+    if (el.id === 'mypageNotice') return;
+    el.style.display = 'none';
+  });
 
   const main = document.createElement('main');
   main.id = 'mypageNotice';
