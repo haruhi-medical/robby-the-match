@@ -1088,6 +1088,65 @@
 
     sections.forEach(s => observer.observe(s));
 
+    /* ===== 郵便番号→住所自動入力 (zipcloud API) ===== */
+    async function lookupPostalCode(zipInput, addrInput, furiganaInput, statusSlot) {
+      const digits = (zipInput.value || '').replace(/\D/g, '');
+      if (digits.length !== 7) return;
+      if (statusSlot) statusSlot.textContent = '住所を検索中...';
+      try {
+        const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${digits}`);
+        if (!res.ok) throw new Error('API エラー');
+        const data = await res.json();
+        if (data.status !== 200 || !data.results || !data.results[0]) {
+          if (statusSlot) statusSlot.textContent = '郵便番号が見つかりませんでした';
+          return;
+        }
+        const r = data.results[0];
+        const fullAddr = `${r.address1}${r.address2}${r.address3}`;
+        const fullKana = `${r.kana1 || ''}${r.kana2 || ''}${r.kana3 || ''}`.toLowerCase()
+          .replace(/[ァ-ヶ]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));  // カタカナ→ひらがな
+        // 既に手入力があっても番地等を足すため、前方一致で上書き判定
+        if (addrInput && (!addrInput.value || addrInput.value.trim().length < 3)) {
+          addrInput.value = fullAddr;
+        }
+        if (furiganaInput && (!furiganaInput.value || furiganaInput.value.trim().length < 3)) {
+          furiganaInput.value = fullKana;
+        }
+        if (statusSlot) statusSlot.textContent = '住所を自動入力しました（番地以降をご記入ください）';
+        // addrInput の末尾にフォーカスを移して番地続き入力を促す
+        if (addrInput) {
+          addrInput.focus();
+          const len = addrInput.value.length;
+          try { addrInput.setSelectionRange(len, len); } catch {}
+        }
+      } catch (e) {
+        if (statusSlot) statusSlot.textContent = '住所検索に失敗しました（手動で入力してください）';
+        console.error('[postalCode] lookup failed:', e);
+      }
+    }
+
+    function bindZipLookup(zipName, addrName, furiganaName) {
+      const zip = document.querySelector(`input[name="${zipName}"]`);
+      const addr = document.querySelector(`input[name="${addrName}"]`);
+      const fur = document.querySelector(`input[name="${furiganaName}"]`);
+      if (!zip) return;
+      // ステータス表示用の小さなノートを zipフィールド直下に追加
+      const note = document.createElement('div');
+      note.className = 'zip-note';
+      note.setAttribute('aria-live', 'polite');
+      note.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:4px;min-height:14px;';
+      zip.parentNode.appendChild(note);
+      const handler = () => lookupPostalCode(zip, addr, fur, note);
+      zip.addEventListener('blur', handler);
+      zip.addEventListener('input', () => {
+        const digits = zip.value.replace(/\D/g, '');
+        if (digits.length === 7) handler();
+      });
+    }
+
+    bindZipLookup('postalCode', 'address', 'addressFurigana');
+    bindZipLookup('contactPostalCode', 'contactAddress', 'contactAddressFurigana');
+
     /* ===== DYNAMIC ITEMS ===== */
     let eduCount = 0, carCount = 0, licCount = 0;
 
