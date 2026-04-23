@@ -5,12 +5,12 @@
     "competitor_analyst": "2026-04-23T10:00:10",
     "content_creator": "2026-04-23T15:04:06",
     "sns_poster": "2026-04-23T17:22:20",
-    "daily_reviewer": "2026-04-23T23:00:01",
-    "seo_optimizer": "2026-04-23T10:00:24",
+    "daily_reviewer": "2026-04-23T23:00:37",
+    "seo_optimizer": "2026-04-24T04:00:00",
     "weekly_content_planner": "2026-04-19T05:00:03",
     "weekly_strategist": "2026-04-19T06:01:04",
-    "tiktok_poster": "2026-04-23T02:57:51",
-    "autoresearch": "2026-04-23T02:00:03"
+    "tiktok_poster": "2026-04-24T02:49:40",
+    "autoresearch": "2026-04-24T02:00:03"
   },
   "status": {
     "ai_marketing_orchestrator": "completed",
@@ -18,8 +18,8 @@
     "competitor_analyst": "completed",
     "content_creator": "completed",
     "sns_poster": "completed",
-    "daily_reviewer": "running",
-    "seo_optimizer": "completed",
+    "daily_reviewer": "completed",
+    "seo_optimizer": "running",
     "weekly_content_planner": "pending",
     "weekly_strategist": "completed",
     "tiktok_poster": "completed",

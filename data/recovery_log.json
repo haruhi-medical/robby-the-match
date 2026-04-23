@@ -50,11 +50,11 @@
       "last_alert_ts": ""
     },
     "claude_cli_auth": {
-      "date": "2026-04-23",
+      "date": "2026-04-24",
       "retries": 0,
       "status": "config_error",
       "last_error": "not logged in",
-      "last_alert_ts": "2026-04-23T01:00:02.852700"
+      "last_alert_ts": "2026-04-24T01:00:02.391985"
     }
   }
 }

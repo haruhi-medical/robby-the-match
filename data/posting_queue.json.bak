@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-23T02:57:51.315233",
+  "updated": "2026-04-24T02:35:07.891648",
   "posts": [
     {
       "id": 1,
@@ -4435,8 +4435,8 @@
       ],
       "cta_type": "soft",
       "content_type": "aruaru",
-      "status": "ready",
-      "video_path": null,
+      "status": "video_created",
+      "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_ある_0407_05_20260424.mp4",
       "posted_at": null,
       "tiktok_url": null,
       "error": null,
