@@ -39,13 +39,32 @@ async function initMypageAuth() {
   }
 
   // 4. mypage-init を毎回叩いて最新の会員情報を取得
-  //    entryToken 優先（新規リダイレクト時は最新セッション発行）、なければ既存 sessionToken で再認証
   const body = entryToken ? { entryToken } : { sessionToken: existingSessionToken };
-  const res = await fetch(WORKER_BASE + '/api/mypage-init', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let res;
+  try {
+    res = await fetch(WORKER_BASE + '/api/mypage-init', {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (netErr) {
+    // Load failed 等の fetch エラーを詳細化
+    const detail = `${netErr.name || 'Error'}: ${netErr.message || String(netErr)}`;
+    document.body.innerHTML = `
+      <div class="container">
+        <h1>🔌 通信エラー</h1>
+        <div class="card">
+          <p>サーバーに接続できませんでした。</p>
+          <pre style="font-size:0.75rem;background:#f5f5f5;padding:8px;border-radius:6px;overflow-x:auto;">${detail}</pre>
+          <p class="muted">LINEアプリ内ブラウザで発生する場合は、右上「︙」→「他のアプリで開く」→ Safari をお試しください。</p>
+          <a href="https://lin.ee/oUgDB3x" class="btn btn-outline">LINEに戻る</a>
+          <button onclick="location.reload()" class="btn btn-primary">再読み込み</button>
+        </div>
+      </div>`;
+    return null;
+  }
 
   if (res.status === 404) {
     // 退会済み or 未登録
