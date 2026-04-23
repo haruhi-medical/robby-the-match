@@ -4706,6 +4706,24 @@ async function sendApplyNotification(userId, entry, env) {
   }
 }
 
+// ---------- 担当者引き継ぎ確定メッセージ（統一文言） ----------
+// すべての user-initiated handoff 経路 (rm=contact / 新着カード / マッチング詳細
+// / 逆指名 / handoff_phone_number 入力後 等) で共通して使用する。
+// バリエーション: entry.phonePreference / entry.preferredCallTime に応じて時間帯を埋め込む。
+function buildHandoffConfirmationText(entry) {
+  const timeLabels = {
+    morning: '午前中', afternoon: '午後', evening: '夕方以降',
+    anytime: 'いつでもOK', post_night_morning: '夜勤明けの午前',
+    weekend_only: '週末のみ', weekday_evening: '平日18時以降',
+  };
+  if (entry.phonePreference === "phone_ok") {
+    const timeText = entry.preferredCallTime ? (timeLabels[entry.preferredCallTime] || '') : '';
+    const timeClause = timeText ? `ご希望の時間帯（${timeText}）に` : '';
+    return `担当者に引き継ぎました。24時間以内に${timeClause}お電話またはLINEでご連絡いたしますので、少しお待ちください。\n\n気になることがあればいつでもメッセージしてくださいね。`;
+  }
+  return "担当者に引き継ぎました。24時間以内にこのLINEでご連絡いたしますので、少しお待ちください。\n\nお電話はしませんのでご安心ください。気になることがあればいつでもメッセージしてくださいね。";
+}
+
 // ---------- フェーズ別メッセージ+Quick Reply生成 ----------
 async function buildPhaseMessage(phase, entry, env) {
   switch (phase) {
@@ -5639,24 +5657,14 @@ async function buildPhaseMessage(phase, entry, env) {
     }
 
     case "handoff": {
+      // 応募系 (entry.appliedAt) は名前秘匿の特殊文言。それ以外は統一文言。
       if (entry.appliedAt) {
         return [{
           type: "text",
           text: "✅ 担当者が名前を伏せて施設に確認します。\n\n🔒 お名前や連絡先は、先方が関心を示すまで開示しません。回答があり次第ご連絡しますね。\n\n質問があればいつでもメッセージください。（担当者が確認してお返事します）",
         }];
       }
-      if (entry.phonePreference === "phone_ok") {
-        const timeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK', post_night_morning: '夜勤明けの午前', weekend_only: '週末のみ', weekday_evening: '平日18時以降' };
-        const timeText = entry.preferredCallTime ? timeLabels[entry.preferredCallTime] || '' : '';
-        return [{
-          type: "text",
-          text: `担当者に引き継ぎました。24時間以内に${timeText ? `${timeText}に` : ''}お電話またはLINEでご連絡いたしますので、少しお待ちください。\n\n気になることがあればいつでもメッセージしてくださいね。`,
-        }];
-      }
-      return [{
-        type: "text",
-        text: "担当者に引き継ぎました。24時間以内にこのLINEでご連絡いたしますので、少しお待ちください。\n\nお電話はしませんのでご安心ください。気になることがあればいつでもメッセージしてくださいね。",
-      }];
+      return [{ type: "text", text: buildHandoffConfirmationText(entry) }];
     }
 
     // ===== リッチメニュー: 新着求人（準備中） =====
@@ -8913,13 +8921,7 @@ ${entry.rmCvQualifications || '看護師免許'}
           }
         } else if (nextPhase === "handoff") {
           entry.handoffAt = Date.now();
-          const handoffTimeLabels = { morning: '午前中', afternoon: '午後', evening: '夕方以降', anytime: 'いつでもOK', post_night_morning: '夜勤明けの午前', weekend_only: '週末のみ', weekday_evening: '平日18時以降' };
-          const handoffTimeText = entry.preferredCallTime ? handoffTimeLabels[entry.preferredCallTime] || entry.preferredCallTime : '';
-          replyMessages = [
-            { type: "text", text: entry.phonePreference === "phone_ok"
-              ? `担当者に引き継ぎました。24時間以内に${handoffTimeText ? `ご希望の時間帯（${handoffTimeText}）に` : ""}お電話またはLINEでご連絡いたしますので、少しお待ちください。\n\n気になることがあればいつでもメッセージしてくださいね。`
-              : "担当者に引き継ぎました。24時間以内にこのLINEでご連絡いたしますので、少しお待ちください。\n\nお電話はしませんのでご安心ください。気になることがあればいつでもメッセージしてくださいね。" },
-          ];
+          replyMessages = [{ type: "text", text: buildHandoffConfirmationText(entry) }];
           await sendHandoffNotification(userId, entry, env);
           // KVにハンドオフインデックス登録（Cron Triggerでフォロー用）
           // マイルストーン: 15min (受付確認Push) / 2h (再通知+Slack) / 24h (SLAリマインダーSlack)
@@ -9643,11 +9645,11 @@ ${entry.rmCvQualifications || '看護師免許'}
           replyMessages = await buildPhaseMessage("apply_consent", entry, env);
         } else if (nextPhase === null) {
           if (entry.unexpectedTextCount >= 3) {
-            // Stage 3: 3回以上 → 担当者引き継ぎ
+            // Stage 3: 3回以上 → 担当者引き継ぎ (preamble + 統一文言)
             entry.phase = "handoff";
             replyMessages = [{
               type: "text",
-              text: "うまくお答えできずすみません。担当者に引き継ぎました。翌営業日までにこのLINEでご連絡しますね。\n\n良い日をお過ごしくださいませ！",
+              text: `うまくお答えできずすみません。\n${buildHandoffConfirmationText(entry)}`,
             }];
             await sendHandoffNotification(userId, entry, env);
           } else if (entry.unexpectedTextCount === 2) {
@@ -9680,10 +9682,7 @@ ${entry.rmCvQualifications || '看護師免許'}
           }
         } else if (nextPhase === "handoff") {
           entry.phase = "handoff";
-          replyMessages = [{
-            type: "text",
-            text: "担当者がこのLINEでご連絡しますので、少しお待ちくださいね。電話はしません。",
-          }];
+          replyMessages = [{ type: "text", text: buildHandoffConfirmationText(entry) }];
         } else {
           entry.phase = nextPhase;
 
