@@ -4277,7 +4277,6 @@ function buildSessionWelcome(sessionCtx, entry) {
       quickReply: {
         items: [
           qrItem('求人を見る', 'welcome=see_jobs'),
-          qrItem('相場が知りたい', 'welcome=see_salary'),
           qrItem('相談したい', 'welcome=consult'),
           qrItem('エリアを変える', 'welcome=newjobs_optin'),
         ],
@@ -4805,7 +4804,6 @@ async function buildPhaseMessage(phase, entry, env) {
         }];
       }
       // その他の地域 → エリア外対応（正直に伝える）
-      // #38 Phase 2: 「相場だけ見たい」選択肢を追加して早期離脱を救済
       if (entry.prefecture === 'other') {
         return [{
           type: "text",
@@ -4814,7 +4812,6 @@ async function buildPhaseMessage(phase, entry, env) {
             items: [
               qrItem("関東の求人を見る", "il_other=see_kanto"),
               qrItem("エリア拡大時に通知", "il_other=notify_optin"),
-              qrItem("相場だけ見たい", "il_other=see_salary"),
               qrItem("スタッフに相談", "il_other=consult_staff"),
             ],
           },
@@ -6926,9 +6923,8 @@ function handleLinePostback(dataStr, entry) {
       entry.areaNotifyOptIn = true;
       nextPhase = "area_notify_optin";
     } else if (val === "see_salary") {
-      // #38 Phase 2: 相場だけ見たい → info_detour（相場マップ案内）→ ナーチャリング
-      entry.urgency = entry.urgency || "info";
-      nextPhase = "info_detour";
+      // 旧 see_salary: 古いセッションが触る可能性のためハンドラ残置。matching_preview に倒す
+      nextPhase = "il_facility_type";
     } else if (val === "consult_staff") {
       // スタッフに相談 → ハンドオフ
       nextPhase = "handoff_phone_check";
@@ -6975,16 +6971,13 @@ function handleLinePostback(dataStr, entry) {
     nextPhase = "il_urgency";
   }
   // intake_light: 温度感
-  // #30 Phase 2: 「まずは情報収集」選択時は給与相場PDF導線を挟む（info_detour）
+  // (旧: urgency=info→info_detour で年収相場マップを案内していたが、
+  //  リッチメニュー「お仕事探しスタート」と挙動を統一するため廃止。常にmatching_preview。
+  //  2026-04-23 社長指示: 年収相場ページが旧設計のままで使えないため一律で求人提示に統一)
   else if (params.has("il_urg")) {
     entry.urgency = params.get("il_urg");
     entry.unexpectedTextCount = 0;
-    // info（情報収集）層はマッチングの前に「相場マップを見る or そのまま求人を見る」選択肢を提示
-    if (entry.urgency === "info") {
-      nextPhase = "info_detour";
-    } else {
-      nextPhase = "matching_preview";
-    }
+    nextPhase = "matching_preview";
   }
   // #40 Phase2 Group J: intake_light フェーズ「前に戻る / 最初からやり直す」
   // il_back=<target> で特定フェーズに戻る。戻る先の関連フィールドをリセット。
@@ -7950,8 +7943,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             }
           }
 
-          // info層は info_detour（求人→相場マップ3択）、それ以外は matching_preview
-          const targetPhase = entry.urgency === 'info' ? 'info_detour' : 'matching_preview';
+          // urgency問わず常に matching_preview に統一 (リッチメニュー「お仕事探しスタート」と同じ挙動)
+          // 旧: urgency=info → info_detour 経由で年収相場マップ提案。社長指示により廃止
+          const targetPhase = 'matching_preview';
           entry.phase = targetPhase;
           entry._consumedSessionId = consumedSessionId;  // 同POSTのdm_textを重複処理しないための目印
           if (entry.matchingResults && entry.matchingResults.length > 0) {
@@ -7960,10 +7954,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
           await saveLineEntry(userId, entry, env);
 
-          // LP診断経由専用ウェルカムを先頭に prepend（info層は柔らかい文言）
-          const shindanWelcome = targetPhase === 'info_detour'
-            ? buildShindanWelcomeInfo(entry)
-            : buildShindanWelcome(entry);
+          // LP診断経由専用ウェルカムを先頭に prepend
+          const shindanWelcome = buildShindanWelcome(entry);
           const phaseMsgs = await buildPhaseMessage(targetPhase, entry, env);
           const replyMsgs = [...shindanWelcome, ...(phaseMsgs || [])];
           await lineReply(event.replyToken, replyMsgs.slice(0, 5), channelAccessToken);
@@ -9100,13 +9092,13 @@ ${entry.rmCvQualifications || '看護師免許'}
             }
 
             // 2026-04-20: shindan完遂データがあれば buildSessionWelcome の「求人を見る」1タップをスキップし
-            // 既存フレンドでも即マッチング/info_detour へ直行
+            // 既存フレンドでも即マッチングへ直行 (info_detour 廃止により urgency問わず matching_preview)
             const _hasCompleteShindanMsg = !!(entry.area && entry.workStyle && entry.urgency);
             if (sessionCtx.source === 'shindan' && _hasCompleteShindanMsg) {
               if (!entry.matchingResults || entry.matchingResults.length === 0) {
                 try { await generateLineMatching(entry, env, 0); } catch (e) { console.error(`[LINE] generateLineMatching error: ${e.message}`); }
               }
-              const _targetPhase = entry.urgency === 'info' ? 'info_detour' : 'matching_preview';
+              const _targetPhase = 'matching_preview';
               entry.phase = _targetPhase;
               entry.messageCount++;
               entry.updatedAt = Date.now();
