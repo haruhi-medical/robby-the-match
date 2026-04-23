@@ -8,6 +8,48 @@
 
 ---
 
+## 2026-04-23（木）夕方 Meta広告監査 → CAPI計測修復 → Clarity日次レポート
+
+### Meta広告 監査レポート生成 (docs/audit/2026-04-23-meta/META-ADS-REPORT.md)
+- 総合スコア **34/100 (F)**
+- 4領域: Pixel/CAPI 65 / Creative 40 / Structure 50 / Audience 25
+- v7キャンペーン7日: 消化¥13,909, CTR 1.42%, Lead(CTAクリック)2件, 本物Lead(広告レポート上)0件
+- IG Reels が予算18% (¥2,467) 食って CTR 0.51% / Lead 0 = 死に金
+- v7_ad3 CTR 6.67%→0.43% (-94%) 疲労確定
+- 1週間テスト判定日 2026-04-24 (明日): 現時点で🔴破綻確定だが計測バグ排除後判定
+
+### 真因特定: Pixel本体は正常、attribution が壊れていた
+- Graph API `/stats` 直叩きで 4/22に CompleteRegistration 14件、4/23に 1件受信確認
+- 広告レポート(act_*/insights) では 0件
+- 原因: LP(quads-nurse.com) → Worker(workers.dev) がクロスドメインで `_fbp`/`_fbc` Cookie が届かない
+- KV `session:*` 検査で fbp=null, fbc=null を確認
+
+### 計測修復 (commit df217e7)
+1. `lp/job-seeker/index.html` の `lineUrl()` を修正 — `document.cookie` から `_fbp`/`_fbc` 読んで URL param に付与、fbclid 継承も追加
+2. `api/worker.js` の `handleLineStart` — URL param 優先、Cookie フォールバック
+3. `api/worker.js` の `sendMetaConversionEvent` — `sha256Hex()` + `normalizePhoneForMeta()` 新設、phone/email を hash して user_data に追加 (EMQ向上)、external_id も hash 送信 (Meta要件準拠)
+4. `trackFunnelEvent` — `entry.phoneNumber` を CAPI へ伝播
+5. `scripts/meta_ads_report.py` — `CompleteRegistration` カラム追加、Lead(CTAクリック) と並記、CPA 2種
+- Worker version: `0cc2647a-e88f-4b5c-a421-991760fe9030`
+- 全secrets (META_ACCESS_TOKEN 含む10件) 保持確認
+- 動作検証: `/api/line-start?fbp=...&fbc=...` → KVに正しく保存を確認
+
+### Clarity Data Export API 日次レポート (commit a9ac69c)
+- 新規: `scripts/clarity_report.py` (284行)
+- エンドポイント: `https://www.clarity.ms/export-data/api/v1/project-live-insights`
+- 10クエリ/日制限 → 全体/Page/UTMSource の3クエリ/日で運用
+- 取得: セッション/Bot比率/スクロール/レイジクリック/デッドクリック/Quick Back/JSエラー/ページ別Top5/UTM別Top5
+- アラート: RageClick≥10 / DeadClick≥20 / ScrollDepth<40% / BotRatio≥30%
+- `.env` に `CLARITY_PROJECT_ID=vmaobifgm0` 追加、`CLARITY_API_TOKEN=` 空欄
+- cron 追加: `15 8 * * *` で毎朝08:15 JST Slack配信
+- **次セッション残作業**: clarity.microsoft.com → Settings → Data Export → API token生成 → .envに貼り付け → 手動テスト
+
+### 追加検出（判断待ち）
+- ACTIVE広告セット放置: `kanagawa_nurse_25-40F` (LANDING_PAGE_VIEWS最適化、配信¥0) — 停止 or 理由確認
+- 広告セット `nurse_kanagawa_lead_IG+FB` の optimization_goal が `LEAD`(=LP CTAクリック) → 本物LeadはCompleteRegistrationなのでMetaのAIが本物LINE登録に最適化していない。custom_event_typeを変更したいが学習リセット伴うため社長判断待ち
+
+---
+
 ## 2026-04-22 新着求人通知システム完成（1セッション約15コミット）
 
 ### 実装した機能
