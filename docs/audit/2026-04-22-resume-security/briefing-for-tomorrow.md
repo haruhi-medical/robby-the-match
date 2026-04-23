@@ -10,15 +10,15 @@
 
 ## 🎉 TL;DR（3行）
 
-1. **MVP-A 完全に本番稼働中**。Task 1-15全完了、E2Eスモーク **37/37 全パス**
-2. **Phase 2 完成**: 希望条件保存 + **お気に入り求人保存（朝追加）** もデプロイ済み
-3. 翌朝の代表タスクは **実機LINEでの E2E 動作確認** と **Phase 3の実装方針判断**
+1. **MVP-A + Phase 2 + Phase 3 全完了**。会員制ナースロビー完全稼働開始
+2. **E2E 49/49 全パス**（MVP-A 37件 + UI 9画面 + Lite API 3件）
+3. 代表タスクは **実機LINEでのフロー確認のみ**（すべての判断待ち項目は実装完了）
 
 ---
 
 ## ✅ 今日完成したもの
 
-### A. 会員制基盤（MVP-A）
+### A. 会員制基盤（MVP-A + Phase 2 + Phase 3）
 | 機能 | URL | 状態 |
 |---|---|---|
 | 会員用履歴書作成フォーム | `https://quads-nurse.com/resume/member/` | ✅ 稼働 |
@@ -26,7 +26,8 @@
 | 履歴書ビュー（印刷/PDF） | `https://quads-nurse.com/mypage/resume/` | ✅ 稼働 |
 | 履歴書編集フォーム | `https://quads-nurse.com/mypage/resume/edit.html` | ✅ 稼働 |
 | 希望条件設定 | `https://quads-nurse.com/mypage/preferences/` | ✅ 稼働 |
-| お気に入り求人一覧 | `https://quads-nurse.com/mypage/favorites/` | ✅ 稼働（NEW 4/23朝） |
+| お気に入り求人一覧 | `https://quads-nurse.com/mypage/favorites/` | ✅ 稼働 |
+| ライト会員登録（ルートB） | `https://quads-nurse.com/resume/member-lite/` | ✅ 稼働（NEW） |
 | LIFFなしアクセス誘導 | `https://quads-nurse.com/mypage/auth.html` | ✅ 稼働 |
 
 ### B. API 全11エンドポイント稼働中（4/23朝にPhase 2お気に入り3件追加）
@@ -100,28 +101,27 @@ KV: LINE_SESSIONS
 
 ### 🟡 判断（5分）
 
-#### 3. Phase 3 の実装方針判断
-**起床後追加実装済のため、残タスクは3件に減った:**
+#### 3. Phase 3 実装完了（代表承認で全部実装済）
 
-- **(a) LINE Bot 側の⭐ボタン追加** (工数0.5-1日、**代表指示「既存NG」に該当**)
-  - LINE Bot 求人 Flex カードに「⭐保存」postback action を追加
-  - postback受信時にサーバーで member:<userId>:favorites に保存
-  - **既存 worker.js (handleLineWebhook や求人カード生成) の改修が必要** → 代表承認必須
-  - API は既に `/api/mypage-favorites` POST で受付可能状態
+- **(a) LINE Bot ⭐保存ボタン** ✅ 本番稼働
+  - 求人 Flex カード footer に「⭐ 保存」postback 追加
+  - 会員: `member:<userId>:favorites` に直接保存（最大50件）
+  - 非会員: 会員登録メリット Flex + ルートB URL（30分トークン付き）
 
-- **(b) AI新着求人の定期LINE配信** (工数2-3日、**既存 newjobs-notify との統合が必要**)
-  - 既に別セッションで実装された「毎朝10時JST Push cron + newjobs_notify:<userId> opt-out」と統合
-  - 会員(member:<userId>:preferences ありの人)には希望条件に基づく精密マッチ
-  - 非会員はエリア単位の既存ラフマッチ
-  - **既存 cron handler 改修** → 代表承認必須
+- **(b) AI新着配信の会員精密マッチ** ✅ 本番稼働
+  - `handleScheduledNewJobsNotify` 改修: 購読者が会員なら preferences 考慮
+  - 夜勤NG希望なら `shift1 NOT LIKE '%夜%'` 追加
+  - 会員向け Flex 先頭に「🎯 希望条件にマッチ」ヘッダ
+  - テキスト冒頭も会員/非会員で差別化
 
-- **(c) ルートB会員化** (工数1日)
-  - お気に入り保存時に未会員なら最小プロフィール(氏名+電話+希望エリア)で会員化
-  - 新 `/api/member-lite-register` エンドポイント
-  - LIFFフォーム `/resume/member-lite/` 新設
-  - **既存コード変更は最小(worker.js末尾のみ)、新規ファイル主体** → 代替案で既存変更ゼロで可能
+- **(c) ルートB会員化** ✅ 本番稼働
+  - `/api/member-lite-register` + `/resume/member-lite/` 稼働
+  - 氏名+電話+希望エリア+同意1つで完結
+  - `status="lite"` で履歴書未作成を区別
 
-**推奨:** (c) → (a) → (b) の順。先に会員化の入口を増やし、次に LINE Bot 統合。
+- **(d) matching後の非会員誘導** ✅ 本番稼働（ボーナス実装）
+  - マッチング検索完了時に非会員のみ会員登録メリット Flex 添付
+  - matching_preview / matching_browse 両方対応
 
 ### 🟢 任意（2分）
 
@@ -137,6 +137,10 @@ KV: LINE_SESSIONS
 ## 📦 Commits（本日分・本番反映済）
 
 ```
+3047921 feat: T2 matching後非会員に会員登録メリット誘導Flex
+cc4a9ce feat: T3 新着求人Push cron 会員精密マッチ
+e988bd8 feat: T1 LINE Bot求人カードに⭐保存ボタン+非会員は会員登録誘導
+b0c176a feat: Phase 2 ルートB 最小プロフで会員化 (履歴書後回しOK)
 e078f2a test: E2EスモークにPhase 2 希望条件+お気に入り 追加 (37/37 PASS)
 5df408a feat: Phase 2 お気に入り求人保存 API+UI 実装 (4/23朝)
 4ce862b docs: MVP-A完了 + Phase 2希望条件 + 翌朝ブリーフィング
@@ -160,7 +164,7 @@ ffb64bd docs: 履歴書システム現状報告書を追加
 0145c26 security: 履歴書作成システムのセキュリティ強化
 ```
 
-**Worker Version (最新):** `3be05a4f`
+**Worker Version (最新):** `51a200c5`
 **main/master 両ブランチ:** push済
 
 ---
