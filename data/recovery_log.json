@@ -1,11 +1,11 @@
 {
   "jobs": {
     "seo_batch": {
-      "date": "2026-04-01",
-      "retries": 3,
-      "status": "retry_exhausted",
-      "last_error": "exit_code=1",
-      "last_alert_ts": "2026-04-01T04:30:19.211260"
+      "date": "2026-04-23",
+      "retries": 1,
+      "status": "retrying",
+      "last_error": "",
+      "last_alert_ts": ""
     },
     "healthcheck": {
       "date": "2026-04-02",

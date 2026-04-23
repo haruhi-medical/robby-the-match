@@ -4934,3 +4934,22 @@ TikTok深夜投稿: TK=0
    - 地域別ページ間のリンクを追加する（例：厚木市のページから茅ヶ崎市のページへのリンク）。
    - ブログページから関連するガイドページまたは地域別ページへのリンクを追加する。
 
+### 🔍 SEO診断（09:30:01）
+1. SEO改善が必要なページ：
+   - lp/job-seeker/area/atsugi-houmon.html：titleとh1の内容が似ているが、descriptionが短すぎる。
+   - lp/job-seeker/area/chigasaki-nikkin.html：descriptionにキーワードが不足している。
+   - lp/job-seeker/guide/beauty-clinic-nurse.html：h1とtitleの間に不必要な文字が含まれている。
+   - lp/job-seeker/guide/career-change.html：descriptionがページの内容を十分に説明していない。
+   - lp/job-seeker/area/atsugi-yakin.html：titleとh1がほぼ同じで、ユニーク性に欠ける。
+
+2. 不足しているテーマ/地域：
+   - 新規ページ提案1：タイトル「横浜市の高齢者ケア看護師求人」、ターゲットKW「横浜市 高齢者ケア 看護師求人」
+   - 新規ページ提案2：タイトル「神奈川県の小児看護師転職ガイド」、ターゲットKW「神奈川県 小児看護師 転職ガイド」
+   - 新規ページ提案3：タイトル「湘南地域の訪問看護ステーション求人情報」、ターゲットKW「湘南 訪問看護ステーション 求人情報」
+
+3. 内部リンクの改善提案：
+   - 現在のページから関連するガイドページやエリアページへのリンクを増やす。
+   - 例えば、lp/job-seeker/area/atsugi-houmon.htmlからlp/job-seeker/guide/career-change.htmlへのリンクを追加する。
+   - エリアページから他のエリアページへのリンクも増やし、ユーザーが関連情報を容易に探せるようにする。
+   - また、関連するブログ記事へのリンクも追加して、ユーザーに更に多くの情報を提供する。
+
