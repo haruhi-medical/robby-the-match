@@ -136,52 +136,79 @@
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 6px 14px;
-      font-size: 12px;
-      color: var(--text-muted);
+      gap: 8px;
+      margin-top: 4px;
     }
-    .hero-meta span {
+    .hero-meta .chip {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--primary);
+      background: #fff;
+      border: 1.5px solid var(--primary);
+      padding: 7px 14px;
+      border-radius: 99px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 1px 3px rgba(26,107,138,0.08);
     }
-    .hero-meta span::before {
-      content: '';
-      width: 4px; height: 4px;
-      background: var(--cta);
-      border-radius: 50%;
+    .hero-meta .chip svg {
+      width: 14px;
+      height: 14px;
+      color: var(--cta);
     }
     @media (max-width: 400px) {
       .hero { padding: 22px 20px 20px; }
       .hero-title { font-size: 1.35rem; }
     }
 
-    /* ===== TRUST BADGES (slim) ===== */
-    .trust-badges {
-      background: #fff;
-      padding: 10px 20px;
-      display: flex;
-      gap: 6px 14px;
-      flex-wrap: wrap;
-      justify-content: center;
-      border-bottom: 1px solid var(--border);
-      font-size: 10.5px;
-      color: var(--text-muted);
-      letter-spacing: 0.01em;
+    /* ===== TRUST FOOTER (送信ボタン手前・信頼→登録の流れ) ===== */
+    .trust-footer {
+      margin-top: 20px;
+      margin-bottom: 4px;
+      background: var(--bg-tint);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
     }
-    .trust-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    .trust-badge svg {
-      width: 11px;
-      height: 11px;
-      flex-shrink: 0;
+    .trust-footer-title {
+      font-size: 0.85rem;
+      font-weight: 700;
       color: var(--primary);
-      opacity: 0.75;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .trust-footer-title svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .trust-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .trust-list .trust-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .trust-list .trust-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--cta);
+      margin-top: 1px;
+    }
+    .trust-list .trust-item b {
+      color: var(--primary);
+      font-weight: 700;
     }
 
     /* ===== CONTAINER ===== */
@@ -640,42 +667,26 @@
   <!-- Hero: AI履歴書作成の価値訴求 -->
   <section class="hero">
     <span class="hero-eyebrow">看護師専用</span>
-    <h1 class="hero-title"><span class="accent">AIが仕上げる</span><br>看護師の履歴書</h1>
+    <h1 class="hero-title"><span class="accent">AIが仕上げる</span><br>看護師さんの履歴書</h1>
     <p class="hero-lead">
       事実情報を入力するだけ。志望動機と職務経歴の文章は<br>
       看護師専門AIがあなたの言葉で丁寧に書き上げます。
     </p>
     <div class="hero-meta" aria-label="仕様">
-      <span>入力 約10分</span>
-      <span>JIS規格A3準拠</span>
-      <span>PDF保存・印刷対応</span>
-      <span>マイページで編集</span>
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        簡単入力
+      </span>
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        PDF保存・印刷
+      </span>
+      <span class="chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+        マイページで編集可能
+      </span>
     </div>
   </section>
-
-  <!-- Trust Badges (slim) -->
-  <div class="trust-badges" role="list" aria-label="信頼・安全の保証">
-    <div class="trust-badge" role="listitem">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
-      </svg>SSL暗号化通信
-    </div>
-    <div class="trust-badge" role="listitem">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      </svg>有料職業紹介事業許可
-    </div>
-    <div class="trust-badge" role="listitem">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
-      </svg>個人情報保護方針準拠
-    </div>
-    <div class="trust-badge" role="listitem">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-      </svg>AI処理データは30日削除
-    </div>
-  </div>
 
   <!-- Aria Live for screen readers -->
   <div aria-live="polite" aria-atomic="true" class="sr-only" id="ariaLive"></div>
@@ -990,6 +1001,42 @@
             </span>
           </div>
         </section>
+
+        <!-- Trust Footer: 信頼 → 登録 の流れで送信ボタン直前に配置 -->
+        <aside class="trust-footer" aria-label="あなたの情報を安全にお預かりします">
+          <div class="trust-footer-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            あなたの情報は安全にお預かりします
+          </div>
+          <div class="trust-list">
+            <div class="trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+              </svg>
+              <span><b>SSL暗号化通信</b>で送信 — 第三者に盗聴されません</span>
+            </div>
+            <div class="trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span><b>有料職業紹介事業許可</b>取得の正規サービス</span>
+            </div>
+            <div class="trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+              </svg>
+              <span><b>個人情報保護方針</b>に基づく適切な管理</span>
+            </div>
+            <div class="trust-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+              </svg>
+              <span><b>AI処理データは30日で自動削除</b> — 学習には使われません</span>
+            </div>
+          </div>
+        </aside>
 
       </form>
     </div>
