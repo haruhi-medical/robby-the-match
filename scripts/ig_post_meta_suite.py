@@ -88,8 +88,12 @@ class CDPClient:
         if not target:
             print(f"[CDP] No tabs found (0 tabs). Creating a new tab...")
             try:
+                # Chrome 127+ changed /json/new to require PUT instead of GET/POST
                 new_tab_url = f"http://localhost:{self.port}/json/new?{MBS_COMPOSER_URL}"
-                r = requests.get(new_tab_url, timeout=10)
+                r = requests.put(new_tab_url, timeout=10)
+                if r.status_code in (404, 405):
+                    # 古いChrome向けフォールバック
+                    r = requests.get(new_tab_url, timeout=10)
                 r.raise_for_status()
                 target = r.json()
                 print(f"[CDP] New tab created: {target.get('url', 'unknown')}")
