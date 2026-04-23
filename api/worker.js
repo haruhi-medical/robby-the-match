@@ -4137,19 +4137,14 @@ function buildIntakeHumanThanks(entry) {
   // 既存 entry.area（ブロック前のLP診断由来等）より、3問目で入力された最新情報を優先する
   const derivedAreaKey = resolveNotifyAreaKey(entry);
   const derivedAreaLabel = derivedAreaKey ? getAreaLabel(derivedAreaKey) : null;
+  const areaText = derivedAreaLabel
+    ? `📬 ${derivedAreaLabel}の新着求人を毎朝お届けします。`
+    : "📬 定期的に新着求人をお届けします。";
 
-  // opt-out設計: 3問完了した時点で新着通知は自動ON。
-  // 「エリアを変える」のみ提示（通知停止はブロックで代用できるのでUI上は出さない）
-  const qrItems = derivedAreaKey
-    ? [
-        qrItem("エリアを変える", "welcome=newjobs_optin"),
-        qrItem("求人を探す", "rm=start"),
-      ]
-    : [
-        qrItem("エリアを選ぶ", "welcome=newjobs_optin"),
-        qrItem("求人を探す", "rm=start"),
-      ];
-
+  // 2026-04-23 社長指示: 3問完了後の「求人を探す」「エリアを選ぶ」QRは
+  // タップするとフローが先頭から始まり「別システム稼働した」感が強いので削除。
+  // 既に下部リッチメニュー (お仕事探しスタート / 本日の新着求人 / マイページ /
+  // 担当に相談 / 履歴書作成) が表示されているのでそちらに誘導する。
   return [
     {
       type: "text",
@@ -4157,10 +4152,7 @@ function buildIntakeHumanThanks(entry) {
     },
     {
       type: "text",
-      text: derivedAreaLabel
-        ? `📬 定期的に ${derivedAreaLabel} の新着求人も配信しております。`
-        : "📬 定期的に新着求人も配信しております。\nエリアを選んでください🌸",
-      quickReply: { items: qrItems },
+      text: `${areaText}\n\n下のメニューから\n・本日の新着求人を見る\n・マイページで履歴書を作成\n・担当に相談する\nなど、ご自由にお使いください🌸`,
     },
   ];
 }
@@ -7411,13 +7403,23 @@ function handleLinePostback(dataStr, entry) {
     const val = params.get("rm");
     entry.unexpectedTextCount = 0;
     if (val === "start") {
-      // お仕事探しをスタート → 既存フローと同じ
-      delete entry.area; delete entry.areaLabel; delete entry.prefecture;
+      // お仕事探しをスタート
+      // 2026-04-23 社長指示: 入力済データを再入力させない (「別システム稼働した感」回避)
+      // entry.area が既にある場合 (LP診断/3問人間質問/過去のintake_lightで設定済み) は
+      // エリア選択を skip して施設タイプから始める。エリア変更は「本日の新着求人→別エリア」で可能。
+      // フィルタ条件は再選択させたいので施設タイプ以降はリセット。
       delete entry.facilityType; delete entry.hospitalSubType; delete entry.department;
       delete entry.workStyle; delete entry.urgency; delete entry._isClinic;
       delete entry.matchingResults; delete entry.browsedJobIds;
       entry.matchingOffset = 0;
-      nextPhase = "il_area";
+      const hasArea = !!(entry.area && entry.areaLabel);
+      if (hasArea) {
+        nextPhase = "il_facility_type"; // エリア保持、施設タイプから
+      } else {
+        // エリア未設定 → 完全新規フロー
+        delete entry.area; delete entry.areaLabel; delete entry.prefecture;
+        nextPhase = "il_area";
+      }
     } else if (val === "new_jobs") {
       // エリア設定済みなら即カルーセル表示、未設定ならエリア選択
       const areaKey = (entry.area || '').replace('_il', '');
