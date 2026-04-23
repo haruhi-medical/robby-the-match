@@ -60,9 +60,9 @@ export function buildStage1EndChoice({ employer }) {
   return buildQuickReplyMessage(
     `${name}への応募、進めていきましょう。\n\n` +
       `この先はステップ2「応募準備」です:\n` +
-      `◇ 個人情報の確認（4-5問）\n` +
-      `◇ 書類作成のヒアリング（5問）\n` +
-      `所要時間 約10分\n\n` +
+      `◇ 個人情報の確認（4問・約3分）\n` +
+      `◇ 書類作成のヒアリング（5問・約5分）\n` +
+      `所要時間 合計 約8分\n\n` +
       `今すぐ続けても、明日以降でも大丈夫です。\n` +
       `「続きから」とメッセージを送れば、いつでも再開できます。`,
     [
@@ -177,7 +177,7 @@ function getPhaseReentryText(phase, name, profile, employer) {
     case PHASES.APPLY_INFO_BIRTH:
       return "生年月日を教えてください。\n（例: 1997-06-20）";
     case PHASES.APPLY_INFO_PHONE:
-      return "携帯電話番号を教えてください。\n（例: 09012345678）";
+      return "携帯電話番号を教えてください。\n（例: 09012345678）\n※ 面接日程調整時のみの使用です";
     case PHASES.APPLY_INFO_WORKPLACE:
       return "現在の勤務先の正式名称を教えてください。\n（例: 横浜◯◯病院）";
     case PHASES.DOCUMENTS_PREP_LICENSE:

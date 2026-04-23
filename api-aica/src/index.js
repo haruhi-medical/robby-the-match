@@ -40,6 +40,7 @@ import {
   buildResumeMessage,
   buildStage2EndChoice,
 } from "./lib/staging.js";
+import { processPausedResumePush } from "./lib/cron-resume.js";
 
 export default {
   async fetch(request, env, ctx) {
@@ -72,13 +73,24 @@ export default {
   },
 
   /**
-   * Cron Trigger (入職後フォロー Push等)
-   * スケジュール: "0 0 * * *" (JST 09:00) / "0 * * * *" (毎時)
+   * Cron Trigger
+   * スケジュール:
+   *   "0 0 * * *" (JST 09:00) → PAUSED 復帰 Push (Day 3 / Day 7)
+   *   "0 * * * *" (毎時)      → MVP3 の follow_ups 処理用（未実装）
    */
   async scheduled(event, env, ctx) {
-    // MVP0 ではまだ cron トリガーで何もしない
-    // MVP3 で follow_ups テーブルから trigger_at <= now を拾って Push
     console.log("[cron] triggered", event.cron, new Date().toISOString());
+
+    if (event.cron === "0 0 * * *") {
+      // 毎朝09:00 JST: PAUSED ユーザーに復帰 Push
+      ctx.waitUntil(
+        processPausedResumePush(env).catch((err) => {
+          console.error("[cron-resume] failed:", err.message, err.stack);
+        })
+      );
+    }
+
+    // "0 * * * *" は MVP3 の入職後フォロー Push 用に温存（現在 no-op）
   },
 };
 

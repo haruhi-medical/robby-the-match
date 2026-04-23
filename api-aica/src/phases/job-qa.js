@@ -34,7 +34,8 @@ const JOB_QA_SYSTEM_PROMPT = `あなたは看護師専門のAIキャリアアド
 
   「ご質問ありがとうございます。
    その点は弊社データに記録がないため、
-   先方に確認のうえ1時間以内にお戻しします。
+   先方に確認のうえ、翌営業日までにお戻しします。
+   （夜間・休日のご質問は翌営業日の対応となります）
 
    その間、他にご質問があればお聞きください。」
 
@@ -244,9 +245,9 @@ export async function handleJobQaTurn({ candidate, userText, env, db }) {
     maxTokens: 350,
   });
 
-  // 「記録がないため先方に確認」と返したか判定 → Slack通知
+  // 「記録がないため先方に確認」と返したか判定 → Slack通知（翌営業日対応）
   const unknownSignal =
-    /記録がありません|確認のうえ|(先方|病院).{0,5}確認/.test(reply);
+    /記録がありません|記録がない|確認のうえ|(先方|病院).{0,5}確認|翌営業日|翌日までに/.test(reply);
   if (unknownSignal) {
     try {
       await logHandoff(db, candidate.id, "Q&A情報不足（病院確認依頼）", "info", PHASES.JOB_QA);

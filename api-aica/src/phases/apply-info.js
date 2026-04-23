@@ -1,7 +1,10 @@
 /**
- * フェーズ10: 個人情報収集（5ステップ）
+ * フェーズ10: 個人情報収集（4ステップ）
  *
- * APPLY_INFO_NAME → KANA → BIRTH → PHONE → WORKPLACE → DOCUMENTS_PREP_LICENSE
+ * APPLY_INFO_NAME → KANA → BIRTH → WORKPLACE → DOCUMENTS_PREP_LICENSE
+ *
+ * 電話番号は Phase 15（面接日程調整）まで後回し（2026-04-23 ミサキFB反映）。
+ * 「電話来ない」安心感と矛盾し、Phase 10 最大の離脱要因だったため。
  *
  * 各ステップで:
  *   1. 入力バリデーション（形式チェック）
@@ -48,17 +51,6 @@ const STEPS = {
       "生年月日を教えてください。\n" +
       "（例: 1997-06-20、または 1997年6月20日）",
     validate: validateBirthDate,
-    next: PHASES.APPLY_INFO_PHONE,
-  },
-  [PHASES.APPLY_INFO_PHONE]: {
-    column: "phone",
-    question:
-      "緊急連絡先として、携帯電話番号を教えてください。\n" +
-      "（例: 09012345678）\n\n" +
-      "※ 通常のご連絡はLINEのみです。\n" +
-      "  電話は面接日程の緊急変更時など、\n" +
-      "  どうしても必要な場合のみです。",
-    validate: validatePhone,
     next: PHASES.APPLY_INFO_WORKPLACE,
   },
   [PHASES.APPLY_INFO_WORKPLACE]: {
@@ -67,7 +59,9 @@ const STEPS = {
       "最後に、現在の勤務先の正式名称を教えてください。\n" +
       "（例: 横浜○○病院）\n\n" +
       "※ この情報は応募先には開示されません。\n" +
-      "  社内の書類作成のために使用します。",
+      "  社内の書類作成のために使用します。\n\n" +
+      "※ 電話番号は面接日程が決まる時点でお伺いします。\n" +
+      "  いまの段階では不要です。",
     validate: validateWorkplace,
     next: PHASES.DOCUMENTS_PREP_LICENSE,
   },

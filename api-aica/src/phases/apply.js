@@ -24,8 +24,10 @@ export function buildApplyConfirmMessage({ employer }) {
   const name = employer || "この求人";
   return buildQuickReplyMessage(
     `${name}への応募、進めましょうか？\n\n` +
-      `進める場合、次に応募に必要な情報を5つほどお聞きします。\n` +
-      `（お名前・ふりがな・生年月日・電話・現在の勤務先）`,
+      `進める場合、次に応募に必要な情報を4つほどお聞きします。\n` +
+      `（お名前・ふりがな・生年月日・現在の勤務先）\n\n` +
+      `※ 電話番号は面接日程が決まる時点でお伺いします。\n` +
+      `  いまの段階では不要です。`,
     [
       { label: "進める", text: "進める" },
       { label: "もう少し質問したい", text: "もう少し質問したい" },
