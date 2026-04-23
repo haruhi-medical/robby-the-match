@@ -1103,8 +1103,10 @@
         }
         const r = data.results[0];
         const fullAddr = `${r.address1}${r.address2}${r.address3}`;
-        const fullKana = `${r.kana1 || ''}${r.kana2 || ''}${r.kana3 || ''}`.toLowerCase()
-          .replace(/[ァ-ヶ]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));  // カタカナ→ひらがな
+        // 半角カタカナ → NFKC で全角化 → 全角カタカナ → ひらがな
+        const fullKana = `${r.kana1 || ''}${r.kana2 || ''}${r.kana3 || ''}`
+          .normalize('NFKC')
+          .replace(/[ァ-ヶ]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
         // 既に手入力があっても番地等を足すため、前方一致で上書き判定
         if (addrInput && (!addrInput.value || addrInput.value.trim().length < 3)) {
           addrInput.value = fullAddr;
