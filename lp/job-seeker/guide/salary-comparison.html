@@ -1538,198 +1538,60 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <p class="footer-copy">&copy; 2026 ナースロビー All Rights Reserved.</p>
 </footer>
 
-<!-- Nurse Robby FAB Card (prototype v2, 2026-04-24) -->
+<!-- Nurse Robby FAB Card (image v1, 2026-04-24) -->
 <style>
-.nr-fab-card {
+.nr-fab-wrap {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 20px;
+  right: 20px;
   z-index: 999;
-  width: 324px;
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 22px 22px 18px;
-  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.22), 0 4px 14px rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.05);
+  width: 320px;
   opacity: 0;
-  transform: translateY(24px) scale(0.96);
-  animation: nr-fab-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
-  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
-  box-sizing: border-box;
+  transform: translateY(20px);
+  animation: nr-fab-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
+}
+@keyframes nr-fab-enter { to { opacity: 1; transform: translateY(0); } }
+.nr-fab-link {
+  display: block;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.nr-fab-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #06A8A4 0%, #06C755 50%, #E8756D 100%);
-}
-.nr-fab-card::after {
-  content: "";
-  position: absolute;
-  top: -70px; right: -70px;
-  width: 180px; height: 180px;
-  background: radial-gradient(circle, rgba(6, 199, 85, 0.09) 0%, transparent 70%);
-  pointer-events: none;
-}
-@keyframes nr-fab-enter { to { opacity: 1; transform: translateY(0) scale(1); } }
+.nr-fab-link:hover { transform: translateY(-2px); box-shadow: 0 26px 56px -10px rgba(0,0,0,0.38), 0 6px 18px rgba(0,0,0,0.12); }
+.nr-fab-link img { display: block; width: 100%; height: auto; }
 .nr-fab-close {
   position: absolute;
-  top: 12px; right: 12px;
+  top: 8px; right: 8px;
   width: 26px; height: 26px;
-  border: none; background: rgba(15, 23, 42, 0.05);
-  color: #64748b; cursor: pointer;
-  border-radius: 50%; padding: 0;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: none; border-radius: 50%;
+  padding: 0; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: background 0.2s, color 0.2s;
   z-index: 2;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
 }
-.nr-fab-close:hover { background: rgba(15, 23, 42, 0.1); color: #0f172a; }
+.nr-fab-close:hover { background: rgba(0,0,0,0.8); }
 .nr-fab-close svg { width: 10px; height: 10px; }
-.nr-fab-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
-  color: #06A8A4;
-  background: rgba(6, 168, 164, 0.09);
-  padding: 4px 10px 4px 8px; border-radius: 999px;
-  margin-bottom: 14px;
-  position: relative; z-index: 1;
-}
-.nr-fab-badge::before {
-  content: "";
-  width: 6px; height: 6px;
-  background: #06A8A4; border-radius: 50%;
-  animation: nr-pulse 2s ease-in-out infinite;
-}
-@keyframes nr-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.35; transform: scale(0.65); }
-}
-.nr-fab-heading {
-  font-size: 17px; font-weight: 700;
-  color: #0f172a; line-height: 1.55;
-  margin: 0 0 18px;
-  letter-spacing: 0.01em;
-  position: relative; z-index: 1;
-  padding-right: 24px;
-}
-.nr-fab-heading em {
-  font-style: normal;
-  background: linear-gradient(120deg, #06A8A4 0%, #06C755 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 800;
-}
-.nr-fab-features { list-style: none; padding: 0; margin: 0 0 18px; position: relative; z-index: 1; }
-.nr-fab-features li {
-  display: flex; align-items: center; gap: 11px;
-  font-size: 13.5px; font-weight: 500; color: #334155;
-  line-height: 1.45; padding: 5px 0;
-}
-.nr-fab-features li .nr-ico {
-  flex-shrink: 0;
-  width: 30px; height: 30px; border-radius: 9px;
-  background: linear-gradient(135deg, rgba(6, 168, 164, 0.12) 0%, rgba(6, 199, 85, 0.12) 100%);
-  color: #06A8A4;
-  display: flex; align-items: center; justify-content: center;
-}
-.nr-fab-features li .nr-ico svg { width: 15px; height: 15px; stroke-width: 1.8; }
-.nr-fab-features li strong { font-weight: 700; color: #0f172a; }
-.nr-fab-cta {
-  display: flex; align-items: center; justify-content: center;
-  gap: 8px; width: 100%; box-sizing: border-box;
-  background: linear-gradient(135deg, #06C755 0%, #04a347 100%);
-  color: #fff; font-weight: 700; font-size: 15px;
-  padding: 14px 16px; border-radius: 12px; text-decoration: none;
-  box-shadow: 0 8px 22px rgba(6, 199, 85, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
-  position: relative; z-index: 1;
-  letter-spacing: 0.02em;
-}
-.nr-fab-cta::before {
-  content: ""; width: 18px; height: 18px; flex-shrink: 0;
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><path d='M19.365 9.863c.349 0 .63.285.63.635 0 .351-.281.637-.63.637H17.61v1.125h1.755c.349 0 .63.283.63.635 0 .351-.281.638-.63.638h-2.39c-.344 0-.625-.287-.625-.638v-4.77c0-.35.281-.637.625-.637h2.39c.349 0 .63.287.63.637 0 .351-.281.638-.63.638H17.61v1.125h1.755zm-3.855 3.016c0 .275-.176.515-.44.6-.065.022-.135.031-.204.031-.209 0-.4-.09-.52-.25l-2.451-3.338v2.96c0 .351-.279.638-.625.638-.347 0-.625-.287-.625-.638V8.115c0-.272.174-.512.437-.6.066-.019.136-.031.206-.031.194 0 .394.095.515.245l2.466 3.351V8.115c0-.35.279-.637.625-.637.346 0 .625.287.625.637v4.764zm-6.095 0c0 .351-.279.638-.625.638-.346 0-.624-.287-.624-.638V8.115c0-.35.278-.637.624-.637.346 0 .625.287.625.637v4.764zm-2.443.638H4.589c-.347 0-.625-.287-.625-.638V8.115c0-.35.278-.637.625-.637.346 0 .624.287.624.637v4.13h1.759c.349 0 .633.285.633.636 0 .353-.284.636-.633.636M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314'/></svg>") center/contain no-repeat;
-}
-.nr-fab-cta:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(6, 199, 85, 0.45), inset 0 1px 0 rgba(255,255,255,0.2); }
-.nr-fab-sub {
-  font-size: 11px; color: #94a3b8; margin: 10px 0 0;
-  text-align: center; letter-spacing: 0.02em;
-  position: relative; z-index: 1;
-}
-.nr-fab-sub span { margin: 0 8px; color: #cbd5e1; }
 @media (max-width: 767px) {
-  .nr-fab-card {
+  .nr-fab-wrap {
     right: 12px; bottom: 12px;
     width: calc(100vw - 24px); max-width: 320px;
-    padding: 12px 14px 10px;
-    border-radius: 14px;
   }
-  .nr-fab-card::before { height: 2px; }
-  .nr-fab-card::after { display: none; }
-  .nr-fab-close { top: 6px; right: 6px; width: 22px; height: 22px; }
-  .nr-fab-close svg { width: 9px; height: 9px; }
-  .nr-fab-badge { display: none; }
-  .nr-fab-heading {
-    font-size: 13.5px; line-height: 1.45; font-weight: 700;
-    margin: 0 0 8px; padding-right: 24px;
-  }
-  .nr-fab-heading br { display: none; }
-  .nr-fab-features {
-    display: flex; flex-wrap: wrap; gap: 4px;
-    margin: 0 0 10px;
-  }
-  .nr-fab-features li {
-    display: inline-flex; align-items: center;
-    gap: 3px; padding: 4px 8px;
-    background: rgba(6, 168, 164, 0.08);
-    border-radius: 6px;
-    font-size: 10.5px; font-weight: 600; color: #0f172a;
-    line-height: 1.3;
-  }
-  .nr-fab-features li .nr-ico {
-    width: 12px; height: 12px;
-    background: transparent; border-radius: 0;
-    color: #06A8A4;
-  }
-  .nr-fab-features li .nr-ico svg {
-    width: 11px; height: 11px; stroke-width: 2;
-  }
-  .nr-fab-features li strong { font-weight: 600; color: inherit; }
-  .nr-fab-cta {
-    font-size: 13px; padding: 9px 12px; border-radius: 9px;
-    gap: 6px; letter-spacing: 0.01em;
-    box-shadow: 0 4px 12px rgba(6, 199, 85, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
-  }
-  .nr-fab-cta::before { width: 14px; height: 14px; }
-  .nr-fab-sub {
-    font-size: 9.5px; margin: 5px 0 0;
-  }
-  .nr-fab-sub span { margin: 0 4px; }
+  .nr-fab-link { border-radius: 12px; }
+  .nr-fab-close { width: 24px; height: 24px; top: 6px; right: 6px; }
 }
 </style>
-<div class="nr-fab-card" id="nr-fab-card" role="complementary" aria-label="LINE登録の案内">
+<div class="nr-fab-wrap" id="nr-fab-card" role="complementary" aria-label="LINE登録の案内">
+<a href="https://line.me/R/ti/p/@174cxnev" target="_blank" rel="noopener" class="nr-fab-link">
+<img src="/assets/fab-card-v1.png" alt="忙しい看護師さんこそAIで効率化。LINEで始める。無料・営業電話なし。" width="320" height="211" loading="lazy">
+</a>
 <button class="nr-fab-close" type="button" aria-label="閉じる">
-<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l12 12M13 1L1 13"/></svg>
+<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l12 12M13 1L1 13"/></svg>
 </button>
-<span class="nr-fab-badge">無料</span>
-<h3 class="nr-fab-heading">忙しい看護師さんこそ、<br><em>AIで効率化。</em></h3>
-<ul class="nr-fab-features">
-<li>
-<span class="nr-ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="5"/><path d="M13 13l4 4"/></svg></span>
-<span><strong>5問タップ</strong>で合う求人が届く</span>
-</li>
-<li>
-<span class="nr-ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5h7L16 6.5V17a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5V3a.5.5 0 0 1 .5-.5z"/><path d="M12 2.5V7h4M7.5 11.5h5M7.5 14h3"/></svg></span>
-<span>履歴書・職務経歴書も<strong>AIが作成</strong></span>
-</li>
-<li>
-<span class="nr-ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M6.5 9V6a3.5 3.5 0 0 1 7 0v3"/></svg></span>
-<span>ここだけの<strong>非公開求人</strong></span>
-</li>
-</ul>
-<a href="https://line.me/R/ti/p/@174cxnev" target="_blank" rel="noopener" class="nr-fab-cta">LINEで始める<span aria-hidden="true">→</span></a>
-<p class="nr-fab-sub">登録30秒<span>·</span>電話なし<span>·</span>ブロックOK</p>
 </div>
 <script defer="" src="../../../chat.js"></script>
 <script defer="" src="/track.js"></script>
