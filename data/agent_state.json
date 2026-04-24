@@ -1,12 +1,12 @@
 {
   "lastRun": {
-    "ai_marketing_orchestrator": "2026-04-22T06:00:03",
-    "health_monitor": "2026-04-23T10:00:42",
-    "competitor_analyst": "2026-04-23T10:00:10",
+    "ai_marketing_orchestrator": "2026-04-24T06:00:03",
+    "health_monitor": "2026-04-24T07:00:21",
+    "competitor_analyst": "2026-04-24T10:00:00",
     "content_creator": "2026-04-23T15:04:06",
     "sns_poster": "2026-04-23T17:22:20",
     "daily_reviewer": "2026-04-23T23:00:37",
-    "seo_optimizer": "2026-04-24T04:00:00",
+    "seo_optimizer": "2026-04-24T04:00:19",
     "weekly_content_planner": "2026-04-19T05:00:03",
     "weekly_strategist": "2026-04-19T06:01:04",
     "tiktok_poster": "2026-04-24T02:49:40",
@@ -15,11 +15,11 @@
   "status": {
     "ai_marketing_orchestrator": "completed",
     "health_monitor": "completed",
-    "competitor_analyst": "completed",
+    "competitor_analyst": "running",
     "content_creator": "completed",
     "sns_poster": "completed",
     "daily_reviewer": "completed",
-    "seo_optimizer": "running",
+    "seo_optimizer": "completed",
     "weekly_content_planner": "pending",
     "weekly_strategist": "completed",
     "tiktok_poster": "completed",
@@ -31,15 +31,15 @@
         "from": "health_monitor",
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-04-22T07:00:19.502482",
+        "created": "2026-04-23T10:00:41.891624",
         "status": "processing"
       },
       {
         "from": "health_monitor",
         "type": "emergency_generate",
         "details": "キュー残り0件。緊急コンテンツ生成必要。",
-        "created": "2026-04-23T10:00:41.891624",
-        "status": "processing"
+        "created": "2026-04-24T07:00:20.372869",
+        "status": "pending"
       }
     ]
   },
@@ -52,8 +52,8 @@
     "topPerformingTags": [],
     "queueRemaining": 0,
     "totalPostsThisWeek": 52,
-    "lastMarketingPDCA": "2026-04-22 06:00:01",
-    "queuePending": 43,
+    "lastMarketingPDCA": "2026-04-24 06:00:00",
+    "queuePending": 41,
     "dailyGeneratedCount": 0
   },
   "agentMemory": {

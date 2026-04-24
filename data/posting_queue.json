@@ -4479,9 +4479,9 @@
       ],
       "cta_type": "hard",
       "content_type": "aruaru",
-      "status": "ready",
+      "status": "posted",
       "video_path": null,
-      "posted_at": null,
+      "posted_at": "2026-04-24T09:42:59",
       "tiktok_url": null,
       "error": null,
       "performance": {
@@ -4506,7 +4506,8 @@
         "suggestion": "フックを25文字以内に修正し、CTAのバランスを調整することでより効果的な投稿になる可能性がある"
       },
       "scheduled_for": "2026-04-12 12:00",
-      "quality_checked": true
+      "quality_checked": true,
+      "posted_via": "meta_business_suite"
     },
     {
       "id": 200,

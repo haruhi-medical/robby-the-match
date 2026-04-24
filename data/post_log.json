@@ -809,5 +809,14 @@
     "status": "failed",
     "method": "meta_business_suite",
     "error": "Claude in Chrome MCP not connected (3 retries). Queue entry id=198 left as ready for next scheduled run."
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_ある_0408_01",
+    "content_id": "ai_ある_0408_01",
+    "timestamp": "2026-04-24T09:42:59",
+    "status": "success",
+    "method": "meta_business_suite",
+    "error": null
   }
 ]
