@@ -4059,7 +4059,105 @@ function buildIntakeHumanWelcome() {
   ];
 }
 
-// 保有資格質問（Flex Message・インラインボタン）— 1問目
+// ---------- 選択式Flex共通ヘルパー（ピンク基調・richmenu統一） ----------
+// 選択肢をピンクFlexボタンリストで表示する共通コンポーネント
+// opts:     [{ label, data, inputOption? }]  メイン選択肢（pinkプライマリ）
+// backOpts: [{ label, data }]                戻る/やり直し（linkスタイル・控えめ）
+function buildChoiceFlexBubble(title, hint, opts, backOpts = []) {
+  const headerBox = {
+    type: "box",
+    layout: "vertical",
+    paddingAll: "16px",
+    backgroundColor: "#E8756D",
+    contents: [
+      {
+        type: "text",
+        text: title,
+        weight: "bold",
+        size: "lg",
+        color: "#FFFFFF",
+        wrap: true,
+      },
+    ],
+  };
+  const bodyContents = [];
+  if (hint) {
+    bodyContents.push({
+      type: "text",
+      text: hint,
+      size: "xs",
+      color: "#6B7280",
+      wrap: true,
+    });
+  }
+  bodyContents.push({
+    type: "box",
+    layout: "vertical",
+    spacing: "sm",
+    margin: hint ? "md" : "none",
+    contents: opts.map((opt) => {
+      const action = {
+        type: "postback",
+        label: opt.label.slice(0, 20),
+        data: opt.data,
+        displayText: opt.label,
+      };
+      if (opt.inputOption) action.inputOption = opt.inputOption;
+      return {
+        type: "button",
+        style: "primary",
+        color: "#E8756D",
+        height: "sm",
+        action,
+      };
+    }),
+  });
+  if (backOpts.length) {
+    bodyContents.push({ type: "separator", margin: "md" });
+    bodyContents.push({
+      type: "box",
+      layout: "vertical",
+      spacing: "xs",
+      margin: "sm",
+      contents: backOpts.map((opt) => ({
+        type: "button",
+        style: "link",
+        height: "sm",
+        action: {
+          type: "postback",
+          label: opt.label.slice(0, 20),
+          data: opt.data,
+          displayText: opt.label,
+        },
+      })),
+    });
+  }
+  return {
+    type: "flex",
+    altText: `${title.replace(/^[^ぁ-んァ-ヶ一-龯a-zA-Z0-9]+/, "")}（下のボタンから選択）`,
+    contents: {
+      type: "bubble",
+      header: headerBox,
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "md",
+        paddingAll: "20px",
+        contents: bodyContents,
+      },
+    },
+  };
+}
+
+// 候補件数＋戻るボタンのback項目を生成
+function _ilBackOpts(backTarget) {
+  return [
+    { label: "← 前に戻る", data: `il_back=${backTarget}` },
+    { label: "最初からやり直す", data: "il_back=restart" },
+  ];
+}
+
+// 保有資格質問（Flex Message・ピンク統一）— 1問目
 const INTAKE_QUAL_LABELS = {
   "rn": "正看護師",
   "lpn": "准看護師",
@@ -4068,73 +4166,22 @@ const INTAKE_QUAL_LABELS = {
   "other": "その他",
 };
 function buildIntakeQualQuestion() {
-  const qualOptions = [
-    { label: "正看護師", value: "rn" },
-    { label: "准看護師", value: "lpn" },
-    { label: "保健師", value: "phn" },
-    { label: "助産師", value: "midwife" },
-    { label: "その他", value: "other" },
-  ];
   return [
     {
       type: "text",
       text: "お手数ですが、3点ご回答ください ✍️",
     },
-    {
-      type: "flex",
-      altText: "💼 保有資格を教えてください（下のボタンから選択）",
-      contents: {
-        type: "bubble",
-        header: {
-          type: "box",
-          layout: "vertical",
-          paddingAll: "16px",
-          backgroundColor: "#E8756D",
-          contents: [
-            {
-              type: "text",
-              text: "💼 保有資格を教えてください",
-              weight: "bold",
-              size: "lg",
-              color: "#FFFFFF",
-              wrap: true,
-            },
-          ],
-        },
-        body: {
-          type: "box",
-          layout: "vertical",
-          spacing: "md",
-          paddingAll: "20px",
-          contents: [
-            {
-              type: "text",
-              text: "👇 下のボタンから選んでタップ",
-              size: "xs",
-              color: "#6B7280",
-            },
-            {
-              type: "box",
-              layout: "vertical",
-              spacing: "sm",
-              margin: "md",
-              contents: qualOptions.map((opt) => ({
-                type: "button",
-                style: "primary",
-                color: "#E8756D",
-                height: "sm",
-                action: {
-                  type: "postback",
-                  label: opt.label,
-                  data: `intake=qual&v=${opt.value}`,
-                  displayText: opt.label,
-                },
-              })),
-            },
-          ],
-        },
-      },
-    },
+    buildChoiceFlexBubble(
+      "💼 保有資格を教えてください",
+      "👇 下のボタンから選んでタップ",
+      [
+        { label: "正看護師", data: "intake=qual&v=rn" },
+        { label: "准看護師", data: "intake=qual&v=lpn" },
+        { label: "保健師", data: "intake=qual&v=phn" },
+        { label: "助産師", data: "intake=qual&v=midwife" },
+        { label: "その他", data: "intake=qual&v=other" },
+      ],
+    ),
   ];
 }
 
@@ -4163,20 +4210,25 @@ function qrItemKb(label, data) {
 }
 
 function buildIntakeAgeQuestion() {
-  return [{
-    type: "text",
-    text: "ありがとうございます 😊\n\n👤 年代を教えてください",
-    quickReply: {
-      items: [
-        qrItemKb("20代", "intake=age&v=20s"),
-        qrItemKb("30代前半", "intake=age&v=30s_early"),
-        qrItemKb("30代後半", "intake=age&v=30s_late"),
-        qrItemKb("40代前半", "intake=age&v=40s_early"),
-        qrItemKb("40代後半", "intake=age&v=40s_late"),
-        qrItemKb("50代以上", "intake=age&v=50plus"),
-      ],
+  // inputOption: "openKeyboard" → Q3郵便番号のテキスト入力画面を自動起動
+  return [
+    {
+      type: "text",
+      text: "ありがとうございます 😊",
     },
-  }];
+    buildChoiceFlexBubble(
+      "👤 年代を教えてください",
+      "👇 下のボタンから選んでタップ",
+      [
+        { label: "20代", data: "intake=age&v=20s", inputOption: "openKeyboard" },
+        { label: "30代前半", data: "intake=age&v=30s_early", inputOption: "openKeyboard" },
+        { label: "30代後半", data: "intake=age&v=30s_late", inputOption: "openKeyboard" },
+        { label: "40代前半", data: "intake=age&v=40s_early", inputOption: "openKeyboard" },
+        { label: "40代後半", data: "intake=age&v=40s_late", inputOption: "openKeyboard" },
+        { label: "50代以上", data: "intake=age&v=50plus", inputOption: "openKeyboard" },
+      ],
+    ),
+  ];
 }
 
 // 郵便番号質問（テキスト入力）— 3問目・最後
@@ -4293,18 +4345,22 @@ function buildSessionWelcome(sessionCtx, entry) {
     const areaLabel = AREA_LABELS[area] || area;
     return {
       nextPhase: 'welcome',
-      messages: [{
-        type: 'text',
-        text: `こんにちは！ナースロビーです。\n\n${areaLabel}の看護師求人を\nお探しですね。\n\nあと2つだけ教えてください👇`,
-        quickReply: {
-          items: [
-            qrItem('日勤のみ', 'area_welcome=day'),
-            qrItem('夜勤ありOK', 'area_welcome=twoshift'),
-            qrItem('パート・非常勤', 'area_welcome=part'),
-            qrItem('夜勤専従', 'area_welcome=night'),
-          ],
+      messages: [
+        {
+          type: 'text',
+          text: `こんにちは！ナースロビーです。\n\n${areaLabel}の看護師求人を\nお探しですね。`,
         },
-      }],
+        buildChoiceFlexBubble(
+          "🕒 働き方を教えてください",
+          "👇 下のボタンから選んでタップ",
+          [
+            { label: '日勤のみ', data: 'area_welcome=day' },
+            { label: '夜勤ありOK', data: 'area_welcome=twoshift' },
+            { label: 'パート・非常勤', data: 'area_welcome=part' },
+            { label: '夜勤専従', data: 'area_welcome=night' },
+          ],
+        ),
+      ],
     };
   }
 
@@ -4318,17 +4374,21 @@ function buildSessionWelcome(sessionCtx, entry) {
   else if (hr >= 18 || hr < 5) greet = 'こんばんは';
   return {
     nextPhase: 'welcome',
-    messages: [{
-      type: 'text',
-      text: `${greet}、ナースロビーです🌸\n\n関東の看護師求人をお探しのサポートをします。\n新着求人は毎朝このLINEにお届けします（いつでも停止OK）\n\nまずは何から始めますか？`,
-      quickReply: {
-        items: [
-          qrItem('求人を見る', 'welcome=see_jobs'),
-          qrItem('相談したい', 'welcome=consult'),
-          qrItem('エリアを変える', 'welcome=newjobs_optin'),
-        ],
+    messages: [
+      {
+        type: 'text',
+        text: `${greet}、ナースロビーです🌸\n\n関東の看護師求人をお探しのサポートをします。\n新着求人は毎朝このLINEにお届けします（いつでも停止OK）`,
       },
-    }],
+      buildChoiceFlexBubble(
+        "✨ まずは何から始めますか？",
+        "👇 下のボタンから選んでタップ",
+        [
+          { label: '求人を見る', data: 'welcome=see_jobs' },
+          { label: '相談したい', data: 'welcome=consult' },
+          { label: 'エリアを変える', data: 'welcome=newjobs_optin' },
+        ],
+      ),
+    ],
   };
 }
 
@@ -4788,19 +4848,23 @@ async function buildPhaseMessage(phase, entry, env) {
     // #43 Phase 2: 「◯件の中から」訴求＋実際の質問数（4問）を正直表記
     case "il_area": {
       const totalCount = await countCandidatesD1({}, env);
-      return [{
-        type: "text",
-        text: `${totalCount.facilities.toLocaleString()}件の医療機関から、あなたにぴったりの職場を一緒に探します。\n\nタップで答えるだけ・4つの質問です（1〜2分）。\n\nまず、どのエリアで働きたいですか？`,
-        quickReply: {
-          items: [
-            qrItem("東京都", "il_pref=tokyo"),
-            qrItem("神奈川県", "il_pref=kanagawa"),
-            qrItem("千葉県", "il_pref=chiba"),
-            qrItem("埼玉県", "il_pref=saitama"),
-            qrItem("その他の地域", "il_pref=other"),
-          ],
+      return [
+        {
+          type: "text",
+          text: `${totalCount.facilities.toLocaleString()}件の医療機関から、あなたにぴったりの職場を一緒に探します。\n\nタップで答えるだけ・4つの質問です（1〜2分）。`,
         },
-      }];
+        buildChoiceFlexBubble(
+          "📍 どのエリアで働きたいですか？",
+          "👇 下のボタンから選んでタップ",
+          [
+            { label: "東京都", data: "il_pref=tokyo" },
+            { label: "神奈川県", data: "il_pref=kanagawa" },
+            { label: "千葉県", data: "il_pref=chiba" },
+            { label: "埼玉県", data: "il_pref=saitama" },
+            { label: "その他の地域", data: "il_pref=other" },
+          ],
+        ),
+      ];
     }
 
     // ステップ1b: サブエリア選択（2段階の2段目）
@@ -4809,138 +4873,138 @@ async function buildPhaseMessage(phase, entry, env) {
       const PREF_LABELS = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県', other: 'その他の地域' };
       const prefLabel = PREF_LABELS[entry.prefecture] || entry.prefecture;
       const countLine = `━━━━━━━━━━━━━━━\n📊 候補: ${prefCount.facilities.toLocaleString()}件\n━━━━━━━━━━━━━━━`;
-      // #40 Phase2 Group J: 「前に戻る / 最初からやり直す」QR
-      const backItems = [
-        qrItem("← 前に戻る", "il_back=pref"),
-        qrItem("最初からやり直す", "il_back=restart"),
-      ];
+      const backOpts = _ilBackOpts("pref");
 
-      if (entry.prefecture === 'tokyo') {
-        return [{
-          type: "text",
-          text: `${prefLabel}ですね！\n\n${countLine}\n\n東京のどのあたりが希望ですか？`,
-          quickReply: {
-            items: [
-              qrItem("新宿・渋谷・東京", "il_area=tokyo_central"),
-              qrItem("池袋・中野・練馬", "il_area=tokyo_nw"),
-              qrItem("品川・目黒・世田谷", "il_area=tokyo_south"),
-              qrItem("上野・北千住・葛飾", "il_area=tokyo_east"),
-              qrItem("多摩（八王子・立川）", "il_area=tokyo_tama"),
-              qrItem("23区どこでも", "il_area=tokyo_23ku"),
-              qrItem("東京全域", "il_area=tokyo_included"),
-              ...backItems,
-            ],
-          },
-        }];
-      }
-      if (entry.prefecture === 'kanagawa') {
-        return [{
-          type: "text",
-          text: `${prefLabel}ですね！\n\n${countLine}\n\n神奈川のどのあたりが希望ですか？`,
-          quickReply: {
-            items: [
-              qrItem("横浜・川崎", "il_area=yokohama_kawasaki"),
-              qrItem("湘南・鎌倉", "il_area=shonan_kamakura"),
-              qrItem("相模原・県央", "il_area=sagamihara_kenoh"),
-              qrItem("横須賀・三浦", "il_area=yokosuka_miura"),
-              qrItem("小田原・県西", "il_area=odawara_kensei"),
-              qrItem("どこでもOK", "il_area=kanagawa_all"),
-              ...backItems,
-            ],
-          },
-        }];
-      }
-      // その他の地域 → エリア外対応（正直に伝える）
-      if (entry.prefecture === 'other') {
-        return [{
-          type: "text",
-          text: "現在ナースロビーでは、東京・神奈川・千葉・埼玉の求人をご紹介しています。\n\nお住まいの地域は準備中です。以下からお選びください👇",
-          quickReply: {
-            items: [
-              qrItem("関東の求人を見る", "il_other=see_kanto"),
-              qrItem("エリア拡大時に通知", "il_other=notify_optin"),
-              qrItem("スタッフに相談", "il_other=consult_staff"),
-            ],
-          },
-        }];
-      }
-      // 千葉 → サブエリア選択
-      if (entry.prefecture === 'chiba') {
-        return [{
-          type: "text",
-          text: `${prefLabel}ですね！\n\n${countLine}\n\n千葉のどのあたりが希望ですか？`,
-          quickReply: {
-            items: [
-              qrItem("船橋・松戸・柏", "il_area=chiba_tokatsu"),
-              qrItem("千葉市・内房", "il_area=chiba_uchibo"),
-              qrItem("成田・印旛", "il_area=chiba_inba"),
-              qrItem("外房・房総", "il_area=chiba_sotobo"),
-              qrItem("どこでもOK", "il_area=chiba_all"),
-              ...backItems,
-            ],
-          },
-        }];
-      }
-      // 埼玉 → サブエリア選択
-      if (entry.prefecture === 'saitama') {
-        return [{
-          type: "text",
-          text: `${prefLabel}ですね！\n\n${countLine}\n\n埼玉のどのあたりが希望ですか？`,
-          quickReply: {
-            items: [
-              qrItem("さいたま・南部", "il_area=saitama_south"),
-              qrItem("東部・春日部", "il_area=saitama_east"),
-              qrItem("西部・川越・所沢", "il_area=saitama_west"),
-              qrItem("北部・熊谷", "il_area=saitama_north"),
-              qrItem("どこでもOK", "il_area=saitama_all"),
-              ...backItems,
-            ],
-          },
-        }];
-      }
-      // その他 → デフォルト（到達しないはず）
-      return [{
-        type: "text",
-        text: `${prefLabel}ですね！\n\n${countLine}\n\nどんな職場が気になりますか？`,
-        quickReply: {
-          items: [
-            qrItem("急性期病院", "il_ft=hospital_acute"),
-            qrItem("回復期病院", "il_ft=hospital_recovery"),
-            qrItem("慢性期病院", "il_ft=hospital_chronic"),
-            qrItem("クリニック", "il_ft=clinic"),
-            qrItem("訪問看護", "il_ft=visiting"),
-            qrItem("介護施設", "il_ft=care"),
-            qrItem("こだわりなし", "il_ft=any"),
-            ...backItems,
+      const SUBAREA_DEFS = {
+        tokyo: {
+          title: "📍 東京のどのあたり？",
+          opts: [
+            { label: "新宿・渋谷・東京", data: "il_area=tokyo_central" },
+            { label: "池袋・中野・練馬", data: "il_area=tokyo_nw" },
+            { label: "品川・目黒・世田谷", data: "il_area=tokyo_south" },
+            { label: "上野・北千住・葛飾", data: "il_area=tokyo_east" },
+            { label: "多摩（八王子・立川）", data: "il_area=tokyo_tama" },
+            { label: "23区どこでも", data: "il_area=tokyo_23ku" },
+            { label: "東京全域", data: "il_area=tokyo_included" },
           ],
         },
-      }];
+        kanagawa: {
+          title: "📍 神奈川のどのあたり？",
+          opts: [
+            { label: "横浜・川崎", data: "il_area=yokohama_kawasaki" },
+            { label: "湘南・鎌倉", data: "il_area=shonan_kamakura" },
+            { label: "相模原・県央", data: "il_area=sagamihara_kenoh" },
+            { label: "横須賀・三浦", data: "il_area=yokosuka_miura" },
+            { label: "小田原・県西", data: "il_area=odawara_kensei" },
+            { label: "どこでもOK", data: "il_area=kanagawa_all" },
+          ],
+        },
+        chiba: {
+          title: "📍 千葉のどのあたり？",
+          opts: [
+            { label: "船橋・松戸・柏", data: "il_area=chiba_tokatsu" },
+            { label: "千葉市・内房", data: "il_area=chiba_uchibo" },
+            { label: "成田・印旛", data: "il_area=chiba_inba" },
+            { label: "外房・房総", data: "il_area=chiba_sotobo" },
+            { label: "どこでもOK", data: "il_area=chiba_all" },
+          ],
+        },
+        saitama: {
+          title: "📍 埼玉のどのあたり？",
+          opts: [
+            { label: "さいたま・南部", data: "il_area=saitama_south" },
+            { label: "東部・春日部", data: "il_area=saitama_east" },
+            { label: "西部・川越・所沢", data: "il_area=saitama_west" },
+            { label: "北部・熊谷", data: "il_area=saitama_north" },
+            { label: "どこでもOK", data: "il_area=saitama_all" },
+          ],
+        },
+      };
+
+      const def = SUBAREA_DEFS[entry.prefecture];
+      if (def) {
+        return [
+          {
+            type: "text",
+            text: `${prefLabel}ですね！\n\n${countLine}`,
+          },
+          buildChoiceFlexBubble(
+            def.title,
+            "👇 下のボタンから選んでタップ",
+            def.opts,
+            backOpts,
+          ),
+        ];
+      }
+
+      // その他の地域 → エリア外対応（正直に伝える）
+      if (entry.prefecture === 'other') {
+        return [
+          {
+            type: "text",
+            text: "現在ナースロビーでは、東京・神奈川・千葉・埼玉の求人をご紹介しています。\n\nお住まいの地域は準備中です。",
+          },
+          buildChoiceFlexBubble(
+            "🌸 どうしますか？",
+            "👇 下のボタンから選んでタップ",
+            [
+              { label: "関東の求人を見る", data: "il_other=see_kanto" },
+              { label: "エリア拡大時に通知", data: "il_other=notify_optin" },
+              { label: "スタッフに相談", data: "il_other=consult_staff" },
+            ],
+          ),
+        ];
+      }
+
+      // デフォルト（到達しないはず）
+      return [
+        {
+          type: "text",
+          text: `${prefLabel}ですね！\n\n${countLine}`,
+        },
+        buildChoiceFlexBubble(
+          "🏥 どんな職場が気になりますか？",
+          "👇 下のボタンから選んでタップ",
+          [
+            { label: "急性期病院", data: "il_ft=hospital_acute" },
+            { label: "回復期病院", data: "il_ft=hospital_recovery" },
+            { label: "慢性期病院", data: "il_ft=hospital_chronic" },
+            { label: "クリニック", data: "il_ft=clinic" },
+            { label: "訪問看護", data: "il_ft=visiting" },
+            { label: "介護施設", data: "il_ft=care" },
+            { label: "こだわりなし", data: "il_ft=any" },
+          ],
+          backOpts,
+        ),
+      ];
     }
 
     // 診療科選択（病院選択後のみ表示）
     case "il_department": {
       const subLabelD = entry.hospitalSubType || '病院';
-      // #40 Phase2 Group J: 「前に戻る」→ 施設タイプ選択
-      return [{
-        type: "text",
-        text: `${subLabelD}ですね！\n希望の診療科はありますか？`,
-        quickReply: {
-          items: [
-            qrItem("内科系", "il_dept=内科"),
-            qrItem("外科系", "il_dept=外科"),
-            qrItem("整形外科", "il_dept=整形外科"),
-            qrItem("循環器", "il_dept=循環器内科"),
-            qrItem("小児科", "il_dept=小児科"),
-            qrItem("産婦人科", "il_dept=産婦人科"),
-            qrItem("精神科", "il_dept=精神科"),
-            qrItem("リハビリ", "il_dept=リハビリテーション科"),
-            qrItem("救急", "il_dept=救急"),
-            qrItem("こだわりなし", "il_dept=any"),
-            qrItem("← 前に戻る", "il_back=ft"),
-            qrItem("最初からやり直す", "il_back=restart"),
-          ],
+      return [
+        {
+          type: "text",
+          text: `${subLabelD}ですね！`,
         },
-      }];
+        buildChoiceFlexBubble(
+          "🩺 希望の診療科はありますか？",
+          "👇 下のボタンから選んでタップ",
+          [
+            { label: "内科系", data: "il_dept=内科" },
+            { label: "外科系", data: "il_dept=外科" },
+            { label: "整形外科", data: "il_dept=整形外科" },
+            { label: "循環器", data: "il_dept=循環器内科" },
+            { label: "小児科", data: "il_dept=小児科" },
+            { label: "産婦人科", data: "il_dept=産婦人科" },
+            { label: "精神科", data: "il_dept=精神科" },
+            { label: "リハビリ", data: "il_dept=リハビリテーション科" },
+            { label: "救急", data: "il_dept=救急" },
+            { label: "こだわりなし", data: "il_dept=any" },
+          ],
+          _ilBackOpts("ft"),
+        ),
+      ];
     }
 
     case "il_workstyle": {
@@ -4950,70 +5014,68 @@ async function buildPhaseMessage(phase, entry, env) {
       const nowCount = await countCandidatesD1(entry, env);
       // #40 Phase2 Group J: 「前に戻る」→ 病院なら診療科、その他なら施設タイプ
       const wsBackTarget = (entry.facilityType === 'hospital' && !entry._isClinic) ? "dept" : "ft";
-      const wsBackItems = [
-        qrItem("← 前に戻る", `il_back=${wsBackTarget}`),
-        qrItem("最初からやり直す", "il_back=restart"),
-      ];
-      return [{
-        type: "text",
-        text: `${ftLabelWS}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(nowCount.facilities + nowCount.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\n希望の働き方は？`,
-        quickReply: {
-          items: entry._isClinic
-            ? [
-                qrItem("常勤（日勤）", "il_ws=day"),
-                qrItem("パート・非常勤", "il_ws=part"),
-                ...wsBackItems,
-              ]
-            : [
-                qrItem("日勤のみ", "il_ws=day"),
-                qrItem("夜勤ありOK", "il_ws=twoshift"),
-                qrItem("パート・非常勤", "il_ws=part"),
-                qrItem("夜勤専従", "il_ws=night"),
-                ...wsBackItems,
-              ],
+      const wsOpts = entry._isClinic
+        ? [
+            { label: "常勤（日勤）", data: "il_ws=day" },
+            { label: "パート・非常勤", data: "il_ws=part" },
+          ]
+        : [
+            { label: "日勤のみ", data: "il_ws=day" },
+            { label: "夜勤ありOK", data: "il_ws=twoshift" },
+            { label: "パート・非常勤", data: "il_ws=part" },
+            { label: "夜勤専従", data: "il_ws=night" },
+          ];
+      return [
+        {
+          type: "text",
+          text: `${ftLabelWS}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(nowCount.facilities + nowCount.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━`,
         },
-      }];
+        buildChoiceFlexBubble(
+          "🕒 希望の働き方は？",
+          "👇 下のボタンから選んでタップ",
+          wsOpts,
+          _ilBackOpts(wsBackTarget),
+        ),
+      ];
     }
 
     case "il_urgency": {
       if (entry._isClinic) delete entry._isClinic;
-      // #40 Phase2 Group J: 「前に戻る」→ 働き方
-      return [{
-        type: "text",
-        text: "今の転職への気持ちは？",
-        quickReply: {
-          items: [
-            qrItem("すぐにでも転職したい", "il_urg=urgent"),
-            qrItem("いい求人があれば", "il_urg=good"),
-            qrItem("まずは情報収集", "il_urg=info"),
-            qrItem("← 前に戻る", "il_back=ws"),
-            qrItem("最初からやり直す", "il_back=restart"),
-          ],
-        },
-      }];
+      return [buildChoiceFlexBubble(
+        "💭 今の転職への気持ちは？",
+        "👇 下のボタンから選んでタップ",
+        [
+          { label: "すぐにでも転職したい", data: "il_urg=urgent" },
+          { label: "いい求人があれば", data: "il_urg=good" },
+          { label: "まずは情報収集", data: "il_urg=info" },
+        ],
+        _ilBackOpts("ws"),
+      )];
     }
 
     case "il_facility_type": {
       const areaLabelFT = entry.areaLabel || entry.area || "";
       const currentCountF = await countCandidatesD1(entry, env);
-      // #40 Phase2 Group J: 「前に戻る」→ サブエリア選択
-      return [{
-        type: "text",
-        text: `${areaLabelFT}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━\n\nどんな職場が気になりますか？`,
-        quickReply: {
-          items: [
-            qrItem("急性期病院", "il_ft=hospital_acute"),
-            qrItem("回復期病院", "il_ft=hospital_recovery"),
-            qrItem("慢性期病院", "il_ft=hospital_chronic"),
-            qrItem("クリニック", "il_ft=clinic"),
-            qrItem("訪問看護", "il_ft=visiting"),
-            qrItem("介護施設", "il_ft=care"),
-            qrItem("こだわりなし", "il_ft=any"),
-            qrItem("← 前に戻る", "il_back=subarea"),
-            qrItem("最初からやり直す", "il_back=restart"),
-          ],
+      return [
+        {
+          type: "text",
+          text: `${areaLabelFT}ですね！\n\n━━━━━━━━━━━━━━━\n📊 候補: ${(currentCountF.facilities + currentCountF.jobs).toLocaleString()}件\n━━━━━━━━━━━━━━━`,
         },
-      }];
+        buildChoiceFlexBubble(
+          "🏥 どんな職場が気になりますか？",
+          "👇 下のボタンから選んでタップ",
+          [
+            { label: "急性期病院", data: "il_ft=hospital_acute" },
+            { label: "回復期病院", data: "il_ft=hospital_recovery" },
+            { label: "慢性期病院", data: "il_ft=hospital_chronic" },
+            { label: "クリニック", data: "il_ft=clinic" },
+            { label: "訪問看護", data: "il_ft=visiting" },
+            { label: "介護施設", data: "il_ft=care" },
+            { label: "こだわりなし", data: "il_ft=any" },
+          ],
+          _ilBackOpts("subarea"),
+        ),
+      ];
     }
 
     case "job_detail_view": {
