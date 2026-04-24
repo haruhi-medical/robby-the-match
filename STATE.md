@@ -1,7 +1,50 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-04-24 11:20 (SEO→LINE FAB導入)
+# 最終更新: 2026-04-24 午後 (LINE Bot UX改修 — ピンクFlex統一+丁寧語統一)
 
-## 🏁 2026-04-24 SEO記事→LINE送客 右下FAB導入 (commit 80ee5e6)
+## 🏁 2026-04-24 午後 LINE Bot UX全面改修 (Worker 9f04af56)
+
+全コミット: f7d1d9d → 6ab2892 → 769c0a5 → 4837668 → 5e29c6a
+
+### 背景
+社長指摘「初見ユーザーが初回3問で『資格選択ボタンがどこ？』と迷う」。
+Quick Replyはキーボード上部に細く出るだけで初見では気づきにくい。
+→ Flex Messageのインラインボタン化で根本解決。
+
+### 1. 選択式UIをFlex Messageに全面移行
+- 共通ヘルパー追加: `buildChoiceFlexBubble(title, hint, opts, backOpts?)`
+- 変換した11フロー:
+  - 初回3問: Q1資格選択(5肢)/Q2年代選択(6肢、inputOption保持)
+  - welcome: area_page 4肢 / default 3肢
+  - intake_light: il_area/il_subarea(東京・神奈川・千葉・埼玉・other・default)/il_department/il_workstyle/il_urgency/il_facility_type
+
+### 2. デザイントークン確立（リッチメニューv3ピンク統一）
+- ヘッダーBG: `#E8756D` (--nr-color-secondary) + 白太字
+- primaryボタン: `#E8756D`
+- 戻る系: `link` style（控えめ）
+- 色理由: richmenu v3 BG=#F3B7BD〜#FDB1AE の濃い版で同系統
+- memory保存: `feedback_line_flex_colors.md`（次回Flex作成時必読）
+
+### 3. 新着求人フローの丁寧語統一（11箇所）
+- 社長指摘「小田原エリアは本日の新着求人なし。」が失礼
+- 主な修正:
+  - 0件時: 「本日の新着なし」→「本日の新着求人がございませんでした。直近1週間の新着求人を○件お届けします」
+  - 通常時: 「新着 ○件」→「新着求人を○件お届けします」
+  - CTA: 「ここに出るのは一部」→「表示しているのは一部です」
+  - Opt-in: 体言止め「1日1通まで」→「1日1通までのお届けです」等
+  - 「見ますか？」→「ご覧になりますか？」
+  - 「停止しました」→「停止いたしました」
+- 適用範囲: richmenu新着求人タップ時の表示＋毎朝Push通知
+
+### 残課題（指示待ち）
+- 他のLINE Flex（会員登録/mypage誘導/CTA等）はまだ teal/緑 配色のまま
+  → 全面ピンク統一するか社長判断
+- matching結果後の contextual QR（「他の求人も見る」「条件を変える」等）もQRのまま
+  → 全選択式をFlex化するか判断
+- matching/resume/handoff フローの丁寧語チェック未実施
+
+---
+
+## 🏁 2026-04-24 午前 SEO記事→LINE送客 右下FAB導入 (commit 80ee5e6)
 
 ### 背景
 - SC実データ: 「退職交渉」は流入ゼロ（社長の認識誤り判明）
