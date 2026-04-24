@@ -1,5 +1,34 @@
 # ナースロビー 状態ファイル
-# 最終更新: 2026-04-24 午後 (LINE Bot UX改修 — ピンクFlex統一+丁寧語統一)
+# 最終更新: 2026-04-24 夕 (AI転職FABカード画像版を全305ページ展開)
+
+## 🏁 2026-04-24 夕 SEO全305ページにAI転職FABカード展開 (commit 467bab4)
+
+### 成果物
+- 画像FAB: `assets/fab-card-v1.png` (640×422 @2x, 127KB, Retina対応)
+- 共通CSS: `assets/design-tokens.css` に `.nr-fab-wrap/.nr-fab-link/.nr-fab-close` 追加
+- 共通JS: `assets/nr-fab.js` (閉じるボタン挙動, sessionStorage 記憶)
+- FABデザイン: グリーン基調・看護師キャラ・「LINEでAI転職始める。」
+
+### 展開範囲 (305ページ)
+- blog/ 全記事 (sub + index)
+- lp/job-seeker/area/ (sub + index, 地域別求人)
+- lp/job-seeker/guide/ (sub + index, 転職ガイド)
+- lp/job-seeker/index.html (LP-A)
+
+### 進化の経緯
+- v0: ピル「LINEで求人を相談する →」(既存)
+- v1案: 3機能明示カード (CSS版、ワード検討) — 「忙しい看護師さんこそ、AIで効率化。」
+- v2: 画像カード 320x211 (仮版、Retinaボケでrevert)
+- v3: 画像カード 640x422 @2x (本番採用)
+
+### 次のタスク候補
+- 効果計測 (Meta広告CPA vs LINE登録率の乖離解消見込み)
+- 別パターン画像のA/Bテスト
+- 画像ブラッシュアップ (社長から改善版が来たら差し替え)
+
+---
+
+# 最終更新: 2026-04-24 15:04 by コンテンツ生成
 
 ## 🏁 2026-04-24 午後 LINE Bot UX全面改修 (Worker 9f04af56)
 
@@ -78,7 +107,7 @@ Quick Replyはキーボード上部に細く出るだけで初見では気づき
 
 ---
 
-# 最終更新: 2026-04-24 10:00 by 競合監視
+# 最終更新: 2026-04-24 15:04 by コンテンツ生成
 
 ## 🏁 2026-04-23 夜 セッション総括 (LINE Bot 大改修) — 最終 Worker `bc3d8589`
 
@@ -246,7 +275,7 @@ Quick Replyはキーボード上部に細く出るだけで初見では気づき
 - autoresearch復旧方式（claude auth login vs .envにANTHROPIC_API_KEY）
 
 ---
-# 最終更新: 2026-04-24 10:00 by 競合監視
+# 最終更新: 2026-04-24 15:04 by コンテンツ生成
 
 ## 運用ルール
 - 全PDCAサイクルはこのファイルを最初に読む（他を探し回るな）
