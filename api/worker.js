@@ -5777,7 +5777,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_new_jobs_coming_soon":
       return [{
         type: "text",
-        text: "新着求人の通知機能は現在準備中です🔧\n\n「お仕事探しをスタート」から最新の求人を検索できます。",
+        text: "新着求人の通知機能は現在準備中です🔧\n\n「お仕事探しをスタート」から最新の求人をお探しいただけます。",
         quickReply: {
           items: [
             qrItem("求人を探す", "rm=start"),
@@ -5813,7 +5813,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "newjobs_optin_area":
       return [{
         type: "text",
-        text: "どのエリアの新着求人をお届けしますか？👇\n\n1日1通まで・新着がない日は送りません・いつでも停止OK",
+        text: "どのエリアの新着求人をお届けしますか？👇\n\n・1日1通までのお届けです\n・新着がない日はお送りしません\n・いつでも停止いただけます",
         quickReply: {
           items: [
             qrItem("横浜・川崎", "newjobs_optin=yokohama_kawasaki"),
@@ -5834,7 +5834,7 @@ async function buildPhaseMessage(phase, entry, env) {
       const label = entry.newjobsNotifyLabel || entry.areaLabel || "選択いただいたエリア";
       return [{
         type: "text",
-        text: `✅ 登録完了\n\n${label}エリアの新着求人をお届けします🌸\n\n・1日1通まで\n・新着がない日は送りません\n・いつでも停止OK\n\n今すぐ求人を見たい場合はリッチメニューの「新着求人」をタップ。`,
+        text: `✅ 登録完了\n\n${label}エリアの新着求人をお届けします🌸\n\n・1日1通までのお届けです\n・新着がない日はお送りしません\n・いつでも停止いただけます\n\n今すぐ求人をご覧になりたい場合はリッチメニューの「新着求人」をタップしてください。`,
         quickReply: {
           items: [
             qrItem("今すぐ求人を見る", "rm=new_jobs"),
@@ -5849,7 +5849,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "newjobs_optin_stopped":
       return [{
         type: "text",
-        text: "新着求人通知を停止しました。\n\nまた受け取りたくなったら、リッチメニューや「新着通知」と送ってください🌸",
+        text: "新着求人通知を停止いたしました。\n\nまた受け取りたくなりましたら、リッチメニューや「新着通知」とお送りください🌸",
       }];
 
     // ===== リッチメニュー: 新着求人（エリア選択） =====
@@ -5857,7 +5857,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_new_jobs_area_select":
       return [{
         type: "text",
-        text: "どのエリアの新着求人を見ますか？👇\n（選んだエリアは覚えておきます）",
+        text: "どのエリアの新着求人をご覧になりますか？👇\n（選んだエリアは覚えておきます）",
         quickReply: {
           items: [
             qrItem("横浜・川崎", "rm_new_jobs=yokohama_kawasaki"),
@@ -5877,7 +5877,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_new_jobs": {
       const BRAND_COLOR = "#5a8fa8";
       if (!env?.DB) {
-        return [{ type: "text", text: "現在新着求人を取得できません。「お仕事探しをスタート」から求人を検索してみてください。" }];
+        return [{ type: "text", text: "現在新着求人を取得できませんでした。「お仕事探しをスタート」から求人をお探しください。" }];
       }
       // entry.area を参照（「最後のユーザー選択を優先」で上流で上書き済み）
       const areaKey = (entry.area || '').replace('_il', '');
@@ -5887,7 +5887,7 @@ async function buildPhaseMessage(phase, entry, env) {
         entry.phase = "rm_new_jobs_area_select";
         return [{
           type: "text",
-          text: "どのエリアの新着求人を見ますか？👇\n（選んだエリアは覚えておきます）",
+          text: "どのエリアの新着求人をご覧になりますか？👇\n（選んだエリアは覚えておきます）",
           quickReply: {
             items: [
               qrItem("横浜・川崎", "rm_new_jobs=yokohama_kawasaki"),
@@ -5998,10 +5998,10 @@ async function buildPhaseMessage(phase, entry, env) {
         const ctaBubble = {
           type: "bubble", size: "kilo",
           header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: "#2f3b46",
-            contents: [{ type: "text", text: "ここに出るのは一部", size: "xs", weight: "bold", color: "#FFFFFF" }] },
+            contents: [{ type: "text", text: "表示しているのは一部です", size: "xs", weight: "bold", color: "#FFFFFF" }] },
           body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "md", contents: [
-            { type: "text", text: "もっと条件に合う\n求人を探しませんか？", size: "md", weight: "bold", wrap: true, color: "#2f3b46" },
-            { type: "text", text: "・非公開の求人\n・病院との直接交渉が必要な求人\n・条件に合わせたオーダーメイド\n\nスタッフが個別にお探しします。", size: "xs", wrap: true, color: "#666666" },
+            { type: "text", text: "もっと条件に合う\n求人をお探ししませんか？", size: "md", weight: "bold", wrap: true, color: "#2f3b46" },
+            { type: "text", text: "・非公開の求人\n・病院との直接交渉が必要な求人\n・条件に合わせたオーダーメイド\n\nスタッフが個別にお探しいたします。", size: "xs", wrap: true, color: "#666666" },
           ]},
           footer: { type: "box", layout: "vertical", paddingAll: "12px", spacing: "sm", contents: [
             { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
@@ -6023,8 +6023,8 @@ async function buildPhaseMessage(phase, entry, env) {
         }));
 
         const headerText = expanded
-          ? `${areaLabel}エリアは本日の新着なし。直近1週間から${result.results.length}件👇`
-          : `${areaLabel}エリアの${rangeLabel} ${result.results.length}件👇`;
+          ? `${areaLabel}エリアは本日の新着求人がございませんでした。\n直近1週間の新着求人を${result.results.length}件お届けします👇`
+          : `${areaLabel}エリアの${rangeLabel}求人を${result.results.length}件お届けします👇`;
 
         // QR付きの末尾テキストはリッチメニューを隠すので削除
         // CTAバブル末尾で担当者相談導線は確保済み
@@ -6034,7 +6034,7 @@ async function buildPhaseMessage(phase, entry, env) {
         ];
       } catch (e) {
         console.error(`[RichMenu] new_jobs error: ${e.message}`);
-        return [{ type: "text", text: "求人の取得中にエラーが発生しました。もう一度お試しください。" }];
+        return [{ type: "text", text: "求人の取得中にエラーが発生いたしました。恐れ入りますが、もう一度お試しください。" }];
       }
     }
 
@@ -10450,10 +10450,10 @@ async function handleScheduledNewJobsNotify(env, opts) {
         bubbles.push({
           type: "bubble", size: "kilo",
           header: { type: "box", layout: "vertical", paddingAll: "12px", backgroundColor: "#2f3b46",
-            contents: [{ type: "text", text: "ここに出るのは一部", size: "xs", weight: "bold", color: "#FFFFFF" }] },
+            contents: [{ type: "text", text: "表示しているのは一部です", size: "xs", weight: "bold", color: "#FFFFFF" }] },
           body: { type: "box", layout: "vertical", paddingAll: "16px", spacing: "md", contents: [
-            { type: "text", text: "非公開求人もあります", size: "md", weight: "bold", wrap: true, color: "#2f3b46" },
-            { type: "text", text: "条件に合わせてスタッフが個別にお探しします。", size: "xs", wrap: true, color: "#666666" },
+            { type: "text", text: "非公開求人もございます", size: "md", weight: "bold", wrap: true, color: "#2f3b46" },
+            { type: "text", text: "条件に合わせてスタッフが個別にお探しいたします。", size: "xs", wrap: true, color: "#666666" },
           ]},
           footer: { type: "box", layout: "vertical", paddingAll: "12px", spacing: "sm", contents: [
             { type: "button", style: "primary", height: "sm", color: BRAND_COLOR,
@@ -10463,8 +10463,8 @@ async function handleScheduledNewJobsNotify(env, opts) {
 
         // T3: 会員向けはパーソナライズされたヘッダーテキスト
         const headerText = isActiveMember
-          ? `🎯 あなたの希望条件にマッチした新着求人 ${result.results.length}件👇`
-          : `${areaLabel}エリアの新着求人 ${result.results.length}件👇`;
+          ? `🎯 あなたのご希望条件にマッチした新着求人を${result.results.length}件お届けします👇`
+          : `${areaLabel}エリアの新着求人を${result.results.length}件お届けします👇`;
 
         // QR付きテキストを最後に置くとリッチメニューが隠れるので削除
         // CTAバブルの「担当者に相談する」で十分。他操作はリッチメニューから。
