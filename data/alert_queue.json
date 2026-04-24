@@ -34,5 +34,14 @@
     "enqueued_at": "2026-04-23T12:13:14",
     "retries": 0,
     "last_error": "bot_exception_ProxyError"
+  },
+  {
+    "channel": "C09A7U4TV4G",
+    "text": "📸 *Instagram自動投稿タスク — 実行結果*\n\n*結果: readyコンテンツなし（platformフィルター基準）*\n\n• posting_queue.json 確認完了\n• 総投稿数: 170件\n• status=ready: 40件\n• status=ready かつ platform=instagram: *0件*\n\n⚠️ *データ構造の不整合を検知*\nready状態の40件はすべてカルーセル形式（8枚PNGスライド）で、scheduled_for も Instagram スロット（17:30/21:00/12:00）に合致しているが、*platform フィールドが未設定*（None）のためタスク仕様フィルターに合致せず。\n\n*推定原因:* コンテンツ生成系が platform=\"instagram\" を書き込んでいない。\n\n*推奨対応（社長確認が必要）:*\n1. posting_queue.json の ready 40件に platform=\"instagram\" を付与\n2. または生成スクリプトを修正して今後 platform を書き込ませる\n\n本日の自動投稿はスキップしました（仕様厳守 + SNS公開投稿は明示承認が必要なため）。",
+    "blocks": null,
+    "thread_ts": null,
+    "enqueued_at": "2026-04-24T12:11:32",
+    "retries": 0,
+    "last_error": "bot_exception_ProxyError"
   }
 ]
