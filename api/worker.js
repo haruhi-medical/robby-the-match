@@ -4085,6 +4085,22 @@ function buildIntakeQualQuestion() {
       altText: "💼 保有資格を教えてください（下のボタンから選択）",
       contents: {
         type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          paddingAll: "16px",
+          backgroundColor: "#E8756D",
+          contents: [
+            {
+              type: "text",
+              text: "💼 保有資格を教えてください",
+              weight: "bold",
+              size: "lg",
+              color: "#FFFFFF",
+              wrap: true,
+            },
+          ],
+        },
         body: {
           type: "box",
           layout: "vertical",
@@ -4093,20 +4109,10 @@ function buildIntakeQualQuestion() {
           contents: [
             {
               type: "text",
-              text: "💼 保有資格を教えてください",
-              weight: "bold",
-              size: "lg",
-              color: "#1A6B8A",
-              wrap: true,
-            },
-            {
-              type: "text",
               text: "👇 下のボタンから選んでタップ",
               size: "xs",
               color: "#6B7280",
-              margin: "xs",
             },
-            { type: "separator", margin: "md" },
             {
               type: "box",
               layout: "vertical",
@@ -4115,7 +4121,7 @@ function buildIntakeQualQuestion() {
               contents: qualOptions.map((opt) => ({
                 type: "button",
                 style: "primary",
-                color: "#2D9F6F",
+                color: "#E8756D",
                 height: "sm",
                 action: {
                   type: "postback",
