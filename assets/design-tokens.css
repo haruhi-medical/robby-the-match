@@ -640,10 +640,10 @@ tbody tr:hover {
 /* ---- Nurse Robby FAB Card (image version, 2026-04-24) ---- */
 .nr-fab-wrap {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 24px;
+  right: 24px;
   z-index: 999;
-  width: 320px;
+  width: 400px;
   opacity: 0;
   transform: translateY(20px);
   animation: nr-fab-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
