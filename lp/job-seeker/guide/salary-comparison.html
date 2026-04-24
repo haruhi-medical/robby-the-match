@@ -1538,61 +1538,16 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
 <p class="footer-copy">&copy; 2026 ナースロビー All Rights Reserved.</p>
 </footer>
 
-<!-- Nurse Robby FAB Card (image v2, 2026-04-24) -->
-<style>
-.nr-fab-wrap {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 999;
-  width: 320px;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: nr-fab-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
-}
-@keyframes nr-fab-enter { to { opacity: 1; transform: translateY(0); } }
-.nr-fab-link {
-  display: block;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.nr-fab-link:hover { transform: translateY(-2px); box-shadow: 0 26px 56px -10px rgba(0,0,0,0.38), 0 6px 18px rgba(0,0,0,0.12); }
-.nr-fab-link img { display: block; width: 100%; height: auto; }
-.nr-fab-close {
-  position: absolute;
-  top: 8px; right: 8px;
-  width: 26px; height: 26px;
-  background: rgba(0,0,0,0.55);
-  color: #fff;
-  border: none; border-radius: 50%;
-  padding: 0; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 2;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-  transition: background 0.2s;
-}
-.nr-fab-close:hover { background: rgba(0,0,0,0.8); }
-.nr-fab-close svg { width: 10px; height: 10px; }
-@media (max-width: 767px) {
-  .nr-fab-wrap {
-    right: 12px; bottom: 12px;
-    width: calc(100vw - 24px); max-width: 320px;
-  }
-  .nr-fab-link { border-radius: 12px; }
-  .nr-fab-close { width: 24px; height: 24px; top: 6px; right: 6px; }
-}
-</style>
-<div class="nr-fab-wrap" id="nr-fab-card" role="complementary" aria-label="LINE登録の案内">
+<!-- Nurse Robby FAB Card (image, shared) -->
+<div class="nr-fab-wrap" id="mobile-sticky-cta" role="complementary" aria-label="LINE登録の案内">
 <a href="https://line.me/R/ti/p/@174cxnev" target="_blank" rel="noopener" class="nr-fab-link">
-<img src="/assets/fab-card-v1.png" alt="LINEでAI転職始める。AI求人検索・AI履歴書作成・LINEでやりとり完結。無料・営業電話なし。" width="320" height="211" loading="lazy">
+<img src="/assets/fab-card-v1.png" alt="忙しい看護師さんこそAIで効率化。LINEでAI転職始める。無料・営業電話なし。" width="320" height="211" loading="lazy">
 </a>
 <button class="nr-fab-close" type="button" aria-label="閉じる">
 <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l12 12M13 1L1 13"/></svg>
 </button>
 </div>
+<script defer src="/assets/nr-fab.js"></script>
 <script defer="" src="../../../chat.js"></script>
 <script defer="" src="/track.js"></script>
 <script>
@@ -1604,15 +1559,6 @@ ul.point-list li strong { color: var(--ink); font-weight: 600; }
     }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    var card = document.getElementById('nr-fab-card');
-    if (card) {
-        try { if (sessionStorage.getItem('nrFabDismissed')) card.style.display = 'none'; } catch(e) {}
-        var closeBtn = card.querySelector('.nr-fab-close');
-        if (closeBtn) closeBtn.addEventListener('click', function(){
-            card.style.display = 'none';
-            try { sessionStorage.setItem('nrFabDismissed', '1'); } catch(e) {}
-        });
-    }
 })();
 </script>
 </body>

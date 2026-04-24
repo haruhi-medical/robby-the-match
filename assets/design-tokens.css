@@ -637,6 +637,55 @@ tbody tr:hover {
   }
 }
 
+/* ---- Nurse Robby FAB Card (image version, 2026-04-24) ---- */
+.nr-fab-wrap {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  width: 320px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: nr-fab-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
+}
+@keyframes nr-fab-enter { to { opacity: 1; transform: translateY(0); } }
+.nr-fab-link {
+  display: block;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.nr-fab-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 26px 56px -10px rgba(0,0,0,0.38), 0 6px 18px rgba(0,0,0,0.12);
+}
+.nr-fab-link img { display: block; width: 100%; height: auto; }
+.nr-fab-close {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 26px; height: 26px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: none; border-radius: 50%;
+  padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+}
+.nr-fab-close:hover { background: rgba(0,0,0,0.8); }
+.nr-fab-close svg { width: 10px; height: 10px; }
+@media (max-width: 767px) {
+  .nr-fab-wrap {
+    right: 12px; bottom: 12px;
+    width: calc(100vw - 24px); max-width: 320px;
+  }
+  .nr-fab-link { border-radius: 12px; }
+  .nr-fab-close { width: 24px; height: 24px; top: 6px; right: 6px; }
+}
+
 /* ---- Header Responsive ---- */
 @media (max-width: 767px) {
   .header-nav { display: none; }
