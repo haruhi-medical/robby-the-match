@@ -171,7 +171,7 @@ body {
 </div>
 
 <!-- QRコード (PC向け) + LIFF SDK -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.24.0/sdk.js"></script>
 <script>
 (function() {
@@ -222,16 +222,24 @@ body {
     var qrContainer = document.getElementById('qrcode-container');
     var pcDirectLink = document.getElementById('pc-direct-link');
     if (pcDirectLink) pcDirectLink.href = lineStartUrl;
-    if (window.QRCode && qrContainer) {
-      QRCode.toCanvas(lineStartUrl, { width: 220, margin: 2, color: { dark: '#1a7f64', light: '#ffffff' } }, function(err, canvas) {
-        if (err) {
-          qrContainer.innerHTML = '<p style="color:#d32f2f;">QR生成エラー</p>';
-        } else {
-          qrContainer.appendChild(canvas);
-        }
-      });
+    if (window.QRious && qrContainer) {
+      try {
+        var qrCanvas = document.createElement('canvas');
+        qrContainer.appendChild(qrCanvas);
+        new QRious({
+          element: qrCanvas,
+          value: lineStartUrl,
+          size: 220,
+          padding: 8,
+          background: '#ffffff',
+          foreground: '#1a7f64',
+          level: 'M'
+        });
+      } catch (e) {
+        qrContainer.innerHTML = '<p style="color:#d32f2f;">QR生成エラー</p>';
+      }
     } else {
-      qrContainer.innerHTML = '<p>QRライブラリ読込失敗</p>';
+      qrContainer.innerHTML = '<p style="color:#d32f2f;">QRライブラリ読込失敗</p><p style="font-size:0.82rem;color:#6B7280;margin-top:8px;">下のリンクからLINEを開いてください</p>';
     }
     showState(statePcQr);
     return;
