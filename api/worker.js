@@ -4055,11 +4055,11 @@ function buildIntakeHumanWelcome() {
       type: "text",
       text: "✨ ご登録いただきありがとうございます\n\n担当者よりお話を伺います。採用に特化したAIを活用し、スピーディーな転職サポートをいたします。\n\nあなたの魅力が伝わる履歴書・職務経歴書も、最後まで丁寧にサポートいたします 📝",
     },
-    buildIntakeQualQuestion()[0],
+    ...buildIntakeQualQuestion(),
   ];
 }
 
-// 保有資格質問（Quick Reply）— 1問目
+// 保有資格質問（Flex Message・インラインボタン）— 1問目
 const INTAKE_QUAL_LABELS = {
   "rn": "正看護師",
   "lpn": "准看護師",
@@ -4068,19 +4068,68 @@ const INTAKE_QUAL_LABELS = {
   "other": "その他",
 };
 function buildIntakeQualQuestion() {
-  return [{
-    type: "text",
-    text: "お手数ですが、3点ご回答ください ✍️\n\n💼 保有資格を教えてください",
-    quickReply: {
-      items: [
-        qrItem("正看護師", "intake=qual&v=rn"),
-        qrItem("准看護師", "intake=qual&v=lpn"),
-        qrItem("保健師", "intake=qual&v=phn"),
-        qrItem("助産師", "intake=qual&v=midwife"),
-        qrItem("その他", "intake=qual&v=other"),
-      ],
+  const qualOptions = [
+    { label: "正看護師", value: "rn" },
+    { label: "准看護師", value: "lpn" },
+    { label: "保健師", value: "phn" },
+    { label: "助産師", value: "midwife" },
+    { label: "その他", value: "other" },
+  ];
+  return [
+    {
+      type: "text",
+      text: "お手数ですが、3点ご回答ください ✍️",
     },
-  }];
+    {
+      type: "flex",
+      altText: "💼 保有資格を教えてください（下のボタンから選択）",
+      contents: {
+        type: "bubble",
+        body: {
+          type: "box",
+          layout: "vertical",
+          spacing: "md",
+          paddingAll: "20px",
+          contents: [
+            {
+              type: "text",
+              text: "💼 保有資格を教えてください",
+              weight: "bold",
+              size: "lg",
+              color: "#1A6B8A",
+              wrap: true,
+            },
+            {
+              type: "text",
+              text: "👇 下のボタンから選んでタップ",
+              size: "xs",
+              color: "#888888",
+              margin: "xs",
+            },
+            { type: "separator", margin: "md" },
+            {
+              type: "box",
+              layout: "vertical",
+              spacing: "sm",
+              margin: "md",
+              contents: qualOptions.map((opt) => ({
+                type: "button",
+                style: "primary",
+                color: "#1A6B8A",
+                height: "sm",
+                action: {
+                  type: "postback",
+                  label: opt.label,
+                  data: `intake=qual&v=${opt.value}`,
+                  displayText: opt.label,
+                },
+              })),
+            },
+          ],
+        },
+      },
+    },
+  ];
 }
 
 // 年代質問（Quick Reply）— 2問目
