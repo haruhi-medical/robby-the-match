@@ -212,19 +212,21 @@ body {
 
   // PC/デスクトップの場合はQRコードを出して終了（LIFF login誘導を避ける）
   if (!isMobileDevice()) {
-    // QRはLIFF直接URL（https://liff.line.me/{LIFF_ID}?...）を指定する。
-    // スマホでスキャン→LINEアプリが直接LIFFを起動→モバイル分岐のLIFF SDKで
-    // link-session POSTが走り liff:{userId} にsession+answersがKV保存される。
-    // 友だち追加後の follow webhook で liff:{userId} を拾い、マッチング表示に直行。
-    // 旧方式（/api/line-start + dm_text）は dm_text の自動送信が不安定でanswersが欠落していた。
+    // QRはこのページ自体（liff.html）のURLを埋める。スマホでスキャン→スマホ側で
+    // liff.html を直接開く→モバイル分岐のLIFF SDKで link-session POSTが走り
+    // liff:{userId} に session+answers が KV 保存 → follow webhook で拾われ
+    // マッチング直行。これはスマホ直LPフロー（動作実績あり）と完全同一経路。
+    // 旧方式1（/api/line-start + dm_text）: dm_text自動送信が端末差で不安定
+    // 旧方式2（liff.line.me 直URL）: 外部ブラウザからの LIFF 起動は
+    //   「ログインできませんでした」エラーを招くことがある。
     var qrParams = 'source=' + encodeURIComponent(params.get('source') || 'shindan')
       + '&intent=' + encodeURIComponent(params.get('intent') || 'diagnose')
       + '&session_id=' + encodeURIComponent(sessionId || ('pc_' + Date.now()))
       + '&area=' + encodeURIComponent(params.get('area') || '')
       + '&answers=' + encodeURIComponent(params.get('answers') || '');
-    var liffQrUrl = LIFF_ID
-      ? ('https://liff.line.me/' + LIFF_ID + '?' + qrParams)
-      : (API_BASE + '/api/line-start?' + qrParams);
+    // このページ自体のURLをQRに（スマホで開けばモバイル分岐が走る）
+    var pageOrigin = window.location.origin + window.location.pathname;
+    var qrTargetUrl = pageOrigin + '?' + qrParams;
     // フォールバック直リンクは /api/line-start（LIFFを開けない環境向け）
     var fallbackLineStartUrl = API_BASE + '/api/line-start?' + qrParams;
 
@@ -237,7 +239,7 @@ body {
         qrContainer.appendChild(qrCanvas);
         new QRious({
           element: qrCanvas,
-          value: liffQrUrl,
+          value: qrTargetUrl,
           size: 220,
           padding: 8,
           background: '#ffffff',
