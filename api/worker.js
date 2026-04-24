@@ -4103,7 +4103,7 @@ function buildIntakeQualQuestion() {
               type: "text",
               text: "👇 下のボタンから選んでタップ",
               size: "xs",
-              color: "#888888",
+              color: "#6B7280",
               margin: "xs",
             },
             { type: "separator", margin: "md" },
@@ -4115,7 +4115,7 @@ function buildIntakeQualQuestion() {
               contents: qualOptions.map((opt) => ({
                 type: "button",
                 style: "primary",
-                color: "#1A6B8A",
+                color: "#2D9F6F",
                 height: "sm",
                 action: {
                   type: "postback",
