@@ -559,39 +559,82 @@ tbody tr:hover {
   margin-top: 6px;
 }
 
-/* ---- Mobile Sticky CTA ---- */
+/* ---- Floating LINE CTA (右下FAB — PC/モバイル共通, 2026-04-24) ---- */
 .mobile-sticky-cta {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 20px;
+  right: 20px;
+  left: auto;
   z-index: 999;
-  background: rgba(255, 255, 255, 0.92);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  padding: 12px 20px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid rgba(26, 157, 224, 0.10);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-  transform: translateY(100%);
-  transition: transform 0.4s var(--ease-out);
-  display: none;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: none;
+  box-shadow: none;
+  transform: translateY(0);
+  opacity: 0;
+  animation: line-fab-enter 0.5s var(--ease-out) 0.8s forwards;
+  display: block;
+  pointer-events: auto;
 }
 
-.mobile-sticky-cta.visible { transform: translateY(0); }
+@keyframes line-fab-enter {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mobile-sticky-cta.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 .mobile-sticky-cta a {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   text-align: center;
   background: linear-gradient(135deg, #06C755 0%, #05b34c 100%);
   color: #fff;
   font-weight: 700;
-  font-size: 1rem;
-  padding: 14px 20px;
+  font-size: 0.95rem;
+  padding: 14px 22px;
   border-radius: var(--radius-full);
   text-decoration: none;
-  letter-spacing: 0.03em;
-  box-shadow: 0 4px 16px var(--line-glow);
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 20px rgba(6, 199, 85, 0.35), 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.mobile-sticky-cta a::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><path d='M19.365 9.863c.349 0 .63.285.63.635 0 .351-.281.637-.63.637H17.61v1.125h1.755c.349 0 .63.283.63.635 0 .351-.281.638-.63.638h-2.39c-.344 0-.625-.287-.625-.638v-4.77c0-.35.281-.637.625-.637h2.39c.349 0 .63.287.63.637 0 .351-.281.638-.63.638H17.61v1.125h1.755zm-3.855 3.016c0 .275-.176.515-.44.6-.065.022-.135.031-.204.031-.209 0-.4-.09-.52-.25l-2.451-3.338v2.96c0 .351-.279.638-.625.638-.347 0-.625-.287-.625-.638V8.115c0-.272.174-.512.437-.6.066-.019.136-.031.206-.031.194 0 .394.095.515.245l2.466 3.351V8.115c0-.35.279-.637.625-.637.346 0 .625.287.625.637v4.764zm-6.095 0c0 .351-.279.638-.625.638-.346 0-.624-.287-.624-.638V8.115c0-.35.278-.637.624-.637.346 0 .625.287.625.637v4.764zm-2.443.638H4.589c-.347 0-.625-.287-.625-.638V8.115c0-.35.278-.637.625-.637.346 0 .624.287.624.637v4.13h1.759c.349 0 .633.285.633.636 0 .353-.284.636-.633.636M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314'/></svg>") center/contain no-repeat;
+  flex-shrink: 0;
+}
+
+.mobile-sticky-cta a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(6, 199, 85, 0.45), 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 767px) {
+  .mobile-sticky-cta {
+    bottom: 16px;
+    right: 12px;
+  }
+  .mobile-sticky-cta a {
+    padding: 12px 18px;
+    font-size: 0.88rem;
+  }
+  .mobile-sticky-cta a::before {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 /* ---- Header Responsive ---- */
