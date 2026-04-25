@@ -36,7 +36,17 @@ D1_DB_NAME = "nurse-robby-db"
 # 関東4都県（東京/神奈川/千葉/埼玉）のみ対象。
 # 派遣求人除外ルールは hellowork_rank.py 側で処理済み。
 
-PREFECTURES = ("東京都", "神奈川県", "千葉県", "埼玉県")
+PREFECTURES_KANTO = ("東京都", "神奈川県", "千葉県", "埼玉県")
+PREFECTURES = (
+    "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+    "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+    "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県",
+    "岐阜県", "静岡県", "愛知県", "三重県",
+    "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+    "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+    "徳島県", "香川県", "愛媛県", "高知県",
+    "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
+)
 
 # 市区町村名 → 都道府県マップ
 # 注意: 曖昧性回避のため、他県と同名の市区町村は除外（例: 府中市は東京都/広島県に存在）
@@ -232,25 +242,30 @@ def resolve_area(loc: str, pref: str, current_area: str) -> str:
     return area
 
 
-def resolve_prefecture(loc: str, area: str) -> str:
-    """都道府県を3段階で解決する。
+def resolve_prefecture(loc: str, area: str, source_prefecture: str = "") -> str:
+    """都道府県を4段階で解決する。
 
     Args:
         loc: 住所文字列（work_location / work_address / employer_address）
         area: ハローワークのエリア値（例: "横浜", "23区"）
+        source_prefecture: ハローワークAPIのDATA_ID由来の都道府県名（最優先・全47対応）
 
     Returns:
         都道府県名（"神奈川県"等）。解決できない場合は空文字。
     """
+    # (0) source_prefecture が指定されていれば最優先（hellowork API由来、全47都道府県対応）
+    if source_prefecture and source_prefecture.strip():
+        return source_prefecture.strip()
+
     loc = (loc or "").strip()
     area = (area or "").strip()
 
-    # (1) 住所文字列に都道府県名が直接含まれる
+    # (1) 住所文字列に都道府県名が直接含まれる（全47都道府県対応）
     for p in PREFECTURES:
         if p in loc:
             return p
 
-    # (2) 住所文字列に市区町村名が含まれる → 逆引き
+    # (2) 住所文字列に市区町村名が含まれる → 逆引き（関東4都県のみカバー）
     if loc:
         # 23区チェック（locに都道府県がない場合でも「○○区」で判定）
         for ward in TOKYO_23_WARDS:
@@ -421,7 +436,7 @@ def build_sql(jobs):
             loc = (j.get("employer_address") or "").strip()
 
         # 都道府県を3段階で解決（loc直接抽出 → 市区町村逆引き → area逆引き）
-        pref = resolve_prefecture(loc, j.get("area", ""))
+        pref = resolve_prefecture(loc, j.get("area", ""), j.get("source_prefecture", ""))
 
         # #22 area 空欄救済: 市区町村逆引きで area を補完（既にある場合は保持）
         resolved_area = resolve_area(loc, pref, j.get("area", ""))
@@ -565,7 +580,7 @@ def print_prefecture_stats(jobs):
             loc = (j.get("work_address") or "").strip()
         if not loc:
             loc = (j.get("employer_address") or "").strip()
-        pref = resolve_prefecture(loc, j.get("area", ""))
+        pref = resolve_prefecture(loc, j.get("area", ""), j.get("source_prefecture", ""))
         if pref:
             filled += 1
             pref_counts[pref] = pref_counts.get(pref, 0) + 1
