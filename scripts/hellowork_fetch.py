@@ -31,13 +31,32 @@ RAW_DIR = DATA_DIR / "hellowork_raw"
 # API設定
 API_BASE = "https://teikyo.hellowork.mhlw.go.jp/teikyo/api/2.0"
 DATA_ID = "M114"  # デフォルト: 神奈川県
-# 4県対応
-DATA_IDS = {
+# 4県（関東主力）
+DATA_IDS_KANTO = {
     "M113": "東京都",
     "M114": "神奈川県",
     "M111": "埼玉県",
     "M112": "千葉県",
 }
+# 全47都道府県（民間職業紹介事業者用 M1XX、XX=JIS都道府県コード01-47）
+DATA_IDS_ALL = {
+    "M101": "北海道", "M102": "青森県", "M103": "岩手県", "M104": "宮城県",
+    "M105": "秋田県", "M106": "山形県", "M107": "福島県",
+    "M108": "茨城県", "M109": "栃木県", "M110": "群馬県",
+    "M111": "埼玉県", "M112": "千葉県", "M113": "東京都", "M114": "神奈川県",
+    "M115": "新潟県", "M116": "富山県", "M117": "石川県", "M118": "福井県",
+    "M119": "山梨県", "M120": "長野県",
+    "M121": "岐阜県", "M122": "静岡県", "M123": "愛知県", "M124": "三重県",
+    "M125": "滋賀県", "M126": "京都府", "M127": "大阪府", "M128": "兵庫県",
+    "M129": "奈良県", "M130": "和歌山県",
+    "M131": "鳥取県", "M132": "島根県", "M133": "岡山県", "M134": "広島県",
+    "M135": "山口県",
+    "M136": "徳島県", "M137": "香川県", "M138": "愛媛県", "M139": "高知県",
+    "M140": "福岡県", "M141": "佐賀県", "M142": "長崎県", "M143": "熊本県",
+    "M144": "大分県", "M145": "宮崎県", "M146": "鹿児島県", "M147": "沖縄県",
+}
+# 後方互換: 既存スクリプトはDATA_IDSを参照
+DATA_IDS = DATA_IDS_ALL
 
 # 看護師フィルタキーワード
 NURSE_KEYWORDS = ["看護", "ナース", "准看護", "訪問看護", "保健師", "助産師"]
@@ -322,8 +341,10 @@ def main():
     parser.add_argument("--test", action="store_true", help="1ページだけテスト取得")
     parser.add_argument("--stats", action="store_true", help="保存済みデータの統計表示")
     parser.add_argument("--save-raw", action="store_true", help="生XMLも保存")
-    parser.add_argument("--all-prefectures", action="store_true", help="4県全てを取得（東京/神奈川/埼玉/千葉）")
-    parser.add_argument("--data-id", type=str, default=None, help="特定のDATA_IDを指定（例: M113）")
+    parser.add_argument("--all-prefectures", action="store_true", help="関東4県を取得（東京/神奈川/埼玉/千葉）")
+    parser.add_argument("--all-japan", action="store_true", help="全国47都道府県を取得")
+    parser.add_argument("--data-id", type=str, default=None, help="特定のDATA_IDを指定（例: M127=大阪府）")
+    parser.add_argument("--start-from", type=str, default=None, help="特定のDATA_IDから再開（中断時の続きを取得）")
     args = parser.parse_args()
 
     if args.stats:
@@ -346,12 +367,20 @@ def main():
 
     try:
         # 取得対象DATA_ID決定
-        if args.all_prefectures:
-            target_ids = list(DATA_IDS.keys())
+        if args.all_japan:
+            target_ids = list(DATA_IDS_ALL.keys())
+        elif args.all_prefectures:
+            target_ids = list(DATA_IDS_KANTO.keys())
         elif args.data_id:
             target_ids = [args.data_id]
         else:
             target_ids = [DATA_ID]  # デフォルト: M114（神奈川のみ）
+
+        # --start-from指定時、それ以前をスキップ
+        if args.start_from and args.start_from in target_ids:
+            idx = target_ids.index(args.start_from)
+            target_ids = target_ids[idx:]
+            print(f"📍 {args.start_from} から再開（{len(target_ids)}県）")
 
         all_nurse_jobs_combined = []
 
@@ -397,6 +426,9 @@ def main():
                 for rec in records:
                     if is_nurse_job(rec):
                         job = parse_job(rec)
+                        # 都道府県情報を付与（D1投入時のフィルタ用）
+                        job["source_prefecture"] = pref_name
+                        job["source_data_id"] = current_data_id
                         all_nurse_jobs.append(job)
                         nurse_count += 1
 
@@ -416,6 +448,21 @@ def main():
 
             print(f"   {pref_name}: 看護師{len(all_nurse_jobs)}件取得")
             all_nurse_jobs_combined.extend(all_nurse_jobs)
+
+            # 都道府県別の中間保存（中断時の再開用）
+            pref_dir = DATA_DIR / "hellowork_by_pref"
+            pref_dir.mkdir(parents=True, exist_ok=True)
+            pref_file = pref_dir / f"{current_data_id}_{pref_name}.json"
+            with open(pref_file, "w", encoding="utf-8") as pf:
+                json.dump({
+                    "data_id": current_data_id,
+                    "prefecture": pref_name,
+                    "fetched_at": datetime.now().isoformat(),
+                    "total_nurse": len(all_nurse_jobs),
+                    "jobs": all_nurse_jobs,
+                }, pf, ensure_ascii=False)
+            print(f"   💾 {pref_file.name} 保存完了")
+
             all_nurse_jobs = []  # 次の県用にリセット
 
         # JSON保存（全県統合）

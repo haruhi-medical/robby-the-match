@@ -876,6 +876,85 @@ function getAreaLabel(areaKey) {
   return AREA_LABEL_MAP[clean] || AREA_LABEL_MAP[areaKey] || "ご希望エリア";
 }
 
+// 全47都道府県（waitlistパース・全国対応に使用）
+// JISコード01-47に対応する都道府県名+別名
+const JAPAN_PREFECTURES = [
+  { code: "hokkaido",  label: "北海道",   aliases: ["北海道", "ほっかいどう", "ホッカイドウ", "Hokkaido"] },
+  { code: "aomori",    label: "青森県",   aliases: ["青森", "あおもり", "Aomori"] },
+  { code: "iwate",     label: "岩手県",   aliases: ["岩手", "いわて", "Iwate"] },
+  { code: "miyagi",    label: "宮城県",   aliases: ["宮城", "みやぎ", "Miyagi", "仙台"] },
+  { code: "akita",     label: "秋田県",   aliases: ["秋田", "あきた", "Akita"] },
+  { code: "yamagata",  label: "山形県",   aliases: ["山形", "やまがた", "Yamagata"] },
+  { code: "fukushima", label: "福島県",   aliases: ["福島", "ふくしま", "Fukushima"] },
+  { code: "ibaraki",   label: "茨城県",   aliases: ["茨城", "いばらき", "Ibaraki"] },
+  { code: "tochigi",   label: "栃木県",   aliases: ["栃木", "とちぎ", "Tochigi"] },
+  { code: "gunma",     label: "群馬県",   aliases: ["群馬", "ぐんま", "Gunma"] },
+  { code: "saitama",   label: "埼玉県",   aliases: ["埼玉", "さいたま", "Saitama"] },
+  { code: "chiba",     label: "千葉県",   aliases: ["千葉", "ちば", "Chiba"] },
+  { code: "tokyo",     label: "東京都",   aliases: ["東京", "とうきょう", "Tokyo"] },
+  { code: "kanagawa",  label: "神奈川県", aliases: ["神奈川", "かながわ", "Kanagawa", "横浜", "川崎"] },
+  { code: "niigata",   label: "新潟県",   aliases: ["新潟", "にいがた", "Niigata"] },
+  { code: "toyama",    label: "富山県",   aliases: ["富山", "とやま", "Toyama"] },
+  { code: "ishikawa",  label: "石川県",   aliases: ["石川", "いしかわ", "Ishikawa", "金沢"] },
+  { code: "fukui",     label: "福井県",   aliases: ["福井", "ふくい", "Fukui"] },
+  { code: "yamanashi", label: "山梨県",   aliases: ["山梨", "やまなし", "Yamanashi"] },
+  { code: "nagano",    label: "長野県",   aliases: ["長野", "ながの", "Nagano"] },
+  { code: "gifu",      label: "岐阜県",   aliases: ["岐阜", "ぎふ", "Gifu"] },
+  { code: "shizuoka",  label: "静岡県",   aliases: ["静岡", "しずおか", "Shizuoka"] },
+  { code: "aichi",     label: "愛知県",   aliases: ["愛知", "あいち", "Aichi", "名古屋"] },
+  { code: "mie",       label: "三重県",   aliases: ["三重", "みえ", "Mie"] },
+  { code: "shiga",     label: "滋賀県",   aliases: ["滋賀", "しが", "Shiga"] },
+  { code: "kyoto",     label: "京都府",   aliases: ["京都", "きょうと", "Kyoto"] },
+  { code: "osaka",     label: "大阪府",   aliases: ["大阪", "おおさか", "Osaka"] },
+  { code: "hyogo",     label: "兵庫県",   aliases: ["兵庫", "ひょうご", "Hyogo", "神戸"] },
+  { code: "nara",      label: "奈良県",   aliases: ["奈良", "なら", "Nara"] },
+  { code: "wakayama",  label: "和歌山県", aliases: ["和歌山", "わかやま", "Wakayama"] },
+  { code: "tottori",   label: "鳥取県",   aliases: ["鳥取", "とっとり", "Tottori"] },
+  { code: "shimane",   label: "島根県",   aliases: ["島根", "しまね", "Shimane"] },
+  { code: "okayama",   label: "岡山県",   aliases: ["岡山", "おかやま", "Okayama"] },
+  { code: "hiroshima", label: "広島県",   aliases: ["広島", "ひろしま", "Hiroshima"] },
+  { code: "yamaguchi", label: "山口県",   aliases: ["山口", "やまぐち", "Yamaguchi"] },
+  { code: "tokushima", label: "徳島県",   aliases: ["徳島", "とくしま", "Tokushima"] },
+  { code: "kagawa",    label: "香川県",   aliases: ["香川", "かがわ", "Kagawa", "高松"] },
+  { code: "ehime",     label: "愛媛県",   aliases: ["愛媛", "えひめ", "Ehime", "松山"] },
+  { code: "kochi",     label: "高知県",   aliases: ["高知", "こうち", "Kochi"] },
+  { code: "fukuoka",   label: "福岡県",   aliases: ["福岡", "ふくおか", "Fukuoka", "博多"] },
+  { code: "saga",      label: "佐賀県",   aliases: ["佐賀", "さが", "Saga"] },
+  { code: "nagasaki",  label: "長崎県",   aliases: ["長崎", "ながさき", "Nagasaki"] },
+  { code: "kumamoto",  label: "熊本県",   aliases: ["熊本", "くまもと", "Kumamoto"] },
+  { code: "oita",      label: "大分県",   aliases: ["大分", "おおいた", "Oita"] },
+  { code: "miyazaki",  label: "宮崎県",   aliases: ["宮崎", "みやざき", "Miyazaki"] },
+  { code: "kagoshima", label: "鹿児島県", aliases: ["鹿児島", "かごしま", "Kagoshima"] },
+  { code: "okinawa",   label: "沖縄県",   aliases: ["沖縄", "おきなわ", "Okinawa", "那覇"] },
+];
+const PREFECTURE_FULL_NAME = JAPAN_PREFECTURES.reduce((acc, p) => { acc[p.code] = p.label; return acc; }, {});
+
+// 都道府県テキスト → {code, label} (waitlistなどでユーザーの自由記述から判定)
+function parseWaitlistPrefecture(text) {
+  if (!text || typeof text !== 'string') return null;
+  const t = text.trim();
+  // 完全一致 or 別名一致
+  for (const pref of JAPAN_PREFECTURES) {
+    if (pref.aliases.some(a => t === a || t.includes(a))) {
+      return { code: pref.code, label: pref.label };
+    }
+  }
+  return null;
+}
+
+// 地方ブロック（関東4都県以外を地方別にグルーピング）
+const JAPAN_REGIONS = {
+  hokkaido_tohoku: { label: "北海道・東北", prefs: ["hokkaido","aomori","iwate","miyagi","akita","yamagata","fukushima"] },
+  kanto_other:     { label: "関東（茨城・栃木・群馬）", prefs: ["ibaraki","tochigi","gunma"] },
+  chubu:           { label: "中部", prefs: ["niigata","toyama","ishikawa","fukui","yamanashi","nagano","gifu","shizuoka","aichi","mie"] },
+  kansai:          { label: "近畿（関西）", prefs: ["shiga","kyoto","osaka","hyogo","nara","wakayama"] },
+  chugoku_shikoku: { label: "中国・四国", prefs: ["tottori","shimane","okayama","hiroshima","yamaguchi","tokushima","kagawa","ehime","kochi"] },
+  kyushu_okinawa:  { label: "九州・沖縄", prefs: ["fukuoka","saga","nagasaki","kumamoto","oita","miyazaki","kagoshima","okinawa"] },
+};
+function getPrefLabel(code) {
+  return PREFECTURE_FULL_NAME[code] || code;
+}
+
 const AREA_CITY_MAP = {
   yokohama_kawasaki: ['横浜市', '川崎市'],
   shonan_kamakura: ['藤沢市', '茅ヶ崎市', '鎌倉市', '逗子市', '葉山町', '寒川町'],
@@ -926,11 +1005,16 @@ async function countCandidatesD1(entry, env) {
           sql += ` AND (${cities.map(() => 'address LIKE ?').join(' OR ')})`;
           cities.forEach(c => params.push(`%${c}%`));
         } else {
-          // 市区町村リストが空 → prefecture直接指定（千葉全域/埼玉全域/東京全域/神奈川全域）
+          // 市区町村リストが空 → prefecture直接指定（{pref}_all で全都道府県対応）
+          // 関東4都県は旧キー（tokyo_included/kanagawa_all/chiba_all/saitama_all）を維持
           const AREA_PREF_MAP = {
             chiba_all: '千葉県', saitama_all: '埼玉県',
             tokyo_included: '東京都', kanagawa_all: '神奈川県',
           };
+          // 全47都道府県の {prefcode}_all を自動展開
+          for (const [code, label] of Object.entries(PREFECTURE_FULL_NAME)) {
+            AREA_PREF_MAP[`${code}_all`] = label;
+          }
           if (AREA_PREF_MAP[areaKey]) {
             sql += ' AND prefecture = ?';
             params.push(AREA_PREF_MAP[areaKey]);
@@ -939,7 +1023,8 @@ async function countCandidatesD1(entry, env) {
       }
       // prefectureのみ指定（サブエリア未選択時）
       if (!areaKey && entry.prefecture) {
-        const PREF_NAME = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県' };
+        // 関東4都県の短縮形を維持しつつ、全47都道府県に対応
+        const PREF_NAME = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県', ...PREFECTURE_FULL_NAME };
         if (PREF_NAME[entry.prefecture]) {
           sql += ' AND prefecture = ?';
           params.push(PREF_NAME[entry.prefecture]);
@@ -1656,6 +1741,51 @@ export default {
     // LINE Webhook（ctxを渡してwaitUntilでバックグラウンド処理可能に）
     if (url.pathname === "/api/line-webhook" && request.method === "POST") {
       return handleLineWebhook(request, env, ctx);
+    }
+
+    // 管理用: waitlist (エリア外通知希望ユーザー) に都道府県別 Push 配信
+    // body: { secret, prefecture: "osaka" | "all", message?: string }
+    if (url.pathname === "/api/admin/trigger-waitlist-push" && request.method === "POST") {
+      try {
+        const body = await request.json().catch(() => ({}));
+        if (!body.secret || body.secret !== env.LINE_PUSH_SECRET) {
+          return jsonResponse({ error: "Unauthorized" }, 401);
+        }
+        const targetPref = (body.prefecture || "all").toLowerCase();
+        const message = body.message || "お知らせです！\nお住まいのエリアでナースロビーが対応開始しました🌸\nLINEでご相談を受け付けています。お気軽にメッセージください！";
+        ctx.waitUntil((async () => {
+          try {
+            const keys = await kvListAll(env.LINE_SESSIONS, "waitlist:");
+            console.log(`[WaitlistPush] target=${targetPref} subscribers=${keys.length}`);
+            let pushed = 0, skipped = 0, failed = 0;
+            for (const key of keys) {
+              try {
+                const raw = await env.LINE_SESSIONS.get(key.name, { cacheTtl: 60 });
+                if (!raw) continue;
+                const sub = JSON.parse(raw);
+                if (targetPref !== "all" && sub.prefecture !== targetPref) { skipped++; continue; }
+                const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}` },
+                  body: JSON.stringify({ to: sub.userId, messages: [{ type: "text", text: message }] }),
+                });
+                if (pushRes.ok) { pushed++; } else { failed++; }
+              } catch (e) { failed++; console.error(`[WaitlistPush] error: ${e.message}`); }
+            }
+            console.log(`[WaitlistPush] done: pushed=${pushed} skipped=${skipped} failed=${failed}`);
+            if (env.SLACK_BOT_TOKEN) {
+              await fetch("https://slack.com/api/chat.postMessage", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🌏 *waitlist Push 配信完了*\n対象都道府県: ${targetPref}\n送信: ${pushed} / スキップ: ${skipped} / 失敗: ${failed}` }),
+              }).catch(() => {});
+            }
+          } catch (e) { console.error(`[WaitlistPush] fatal: ${e.message}`); }
+        })());
+        return jsonResponse({ ok: true, message: `waitlist push triggered for prefecture=${targetPref}` });
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500);
+      }
     }
 
     // 管理用: 新着求人 Push 手動発火（全購読者に即時配信。cronを待たずテスト用）
@@ -4851,7 +4981,7 @@ async function buildPhaseMessage(phase, entry, env) {
       return [
         {
           type: "text",
-          text: `${totalCount.facilities.toLocaleString()}件の医療機関から、あなたにぴったりの職場を一緒に探します。\n\nタップで答えるだけ・4つの質問です（1〜2分）。`,
+          text: `全国${totalCount.facilities.toLocaleString()}件の医療機関から、あなたにぴったりの職場を一緒に探します🗾\n\nタップで答えるだけ・4つの質問です（1〜2分）。`,
         },
         buildChoiceFlexBubble(
           "📍 どのエリアで働きたいですか？",
@@ -4861,7 +4991,7 @@ async function buildPhaseMessage(phase, entry, env) {
             { label: "神奈川県", data: "il_pref=kanagawa" },
             { label: "千葉県", data: "il_pref=chiba" },
             { label: "埼玉県", data: "il_pref=saitama" },
-            { label: "その他の地域", data: "il_pref=other" },
+            { label: "他の都道府県（全国対応）", data: "il_pref=other" },
           ],
         ),
       ];
@@ -4937,21 +5067,18 @@ async function buildPhaseMessage(phase, entry, env) {
         ];
       }
 
-      // その他の地域 → エリア外対応（正直に伝える）
+      // その他の地域 → 全国対応のため il_region_select に進むため、ここには来ない
+      // 旧フローのフォールバック（古いセッション保護）
       if (entry.prefecture === 'other') {
         return [
           {
             type: "text",
-            text: "現在ナースロビーでは、東京・神奈川・千葉・埼玉の求人をご紹介しています。\n\nお住まいの地域は準備中です。",
+            text: "ご希望のエリアを選んでください。",
           },
           buildChoiceFlexBubble(
-            "🌸 どうしますか？",
+            "🗾 どの地方ですか？",
             "👇 下のボタンから選んでタップ",
-            [
-              { label: "関東の求人を見る", data: "il_other=see_kanto" },
-              { label: "エリア拡大時に通知", data: "il_other=notify_optin" },
-              { label: "スタッフに相談", data: "il_other=consult_staff" },
-            ],
+            Object.entries(JAPAN_REGIONS).map(([code, def]) => ({ label: def.label, data: `il_region=${code}` })),
           ),
         ];
       }
@@ -5505,11 +5632,50 @@ async function buildPhaseMessage(phase, entry, env) {
       }];
     }
 
+    // ===== 全国対応: 地方ブロック選択（その他選択後） =====
+    case "il_region_select":
+      return [
+        {
+          type: "text",
+          text: "全国対応中です🌸\nお住まいの地方を選んでください。",
+        },
+        buildChoiceFlexBubble(
+          "🗾 どの地方ですか？",
+          "👇 下のボタンから選んでタップ",
+          Object.entries(JAPAN_REGIONS).map(([code, def]) => ({ label: def.label, data: `il_region=${code}` })),
+        ),
+      ];
+
+    // ===== 全国対応: 都道府県選択（地方→都道府県の2段目） =====
+    case "il_pref_japan_select": {
+      const region = entry.waitlistRegion;
+      const def = JAPAN_REGIONS[region];
+      if (!def) {
+        return [{ type: "text", text: "申し訳ありません、地方の選択に問題が発生しました。もう一度お試しください。" }];
+      }
+      const opts = def.prefs.map(code => ({ label: getPrefLabel(code), data: `il_pref_japan=${code}` }));
+      return [
+        buildChoiceFlexBubble(
+          `📍 ${def.label}のどの都道府県？`,
+          "👇 下のボタンから選んでタップ",
+          opts,
+          [{ label: "← 地方を選び直す", data: "il_pref_japan=back_to_region" }],
+        ),
+      ];
+    }
+
     // ===== エリア外ユーザー: 拡大通知オプトイン =====
     case "area_notify_optin":
       return [{
         type: "text",
-        text: "ありがとうございます！\n対応エリアが拡大したらこのLINEでお知らせしますね。\n\nそれまでの間、転職に役立つ情報をお届けします。",
+        text: "ありがとうございます！\n対応エリアが拡大したらこのLINEでお知らせしますね。\n\nもしよければ、お住まいの都道府県を教えていただけると、対応開始時に最優先でお知らせできます（例: 大阪府）。\n\n返信不要でもOK。それまでの間、転職に役立つ情報をお届けします。",
+      }];
+
+    // ===== 都道府県聞き取り後の応答（テキスト入力経路） =====
+    case "waitlist_pref_thanks":
+      return [{
+        type: "text",
+        text: `ありがとうございます！${entry.waitlistPrefectureLabel || "ご記入の地域"}を承りました。対応開始時に最優先でお知らせします。\n\nそれまでの間、転職に役立つ情報をお届けしますね。`,
       }];
 
     // ===== #30 Phase 2: 情報収集層の寄り道（給与相場マップ導線） =====
@@ -6515,12 +6681,16 @@ async function generateLineMatching(entry, env, offset = 0) {
       const baseArea = (entry.area || '').replace('_il', '');
       const cities = AREA_CITY_MAP[baseArea] || [];
       const d1Category = CATEGORY_MAP[entry.facilityType] || '病院';
-      // prefecture直接フィルタ（千葉/埼玉/東京/神奈川全域選択時）
+      // prefecture直接フィルタ（千葉/埼玉/東京/神奈川全域選択時 + 全47都道府県）
       const D1_AREA_PREF = {
         chiba_all: '千葉県', saitama_all: '埼玉県',
         tokyo_included: '東京都', kanagawa_all: '神奈川県',
         tokyo_23ku: "東京都", tokyo_central: "東京都", tokyo_east: "東京都", tokyo_south: "東京都", tokyo_nw: "東京都", tokyo_tama: '東京都',
       };
+      // 全47都道府県の {prefcode}_all を自動展開
+      for (const [code, label] of Object.entries(PREFECTURE_FULL_NAME)) {
+        if (!D1_AREA_PREF[`${code}_all`]) D1_AREA_PREF[`${code}_all`] = label;
+      }
       const prefFilter = D1_AREA_PREF[baseArea] || null;
       // バインドパラメータでSQLインジェクション対策
       let extraFilters = '';
@@ -6557,8 +6727,8 @@ async function generateLineMatching(entry, env, offset = 0) {
         sql = `SELECT ${baseFields} FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY ${priorityOrder} LIMIT 5`;
         params = [d1Category, prefFilter, ...extraParams];
       } else if (entry.prefecture) {
-        // エリア未選択だがprefecureがある場合
-        const PREF_NAME = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県' };
+        // エリア未選択だがprefecureがある場合（全47都道府県対応）
+        const PREF_NAME = { kanagawa: '神奈川県', tokyo: '東京都', chiba: '千葉県', saitama: '埼玉県', ...PREFECTURE_FULL_NAME };
         const pn = PREF_NAME[entry.prefecture];
         if (pn) {
           sql = `SELECT ${baseFields} FROM facilities WHERE category = ? AND prefecture = ?${extraFilters} ORDER BY ${priorityOrder} LIMIT 5`;
@@ -7017,8 +7187,31 @@ function handleLinePostback(dataStr, entry) {
     if (pref === 'other') {
       entry.area = 'undecided_il';
       entry.areaLabel = '全エリア';
+      // 全国対応: その他選択 → 地方ブロックピッカーへ
+      nextPhase = "il_region_select";
+    } else {
+      nextPhase = "il_subarea";
     }
-    nextPhase = "il_subarea";
+  }
+  // intake_light: 地方ブロック選択（その他選択後）
+  else if (params.has("il_region")) {
+    const region = params.get("il_region");
+    entry.unexpectedTextCount = 0;
+    entry.waitlistRegion = region;
+    nextPhase = "il_pref_japan_select";
+  }
+  // intake_light: 47都道府県の選択（地方→都道府県の2段目）
+  else if (params.has("il_pref_japan")) {
+    const prefCode = params.get("il_pref_japan");
+    entry.unexpectedTextCount = 0;
+    if (prefCode === "back_to_region") {
+      nextPhase = "il_region_select";
+    } else if (PREFECTURE_FULL_NAME[prefCode]) {
+      entry.prefecture = prefCode;
+      entry.area = `${prefCode}_all`;
+      entry.areaLabel = PREFECTURE_FULL_NAME[prefCode];
+      nextPhase = "il_facility_type";
+    }
   }
   // intake_light: エリア外ユーザーの選択肢
   else if (params.has("il_other")) {
@@ -8172,6 +8365,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         if (env?.LINE_SESSIONS) {
           env.LINE_SESSIONS.delete(`nurture:${userId}`).catch((e) => { console.error(`[KV] nurture delete failed: ${e.message}`); });
           env.LINE_SESSIONS.delete(`newjobs_notify:${userId}`).catch((e) => { console.error(`[KV] newjobs_notify delete failed: ${e.message}`); });
+          env.LINE_SESSIONS.delete(`waitlist:${userId}`).catch((e) => { console.error(`[KV] waitlist delete failed: ${e.message}`); });
           env.LINE_SESSIONS.delete(`handoff:${userId}`).catch((e) => { console.error(`[KV] handoff delete failed: ${e.message}`); });
         }
         // Slack通知
@@ -8688,7 +8882,19 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
               enteredAt: entry.nurtureEnteredAt, sentCount: 0, lastSentAt: null,
             });
             env.LINE_SESSIONS.put(`nurture:${userId}`, nurtureData, { expirationTtl: 2592000 }).catch((e) => { console.error(`[KV] write failed: ${e.message}`); });
+            // 都道府県別 waitlist 索引（拡大時の絞り込みPush用、TTLなし）
+            const waitlistData = JSON.stringify({
+              userId,
+              prefecture: entry.waitlistPrefecture || "unknown",
+              prefectureLabel: entry.waitlistPrefectureLabel || "未指定",
+              subscribedAt: new Date().toISOString(),
+              source: "il_other_notify_optin",
+              status: "waiting",
+            });
+            env.LINE_SESSIONS.put(`waitlist:${userId}`, waitlistData).catch((e) => { console.error(`[KV] waitlist write failed: ${e.message}`); });
           }
+          // 都道府県の追加聞き取り（任意）
+          entry.phase = "waitlist_pref_input";
         }
         // ===== nurture_warm =====
         else if (nextPhase === "nurture_warm") {
@@ -9496,6 +9702,45 @@ ${entry.rmCvQualifications || '看護師免許'}
         }
         if (entry.phase === "intake_age") {
           await lineReply(event.replyToken, buildIntakeAgeQuestion(), channelAccessToken);
+          continue;
+        }
+
+        // 【waitlist_pref_input】エリア外通知オプトイン後の都道府県聞き取り
+        if (entry.phase === "waitlist_pref_input") {
+          const matched = parseWaitlistPrefecture(userText);
+          if (matched) {
+            entry.waitlistPrefecture = matched.code;
+            entry.waitlistPrefectureLabel = matched.label;
+            // KV更新
+            if (env?.LINE_SESSIONS) {
+              const waitlistData = JSON.stringify({
+                userId,
+                prefecture: matched.code,
+                prefectureLabel: matched.label,
+                subscribedAt: new Date().toISOString(),
+                source: "waitlist_pref_input",
+                status: "waiting",
+              });
+              ctx.waitUntil(env.LINE_SESSIONS.put(`waitlist:${userId}`, waitlistData).catch((e) => { console.error(`[KV] waitlist update failed: ${e.message}`); }));
+            }
+            // Slack通知（都道府県判明）
+            if (env.SLACK_BOT_TOKEN) {
+              const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+              ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🌏 *waitlist 都道府県判明*: ${matched.label}\nユーザー: \`${userId.slice(0, 8)}...\`\n時刻: ${nowJST}\n💬 返信: \`!reply ${userId} メッセージ\`` }),
+              }).catch(() => {}));
+            }
+            entry.phase = "nurture_warm";
+            await saveLineEntry(userId, entry, env);
+            await lineReply(event.replyToken, await buildPhaseMessage("waitlist_pref_thanks", entry, env), channelAccessToken);
+            continue;
+          }
+          // パース失敗 → ナーチャリングに進む（沈黙ではなく「了解です」だけ返す）
+          entry.phase = "nurture_warm";
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, [{ type: "text", text: "了解しました！対応エリアが拡大したらお知らせしますね。" }], channelAccessToken);
           continue;
         }
 
