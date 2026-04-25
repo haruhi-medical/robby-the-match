@@ -4,8 +4,8 @@
     "health_monitor": "2026-04-25T07:00:56",
     "competitor_analyst": "2026-04-25T10:00:13",
     "content_creator": "2026-04-25T15:04:18",
-    "sns_poster": "2026-04-24T18:02:00",
-    "daily_reviewer": "2026-04-24T23:00:24",
+    "sns_poster": "2026-04-25T20:13:22",
+    "daily_reviewer": "2026-04-25T23:00:00",
     "seo_optimizer": "2026-04-25T04:00:30",
     "weekly_content_planner": "2026-04-19T05:00:03",
     "weekly_strategist": "2026-04-19T06:01:04",
@@ -18,7 +18,7 @@
     "competitor_analyst": "completed",
     "content_creator": "completed",
     "sns_poster": "completed",
-    "daily_reviewer": "completed",
+    "daily_reviewer": "running",
     "seo_optimizer": "completed",
     "weekly_content_planner": "pending",
     "weekly_strategist": "completed",
@@ -51,7 +51,7 @@
     ]
   },
   "sharedContext": {
-    "lastAnalysis": "2026-04-24T23:00:14",
+    "lastAnalysis": "2026-04-25T23:00:17",
     "recommendations": [
       "「転職」カテゴリの投稿が目標より不足。次バッチで重点生成。",
       "「給与」カテゴリの投稿が目標より不足。次バッチで重点生成。"
@@ -83,12 +83,12 @@
         "紹介": 0,
         "トレンド": 0
       },
-      "lastAnalysisDate": "2026-04-24"
+      "lastAnalysisDate": "2026-04-25"
     },
     "sns_poster": {
       "totalPosted": 53,
       "averageViews": 0,
-      "lastAnalysisDate": "2026-04-24"
+      "lastAnalysisDate": "2026-04-25"
     }
   }
 }

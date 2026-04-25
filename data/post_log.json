@@ -827,5 +827,14 @@
     "status": "error",
     "method": "meta_business_suite",
     "error": "MBS posting failed"
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_給与_0408_03",
+    "content_id": "ai_給与_0408_03",
+    "timestamp": "2026-04-25T20:13:21",
+    "status": "error",
+    "method": "meta_business_suite",
+    "error": "MBS posting failed"
   }
 ]

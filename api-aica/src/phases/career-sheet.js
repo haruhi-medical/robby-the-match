@@ -709,7 +709,7 @@ function renderCareerSheetHtml({ serial, candidate, profile, initials, ageStr, r
 
   <div class="sender">
     ▼ 送信元 ▼<br>
-    <strong>神奈川ナース転職</strong><br>
+    <strong>ナースロビー</strong><br>
     電話: （要設定） / メール: （要設定）<br>
     有料職業紹介事業許可番号: （要設定）<br>
     ※紹介料は想定年収の10%（消費税別）
