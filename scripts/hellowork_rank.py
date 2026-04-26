@@ -364,8 +364,21 @@ def classify_area(job):
     all_loc = " ".join(loc_candidates)
     if not all_loc.strip():
         return None
-    valid_prefs = ["東京都", "神奈川県", "千葉県", "埼玉県"]
-    if not any(p in all_loc for p in valid_prefs):
+    # source_prefecture（ハローワークAPI由来、全47都道府県対応）を最優先
+    src_pref = (job.get("source_prefecture") or "").strip()
+    valid_prefs = [
+        "北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県",
+        "茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県",
+        "新潟県","富山県","石川県","福井県","山梨県","長野県",
+        "岐阜県","静岡県","愛知県","三重県",
+        "滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県",
+        "鳥取県","島根県","岡山県","広島県","山口県",
+        "徳島県","香川県","愛媛県","高知県",
+        "福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県",
+    ]
+    if src_pref and src_pref in valid_prefs:
+        pass  # source_prefecture が設定済み → そのまま通過
+    elif not any(p in all_loc for p in valid_prefs):
         return None
     # 長い市区町村名から先にマッチ
     all_entries = []
