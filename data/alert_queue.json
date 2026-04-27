@@ -43,5 +43,14 @@
     "enqueued_at": "2026-04-24T12:11:32",
     "retries": 0,
     "last_error": "bot_exception_ProxyError"
+  },
+  {
+    "channel": null,
+    "text": "⚠️ *Instagram投稿: スキップ（Chrome MCP未接続）*\n• 時刻: 2026-04-27 (scheduled run)\n• 状況: Claude in Chrome拡張が未接続のため、Meta Business Suiteを操作できず投稿不可\n• 対象: id=202 / content_id=ai_ある_0409_01 (aruaru) — 残ready件数: 38件\n• 推奨: ChromeでClaude in Chrome拡張を起動・接続後に再実行（または手動投稿）",
+    "blocks": null,
+    "thread_ts": null,
+    "enqueued_at": "2026-04-27T12:11:20",
+    "retries": 0,
+    "last_error": "bot_exception_ProxyError"
   }
 ]
