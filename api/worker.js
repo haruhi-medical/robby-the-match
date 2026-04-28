@@ -933,11 +933,19 @@ async function aicaProcessTextBackground({ userId, userText, channelAccessToken,
   }
 
   const pushTo = async (messages) => {
-    await fetch("https://api.line.me/v2/bot/message/push", {
+    const bodyStr = JSON.stringify({ to: userId, messages: messages.slice(0, 5) });
+    console.log(`[AICA Push] start: ${userId.slice(0, 8)}, msgs=${messages.length}, bytes=${bodyStr.length}`);
+    const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
-      body: JSON.stringify({ to: userId, messages: messages.slice(0, 5) }),
+      body: bodyStr,
     });
+    if (!pushRes.ok) {
+      const errBody = await pushRes.text().catch(() => "");
+      console.error(`[AICA Push] FAILED ${pushRes.status}: ${errBody.slice(0, 300)}`);
+    } else {
+      console.log(`[AICA Push] OK: ${pushRes.status}`);
+    }
   };
 
   // aica_turn1〜4
