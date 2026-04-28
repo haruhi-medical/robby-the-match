@@ -1825,6 +1825,24 @@ export default {
           body: JSON.stringify({ to: userId, messages: [{ type: "text", text: message }] }),
         });
         const pushResult = await pushRes.json().catch(() => ({}));
+
+        // v2.0: 人間返信成功 → entry.humanRepliedAt 記録（72時間 BOT沈黙ガードを起動）
+        if (pushRes.ok) {
+          ctx.waitUntil((async () => {
+            try {
+              const entry = await getLineEntryAsync(userId, env);
+              if (entry) {
+                entry.humanRepliedAt = Date.now();
+                entry.lastHumanReplyText = String(message).slice(0, 200);
+                await saveLineEntry(userId, entry, env);
+                console.log(`[line-push] humanRepliedAt set for ${userId.slice(0, 8)}`);
+              }
+            } catch (e) {
+              console.error(`[line-push] humanRepliedAt update failed: ${e.message}`);
+            }
+          })());
+        }
+
         return jsonResponse({ ok: pushRes.ok, status: pushRes.status, result: pushResult });
       } catch (e) {
         return jsonResponse({ error: e.message }, 500);
@@ -3293,6 +3311,51 @@ async function lineReply(replyToken, messages, channelAccessToken) {
     }
   } catch (e) {
     console.error(`[LINE] Reply fetch error: ${e.message}`);
+  }
+}
+
+// v2.0: 音声メッセージを Whisper API で文字起こし
+// 返り値: 認識テキスト or null（失敗時）
+async function transcribeLineAudio(messageId, channelAccessToken, env) {
+  if (!env.OPENAI_API_KEY) {
+    console.warn("[Whisper] OPENAI_API_KEY not configured, audio transcription unavailable");
+    return null;
+  }
+  try {
+    // 1. LINE Content APIから音声バイナリ取得
+    const audioRes = await fetch(`https://api-data.line.me/v2/bot/message/${messageId}/content`, {
+      headers: { "Authorization": `Bearer ${channelAccessToken}` },
+    });
+    if (!audioRes.ok) {
+      console.error(`[Whisper] LINE content fetch failed: ${audioRes.status}`);
+      return null;
+    }
+    const audioBuffer = await audioRes.arrayBuffer();
+    const audioBlob = new Blob([audioBuffer], { type: audioRes.headers.get("content-type") || "audio/m4a" });
+
+    // 2. OpenAI Whisper APIに送信（multipart/form-data）
+    const formData = new FormData();
+    formData.append("file", audioBlob, "audio.m4a");
+    formData.append("model", "whisper-1");
+    formData.append("language", "ja");
+
+    const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}` },
+      body: formData,
+    });
+    if (!whisperRes.ok) {
+      const errBody = await whisperRes.text().catch(() => "");
+      console.error(`[Whisper] API error: ${whisperRes.status} ${errBody.slice(0, 200)}`);
+      return null;
+    }
+    const result = await whisperRes.json();
+    const text = (result.text || "").trim();
+    console.log(`[Whisper] transcribed: "${text.slice(0, 50)}..." (${audioBuffer.byteLength} bytes)`);
+    return text || null;
+  } catch (e) {
+    console.error(`[Whisper] transcription error: ${e.message}`);
+    return null;
   }
 }
 
@@ -7983,22 +8046,10 @@ function handleFreeTextInput(text, entry) {
     }
   }
 
-  // apply_consent中の自由テキスト → Quick Reply再表示
-  if (phase === "apply_consent") {
-    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-    return null;
-  }
-
-  // apply_confirm中の自由テキスト → Quick Reply再表示
-  if (phase === "apply_confirm") {
-    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-    return null;
-  }
-
-  // interview_prep中の自由テキスト → Quick Reply再表示
-  if (phase === "interview_prep") {
-    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-    return null;
+  // v2.0: apply_consent/apply_confirm/interview_prep → AI相談に回す
+  // （応募意思確認後・面接準備中の質問はAIが応える）
+  if (phase === "apply_consent" || phase === "apply_confirm" || phase === "interview_prep") {
+    return "ai_consultation_reply";
   }
 
   // ai_consultation中の自由テキスト → AI回答
@@ -8011,10 +8062,9 @@ function handleFreeTextInput(text, entry) {
     return "handoff_silent"; // Slack転送のみ、LINE応答なし
   }
 
-  // matching中の自由テキスト → Quick Reply再表示
+  // matching中の自由テキスト → AI相談に回す（v2.0: 旧Quick Reply再表示から変更）
   if (phase === "matching") {
-    entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
-    return null;
+    return "ai_consultation_reply";
   }
 
   // matching_preview / matching_browse中の自由テキスト → AI相談に回す
@@ -8022,10 +8072,20 @@ function handleFreeTextInput(text, entry) {
     return "ai_consultation_reply"; // AIが回答→元のQRを再表示
   }
 
-  // intake_light / nurture_warm中の自由テキスト → Quick Reply再表示
+  // v2.0: nurture系・area_notify系・info_detour・faq系の自由テキスト → AI相談に回す
+  // （Ayako事案の根本原因対策。エリア外/通知待ち/情報収集ユーザーが自由質問してきたら BOT は AI に任せる）
+  if (phase === "nurture_warm" || phase === "nurture_subscribed" || phase === "nurture_stay" ||
+      phase === "area_notify_optin" ||
+      phase === "info_detour" ||
+      phase === "faq_salary" || phase === "faq_nightshift" || phase === "faq_timing" ||
+      phase === "faq_stealth" || phase === "faq_holiday") {
+    return "ai_consultation_reply";
+  }
+
+  // intake_light中の自由テキスト → Quick Reply再表示（postback必須）
+  // ※ handoff_phone_* は形式必須（電話番号）のため Quick Reply 再表示
   if (phase === "il_area" || phase === "il_subarea" || phase === "il_facility_type" || phase === "il_department" ||
       phase === "il_workstyle" || phase === "il_urgency" ||
-      phase === "nurture_warm" ||
       phase === "handoff_phone_check" || phase === "handoff_phone_time" || phase === "handoff_phone_number") {
     entry.unexpectedTextCount = (entry.unexpectedTextCount || 0) + 1;
     return null;
@@ -9325,6 +9385,41 @@ ${entry.rmCvQualifications || '看護師免許'}
         continue;
       }
 
+      // --- v2.0 音声メッセージ → Whisperで文字起こし → テキストとして処理 ---
+      // 成功時は event.message を text 型に書き換えて、下のテキストハンドラに自然合流する
+      if (event.type === "message" && event.message.type === "audio") {
+        console.log(`[LINE] Audio received: messageId=${event.message.id}, User: ${userId.slice(0, 8)}`);
+        const transcribed = await transcribeLineAudio(event.message.id, channelAccessToken, env);
+        if (!transcribed) {
+          // 文字起こし失敗 → 再入力を促す
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *音声文字起こし失敗*\nユーザー: \`${userId}\`\n時刻: ${nowJST}\n💬 返信: \`!reply ${userId} メッセージ\`` }),
+            }).catch(() => {}));
+          }
+          await lineReply(event.replyToken, [{
+            type: "text",
+            text: "音声をうまく聞き取れませんでした🙇\nもう一度お話しいただくか、テキストでも教えていただけます🌸",
+          }], channelAccessToken);
+          continue;
+        }
+        // 認識成功 → Slackに音声+文字起こしを通知
+        if (env.SLACK_BOT_TOKEN) {
+          const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+          ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *LINE音声受信（文字起こし）*\nユーザー: \`${userId}\`\n認識結果: ${transcribed}\n時刻: ${nowJST}\n💬 返信: \`!reply ${userId} メッセージ\`` }),
+          }).catch(() => {}));
+        }
+        // event.message を text 型に書き換えて、テキストハンドラへ自然合流
+        event.message = { type: "text", id: event.message.id, text: transcribed };
+        // ↓この下のテキストハンドラで通常処理される
+      }
+
       // --- テキストメッセージ ---
       if (event.type === "message" && event.message.type === "text") {
         const userText = event.message.text.trim();
@@ -9744,6 +9839,29 @@ ${entry.rmCvQualifications || '看護師免許'}
           continue;
         }
 
+        // 【v2.0 安全チェック】人間応答後72時間 BOT沈黙ガード（!reply / 管理画面経由の応答後）
+        // chat.line.biz は KV更新しないため Operator API が無い現時点では !reply 経由のみガードする
+        const HUMAN_REPLY_SILENCE_MS = 72 * 3600 * 1000;
+        if (entry.humanRepliedAt && (Date.now() - entry.humanRepliedAt) < HUMAN_REPLY_SILENCE_MS) {
+          const elapsedH = Math.floor((Date.now() - entry.humanRepliedAt) / 3600000);
+          console.log(`[LINE] Human-reply silence (${elapsedH}h ago): "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            const profile = entry.extractedProfile || {};
+            const areaLabel = entry.areaLabel || profile.area || "不明";
+            await fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                text: `💬 *LINE受信（人間対応中・要返信）*\nユーザーID: \`${userId}\`\nエリア: ${areaLabel}\nメッセージ: ${userText}\n人間応答: ${elapsedH}h前\n時刻: ${nowJST}\n\n返信するには:\n\`!reply ${userId} ここに返信メッセージ\``,
+              }),
+            }).catch((e) => { console.error(`[Slack] human-silence notification failed: ${e.message}`); });
+          }
+          await saveLineEntry(userId, entry, env);
+          continue;
+        }
+
         // 【安全チェック】handoff中なら handleFreeTextInput を呼ばずに直接沈黙
         if (entry.phase === "handoff") {
           console.log(`[LINE] Handoff silent (direct check): "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
@@ -10022,17 +10140,17 @@ ${entry.rmCvQualifications || '看護師免許'}
               },
             }];
           } else {
-            // Stage 1: 1回目 → 現フェーズのQuick Reply再表示
+            // Stage 1: 1回目 → 現フェーズのQuick Reply再表示（v2.0: 「読み取れません」文言廃止）
             const currentPhaseMsg = await buildPhaseMessage(entry.phase, entry, env);
             if (currentPhaseMsg) {
               replyMessages = [
-                { type: "text", text: "すみません、うまく読み取れませんでした。下のボタンからお選びいただけますか？" },
+                { type: "text", text: "下のボタンからお選びいただけますか？\nご質問は「相談したい」と送るとAIロビーがお答えします🌸" },
                 ...currentPhaseMsg,
               ].slice(0, 5);
             } else {
               replyMessages = [{
                 type: "text",
-                text: "すみません、うまく読み取れませんでした。下のボタンからお選びいただけますか？",
+                text: "下のボタンからお選びいただけますか？\nご質問は「相談したい」と送るとAIロビーがお答えします🌸",
               }];
             }
           }
