@@ -7043,7 +7043,7 @@ async function buildPhaseMessage(phase, entry, env) {
     case "rm_resume_start":
       return [{
         type: "text",
-        text: "職務経歴書の下書きをAIがお手伝いします。担当者が清書・仕上げまでサポートします。\n\n📋 個人情報について\n・入力された情報は求人紹介の目的でのみ使用します\n・お名前はAIに送信しません\n・施設名は伏せてOKです（「○○病院」等）\n・担当者以外に共有することはありません\n・有料職業紹介事業 許可番号23-ユ-302928\n\n📄 詳細: https://quads-nurse.com/privacy.html\n\n7つの質問に答えるだけでドラフトが完成します。\n\nQ1. 看護師免許を取得した年を教えてください。（例: 2018年）",
+        text: "職務経歴書のドラフトを、AIがお手伝いします 📝\nお名前以外の情報は事務的な質問に絞っており、最後に担当者が清書・仕上げまでサポートします。\n\n◇ プライバシー\n・入力情報は求人紹介の目的でのみ使用\n・お名前はAIに送信しません\n・施設名は「○○病院」等で伏せてOK\n・担当者以外に共有しません\n・有料職業紹介 許可番号 23-ユ-302928\n・詳細: https://quads-nurse.com/privacy.html\n\n7問お答えいただくだけでドラフトが完成します ✨\n\nまずQ1から。\n看護師免許を取得した年はいつでしょうか？\n（例: 2018年）",
       }];
 
     case "rm_cv_q2":
@@ -7175,18 +7175,61 @@ async function buildResumeConfirmMessages(entry, env) {
     const concernLabel = POSTBACK_LABELS[`q8_${entry.concern}`] || "";
     const workHistory = entry.workHistoryText || "（未入力）";
 
-    const prompt = `以下の情報をもとに、看護師の職務経歴書ドラフトをプレーンテキストで作成してください。
-LINEで送るので500文字以内、マークダウンは使わないでください。
+    // 7問履歴書フローで集めた情報
+    const cvLicenseYear = entry.rmCvLicenseYear || "";
+    const cvFacility = entry.rmCvFacility || "";
+    const cvWorkDetail = entry.rmCvWorkDetail || "";
+    const cvPrevDetail = entry.rmCvPrevDetail || "";
+    const cvQualifications = entry.rmCvQualifications || "";
+    const cvReason = entry.rmCvReason || "";
 
+    // AICA で収集した情報を統合
+    const aicaP = entry.aicaProfile || {};
+    const aicaAxisLabel = {
+      relationship: "人間関係", time: "労働時間", salary: "給与",
+      career: "キャリア・やりがい", family: "家庭", vague: "漠然",
+    }[entry.aicaAxis] || "";
+    const aicaRootCause = entry.aicaRootCause || "";
+
+    const prompt = `あなたはナースロビーのAIキャリアアドバイザーです。
+以下の情報をもとに、看護師の職務経歴書ドラフトをプレーンテキストで作成してください。
+LINEで送るので500文字以内、Markdownは使わない。
+中立的・客観的・丁寧なトーン。「絶対」「No.1」等の断定表現は禁止。
+情報が空欄なら「未記入」と書く（捏造しない）。
+
+【7問履歴書フローの情報】
+看護師免許取得年: ${cvLicenseYear}
+直近職場の種類: ${cvFacility}
+配属先と業務: ${cvWorkDetail}
+前職詳細: ${cvPrevDetail}
+保有資格: ${cvQualifications}
+転職理由: ${cvReason}
+
+【AICA 心理ヒアリングで判明した情報】
+悩みの軸: ${aicaAxisLabel}
+根本原因: ${aicaRootCause}
+経験年数: ${aicaP.experience_years || ""}
+現在の役割: ${aicaP.current_position || ""}
+経験分野: ${aicaP.fields_experienced || ""}
+強み: ${aicaP.strengths || ""}
+苦手: ${aicaP.weaknesses || ""}
+
+【既存intake情報（補完用）】
 資格: ${qualLabel}
 経験年数: ${expLabel}
 現在の職場: ${workplaceLabel}
 職歴: ${workHistory}
 得意なこと: ${strengthLabels}
-転職の背景: ${changeLabel}
-不安: ${concernLabel}
 
-セクション: 保有資格、経験年数、職務経歴、得意分野・強み、志望動機、自己PR`;
+セクション順:
+■ 保有資格
+■ 経験年数
+■ 職務経歴
+■ 得意分野・強み
+■ 志望動機（AICAで判明した根本原因を踏まえた前向きな表現）
+■ 自己PR
+
+職務経歴書として読みやすい体裁で。読み手は病院担当者です。`;
 
     resumeText = await callLineAI(prompt, [], env);
     console.log(`[LINE] Resume AI result length: ${resumeText?.length || 0}`);
