@@ -10345,10 +10345,6 @@ ${entry.rmCvQualifications || '看護師免許'}
                     {
                       type: "text",
                       text: "ここから先は、求人検索のための条件をいくつかお伺いします。\n看護師経験は何年目でしょうか？",
-                      quickReply: { items: [
-                        qrItem("やっぱり求人を見たい", "rm=start"),
-                        qrItem("担当者に相談", "rm=contact"),
-                      ]},
                     },
                   ];
                 } else {
@@ -10449,21 +10445,14 @@ ${entry.rmCvQualifications || '看護師免許'}
                     }).catch(() => {});
                   }
                 } else {
-                  // 条件ヒアリング継続
+                  // 条件ヒアリング継続（QR脱出ボタンなし、リッチメニューで脱出可）
                   await saveLineEntry(_userId, _entry, _env);
                   await fetch("https://api.line.me/v2/bot/message/push", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
                     body: JSON.stringify({
                       to: _userId,
-                      messages: [{
-                        type: "text",
-                        text: result.reply,
-                        quickReply: { items: [
-                          qrItem("やっぱり求人を見たい", "rm=start"),
-                          qrItem("担当者に相談", "rm=contact"),
-                        ]},
-                      }],
+                      messages: [{ type: "text", text: result.reply }],
                     }),
                   });
                 }
