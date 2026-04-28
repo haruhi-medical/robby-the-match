@@ -327,9 +327,10 @@ const AICA_INTAKE_SYSTEM_PROMPT = `あなたは、看護師専門の人材紹介
 ・「私はAIですので…」のスタンスは暗黙に保ち、わざわざ毎回明示しないでください
 ・1回の返信は200文字以内を厳守
 ・呼称は LINE の表示名 + 「さん」（「様」は使わない）
-・絵文字は読みやすさのため適度に使ってOK（1メッセージに1〜2個まで）。例: 🌸 ✨ 📝 💼 🏥 🤔
-  ※多用や派手な絵文字（😂 🤣 ❤️ 🔥 等）は避ける。落ち着いた印象を保つ
-・段落改行を入れて視認性を確保する
+・絵文字は読みやすさのため**必ず1〜2個使う**（無いと冷たい印象になる）
+  推奨: 🌸 ✨ 📝 💼 🏥 🤔 🌱 ☘️ ※
+  ※多用や派手な絵文字（😂 🤣 ❤️ 🔥 等）は避ける
+・段落改行を必ず入れて視認性を確保する（LINE上で文字の塊は読みづらい）
 
 ---
 
@@ -490,8 +491,8 @@ MUST（絶対条件）とWANT（できれば）に分類して、求人マッチ
   - 「苦手」→ 業務内容/特定処置/特定診療科/夜勤自体/人間関係 を具体的に
 - 丁寧語、温度は上げない
 - 1回の返信は200文字以内
-- 絵文字は読みやすさのため1〜2個OK（🌸 ✨ 📝 💼 🏥 🤔 等の落ち着いたもの）。多用禁止
-- 段落改行で視認性を高める
+- 絵文字は**必ず1〜2個使う**（🌸 ✨ 📝 💼 🏥 🤔 🌱 ※ 等の落ち着いたもの）。無いと冷たい印象
+- 段落改行を必ず入れて視認性を高める（LINE上で文字塊は読みづらい）
 
 【収集済み情報】
 ${filledLines || "  (まだありません)"}
@@ -755,7 +756,7 @@ async function aicaHandleConditionTurn({ userText, entry, env }) {
 
 function aicaBuildWelcomeMessage(displayName) {
   const name = displayName ? `${displayName}さん` : "初めまして";
-  return `${displayName ? name + "、こ" : "こ"}んにちは。
+  return `${displayName ? name + "、こ" : "こ"}んにちは🌸
 ナースロビーAIキャリアアドバイザーです。
 
 私はAIです。
@@ -763,7 +764,7 @@ function aicaBuildWelcomeMessage(displayName) {
 お仕事のお話を伺えます。
 
 最大4つの質問で、あなたの「本当に必要な条件」を
-整理した後、具体的な求人をご提案します。
+整理した後、具体的な求人をご提案します✨
 
 今、お仕事で気になっていることを、
 一言で言うとどのようなことですか？`;
@@ -10306,7 +10307,7 @@ ${entry.rmCvQualifications || '看護師免許'}
             await saveLineEntry(userId, entry, env);
             await lineReply(event.replyToken, [{
               type: "text",
-              text: "少々お待ちください。考えています…",
+              text: "少々お待ちください 🤔\n考えています…",
             }], channelAccessToken);
 
             // AI処理はバックグラウンドで実行 → Push API で結果送信
@@ -10348,7 +10349,7 @@ ${entry.rmCvQualifications || '看護師免許'}
                     { type: "text", text: result.reply },
                     {
                       type: "text",
-                      text: "ここから先は、求人検索のための条件をいくつかお伺いします。\n看護師経験は何年目でしょうか？",
+                      text: "ここから先は、求人検索のための条件をいくつかお伺いします 📝\n\n看護師経験は何年目でしょうか？",
                     },
                   ];
                 } else {
@@ -10385,7 +10386,7 @@ ${entry.rmCvQualifications || '看護師免許'}
             await saveLineEntry(userId, entry, env);
             await lineReply(event.replyToken, [{
               type: "text",
-              text: "承知しました。少々お待ちください…",
+              text: "承知しました 📝\n少々お待ちください…",
             }], channelAccessToken);
 
             const _userId = userId;
