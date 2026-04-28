@@ -9043,6 +9043,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         // 再フォロー: 既存データがあれば保持し、phaseだけリセット
         let entry = await getLineEntryAsync(userId, env);
         if (entry) {
+          // 管理画面で BOT OFF 中のユーザーは phase を welcome に戻さない（再フォローでBOT復活を防ぐ）
+          if (entry.adminMutedAt) {
+            console.log(`[LINE] follow event: admin muted, preserve phase=${entry.phase} for ${userId.slice(0, 8)}`);
+            entry.updatedAt = Date.now();
+            await saveLineEntry(userId, entry, env);
+            continue;
+          }
           entry.phase = "welcome";
           entry.updatedAt = Date.now();
         } else {
@@ -11874,6 +11881,18 @@ async function handleScheduledNewJobsNotify(env, opts) {
         const areaLabel = sub.areaLabel || areaKey;
         if (!userId || !areaKey) continue;
 
+        // 管理画面で BOT OFF にされたユーザーには新着Pushを送らない
+        try {
+          const lineRaw = await env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 60 });
+          if (lineRaw) {
+            const lineEntry = JSON.parse(lineRaw);
+            if (lineEntry.adminMutedAt) {
+              console.log(`[NewJobsCron] admin muted, skip ${userId.slice(0, 8)}`);
+              continue;
+            }
+          }
+        } catch {}
+
         // T3 (会員精密マッチ): 会員なら preferences を考慮
         let memberPrefs = null;
         let isActiveMember = false;
@@ -12265,17 +12284,6 @@ async function adminReadRecentActivities(env, limit = 100) {
   }
 }
 
-async function adminCheckBotMuted(env, userId) {
-  if (!userId) return false;
-  try {
-    const raw = await env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 60 });
-    if (!raw) return false;
-    const entry = JSON.parse(raw);
-    if (entry.adminMutedAt && entry.phase === "handoff") return true;
-  } catch {}
-  return false;
-}
-
 // ---- Admin route handler ----
 async function handleAdminRoute(request, env, ctx, url) {
   const path = url.pathname;
@@ -12399,19 +12407,24 @@ async function handleAdminRoute(request, env, ctx, url) {
     if (method === "GET" && path === "/api/admin/conversations") {
       const limit = Math.min(parseInt(url.searchParams.get("limit") || "30", 10), 100);
       const offset = parseInt(url.searchParams.get("offset") || "0", 10);
+      // ver: は軽量キーなので listAll するが、実際の get は最大 200 件に絞る（subrequest上限対策）
       const verKeys = await kvListAll(env.LINE_SESSIONS, "ver:");
       const items = [];
-      const fetchPromises = verKeys.slice(0, 500).map(async k => {
-        try {
-          const v = await env.LINE_SESSIONS.get(k.name, { cacheTtl: 60 });
-          if (!v) return null;
-          const meta = JSON.parse(v);
-          const userId = k.name.replace(/^ver:/, "");
-          return { userId, phase: meta.phase || "unknown", updatedAt: meta.updatedAt || 0 };
-        } catch { return null; }
-      });
-      const results = await Promise.all(fetchPromises);
-      results.forEach(r => { if (r) items.push(r); });
+      const targetKeys = verKeys.slice(0, 200);
+      // 50件ずつチャンクで並列取得（Cloudflare Workers の subrequest 上限対策）
+      for (let i = 0; i < targetKeys.length; i += 50) {
+        const chunk = targetKeys.slice(i, i + 50);
+        const chunkResults = await Promise.all(chunk.map(async k => {
+          try {
+            const v = await env.LINE_SESSIONS.get(k.name, { cacheTtl: 60 });
+            if (!v) return null;
+            const meta = JSON.parse(v);
+            const userId = k.name.replace(/^ver:/, "");
+            return { userId, phase: meta.phase || "unknown", updatedAt: meta.updatedAt || 0 };
+          } catch { return null; }
+        }));
+        chunkResults.forEach(r => { if (r) items.push(r); });
+      }
       items.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
       const recent = await adminReadRecentActivities(env, 100);
       const recentMap = new Map();
@@ -12537,23 +12550,32 @@ async function handleAdminRoute(request, env, ctx, url) {
 
     // GET /api/admin/audit-log
     if (method === "GET" && path === "/api/admin/audit-log") {
-      const limit = Math.min(parseInt(url.searchParams.get("limit") || "100", 10), 500);
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 100);
       const filterAction = url.searchParams.get("action") || "";
-      const keys = await kvListAll(env.LINE_SESSIONS, "admin:audit:");
-      keys.sort((a, b) => b.name.localeCompare(a.name));
+      // 直近50件分だけ list（subrequest上限対策）
+      const listResult = await env.LINE_SESSIONS.list({ prefix: "admin:audit:", limit: limit * 2 });
+      listResult.keys.sort((a, b) => b.name.localeCompare(a.name));
       const items = [];
-      for (const k of keys.slice(0, limit * 2)) {
-        try {
-          const v = await env.LINE_SESSIONS.get(k.name);
-          if (!v) continue;
-          const rec = JSON.parse(v);
-          if (filterAction && rec.action !== filterAction) continue;
-          items.push(rec);
+      const targetKeys = listResult.keys.slice(0, limit * 2);
+      // 25件ずつチャンク取得
+      for (let i = 0; i < targetKeys.length && items.length < limit; i += 25) {
+        const chunk = targetKeys.slice(i, i + 25);
+        const chunkResults = await Promise.all(chunk.map(async k => {
+          try {
+            const v = await env.LINE_SESSIONS.get(k.name);
+            if (!v) return null;
+            const rec = JSON.parse(v);
+            if (filterAction && rec.action !== filterAction) return null;
+            return rec;
+          } catch { return null; }
+        }));
+        for (const rec of chunkResults) {
+          if (rec) items.push(rec);
           if (items.length >= limit) break;
-        } catch {}
+        }
       }
       await adminWriteAudit(env, { actor: "admin", ip, action: "audit_view", result: "ok" });
-      return adminJson({ items, total: keys.length });
+      return adminJson({ items, total: listResult.keys.length, hasMore: !listResult.list_complete });
     }
   }
 
@@ -12958,6 +12980,18 @@ async function handleScheduledNurture(env) {
         const data = JSON.parse(raw);
         const userId = data.userId;
         if (!userId) continue;
+
+        // 管理画面で BOT OFF にされたユーザーにはナーチャリングを送らない
+        try {
+          const lineRaw = await env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 60 });
+          if (lineRaw) {
+            const lineEntry = JSON.parse(lineRaw);
+            if (lineEntry.adminMutedAt) {
+              console.log(`[NurtureCron] admin muted, skip ${userId.slice(0, 8)}`);
+              continue;
+            }
+          }
+        } catch {}
 
         const daysSinceEntry = Math.floor((now - data.enteredAt) / 86400000);
         const sentCount = data.sentCount || 0;
