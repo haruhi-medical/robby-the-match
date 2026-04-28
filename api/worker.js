@@ -766,7 +766,7 @@ function aicaBuildWelcomeMessage(displayName) {
 最大4つの質問で、あなたの「本当に必要な条件」を
 整理した後、具体的な求人をご提案します✨
 
-🎙️ 入力が大変な時はLINEのマイクボタン長押しで
+🎙️ 入力が大変な時はLINEのマイクボタンをタップして
 音声でも送れます。文字起こししてお応えします。
 
 今、お仕事で気になっていることを、
@@ -866,16 +866,21 @@ function aicaAppendConditionQR(replyText) {
   return null;
 }
 
-// LINE音声メッセージを Whisper API で文字起こし
+// LINE音声メッセージを Whisper API で文字起こし（タイムアウト明示）
 async function transcribeLineAudio(messageId, channelAccessToken, env) {
   if (!env.OPENAI_API_KEY) {
     console.warn("[Whisper] OPENAI_API_KEY not configured");
     return null;
   }
   try {
+    // LINE Content API（5秒タイムアウト）
+    const lineCtl = new AbortController();
+    const lineTimer = setTimeout(() => lineCtl.abort(), 5000);
     const audioRes = await fetch(`https://api-data.line.me/v2/bot/message/${messageId}/content`, {
       headers: { "Authorization": `Bearer ${channelAccessToken}` },
+      signal: lineCtl.signal,
     });
+    clearTimeout(lineTimer);
     if (!audioRes.ok) {
       console.error(`[Whisper] LINE content fetch failed: ${audioRes.status}`);
       return null;
@@ -888,11 +893,16 @@ async function transcribeLineAudio(messageId, channelAccessToken, env) {
     formData.append("model", "whisper-1");
     formData.append("language", "ja");
 
+    // Whisper API（10秒タイムアウト）
+    const whisperCtl = new AbortController();
+    const whisperTimer = setTimeout(() => whisperCtl.abort(), 10000);
     const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}` },
       body: formData,
+      signal: whisperCtl.signal,
     });
+    clearTimeout(whisperTimer);
     if (!whisperRes.ok) {
       const errBody = await whisperRes.text().catch(() => "");
       console.error(`[Whisper] API error: ${whisperRes.status} ${errBody.slice(0, 200)}`);
@@ -906,6 +916,154 @@ async function transcribeLineAudio(messageId, channelAccessToken, env) {
     console.error(`[Whisper] error: ${e.message}`);
     return null;
   }
+}
+
+// 音声から得たテキストでAICAフローを実行（バックグラウンド処理用）
+// text handler の AICA分岐と同じロジックを Push API ベースで実行
+async function aicaProcessTextBackground({ userId, userText, channelAccessToken, env }) {
+  const entry = await getLineEntryAsync(userId, env);
+  if (!entry) return;
+
+  // displayName確保
+  if (!entry.aicaDisplayName) {
+    try {
+      const profile = await getLineProfile(userId, env);
+      if (profile?.displayName) entry.aicaDisplayName = profile.displayName;
+    } catch (e) {/* ignore */}
+  }
+
+  const pushTo = async (messages) => {
+    await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${channelAccessToken}` },
+      body: JSON.stringify({ to: userId, messages: messages.slice(0, 5) }),
+    });
+  };
+
+  // aica_turn1〜4
+  if (["aica_turn1", "aica_turn2", "aica_turn3", "aica_turn4"].includes(entry.phase)) {
+    const result = await aicaHandleIntakeTurn({ userText, entry, env });
+    if (result.isEmergency) {
+      entry.phase = "handoff";
+      await saveLineEntry(userId, entry, env);
+      await pushTo([{ type: "text", text: result.reply }]);
+      if (env.SLACK_BOT_TOKEN) {
+        const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+        await fetch("https://slack.com/api/chat.postMessage", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🚨 *AICA緊急キーワード検出*\nユーザー: \`${userId}\`\nメッセージ: ${userText.slice(0, 200)}\n時刻: ${nowJST}` }),
+        }).catch(() => {});
+      }
+      return;
+    }
+    if (result.isClosing) {
+      entry.phase = "aica_condition";
+      await saveLineEntry(userId, entry, env);
+      await pushTo([
+        { type: "text", text: result.reply },
+        {
+          type: "text",
+          text: "ここから先は、求人検索のための条件をいくつかお伺いします 📝\n\n看護師経験は何年目でしょうか？",
+          quickReply: { items: [
+            { type: "action", action: { type: "message", label: "1〜3年目", text: "1〜3年目" } },
+            { type: "action", action: { type: "message", label: "3〜5年目", text: "3〜5年目" } },
+            { type: "action", action: { type: "message", label: "5〜10年目", text: "5〜10年目" } },
+            { type: "action", action: { type: "message", label: "10〜20年目", text: "10〜20年目" } },
+            { type: "action", action: { type: "message", label: "20年以上", text: "20年以上" } },
+          ]},
+        },
+      ]);
+    } else {
+      entry.phase = `aica_turn${(entry.aicaTurnCount || 0) + 1}`;
+      await saveLineEntry(userId, entry, env);
+      await pushTo([{ type: "text", text: result.reply }]);
+    }
+    return;
+  }
+
+  // aica_condition
+  if (entry.phase === "aica_condition") {
+    const result = await aicaHandleConditionTurn({ userText, entry, env });
+    if (result.isComplete) {
+      entry.aicaCareerSheet = result.reply;
+      entry.phase = "aica_career_sheet";
+      const p = entry.aicaProfile || {};
+      if (p.workstyle) {
+        const ws = String(p.workstyle);
+        if (/日勤のみ|日勤専従/.test(ws)) entry.workStyle = "day";
+        else if (/夜勤専従/.test(ws)) entry.workStyle = "night";
+        else if (/パート|非常勤/.test(ws)) entry.workStyle = "part";
+        else if (/二交代|2交代|三交代|3交代|夜勤あり|夜勤OK/.test(ws)) entry.workStyle = "twoshift";
+      }
+      if (p.facility_hope) {
+        const fh = String(p.facility_hope);
+        if (/急性期|急性|二次救急|三次救急|大学病院|高度急性/.test(fh)) {
+          entry.facilityType = "hospital";
+          entry.hospitalSubType = "急性期";
+        } else if (/回復期/.test(fh)) {
+          entry.facilityType = "hospital";
+          entry.hospitalSubType = "回復期";
+        } else if (/療養|慢性期|ケアミックス/.test(fh)) {
+          entry.facilityType = "hospital";
+          entry.hospitalSubType = "慢性期";
+        } else if (/病院/.test(fh)) entry.facilityType = "hospital";
+        else if (/クリニック|診療所|外来/.test(fh)) entry.facilityType = "clinic";
+        else if (/訪問/.test(fh)) entry.facilityType = "visiting";
+        else if (/介護|特養|老健|有料老人/.test(fh)) entry.facilityType = "care";
+      }
+      await saveLineEntry(userId, entry, env);
+      await pushTo([{ type: "text", text: result.reply }]);
+
+      // マッチング+隣接拡大
+      try {
+        await generateLineMatching(entry, env, 0);
+        let resultCount = (entry.matchingResults || []).length;
+        let expandedNote = "";
+        if (resultCount < 3 && entry.area && ADJACENT_AREAS[entry.area]) {
+          const originalArea = entry.area;
+          const adjacents = ADJACENT_AREAS[entry.area].slice(0, 2);
+          const expandedResults = [...entry.matchingResults || []];
+          const seenIds = new Set(expandedResults.map(r => r.n || r.name));
+          for (const adj of adjacents) {
+            const tmpEntry = { ...entry, area: adj, matchingResults: null };
+            try {
+              await generateLineMatching(tmpEntry, env, 0);
+              for (const r of (tmpEntry.matchingResults || [])) {
+                const id = r.n || r.name;
+                if (!seenIds.has(id)) { expandedResults.push(r); seenIds.add(id); if (expandedResults.length >= 5) break; }
+              }
+              if (expandedResults.length >= 5) break;
+            } catch (e) { /* skip */ }
+          }
+          entry.matchingResults = expandedResults;
+          entry.area = originalArea;
+          entry.adjacentExpanded = true;
+          expandedNote = `\n※ご希望のエリアに合う求人が少なかったため、隣接エリアも含めてご提案しています。`;
+        }
+        entry.phase = "matching_preview";
+        await saveLineEntry(userId, entry, env);
+        const phaseMsgs = await buildPhaseMessage("matching_preview", entry, env);
+        const messages = phaseMsgs || [];
+        if (expandedNote && messages.length > 0) {
+          messages.unshift({ type: "text", text: `お待たせしました ✨${expandedNote}` });
+        }
+        if (messages.length > 0) await pushTo(messages);
+      } catch (e) {
+        console.error(`[AICA bg] matching error: ${e.message}`);
+      }
+    } else {
+      await saveLineEntry(userId, entry, env);
+      const autoQR = aicaAppendConditionQR(result.reply);
+      const msg = { type: "text", text: result.reply };
+      if (autoQR) msg.quickReply = autoQR;
+      await pushTo([msg]);
+    }
+    return;
+  }
+
+  // それ以外のphase: 「ボタンで操作してください」
+  await pushTo([{ type: "text", text: `音声から「${userText.slice(0, 80)}」と聞き取りました 🎙️\n\nこの場面ではボタンを使うか、文字でお願いします🌸` }]);
 }
 
 // ============================================================
@@ -9975,36 +10133,73 @@ ${entry.rmCvQualifications || '看護師免許'}
         continue;
       }
 
-      // --- 音声メッセージ → Whisperで文字起こし → テキストとして処理 ---
+      // --- 音声メッセージ → 即時ack + バックグラウンドでWhisper+AICA処理 ---
       if (event.type === "message" && event.message.type === "audio") {
         console.log(`[LINE] Audio received: messageId=${event.message.id}, User: ${userId.slice(0, 8)}`);
-        const transcribed = await transcribeLineAudio(event.message.id, channelAccessToken, env);
-        if (!transcribed) {
-          if (env.SLACK_BOT_TOKEN) {
-            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-            ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *音声文字起こし失敗*\nユーザー: \`${userId}\`\n時刻: ${nowJST}` }),
-            }).catch(() => {}));
+        // 即時 Reply ack（webhookタイムアウト対策）
+        await lineReply(event.replyToken, [{
+          type: "text",
+          text: "音声を受け取りました 🎙️\n内容を確認しています…",
+        }], channelAccessToken);
+
+        // バックグラウンド: 文字起こし + AICA処理
+        const _userId = userId;
+        const _messageId = event.message.id;
+        const _token = channelAccessToken;
+        const _env = env;
+        ctx.waitUntil((async () => {
+          try {
+            const transcribed = await transcribeLineAudio(_messageId, _token, _env);
+            if (!transcribed) {
+              if (_env.SLACK_BOT_TOKEN) {
+                const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+                await fetch("https://slack.com/api/chat.postMessage", {
+                  method: "POST",
+                  headers: { "Authorization": `Bearer ${_env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                  body: JSON.stringify({ channel: _env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *音声文字起こし失敗*\nユーザー: \`${_userId}\`\n時刻: ${nowJST}` }),
+                }).catch(() => {});
+              }
+              await fetch("https://api.line.me/v2/bot/message/push", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                body: JSON.stringify({
+                  to: _userId,
+                  messages: [{ type: "text", text: "音声をうまく聞き取れませんでした🙇\nもう一度お話しいただくか、テキストでも教えていただけます🌸" }],
+                }),
+              });
+              return;
+            }
+            // Slack通知
+            if (_env.SLACK_BOT_TOKEN) {
+              const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+              await fetch("https://slack.com/api/chat.postMessage", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${_env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ channel: _env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *LINE音声受信（文字起こし）*\nユーザー: \`${_userId}\`\n認識結果: ${transcribed}\n時刻: ${nowJST}` }),
+              }).catch(() => {});
+            }
+            // AICAバックグラウンド処理
+            await aicaProcessTextBackground({
+              userId: _userId,
+              userText: transcribed,
+              channelAccessToken: _token,
+              env: _env,
+            });
+          } catch (e) {
+            console.error(`[Audio] background error: ${e.message}`);
+            try {
+              await fetch("https://api.line.me/v2/bot/message/push", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                body: JSON.stringify({
+                  to: _userId,
+                  messages: [{ type: "text", text: "申し訳ありません、応答に時間がかかっています 🙇\nもう一度お話しいただくか、テキストでも大丈夫です🌸" }],
+                }),
+              });
+            } catch (e2) { /* ignore */ }
           }
-          await lineReply(event.replyToken, [{
-            type: "text",
-            text: "音声をうまく聞き取れませんでした🙇\nもう一度お話しいただくか、テキストでも教えていただけます🌸",
-          }], channelAccessToken);
-          continue;
-        }
-        if (env.SLACK_BOT_TOKEN) {
-          const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-          ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-            body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *LINE音声受信（文字起こし）*\nユーザー: \`${userId}\`\n認識結果: ${transcribed}\n時刻: ${nowJST}` }),
-          }).catch(() => {}));
-        }
-        // event.message を text 型に書き換えて、下のテキストハンドラへ自然合流
-        event.message = { type: "text", id: event.message.id, text: transcribed };
-        // ↓この下のテキストハンドラで通常処理される
+        })());
+        continue;
       }
 
       // --- テキストメッセージ ---
