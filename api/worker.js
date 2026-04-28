@@ -2550,7 +2550,8 @@ export default {
     // ====== 管理ダッシュボード ======
     if (url.pathname === "/admin" || url.pathname === "/admin/" ||
         url.pathname === "/admin/index.html" || url.pathname === "/admin/app" ||
-        url.pathname === "/admin/manifest.json" || url.pathname === "/admin/sw.js") {
+        url.pathname === "/admin/manifest.json" || url.pathname === "/admin/sw.js" ||
+        url.pathname === "/admin/icon-192.png" || url.pathname === "/admin/icon-512.png") {
       const adminResp = await handleAdminRoute(request, env, ctx, url);
       if (adminResp) return adminResp;
     }
@@ -12317,10 +12318,25 @@ async function handleAdminRoute(request, env, ctx, url) {
       background_color: "#ffffff",
       theme_color: "#1a3a5c",
       icons: [
-        { src: "/assets/favicon-192x192.png", sizes: "192x192", type: "image/png" },
-        { src: "/assets/favicon-512x512.png", sizes: "512x512", type: "image/png" },
+        // 絶対URL: Worker domain では /assets/* が配信されないため
+        { src: "https://quads-nurse.com/assets/favicon-192x192.png", sizes: "192x192", type: "image/png" },
+        { src: "https://quads-nurse.com/assets/favicon-512x512.png", sizes: "512x512", type: "image/png" },
       ],
     });
+  }
+  // PWA アイコンを Worker からも配信（プロキシ）
+  if (method === "GET" && (path === "/admin/icon-192.png" || path === "/admin/icon-512.png")) {
+    const size = path.includes("192") ? "192" : "512";
+    try {
+      const res = await fetch(`https://quads-nurse.com/assets/favicon-${size}x${size}.png`);
+      if (!res.ok) return new Response("not found", { status: 404 });
+      return new Response(res.body, {
+        status: 200,
+        headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" },
+      });
+    } catch {
+      return new Response("error", { status: 502 });
+    }
   }
   if (method === "GET" && path === "/admin/sw.js") {
     return new Response(adminServiceWorkerJs(), {
