@@ -52,5 +52,23 @@
     "enqueued_at": "2026-04-27T12:11:20",
     "retries": 0,
     "last_error": "bot_exception_ProxyError"
+  },
+  {
+    "channel": "C09A7U4TV4G",
+    "text": "📸 *Instagram投稿タスク (自動実行)*\n• 実行時刻: 2026-04-28 12:10\n• 結果: 本日のInstagram投稿: readyコンテンツなし\n• 詳細: posting_queue.json に `status=ready` かつ `platform=instagram` のエントリがありません（ready 37件はすべて platform 未設定）。\n• 対処: 必要なら content-gen で Instagram カルーセルを生成して platform=instagram にセットしてください。",
+    "blocks": null,
+    "thread_ts": null,
+    "enqueued_at": "2026-04-28T12:10:35",
+    "retries": 0,
+    "last_error": "bot_exception_ProxyError"
+  },
+  {
+    "channel": "C09A7U4TV4G",
+    "text": "📸 *Instagram自動投稿タスク — 失敗 (2026-04-28 17:30 JST枠)*\n\n*結果: 投稿不可（Chrome MCP未接続）*\n\n*環境チェック:*\n• `posting_queue.json` 読み込み: ✅ (170件中 ready=37件)\n• `status=ready` かつ `platform=instagram`: *0件*（仕様フィルター不一致）\n• 対象候補（platform未設定だが形式上Instagramカルーセル）: id=203 content_id=ai_給与_0409_02 category=salary\n• Chrome MCP (Claude in Chrome 拡張): ❌ **未接続**\n• Slack直送 (sandbox→slack.com): ❌ Proxy 403（既知）\n\n*この状態の累積:*\n• 4/18, 4/21, 4/23, 4/24, 4/25, 4/27 もChrome MCP未接続で失敗（alert_queue.json参照）\n• 連続失敗7日目。手動介入が必要です。\n\n*要対応 (YOSHIYUKI):*\n1. Chrome を起動し、Claude in Chrome 拡張にサインインして接続を確認\n2. `posting_queue.json` の ready エントリに `platform=instagram` を付与（または content-gen スクリプト側で書き込むよう修正）\n3. 連続失敗の根本原因が解消するまで本cronタスクを一時停止することも検討（毎日アラートだけがキューに溜まっている状態）\n\n*エントリは ready のまま維持*（重複投稿防止）。手動投稿後は status=posted に更新してください。",
+    "blocks": null,
+    "thread_ts": null,
+    "enqueued_at": "2026-04-28T12:12:37",
+    "retries": 0,
+    "last_error": "bot_exception_ProxyError"
   }
 ]

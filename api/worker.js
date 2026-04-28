@@ -2547,6 +2547,23 @@ export default {
 
     const url = new URL(request.url);
 
+    // ====== 管理ダッシュボード ======
+    if (url.pathname === "/admin" || url.pathname === "/admin/" ||
+        url.pathname === "/admin/index.html" || url.pathname === "/admin/app" ||
+        url.pathname === "/admin/manifest.json" || url.pathname === "/admin/sw.js") {
+      const adminResp = await handleAdminRoute(request, env, ctx, url);
+      if (adminResp) return adminResp;
+    }
+    if (url.pathname === "/api/admin/sign-request" && request.method === "POST") {
+      return handleAdminSignRequest(request, env);
+    }
+    if (url.pathname.startsWith("/api/admin/") &&
+        url.pathname !== "/api/admin/trigger-waitlist-push" &&
+        url.pathname !== "/api/admin/trigger-newjobs-push") {
+      const adminResp = await handleAdminRoute(request, env, ctx, url);
+      if (adminResp) return adminResp;
+    }
+
     // ルーティング
     if (url.pathname === "/api/register" && request.method === "POST") {
       return handleRegister(request, env, ctx);
@@ -4099,12 +4116,12 @@ async function verifyLineSignature(body, signature, channelSecret) {
 function timingSafeEqual(a, b) {
   if (typeof a !== "string" || typeof b !== "string") return false;
   if (a.length === 0 || b.length === 0) return false;
-  const len = Math.max(a.length, b.length);
-  let mismatch = a.length !== b.length ? 1 : 0;
-  for (let i = 0; i < len; i++) {
-    mismatch |= (a.charCodeAt(i % a.length) ^ b.charCodeAt(i % b.length));
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
-  return mismatch === 0;
+  return diff === 0;
 }
 
 // LINE Reply API呼び出し
@@ -5653,6 +5670,21 @@ async function saveLineEntry(userId, entry, env) {
         env.LINE_SESSIONS.put(`ver:${userId}`, versionData, { expirationTtl: 2592000 }),
       ]);
       console.log(`[LINE] KV put OK: ${kvKey.slice(0, 15)}, phase: ${toSave.phase}`);
+      // 管理ダッシュボード用 recent activity 追記（軽量・失敗してもメインフローを止めない）
+      try {
+        const lastMsg = (toSave.messages && toSave.messages.length > 0)
+          ? toSave.messages[toSave.messages.length - 1]
+          : null;
+        const summary = lastMsg && lastMsg.role === "user"
+          ? String(lastMsg.content || "").slice(0, 80)
+          : `[phase=${toSave.phase}]`;
+        await adminPushRecentActivity(env, userId, summary, toSave.phase, {
+          handoffAt: toSave.handoffAt || null,
+          adminMutedAt: toSave.adminMutedAt || null,
+        });
+      } catch (e) {
+        console.error(`[Admin] recent activity push failed: ${e.message}`);
+      }
     } catch (e) {
       console.error(`[LINE] KV put FAILED: ${e.name}: ${e.message}`, e.stack);
     }
@@ -9564,6 +9596,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }
         }
 
+        // 管理画面で BOT OFF にされたユーザーは postback を全部無視（リッチメニューでも復活させない）
+        if (entry.adminMutedAt) {
+          console.log(`[LINE] Admin muted: blocked postback "${dataStr}" for ${userId.slice(0, 8)}`);
+          await saveLineEntry(userId, entry, env);
+          continue;
+        }
+
         // handoff中のpostbackはFAQ+リッチメニューのみ許可（Bot再起動防止）
         if (entry.phase === "handoff" || entry.phase === "handoff_silent") {
           const pbParams = new URLSearchParams(dataStr);
@@ -10705,6 +10744,24 @@ ${entry.rmCvQualifications || '看護師免許'}
           entry.phase = "nurture_warm";
           await saveLineEntry(userId, entry, env);
           await lineReply(event.replyToken, [{ type: "text", text: "了解しました！対応エリアが拡大したらお知らせしますね。" }], channelAccessToken);
+          continue;
+        }
+
+        // 【admin BOT OFF】管理画面で停止中なら無条件で沈黙（phase問わず）
+        if (entry.adminMutedAt) {
+          console.log(`[LINE] Admin muted: silent reply for "${userText.slice(0, 30)}", User: ${userId.slice(0, 8)}`);
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            await fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                text: `🔇 *Admin BOT停止中の受信*\nuserId: \`${userId}\`\n本文: ${userText.slice(0, 200)}\n時刻: ${nowJST}\n\n返信: \`!reply ${userId} <本文>\``,
+              }),
+            }).catch(() => {});
+          }
+          await saveLineEntry(userId, entry, env);
           continue;
         }
 
@@ -11982,6 +12039,887 @@ async function handleScheduledNewJobsNotify(env, opts) {
   }
 
   console.log(`[NewJobsCron] done: sent=${pushSuccess} zero_skip=${pushSkipZero} failed=${pushFailed}`);
+}
+
+// ============================================================
+// 管理ダッシュボード（Admin Dashboard）モジュール
+// 設計書: docs/audit/2026-04-28-line-system/ADMIN-DASHBOARD-DESIGN-v1.md
+// ============================================================
+
+// 実存する STATE_CATEGORIES と整合させる（worker.js:260）
+const ADMIN_PHASE_AI_CONSULT = ["ai_consultation", "ai_consultation_waiting", "ai_consultation_reply", "ai_consultation_extend"];
+const ADMIN_PHASE_AICA = ["aica_turn1", "aica_turn2", "aica_turn3", "aica_turn4", "aica_summary", "aica_condition", "aica_career_sheet"];
+const ADMIN_PHASE_APPLY = ["apply_info", "apply_consent", "apply_confirm"];
+
+// SPA で使う HTML エスケープ（XSS 対策）
+function adminEsc(s) {
+  if (s == null) return "";
+  return String(s).replace(/[<>&"']/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// sign-request の許可ターゲット（CSRFオラクル化対策）
+const ADMIN_SIGN_ALLOWED_TARGETS = [
+  /^\/api\/admin\/user\/U[0-9a-f]{32}\/bot-toggle$/i,
+  /^\/api\/admin\/user\/U[0-9a-f]{32}\/reply$/i,
+];
+
+function adminIsSignTargetAllowed(target) {
+  return ADMIN_SIGN_ALLOWED_TARGETS.some(r => r.test(target));
+}
+
+function getClientIP(request) {
+  return request.headers.get("CF-Connecting-IP") || "unknown";
+}
+
+function timingSafeEqualHex(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  if (a.length !== b.length) return false;
+  if (a.length === 0) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+function hexToBytes(hex) {
+  if (typeof hex !== "string" || hex.length % 2 !== 0) return new Uint8Array();
+  const out = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.substr(i*2, 2), 16);
+  return out;
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function adminHashPassword(password, saltHex) {
+  const salt = hexToBytes(saltHex);
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(password),
+    { name: "PBKDF2" }, false, ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations: 600000, hash: "SHA-256" },
+    key, 256
+  );
+  return bytesToHex(new Uint8Array(bits));
+}
+
+async function adminHmacHex(keyHex, payload) {
+  const keyBytes = hexToBytes(keyHex);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(payload));
+  return bytesToHex(new Uint8Array(sig));
+}
+
+async function adminMessageFingerprint(text, userId, env) {
+  const hashKey = env.AUDIT_HASH_KEY || env.ADMIN_HMAC_KEY || "";
+  if (!hashKey) return "no_key";
+  const h = await adminHmacHex(hashKey, `${userId}|${text}`);
+  return h.slice(0, 16);
+}
+
+function adminMessagePreview(text) {
+  if (!text || text.length === 0) return "(empty)";
+  if (text.length <= 24) return "(short)";
+  return `${text.slice(0, 10)}...${text.slice(-10)}`;
+}
+
+function adminJson(data, status = 200, extraHeaders = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      ...extraHeaders,
+    },
+  });
+}
+
+function adminParseCookie(request) {
+  const raw = request.headers.get("Cookie") || "";
+  const out = {};
+  raw.split(";").forEach(pair => {
+    const idx = pair.indexOf("=");
+    if (idx > 0) {
+      const k = pair.slice(0, idx).trim();
+      const v = pair.slice(idx + 1).trim();
+      out[k] = v;
+    }
+  });
+  return out;
+}
+
+async function adminGetSession(request, env) {
+  const cookies = adminParseCookie(request);
+  const token = cookies.admin_session;
+  if (!token || !/^[0-9a-f-]{32,40}$/i.test(token)) return null;
+  const raw = await env.LINE_SESSIONS.get(`admin:session:${token}`);
+  if (!raw) return null;
+  try {
+    const sess = JSON.parse(raw);
+    return { token, ...sess };
+  } catch { return null; }
+}
+
+async function adminWriteAudit(env, entry) {
+  try {
+    const ts = entry.ts || Date.now();
+    const rand = crypto.randomUUID().slice(0, 8);
+    const key = `admin:audit:${ts}:${rand}`;
+    const record = { ts, ...entry };
+    await env.LINE_SESSIONS.put(key, JSON.stringify(record), {
+      expirationTtl: 180 * 24 * 3600,
+    });
+    if (env.SLACK_BOT_TOKEN) {
+      const channel = env.SLACK_AUDIT_CHANNEL_ID || env.SLACK_CHANNEL_ID || "C09A7U4TV4G";
+      const text = `[AUDIT] ${entry.action} actor=${entry.actor || "admin"} target=${entry.target || ""} result=${entry.result || "ok"} ip=${entry.ip || ""}`;
+      await fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+        body: JSON.stringify({ channel, text }),
+      }).catch(e => console.error("[Audit] slack mirror failed:", e.message));
+    }
+  } catch (e) {
+    console.error("[Audit] write failed:", e.message);
+  }
+}
+
+async function adminCheckLockout(env, ip) {
+  const now = Math.floor(Date.now() / 60000);
+  let total = 0;
+  for (let i = 0; i < 10; i++) {
+    const v = await env.LINE_SESSIONS.get(`admin:lockout:${ip}:${now - i}`);
+    total += parseInt(v || "0", 10);
+  }
+  return total < 5;
+}
+
+async function adminRecordLoginFailure(env, ip) {
+  const minute = Math.floor(Date.now() / 60000);
+  const key = `admin:lockout:${ip}:${minute}`;
+  const cur = parseInt((await env.LINE_SESSIONS.get(key)) || "0", 10);
+  await env.LINE_SESSIONS.put(key, String(cur + 1), { expirationTtl: 900 });
+}
+
+async function adminVerifyHmac(request, env, rawBody) {
+  const sig = request.headers.get("X-Admin-Sig");
+  const ts = request.headers.get("X-Admin-Ts");
+  const nonce = request.headers.get("X-Admin-Nonce");
+  if (!sig || !ts || !nonce) return { ok: false, reason: "missing_headers" };
+  const tsNum = parseInt(ts, 10);
+  if (!Number.isFinite(tsNum)) return { ok: false, reason: "bad_ts" };
+  if (Math.abs(Date.now() - tsNum) > 5 * 60 * 1000) return { ok: false, reason: "ts_expired" };
+  if (!/^[0-9a-f-]{16,40}$/i.test(nonce)) return { ok: false, reason: "bad_nonce" };
+  const nonceKey = `admin:nonce:${nonce}`;
+  if (await env.LINE_SESSIONS.get(nonceKey)) return { ok: false, reason: "nonce_used" };
+  if (!env.ADMIN_HMAC_KEY) return { ok: false, reason: "no_key" };
+  const payload = `${ts}.${nonce}.${rawBody}`;
+  const expected = await adminHmacHex(env.ADMIN_HMAC_KEY, payload);
+  if (!timingSafeEqualHex(expected, sig)) return { ok: false, reason: "bad_sig" };
+  // HMAC検証成功後にのみ nonce を消費（攻撃者による先回り消費DoSを防ぐ）
+  await env.LINE_SESSIONS.put(nonceKey, "1", { expirationTtl: 600 });
+  return { ok: true };
+}
+
+async function adminPushRecentActivity(env, userId, summary, phase, extra = {}) {
+  try {
+    const ts = Date.now();
+    const rand = crypto.randomUUID().slice(0, 8);
+    const key = `admin:recent:${ts}:${rand}`;
+    const record = {
+      userId, phase: phase || "unknown",
+      summary: (summary || "").slice(0, 80),
+      ts,
+      handoffAt: extra.handoffAt || null,
+      adminMutedAt: extra.adminMutedAt || null,
+    };
+    // 24h TTL（PII含む可能性。180日は長すぎる、レビュー指摘）
+    await env.LINE_SESSIONS.put(key, JSON.stringify(record), { expirationTtl: 24 * 3600 });
+  } catch (e) {
+    console.error("[RecentActivity] put failed:", e.message);
+  }
+}
+
+async function adminReadRecentActivities(env, limit = 100) {
+  try {
+    const keys = await env.LINE_SESSIONS.list({ prefix: "admin:recent:", limit: Math.min(limit * 2, 200) });
+    keys.keys.sort((a, b) => b.name.localeCompare(a.name));
+    const items = [];
+    for (const k of keys.keys.slice(0, limit)) {
+      const v = await env.LINE_SESSIONS.get(k.name);
+      if (v) {
+        try { items.push(JSON.parse(v)); } catch {}
+      }
+    }
+    return items;
+  } catch (e) {
+    console.error("[RecentActivity] read failed:", e.message);
+    return [];
+  }
+}
+
+async function adminCheckBotMuted(env, userId) {
+  if (!userId) return false;
+  try {
+    const raw = await env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 60 });
+    if (!raw) return false;
+    const entry = JSON.parse(raw);
+    if (entry.adminMutedAt && entry.phase === "handoff") return true;
+  } catch {}
+  return false;
+}
+
+// ---- Admin route handler ----
+async function handleAdminRoute(request, env, ctx, url) {
+  const path = url.pathname;
+  const method = request.method;
+
+  // 静的HTML配信
+  if (method === "GET" && (path === "/admin" || path === "/admin/" || path === "/admin/index.html")) {
+    return new Response(adminLoginHtml(), {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }
+  if (method === "GET" && path === "/admin/app") {
+    const sess = await adminGetSession(request, env);
+    if (!sess) {
+      return Response.redirect(`${url.origin}/admin/`, 302);
+    }
+    return new Response(adminAppHtml(), {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }
+  if (method === "GET" && path === "/admin/manifest.json") {
+    return adminJson({
+      name: "ナースロビー管理",
+      short_name: "管理",
+      start_url: "/admin/app",
+      display: "standalone",
+      background_color: "#ffffff",
+      theme_color: "#1a3a5c",
+      icons: [
+        { src: "/assets/favicon-192x192.png", sizes: "192x192", type: "image/png" },
+        { src: "/assets/favicon-512x512.png", sizes: "512x512", type: "image/png" },
+      ],
+    });
+  }
+  if (method === "GET" && path === "/admin/sw.js") {
+    return new Response(adminServiceWorkerJs(), {
+      status: 200,
+      headers: { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }
+
+  // ---- API ----
+
+  // POST /api/admin/login（認証なし、レート制限あり）
+  if (method === "POST" && path === "/api/admin/login") {
+    const ip = getClientIP(request);
+    const ua = request.headers.get("User-Agent") || "";
+    const allowed = await adminCheckLockout(env, ip);
+    if (!allowed) {
+      await adminWriteAudit(env, { actor: "anonymous", ip, action: "login_lockout", result: "blocked" });
+      return adminJson({ error: "Too many attempts. Locked for 15 minutes." }, 429);
+    }
+    let body;
+    try { body = await request.json(); } catch { body = {}; }
+    const password = String(body.password || "");
+    if (!password) return adminJson({ error: "password required" }, 400);
+    if (!env.ADMIN_PASSWORD_HASH || !env.ADMIN_SALT) {
+      return adminJson({ error: "admin not configured" }, 503);
+    }
+    const calc = await adminHashPassword(password, env.ADMIN_SALT);
+    if (!timingSafeEqualHex(calc, env.ADMIN_PASSWORD_HASH)) {
+      await adminRecordLoginFailure(env, ip);
+      await adminWriteAudit(env, { actor: "anonymous", ip, ua, action: "login", result: "fail" });
+      return adminJson({ error: "Invalid password" }, 401);
+    }
+    const token = crypto.randomUUID();
+    await env.LINE_SESSIONS.put(
+      `admin:session:${token}`,
+      JSON.stringify({ ip, ua, createdAt: Date.now() }),
+      { expirationTtl: 12 * 3600 }
+    );
+    await adminWriteAudit(env, { actor: "admin", ip, ua, action: "login", result: "ok" });
+    return adminJson({ ok: true }, 200, {
+      "Set-Cookie": `admin_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=43200`,
+    });
+  }
+
+  // 以降は全て Cookie 認証必須
+  if (path.startsWith("/api/admin/")) {
+    const sess = await adminGetSession(request, env);
+    if (!sess) {
+      return adminJson({ error: "Unauthorized" }, 401);
+    }
+    const ip = getClientIP(request);
+
+    // POST /api/admin/logout
+    if (method === "POST" && path === "/api/admin/logout") {
+      await env.LINE_SESSIONS.delete(`admin:session:${sess.token}`);
+      await adminWriteAudit(env, { actor: "admin", ip, action: "logout", result: "ok" });
+      return adminJson({ ok: true }, 200, {
+        "Set-Cookie": `admin_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`,
+      });
+    }
+
+    // GET /api/admin/dashboard
+    if (method === "GET" && path === "/api/admin/dashboard") {
+      const today = new Date().toISOString().slice(0, 10);
+      const newFollowersRaw = await env.LINE_SESSIONS.get(`event:${today}:line_follow`);
+      const newFollowers = parseInt(newFollowersRaw || "0", 10);
+      const recent = await adminReadRecentActivities(env, 100);
+      let aiConsulting = 0, applyIntent = 0, emergency = 0;
+      const now = Date.now();
+      const seenUsers = new Set();
+      for (const r of recent) {
+        if (seenUsers.has(r.userId)) continue;
+        seenUsers.add(r.userId);
+        if (ADMIN_PHASE_AI_CONSULT.includes(r.phase) || ADMIN_PHASE_AICA.includes(r.phase)) aiConsulting++;
+        if (ADMIN_PHASE_APPLY.includes(r.phase)) applyIntent++;
+        if (r.phase === "handoff" && r.handoffAt && (now - r.handoffAt > 24 * 3600 * 1000)) emergency++;
+      }
+      await adminWriteAudit(env, { actor: "admin", ip, action: "dashboard_view", result: "ok" });
+      return adminJson({
+        today: { newFollowers, aiConsulting, applyIntent, emergency },
+        recent: recent.slice(0, 10),
+      });
+    }
+
+    // GET /api/admin/conversations
+    if (method === "GET" && path === "/api/admin/conversations") {
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "30", 10), 100);
+      const offset = parseInt(url.searchParams.get("offset") || "0", 10);
+      const verKeys = await kvListAll(env.LINE_SESSIONS, "ver:");
+      const items = [];
+      const fetchPromises = verKeys.slice(0, 500).map(async k => {
+        try {
+          const v = await env.LINE_SESSIONS.get(k.name, { cacheTtl: 60 });
+          if (!v) return null;
+          const meta = JSON.parse(v);
+          const userId = k.name.replace(/^ver:/, "");
+          return { userId, phase: meta.phase || "unknown", updatedAt: meta.updatedAt || 0 };
+        } catch { return null; }
+      });
+      const results = await Promise.all(fetchPromises);
+      results.forEach(r => { if (r) items.push(r); });
+      items.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      const recent = await adminReadRecentActivities(env, 100);
+      const recentMap = new Map();
+      for (const r of recent) if (!recentMap.has(r.userId)) recentMap.set(r.userId, r.summary);
+      for (const it of items) it.lastMessage = recentMap.get(it.userId) || null;
+      const total = items.length;
+      const sliced = items.slice(offset, offset + limit);
+      await adminWriteAudit(env, { actor: "admin", ip, action: "conversations_view", result: "ok" });
+      return adminJson({ items: sliced, total, limit, offset });
+    }
+
+    // /api/admin/user/:userId  および  /api/admin/user/:userId/:action
+    if (path.startsWith("/api/admin/user/")) {
+      const parts = path.split("/").filter(Boolean);
+      if (method === "GET" && parts.length === 4) {
+        const userId = decodeURIComponent(parts[3]);
+        if (!/^U[0-9a-f]{32}$/i.test(userId)) return adminJson({ error: "bad userId" }, 400);
+        const [entryRaw, memberRaw, resumeDataRaw, handoffRaw] = await Promise.all([
+          env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 5 }),
+          env.LINE_SESSIONS.get(`member:${userId}`, { cacheTtl: 5 }),
+          env.LINE_SESSIONS.get(`member:${userId}:resume_data`, { cacheTtl: 5 }),
+          env.LINE_SESSIONS.get(`handoff:${userId}`, { cacheTtl: 5 }),
+        ]);
+        const entry = entryRaw ? JSON.parse(entryRaw) : null;
+        const member = memberRaw ? JSON.parse(memberRaw) : null;
+        const resumeData = resumeDataRaw ? JSON.parse(resumeDataRaw) : null;
+        const handoffMeta = handoffRaw ? JSON.parse(handoffRaw) : null;
+        await adminWriteAudit(env, { actor: "admin", ip, action: "user_view", target: userId, result: "ok" });
+        return adminJson({ entry, member, resumeData, handoffMeta });
+      }
+      // POST 系: /api/admin/user/:userId/bot-toggle, /reply
+      if (method === "POST" && parts.length === 5) {
+        const userId = decodeURIComponent(parts[3]);
+        const action = parts[4];
+        if (!/^U[0-9a-f]{32}$/i.test(userId)) return adminJson({ error: "bad userId" }, 400);
+        const rawBody = await request.text();
+        const hmacResult = await adminVerifyHmac(request, env, rawBody);
+        if (!hmacResult.ok) {
+          await adminWriteAudit(env, { actor: "admin", ip, action: `${action}_hmac_fail`, target: userId, result: hmacResult.reason });
+          return adminJson({ error: "HMAC verification failed", reason: hmacResult.reason }, 403);
+        }
+        let body; try { body = JSON.parse(rawBody); } catch { body = {}; }
+
+        if (action === "bot-toggle") {
+          const enabled = !!body.enabled;
+          const reason = String(body.reason || "").slice(0, 200);
+          const entryRaw2 = await env.LINE_SESSIONS.get(`line:${userId}`);
+          if (!entryRaw2) return adminJson({ error: "user not found" }, 404);
+          const entry2 = JSON.parse(entryRaw2);
+          if (!enabled) {
+            entry2.phaseBeforeMute = entry2.phase || "free_consult";
+            entry2.phase = "handoff";
+            entry2.handoffAt = Date.now();
+            entry2.handoffReason = "admin_muted";
+            entry2.adminMutedAt = Date.now();
+            entry2.adminMutedReason = reason;
+            entry2.adminMutedBy = "admin";
+          } else {
+            entry2.phase = entry2.phaseBeforeMute || "free_consult";
+            entry2.phaseBeforeMute = null;
+            entry2.handoffAt = null;
+            entry2.adminMutedAt = null;
+            entry2.adminMutedReason = null;
+          }
+          entry2.updatedAt = Date.now();
+          await Promise.all([
+            env.LINE_SESSIONS.put(`line:${userId}`, JSON.stringify(entry2), { expirationTtl: 2592000 }),
+            env.LINE_SESSIONS.put(`ver:${userId}`, JSON.stringify({ phase: entry2.phase, updatedAt: entry2.updatedAt }), { expirationTtl: 2592000 }),
+          ]);
+          await adminWriteAudit(env, {
+            actor: "admin", ip, action: "bot_toggle", target: userId,
+            payload: { enabled, reason }, result: "ok",
+          });
+          return adminJson({ ok: true, phase: entry2.phase });
+        }
+
+        if (action === "reply") {
+          const text = String(body.text || "");
+          if (text.length === 0 || text.length > 5000) {
+            return adminJson({ error: "text length invalid (1-5000)" }, 400);
+          }
+          const urlCount = (text.match(/https?:\/\//g) || []).length;
+          if (urlCount > 3) return adminJson({ error: "too many URLs (max 3)" }, 400);
+          if (!env.LINE_CHANNEL_ACCESS_TOKEN) return adminJson({ error: "LINE not configured" }, 503);
+          const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
+            },
+            body: JSON.stringify({ to: userId, messages: [{ type: "text", text }] }),
+          });
+          const pushStatus = pushRes.status;
+          const fingerprint = await adminMessageFingerprint(text, userId, env);
+          const preview = adminMessagePreview(text);
+          if (pushRes.ok) {
+            const entryRaw3 = await env.LINE_SESSIONS.get(`line:${userId}`);
+            if (entryRaw3) {
+              const entry3 = JSON.parse(entryRaw3);
+              entry3.adminLastReplyAt = Date.now();
+              entry3.phaseBeforeMute = entry3.phaseBeforeMute || entry3.phase || "free_consult";
+              entry3.phase = "handoff";
+              entry3.handoffAt = Date.now();
+              entry3.handoffReason = entry3.handoffReason || "admin_replied";
+              entry3.adminMutedAt = Date.now();
+              entry3.adminMutedBy = "admin";
+              entry3.updatedAt = Date.now();
+              await Promise.all([
+                env.LINE_SESSIONS.put(`line:${userId}`, JSON.stringify(entry3), { expirationTtl: 2592000 }),
+                env.LINE_SESSIONS.put(`ver:${userId}`, JSON.stringify({ phase: entry3.phase, updatedAt: entry3.updatedAt }), { expirationTtl: 2592000 }),
+              ]);
+            }
+          }
+          await adminWriteAudit(env, {
+            actor: "admin", ip, action: "reply_sent", target: userId,
+            payload: { fingerprint, preview, length: text.length, lineApiStatus: pushStatus },
+            result: pushRes.ok ? "ok" : "error",
+          });
+          return adminJson({ ok: pushRes.ok, lineStatus: pushStatus });
+        }
+      }
+    }
+
+    // GET /api/admin/audit-log
+    if (method === "GET" && path === "/api/admin/audit-log") {
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "100", 10), 500);
+      const filterAction = url.searchParams.get("action") || "";
+      const keys = await kvListAll(env.LINE_SESSIONS, "admin:audit:");
+      keys.sort((a, b) => b.name.localeCompare(a.name));
+      const items = [];
+      for (const k of keys.slice(0, limit * 2)) {
+        try {
+          const v = await env.LINE_SESSIONS.get(k.name);
+          if (!v) continue;
+          const rec = JSON.parse(v);
+          if (filterAction && rec.action !== filterAction) continue;
+          items.push(rec);
+          if (items.length >= limit) break;
+        } catch {}
+      }
+      await adminWriteAudit(env, { actor: "admin", ip, action: "audit_view", result: "ok" });
+      return adminJson({ items, total: keys.length });
+    }
+  }
+
+  return null;
+}
+
+// admin ログイン HTML
+function adminLoginHtml() {
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>ナースロビー管理 ログイン</title>
+<link rel="manifest" href="/admin/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  background:linear-gradient(135deg,#1a3a5c 0%,#2d7a4f 100%);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:16px;padding:32px 24px;width:100%;max-width:400px;
+  box-shadow:0 10px 40px rgba(0,0,0,.2)}
+h1{font-size:20px;color:#1a3a5c;margin-bottom:8px;text-align:center}
+.sub{font-size:13px;color:#888;text-align:center;margin-bottom:24px}
+label{display:block;font-size:13px;color:#555;margin-bottom:6px}
+input[type="password"]{width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:10px;
+  font-size:16px;transition:border .2s}
+input[type="password"]:focus{outline:none;border-color:#2d7a4f}
+button{width:100%;padding:14px;background:#1a3a5c;color:#fff;border:0;border-radius:10px;
+  font-size:16px;font-weight:600;margin-top:16px;cursor:pointer;min-height:48px}
+button:hover{background:#2d7a4f}
+button:disabled{opacity:.5;cursor:not-allowed}
+.error{color:#c62828;font-size:13px;margin-top:12px;text-align:center;min-height:20px}
+.footer{text-align:center;font-size:11px;color:#aaa;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔐 ナースロビー管理</h1>
+  <div class="sub">LINE管制塔</div>
+  <form id="f" autocomplete="off">
+    <label for="p">管理パスワード</label>
+    <input type="password" id="p" name="password" required autocomplete="current-password" autofocus>
+    <button type="submit" id="btn">ログイン</button>
+    <div class="error" id="err"></div>
+  </form>
+  <div class="footer">© 2026 ナースロビー</div>
+</div>
+<script>
+const f=document.getElementById('f'),btn=document.getElementById('btn'),err=document.getElementById('err');
+f.addEventListener('submit',async e=>{
+  e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='認証中…';
+  try{
+    const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password:document.getElementById('p').value}),credentials:'same-origin'});
+    if(r.ok){location.href='/admin/app';}
+    else if(r.status===429){err.textContent='試行回数オーバー。15分後に再試行してください。';}
+    else{const j=await r.json().catch(()=>({}));err.textContent=j.error||'認証失敗';}
+  }catch(e){err.textContent='通信エラー: '+e.message;}
+  btn.disabled=false;btn.textContent='ログイン';
+});
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/admin/sw.js').catch(()=>{});}
+</script>
+</body>
+</html>`;
+}
+
+// admin SPA HTML
+function adminAppHtml() {
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>ナースロビー管理</title>
+<link rel="manifest" href="/admin/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  background:#f5f6f8;color:#222;font-size:15px;line-height:1.5;min-height:100vh}
+header{background:#1a3a5c;color:#fff;padding:14px 16px;position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-size:16px;font-weight:600}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:48px;z-index:9}
+.tabs a{flex:1;text-align:center;padding:12px 4px;color:#666;text-decoration:none;font-size:13px;
+  border-bottom:3px solid transparent;min-height:44px;display:flex;align-items:center;justify-content:center}
+.tabs a.active{color:#1a3a5c;border-color:#2d7a4f;font-weight:600}
+main{padding:12px 12px 60px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:#fff;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.metric .num{font-size:28px;font-weight:700;color:#1a3a5c}
+.metric .label{font-size:12px;color:#666;margin-top:4px}
+.metric.alert .num{color:#c62828}
+.list-item{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between;cursor:pointer;min-height:60px;
+  border:1px solid transparent;transition:border .15s}
+.list-item:hover{border-color:#2d7a4f}
+.list-item .meta{flex:1;min-width:0}
+.list-item .name{font-weight:600;font-size:14px;color:#1a3a5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-item .sub{font-size:12px;color:#666;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phase-badge{font-size:11px;padding:3px 8px;border-radius:10px;background:#e8f5e9;color:#2d7a4f;white-space:nowrap}
+.phase-badge.handoff{background:#ffebee;color:#c62828}
+.phase-badge.aica{background:#fff3e0;color:#e65100}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+  padding:10px 16px;border-radius:8px;border:0;font-size:14px;font-weight:600;cursor:pointer;
+  background:#1a3a5c;color:#fff}
+.btn.secondary{background:#fff;color:#1a3a5c;border:2px solid #1a3a5c}
+.btn.danger{background:#c62828}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;margin-top:10px}
+.row .btn{flex:1}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:4px}
+.field input,.field textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+.field textarea{min-height:100px;resize:vertical}
+.audit-row{font-family:Menlo,Monaco,monospace;font-size:11px;padding:8px;border-bottom:1px solid #eee;
+  word-break:break-all}
+.audit-row.fail{background:#ffebee}
+.empty{text-align:center;color:#999;padding:40px 20px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#222;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:100;display:none}
+.toast.show{display:block}
+.spinner{display:inline-block;width:18px;height:18px;border:3px solid #ddd;border-top-color:#1a3a5c;
+  border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.kv{font-family:Menlo,monospace;font-size:11px;color:#555;background:#f8f9fa;padding:8px;border-radius:6px;
+  white-space:pre-wrap;word-break:break-all;max-height:240px;overflow-y:auto}
+.msg-bubble{background:#f0f4f8;padding:8px 10px;border-radius:8px;margin-bottom:6px;font-size:13px}
+.msg-bubble.user{background:#dcedc8;text-align:right}
+@media(min-width:600px){.metric-grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🩺 ナースロビー管制塔</h1>
+  <button class="btn secondary" id="logoutBtn" style="font-size:12px;padding:6px 10px;min-height:32px">ログアウト</button>
+</header>
+<div class="tabs">
+  <a href="#dashboard" data-tab="dashboard">ホーム</a>
+  <a href="#conversations" data-tab="conversations">会話</a>
+  <a href="#audit" data-tab="audit">監査</a>
+</div>
+<main id="root"><div class="empty"><span class="spinner"></span></div></main>
+<div class="toast" id="toast"></div>
+<script>
+const root=document.getElementById('root');
+const toast=document.getElementById('toast');
+function esc(s){if(s==null)return'';return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c]);}
+function showToast(msg,ms=2500){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),ms);}
+function setActiveTab(name){document.querySelectorAll('.tabs a').forEach(a=>{a.classList.toggle('active',a.dataset.tab===name);});}
+async function api(path,opts={}){
+  const r=await fetch(path,Object.assign({credentials:'same-origin',headers:{'Content-Type':'application/json'}},opts));
+  if(r.status===401){location.href='/admin/';throw new Error('Unauthorized');}
+  return r;
+}
+async function apiSigned(path,body){
+  const ts=String(Date.now());
+  const nonce=crypto.randomUUID();
+  const rawBody=JSON.stringify(body);
+  // HMAC は Worker 側で検証。クライアント鍵は session token のため、ts+nonce の組合せで CSRF 防御。
+  // 本実装ではフロント鍵を持たないため、HMAC の代わりに session+nonce でサーバ署名を生成させる
+  const sigRes=await fetch('/api/admin/sign-request',{method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ts,nonce,body:rawBody,target:path})});
+  if(!sigRes.ok){throw new Error('sign failed');}
+  const{sig}=await sigRes.json();
+  return fetch(path,{method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json','X-Admin-Sig':sig,'X-Admin-Ts':ts,'X-Admin-Nonce':nonce},
+    body:rawBody});
+}
+function phaseBadge(phase){
+  const cls=phase==='handoff'?'handoff':(phase&&phase.startsWith('aica')?'aica':'');
+  return '<span class="phase-badge '+cls+'">'+(phase||'-')+'</span>';
+}
+function fmtTime(ts){if(!ts)return'-';const d=new Date(ts);const m=Math.floor((Date.now()-ts)/60000);
+  if(m<1)return'たった今';if(m<60)return m+'分前';if(m<1440)return Math.floor(m/60)+'時間前';
+  return d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});}
+async function viewDashboard(){
+  setActiveTab('dashboard');root.innerHTML='<div class="empty"><span class="spinner"></span></div>';
+  const r=await api('/api/admin/dashboard');const d=await r.json();
+  let html='<div class="metric-grid">';
+  html+='<div class="metric"><div class="num">'+d.today.newFollowers+'</div><div class="label">今日の友だち追加</div></div>';
+  html+='<div class="metric"><div class="num">'+d.today.aiConsulting+'</div><div class="label">AI相談中</div></div>';
+  html+='<div class="metric '+(d.today.applyIntent>0?'alert':'')+'"><div class="num">'+d.today.applyIntent+'</div><div class="label">応募意思</div></div>';
+  html+='<div class="metric '+(d.today.emergency>0?'alert':'')+'"><div class="num">'+d.today.emergency+'</div><div class="label">⚠️緊急(24h+)</div></div>';
+  html+='</div>';
+  html+='<h2 style="font-size:14px;margin:16px 0 8px;color:#666">最近の活動</h2>';
+  if((d.recent||[]).length===0){html+='<div class="empty">まだ活動はありません</div>';}
+  else{for(const r of d.recent){
+    const safeUid=esc(r.userId||'');
+    html+='<div class="list-item" onclick="location.hash=\\'#user/'+encodeURIComponent(r.userId||'')+'\\'">';
+    html+='<div class="meta"><div class="name">'+safeUid.slice(0,8)+'…</div>';
+    html+='<div class="sub">'+esc(r.summary||'')+'</div></div>';
+    html+=phaseBadge(r.phase)+' <span style="font-size:11px;color:#999;margin-left:6px">'+fmtTime(r.ts)+'</span></div>';
+  }}
+  root.innerHTML=html;
+}
+async function viewConversations(){
+  setActiveTab('conversations');root.innerHTML='<div class="empty"><span class="spinner"></span></div>';
+  const r=await api('/api/admin/conversations?limit=50');const d=await r.json();
+  let html='<div style="font-size:12px;color:#666;margin-bottom:8px">合計 '+d.total+' 件</div>';
+  if(d.items.length===0){html+='<div class="empty">会話なし</div>';}
+  else{for(const it of d.items){
+    const safeUid=esc(it.userId);
+    html+='<div class="list-item" onclick="location.hash=\\'#user/'+encodeURIComponent(it.userId)+'\\'">';
+    html+='<div class="meta"><div class="name">'+safeUid.slice(0,8)+'…'+safeUid.slice(-4)+'</div>';
+    html+='<div class="sub">'+esc((it.lastMessage||'(履歴なし)').slice(0,40))+'</div></div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+phaseBadge(it.phase);
+    html+='<span style="font-size:11px;color:#999">'+fmtTime(it.updatedAt)+'</span></div></div>';
+  }}
+  root.innerHTML=html;
+}
+async function viewUser(userId){
+  setActiveTab('conversations');root.innerHTML='<div class="empty"><span class="spinner"></span></div>';
+  const r=await api('/api/admin/user/'+encodeURIComponent(userId));const d=await r.json();
+  if(!d.entry){root.innerHTML='<div class="empty">ユーザーが見つかりません</div>';return;}
+  const e=d.entry;const isMuted=!!e.adminMutedAt;
+  const safeUid=esc(userId);
+  const uidEnc=encodeURIComponent(userId);
+  let html='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+  html+='<div><div style="font-size:12px;color:#666">'+safeUid.slice(0,8)+'…'+safeUid.slice(-4)+'</div>';
+  html+='<div style="font-size:16px;font-weight:600;color:#1a3a5c">'+esc(e.aicaDisplayName||e.fullName||'(名前未取得)')+'</div></div>';
+  html+=phaseBadge(e.phase)+'</div>';
+  html+='<div style="font-size:13px;color:#555">📍 '+esc(e.areaLabel||e.area||'-')+' / 🏥 '+esc(e.profession||e.intakeQual||'-')+' / 📅 '+esc(e.experience||'-')+'</div>';
+  html+='</div>';
+
+  html+='<div class="card"><div style="font-weight:600;margin-bottom:8px">BOT '+(isMuted?'OFF（沈黙中）':'ON')+'</div>';
+  html+='<div class="row">';
+  if(isMuted){html+='<button class="btn" onclick="toggleBot(\\''+uidEnc+'\\',true)">BOT再開</button>';}
+  else{html+='<button class="btn danger" onclick="toggleBot(\\''+uidEnc+'\\',false)">BOT停止</button>';}
+  html+='</div>';
+  if(isMuted&&e.adminMutedReason){html+='<div style="font-size:12px;color:#666;margin-top:8px">理由: '+esc(e.adminMutedReason)+'</div>';}
+  html+='</div>';
+
+  html+='<div class="card"><div style="font-weight:600;margin-bottom:8px">返信</div>';
+  html+='<div class="field"><textarea id="replyText" placeholder="LINEに送るメッセージ" maxlength="5000"></textarea></div>';
+  html+='<button class="btn" onclick="sendReply(\\''+uidEnc+'\\')">送信</button></div>';
+
+  const msgs=(e.messages||e.consultMessages||e.aicaMessages||[]).slice(-20);
+  html+='<div class="card"><div style="font-weight:600;margin-bottom:8px">会話履歴 ('+msgs.length+'件)</div>';
+  if(msgs.length===0){html+='<div style="color:#999;font-size:13px">履歴なし</div>';}
+  else{for(const m of msgs){
+    const cls=m.role==='user'?'user':'';
+    html+='<div class="msg-bubble '+cls+'">'+esc(m.content||'')+'</div>';
+  }}
+  html+='</div>';
+
+  if(e.aicaCareerSheet||e.careerSheet){html+='<div class="card"><div style="font-weight:600;margin-bottom:8px">キャリアシート</div>';
+    html+='<pre class="kv">'+esc(e.aicaCareerSheet||e.careerSheet)+'</pre></div>';}
+
+  html+='<div class="card"><div style="font-weight:600;margin-bottom:8px">entry 全体（デバッグ）</div>';
+  html+='<pre class="kv">'+esc(JSON.stringify(e,null,2).slice(0,2000))+'</pre></div>';
+  root.innerHTML=html;
+}
+window.toggleBot=async function(userIdEnc,enabled){
+  const userId=decodeURIComponent(userIdEnc);
+  if(!confirm(enabled?'BOTを再開しますか？':'BOTを停止しますか？'))return;
+  let reason='';if(!enabled){reason=prompt('停止理由（監査ログに記録されます）','人間が対応')||'';}
+  try{
+    const r=await apiSigned('/api/admin/user/'+userIdEnc+'/bot-toggle',{enabled,reason});
+    if(r.ok){showToast(enabled?'BOT再開':'BOT停止');setTimeout(()=>viewUser(userId),300);}
+    else{const j=await r.json().catch(()=>({}));showToast('失敗: '+(j.error||r.status));}
+  }catch(e){showToast('エラー: '+e.message);}
+};
+window.sendReply=async function(userIdEnc){
+  const userId=decodeURIComponent(userIdEnc);
+  const t=document.getElementById('replyText');const text=t.value.trim();
+  if(!text){showToast('本文を入力してください');return;}
+  if(!confirm('この内容でLINEに送信しますか？'))return;
+  try{
+    const r=await apiSigned('/api/admin/user/'+userIdEnc+'/reply',{text});
+    if(r.ok){const j=await r.json();showToast('送信OK (LINE '+j.lineStatus+')');t.value='';setTimeout(()=>viewUser(userId),500);}
+    else{const j=await r.json().catch(()=>({}));showToast('送信失敗: '+(j.error||r.status));}
+  }catch(e){showToast('エラー: '+e.message);}
+};
+async function viewAudit(){
+  setActiveTab('audit');root.innerHTML='<div class="empty"><span class="spinner"></span></div>';
+  const r=await api('/api/admin/audit-log?limit=200');const d=await r.json();
+  let html='<div style="font-size:12px;color:#666;margin-bottom:8px">監査ログ '+d.items.length+' 件 (KV合計 '+d.total+')</div>';
+  for(const it of d.items){
+    const fail=it.result==='fail'||it.result==='error'||(typeof it.result==='string'&&it.result.startsWith('bad_'));
+    html+='<div class="audit-row '+(fail?'fail':'')+'"><b>'+esc(it.action)+'</b> ['+esc(it.result)+'] '+new Date(it.ts).toLocaleString('ja-JP')+
+      '<br>actor='+esc(it.actor)+' ip='+esc(it.ip||'-')+(it.target?' target='+esc(it.target.slice(0,12))+'…':'')+
+      (it.payload?'<br>payload='+esc(JSON.stringify(it.payload).slice(0,200)):'')+'</div>';
+  }
+  root.innerHTML=html;
+}
+function route(){
+  const h=location.hash||'#dashboard';
+  if(h==='#dashboard')viewDashboard();
+  else if(h==='#conversations')viewConversations();
+  else if(h.startsWith('#user/'))viewUser(decodeURIComponent(h.slice(6)));
+  else if(h==='#audit')viewAudit();
+  else viewDashboard();
+}
+window.addEventListener('hashchange',route);
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
+  try{await api('/api/admin/logout',{method:'POST'});}catch{}
+  location.href='/admin/';
+});
+route();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/admin/sw.js').catch(()=>{});}
+</script>
+</body>
+</html>`;
+}
+
+function adminServiceWorkerJs() {
+  return `// ナースロビー管理 SW
+const CACHE='admin-v1';
+self.addEventListener('install',e=>{self.skipWaiting();});
+self.addEventListener('activate',e=>{self.clients.claim();});
+self.addEventListener('fetch',e=>{
+  const u=new URL(e.request.url);
+  // API は絶対にキャッシュしない
+  if(u.pathname.startsWith('/api/')){return;}
+  // ログイン画面のみオフライン対応
+  if(u.pathname==='/admin/'||u.pathname==='/admin'){
+    e.respondWith(fetch(e.request).then(r=>{
+      const c=r.clone();caches.open(CACHE).then(cache=>cache.put(e.request,c));
+      return r;
+    }).catch(()=>caches.match(e.request)));
+  }
+});`;
+}
+
+// admin: クライアント側からHMAC署名する代わりにサーバが署名を返すエンドポイント
+// （フロントに HMAC 鍵を埋め込まずに CSRF 防御を実現するための仕組み）
+async function handleAdminSignRequest(request, env) {
+  const sess = await adminGetSession(request, env);
+  if (!sess) return adminJson({ error: "Unauthorized" }, 401);
+  // レート制限: session あたり 1分窓 30 req
+  const ip = getClientIP(request);
+  const minute = Math.floor(Date.now() / 60000);
+  const rateKey = `admin:rate:sign:${sess.token}:${minute}`;
+  const cur = parseInt((await env.LINE_SESSIONS.get(rateKey)) || "0", 10);
+  if (cur >= 30) {
+    await adminWriteAudit(env, { actor: "admin", ip, action: "sign_rate_limit", result: "blocked" });
+    return adminJson({ error: "Rate limit exceeded" }, 429);
+  }
+  await env.LINE_SESSIONS.put(rateKey, String(cur + 1), { expirationTtl: 120 });
+
+  let body; try { body = await request.json(); } catch { return adminJson({ error: "bad body" }, 400); }
+  const ts = String(body.ts || "");
+  const nonce = String(body.nonce || "");
+  const target = String(body.target || "");
+  const rawBody = String(body.body || "");
+  if (!/^\d{10,16}$/.test(ts)) return adminJson({ error: "bad ts" }, 400);
+  if (!/^[0-9a-f-]{16,40}$/i.test(nonce)) return adminJson({ error: "bad nonce" }, 400);
+  // CSRF オラクル化対策: 許可リストにある target のみ署名する
+  if (!adminIsSignTargetAllowed(target)) {
+    await adminWriteAudit(env, { actor: "admin", ip, action: "sign_bad_target", target, result: "rejected" });
+    return adminJson({ error: "target not in allow-list" }, 400);
+  }
+  // body サイズ制限（reply の text が 5000 でJSON化したら ~6000 char、余裕持って 8000）
+  if (rawBody.length > 8000) return adminJson({ error: "body too large" }, 400);
+  if (Math.abs(Date.now() - parseInt(ts, 10)) > 5 * 60 * 1000) return adminJson({ error: "ts expired" }, 400);
+  if (!env.ADMIN_HMAC_KEY) return adminJson({ error: "not configured" }, 503);
+  const payload = `${ts}.${nonce}.${rawBody}`;
+  const sig = await adminHmacHex(env.ADMIN_HMAC_KEY, payload);
+  return adminJson({ sig });
 }
 
 // KV list() の全件取得（ページネーション対応）
