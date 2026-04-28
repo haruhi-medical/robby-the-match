@@ -10296,126 +10296,191 @@ ${entry.rmCvQualifications || '看護師免許'}
           }
 
           // === aica_turn1〜4: 心理ヒアリング ===
+          // AI処理は ctx.waitUntil + Push API でバックグラウンド実行（Webhookタイムアウト対策）
           if (["aica_turn1", "aica_turn2", "aica_turn3", "aica_turn4"].includes(entry.phase)) {
-            const result = await aicaHandleIntakeTurn({ userText, entry, env });
+            // 即時にKV保存+ユーザーへ「考え中」アック（Reply Token消費）
+            await saveLineEntry(userId, entry, env);
+            await lineReply(event.replyToken, [{
+              type: "text",
+              text: "少々お待ちください。考えています…",
+            }], channelAccessToken);
 
-            if (result.isEmergency) {
-              // 緊急 → ホットライン案内 + Slack緊急通知 + handoffへ
-              entry.phase = "handoff";
-              await saveLineEntry(userId, entry, env);
-              await lineReply(event.replyToken, [{ type: "text", text: result.reply }], channelAccessToken);
-              if (env.SLACK_BOT_TOKEN) {
-                const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-                ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+            // AI処理はバックグラウンドで実行 → Push API で結果送信
+            const _userId = userId;
+            const _userText = userText;
+            const _entry = entry;
+            const _token = channelAccessToken;
+            const _env = env;
+            ctx.waitUntil((async () => {
+              try {
+                const result = await aicaHandleIntakeTurn({ userText: _userText, entry: _entry, env: _env });
+
+                if (result.isEmergency) {
+                  _entry.phase = "handoff";
+                  await saveLineEntry(_userId, _entry, _env);
+                  await fetch("https://api.line.me/v2/bot/message/push", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                    body: JSON.stringify({ to: _userId, messages: [{ type: "text", text: result.reply }] }),
+                  });
+                  if (_env.SLACK_BOT_TOKEN) {
+                    const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+                    await fetch("https://slack.com/api/chat.postMessage", {
+                      method: "POST",
+                      headers: { "Authorization": `Bearer ${_env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                      body: JSON.stringify({
+                        channel: _env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                        text: `🚨 *AICA緊急キーワード検出*\nユーザー: \`${_userId}\`\nキーワード: ${result.emergencyKw || "(不明)"}\nメッセージ: ${_userText.slice(0, 200)}\n時刻: ${nowJST}\n\n💬 \`!reply ${_userId} メッセージ\``,
+                      }),
+                    }).catch(() => {});
+                  }
+                  return;
+                }
+
+                let pushMessages;
+                if (result.isClosing) {
+                  _entry.phase = "aica_condition";
+                  pushMessages = [
+                    { type: "text", text: result.reply },
+                    {
+                      type: "text",
+                      text: "ここから先は、求人検索のための条件をいくつかお伺いします。\n看護師経験は何年目でしょうか？",
+                      quickReply: { items: [
+                        qrItem("やっぱり求人を見たい", "rm=start"),
+                        qrItem("担当者に相談", "rm=contact"),
+                      ]},
+                    },
+                  ];
+                } else {
+                  _entry.phase = `aica_turn${(_entry.aicaTurnCount || 0) + 1}`;
+                  pushMessages = [{ type: "text", text: result.reply }];
+                }
+                await saveLineEntry(_userId, _entry, _env);
+                await fetch("https://api.line.me/v2/bot/message/push", {
                   method: "POST",
-                  headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-                  body: JSON.stringify({
-                    channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-                    text: `🚨 *AICA緊急キーワード検出*\nユーザー: \`${userId}\`\nキーワード: ${result.emergencyKw || "(不明)"}\nメッセージ: ${userText.slice(0, 200)}\n時刻: ${nowJST}\n\n💬 \`!reply ${userId} メッセージ\``,
-                  }),
-                }).catch(() => {}));
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                  body: JSON.stringify({ to: _userId, messages: pushMessages.slice(0, 5) }),
+                });
+              } catch (e) {
+                console.error(`[AICA] background intake error: ${e.message}`);
+                // フォールバック: ユーザーに「もう一度送ってください」
+                try {
+                  await fetch("https://api.line.me/v2/bot/message/push", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                    body: JSON.stringify({
+                      to: _userId,
+                      messages: [{ type: "text", text: "申し訳ありません、応答に時間がかかっています。\nもう一度お話を伺ってもよろしいですか？" }],
+                    }),
+                  });
+                } catch (e2) { /* ignore */ }
               }
-              continue;
-            }
-
-            // 次のフェーズ判定
-            if (result.isClosing) {
-              entry.phase = "aica_condition";
-              // 条件ヒアリング開始メッセージを別バブルで添える
-              await saveLineEntry(userId, entry, env);
-              await lineReply(event.replyToken, [
-                { type: "text", text: result.reply },
-                {
-                  type: "text",
-                  text: "ここから先は、求人検索のための条件をいくつかお伺いします。\n看護師経験は何年目でしょうか？",
-                  quickReply: { items: [
-                    qrItem("やっぱり求人を見たい", "rm=start"),
-                    qrItem("担当者に相談", "rm=contact"),
-                  ]},
-                },
-              ], channelAccessToken);
-            } else {
-              // 次のターンへ進める
-              entry.phase = `aica_turn${(entry.aicaTurnCount || 0) + 1}`;
-              await saveLineEntry(userId, entry, env);
-              await lineReply(event.replyToken, [{ type: "text", text: result.reply }], channelAccessToken);
-            }
+            })());
             continue;
           }
 
           // === aica_condition: 条件ヒアリング ===
+          // AI処理は ctx.waitUntil + Push でバックグラウンド実行
           if (entry.phase === "aica_condition") {
-            const result = await aicaHandleConditionTurn({ userText, entry, env });
+            await saveLineEntry(userId, entry, env);
+            await lineReply(event.replyToken, [{
+              type: "text",
+              text: "承知しました。少々お待ちください…",
+            }], channelAccessToken);
 
-            if (result.isComplete) {
-              // 希望条件カルテ完成 → マッチングへ
-              entry.aicaCareerSheet = result.reply; // カルテ全文を保存
-              entry.phase = "aica_career_sheet";
+            const _userId = userId;
+            const _userText = userText;
+            const _entry = entry;
+            const _token = channelAccessToken;
+            const _env = env;
+            ctx.waitUntil((async () => {
+              try {
+                const result = await aicaHandleConditionTurn({ userText: _userText, entry: _entry, env: _env });
 
-              // 既存 entry のフィールドにマップして既存マッチングロジックで使えるように
-              const p = entry.aicaProfile || {};
-              if (p.area && !entry.area) {
-                // エリア名を内部キーに変換（簡易）
-                entry.areaLabel = p.area;
-              }
-              if (p.workstyle && !entry.workStyle) {
-                if (/日勤/.test(p.workstyle)) entry.workStyle = "day";
-                else if (/夜勤専従/.test(p.workstyle)) entry.workStyle = "night";
-                else if (/パート/.test(p.workstyle)) entry.workStyle = "part";
-                else entry.workStyle = "twoshift";
-              }
-
-              await saveLineEntry(userId, entry, env);
-              await lineReply(event.replyToken, [
-                { type: "text", text: result.reply },
-              ], channelAccessToken);
-
-              // バックグラウンドでマッチング生成→Pushで結果送信
-              const _userId = userId;
-              const _token = channelAccessToken;
-              const _entry = entry;
-              ctx.waitUntil((async () => {
-                try {
-                  await generateLineMatching(_entry, env, 0);
-                  _entry.phase = "matching_preview";
-                  await saveLineEntry(_userId, _entry, env);
-                  const phaseMsgs = await buildPhaseMessage("matching_preview", _entry, env);
-                  if (phaseMsgs && phaseMsgs.length > 0) {
-                    await fetch("https://api.line.me/v2/bot/message/push", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
-                      body: JSON.stringify({ to: _userId, messages: phaseMsgs.slice(0, 5) }),
-                    });
+                if (result.isComplete) {
+                  _entry.aicaCareerSheet = result.reply;
+                  _entry.phase = "aica_career_sheet";
+                  const p = _entry.aicaProfile || {};
+                  if (p.area && !_entry.area) {
+                    _entry.areaLabel = p.area;
                   }
-                } catch (e) {
-                  console.error(`[AICA] matching push error: ${e.message}`);
-                }
-              })());
+                  if (p.workstyle && !_entry.workStyle) {
+                    if (/日勤/.test(p.workstyle)) _entry.workStyle = "day";
+                    else if (/夜勤専従/.test(p.workstyle)) _entry.workStyle = "night";
+                    else if (/パート/.test(p.workstyle)) _entry.workStyle = "part";
+                    else _entry.workStyle = "twoshift";
+                  }
+                  await saveLineEntry(_userId, _entry, _env);
 
-              // Slack通知（条件カルテ完成）
-              if (env.SLACK_BOT_TOKEN) {
-                const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-                ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
-                  method: "POST",
-                  headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
-                  body: JSON.stringify({
-                    channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-                    text: `📋 *AICA希望条件カルテ完成*\nユーザー: \`${userId}\`\n軸: ${entry.aicaAxis || "—"}\n根本原因: ${entry.aicaRootCause || "—"}\n時刻: ${nowJST}\n💬 \`!reply ${userId} メッセージ\``,
-                  }),
-                }).catch(() => {}));
+                  // 1. カルテ Push
+                  await fetch("https://api.line.me/v2/bot/message/push", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                    body: JSON.stringify({ to: _userId, messages: [{ type: "text", text: result.reply }] }),
+                  });
+
+                  // 2. マッチング生成 → Push
+                  try {
+                    await generateLineMatching(_entry, _env, 0);
+                    _entry.phase = "matching_preview";
+                    await saveLineEntry(_userId, _entry, _env);
+                    const phaseMsgs = await buildPhaseMessage("matching_preview", _entry, _env);
+                    if (phaseMsgs && phaseMsgs.length > 0) {
+                      await fetch("https://api.line.me/v2/bot/message/push", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                        body: JSON.stringify({ to: _userId, messages: phaseMsgs.slice(0, 5) }),
+                      });
+                    }
+                  } catch (e) {
+                    console.error(`[AICA] matching push error: ${e.message}`);
+                  }
+
+                  // 3. Slack通知（条件カルテ完成）
+                  if (_env.SLACK_BOT_TOKEN) {
+                    const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+                    await fetch("https://slack.com/api/chat.postMessage", {
+                      method: "POST",
+                      headers: { "Authorization": `Bearer ${_env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+                      body: JSON.stringify({
+                        channel: _env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                        text: `📋 *AICA希望条件カルテ完成*\nユーザー: \`${_userId}\`\n軸: ${_entry.aicaAxis || "—"}\n根本原因: ${_entry.aicaRootCause || "—"}\n時刻: ${nowJST}\n💬 \`!reply ${_userId} メッセージ\``,
+                      }),
+                    }).catch(() => {});
+                  }
+                } else {
+                  // 条件ヒアリング継続
+                  await saveLineEntry(_userId, _entry, _env);
+                  await fetch("https://api.line.me/v2/bot/message/push", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                    body: JSON.stringify({
+                      to: _userId,
+                      messages: [{
+                        type: "text",
+                        text: result.reply,
+                        quickReply: { items: [
+                          qrItem("やっぱり求人を見たい", "rm=start"),
+                          qrItem("担当者に相談", "rm=contact"),
+                        ]},
+                      }],
+                    }),
+                  });
+                }
+              } catch (e) {
+                console.error(`[AICA] background condition error: ${e.message}`);
+                try {
+                  await fetch("https://api.line.me/v2/bot/message/push", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
+                    body: JSON.stringify({
+                      to: _userId,
+                      messages: [{ type: "text", text: "申し訳ありません、もう一度教えていただけますか？" }],
+                    }),
+                  });
+                } catch (e2) { /* ignore */ }
               }
-            } else {
-              // 条件ヒアリング継続
-              await saveLineEntry(userId, entry, env);
-              await lineReply(event.replyToken, [{
-                type: "text",
-                text: result.reply,
-                quickReply: { items: [
-                  qrItem("やっぱり求人を見たい", "rm=start"),
-                  qrItem("担当者に相談", "rm=contact"),
-                ]},
-              }], channelAccessToken);
-            }
+            })());
             continue;
           }
 
