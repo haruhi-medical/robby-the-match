@@ -10952,8 +10952,10 @@ async function handleLineAIConsultation(userText, entry, env) {
 - ユーザーの選択を尊重する
 
 【次のステップ誘導】
-- 3ターン目以降、自然なタイミングで「○○病院、応募してみますか？」「履歴書、AIで下書きしてみますか？」と提案
+- 短文（「あ」「うん」など）や「？」だけが来たら、答えを促すのではなく、こちらから2〜3個の具体的選択肢を提案する。例：「給料で気になる点ありますか？それとも夜勤回数？それとも別件？」
+- 2ターン目以降、自然なタイミングで「○○病院、応募してみますか？」「履歴書、AIで下書きしてみますか？」と提案
 - ユーザーが応募意思を示したら「応募する」postbackボタンを案内
+- 抽象的な不安には具体的な分類肢を提示し、ユーザーが選びやすくする
 
 【給与データ（${areaContext}）】
 ${JSON.stringify(SALARY_DATA["看護師"])}
@@ -11101,17 +11103,14 @@ ${facilityContext}
 
   const consultCount = entry.consultMessages.filter(m => m.role === "user").length;
 
-  // v2.0: 3往復後に履歴書&応募&担当者の3択を提案
-  const qrItems = consultCount >= 3
-    ? [
-        qrItem("もっと聞きたい", "consult=continue"),
-        qrItem("📝 履歴書を作る", "sa=start"),
-        qrItem("📨 応募する", "apply_intent=start"),
-        qrItem("求人を見る", "consult=back_to_matching"),
-      ]
-    : [
-        qrItem("担当者と話したい", "consult=handoff"),
-      ];
+  // v2.0: AI相談中は常に「履歴書/応募/求人/担当者」の選択肢を提示（離脱防止）
+  const qrItems = [
+    qrItem("もっと聞きたい", "consult=continue"),
+    qrItem("📝 履歴書を作る", "sa=start"),
+    qrItem("📨 応募する", "apply_intent=start"),
+    qrItem("求人を見る", "consult=back_to_matching"),
+    qrItem("担当者と話したい", "consult=handoff"),
+  ];
 
   return [{
     type: "text",
