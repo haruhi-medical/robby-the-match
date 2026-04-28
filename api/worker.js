@@ -278,7 +278,20 @@ const STATE_CATEGORIES = {
   NURTURE:       ["nurture_warm", "nurture_subscribed", "nurture_stay", "area_notify_optin"],
   // 9. FAQ
   FAQ:           ["faq_salary", "faq_nightshift", "faq_timing", "faq_stealth", "faq_holiday"],
+  // 10. v2.0: 自己分析エージェント（M4.5）
+  SELF_ANALYSIS: ["self_analysis", "sa_review"],
 };
+
+// v2.0: 自己分析7問の定義
+const SELF_ANALYSIS_QUESTIONS = [
+  { key: "experience",   label: "経験",   text: "Q1【経験】今まで一番長くいた職場と、何年やってきましたか？\n例：「△△病院で8年」\n🎙️音声でもOKです" },
+  { key: "strength",     label: "強み",   text: "Q2【強み】その職場で「これは得意」と思える業務を一言で教えてください。\n例：「ICUでの急変対応」「リーダー業務」\n🎙️音声でもOKです" },
+  { key: "motivation",   label: "動機",   text: "Q3【動機】次に転職したい理由を、率直に一言で教えてください。\n例：「夜勤がきつい」「人間関係を変えたい」\n🎙️音声でもOKです（本音が一番伝わります）" },
+  { key: "must",         label: "MUST",   text: "Q4【譲れない】次の職場で「これだけは譲れない」が1つあるとしたら？\n例：「夜勤なし」「土日休み」「月給28万以上」", quickReply: ["夜勤なし", "土日休み", "月給28万以上", "通勤30分以内", "教育充実", "その他"] },
+  { key: "ng",           label: "NG",     text: "Q5【避けたい】逆に「これは避けたい」ものは？", quickReply: ["夜勤専従", "残業多め", "派遣・契約", "急性期で激務", "完全フルタイムのみ", "その他"] },
+  { key: "future",       label: "未来",   text: "Q6【3年後の自分】（任意・スキップ可）3年後、看護師としてどうありたいですか？\n例：「教育担当として後進育成に関わりたい」\n🎙️音声でもOK", optional: true },
+  { key: "note",         label: "補足",   text: "Q7【補足】（任意・スキップ可）最後に、担当者に伝えておきたいことはありますか？\n例：「ブランクが3ヶ月あります」「保育園との兼ね合いがあります」\n🎙️音声でもOK", optional: true },
+];
 
 // ---------- 条件緩和提案（マッチング結果が少ない場合） ----------
 function suggestRelaxation(entry, matchCount) {
@@ -4961,9 +4974,216 @@ ${concern === "なし" ? "特になし" : concern}
   return sheet;
 }
 
-// 後方互換
-function generateCareerSheet(entry) {
-  return generateAnonymousProfile(entry);
+// v2.0 P2-2 + P2-3: AIキャリアシート自動生成（ハルシネーション対策3段つき）
+// 1) 禁止語検出 → 伏せ字 ★★★ に置換
+// 2) 入力情報のみ使用（捏造禁止プロンプト）
+// 3) AI失敗時は静的テンプレートにフォールバック（buildStaticCareerSheet）
+async function generateCareerSheet(entry, env) {
+  const sa = entry.saAnswers || {};
+  const intake = {
+    qualification: POSTBACK_LABELS[`q10_${entry.qualification}`] || entry.intakeQual || entry.qualification || "正看護師",
+    age: entry.intakeAge || "未指定",
+    area: entry.areaLabel || entry.area || "未指定",
+    facility_type: entry.facilityType || "未指定",
+    workStyle: POSTBACK_LABELS[`q5_${entry.workStyle}`] || entry.workStyle || "未指定",
+    urgency: entry.urgency || "未指定",
+  };
+  const interestedFacility = entry.interestedFacility || "";
+  const matchingTop3 = (entry.matchingResults || []).slice(0, 3).map(r =>
+    `${r.n || r.name || r.employer || "施設名不明"} (${r.sal || r.salary || r.salary_display || ""})`
+  ).filter(Boolean).join("、");
+
+  const FORBIDDEN_WORDS = ["日本一", "最高", "No.1", "ナンバーワン", "絶対", "必ず", "100%", "随一", "屈指", "業界トップ", "完璧"];
+
+  const systemPrompt = `あなたはナースロビーの履歴書/キャリアシート作成専門AIです。
+看護師の応募候補者プロフィールを、病院送付用の構造化シートに整形します。
+
+【厳守ルール（破ったら不採用）】
+1. 入力情報のみ使用。**捏造・推測禁止**。「未回答」「未指定」は「未記入」と書く
+2. 数字（経験年数・給与）は提供データのみ。推定値を出さない
+3. 「日本一」「最高」「No.1」「絶対」「必ず」「100%」「随一」等の断定・誇大表現は禁止
+4. 氏名・電話・住所・生年月日は記載しない（プライバシー保護）
+5. A4縦1枚相当（最大1500字、テキストのみ、Markdown装飾なし）
+6. 病院担当者が読みやすい簡潔な日本語で
+
+【出力フォーマット（厳守）】
+━━━━━━━━━━━━━━━━━━━━━━
+   ナースロビー キャリアシート
+   (許可番号 23-ユ-302928)
+━━━━━━━━━━━━━━━━━━━━━━
+■ プロフィール（病院送付用 / 匿名）
+  資格        : 〇〇
+  年代        : 〇〇代
+  居住エリア  : 〇〇
+
+■ 強み・専門領域
+  〇〇
+
+■ 転職理由
+  〇〇
+
+■ 希望条件
+  エリア      : 〇〇
+  施設タイプ  : 〇〇
+  働き方      : 〇〇
+
+■ MUST 条件 : 〇〇
+■ NG 条件   : 〇〇
+
+■ 興味のある施設
+  ⭐ 〇〇
+
+■ キャリア観
+  〇〇
+
+■ 担当者への伝言
+  〇〇
+
+━━━━━━━━━━━━━━━━━━━━━━
+   このシートはAIが対話から自動構成しました
+   開示情報: 経歴サマリのみ / 氏名・連絡先は非開示
+━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+  const userPrompt = `【自己分析回答】
+- Q1 経験    : ${sa.experience || "未回答"}
+- Q2 強み    : ${sa.strength || "未回答"}
+- Q3 動機    : ${sa.motivation || "未回答"}
+- Q4 MUST    : ${sa.must || "未回答"}
+- Q5 NG      : ${sa.ng || "未回答"}
+- Q6 未来像  : ${sa.future || "未回答"}
+- Q7 補足    : ${sa.note || "未回答"}
+
+【ヒアリング情報】
+- 資格        : ${intake.qualification}
+- 年代        : ${intake.age}
+- 希望エリア  : ${intake.area}
+- 施設タイプ  : ${intake.facility_type}
+- 働き方      : ${intake.workStyle}
+- 緊急度      : ${intake.urgency}
+
+【興味のある施設】
+${interestedFacility || "（未選択）"}
+
+【マッチング結果上位3件】
+${matchingTop3 || "（なし）"}
+
+上記の情報のみから、フォーマット通りのキャリアシートを生成してください。
+情報がないフィールドは「未記入」と書いてください。捏造禁止。`;
+
+  let sheetText = null;
+
+  // OpenAI gpt-4o-mini 優先（コスト効率＋品質）
+  if (!sheetText && env.OPENAI_API_KEY) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          max_tokens: 1000,
+          temperature: 0.3, // 低温度で安定生成
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        sheetText = data.choices?.[0]?.message?.content || null;
+        if (sheetText) console.log(`[CareerSheet] OpenAI generated ${sheetText.length} chars`);
+      }
+    } catch (e) {
+      console.error(`[CareerSheet] OpenAI error: ${e.message}`);
+    }
+  }
+
+  // Claude フォールバック
+  if (!sheetText && env.ANTHROPIC_API_KEY) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        sheetText = data.content?.[0]?.text || null;
+      }
+    } catch (e) {
+      console.error(`[CareerSheet] Claude error: ${e.message}`);
+    }
+  }
+
+  // 静的テンプレートフォールバック
+  if (!sheetText) {
+    console.warn("[CareerSheet] All AI failed, using static template");
+    sheetText = buildStaticCareerSheet(entry);
+  }
+
+  // ハルシネーション対策段3: 禁止語検出→伏せ字
+  for (const word of FORBIDDEN_WORDS) {
+    sheetText = sheetText.replace(new RegExp(word, "g"), "★".repeat(word.length));
+  }
+
+  return sheetText.slice(0, 3000);
+}
+
+// AI失敗時の静的テンプレート（自己分析回答ベース）
+function buildStaticCareerSheet(entry) {
+  const sa = entry.saAnswers || {};
+  const lines = [
+    "━━━━━━━━━━━━━━━━━━━━━━",
+    "   ナースロビー キャリアシート",
+    "   (許可番号 23-ユ-302928)",
+    "━━━━━━━━━━━━━━━━━━━━━━",
+    "■ プロフィール（病院送付用 / 匿名）",
+    `  資格        : ${POSTBACK_LABELS[`q10_${entry.qualification}`] || entry.intakeQual || "正看護師"}`,
+    `  年代        : ${entry.intakeAge || "未記入"}`,
+    `  居住エリア  : ${entry.areaLabel || entry.area || "未記入"}`,
+    "",
+    "■ 強み・専門領域",
+    `  ${sa.strength || "未記入"}`,
+    "",
+    "■ 転職理由",
+    `  ${sa.motivation || "未記入"}`,
+    "",
+    "■ 希望条件",
+    `  エリア      : ${entry.areaLabel || "未記入"}`,
+    `  働き方      : ${POSTBACK_LABELS[`q5_${entry.workStyle}`] || entry.workStyle || "未記入"}`,
+    "",
+    `■ MUST 条件 : ${sa.must || "未記入"}`,
+    `■ NG 条件   : ${sa.ng || "未記入"}`,
+    "",
+    "■ 興味のある施設",
+    `  ⭐ ${entry.interestedFacility || "（未選択）"}`,
+    "",
+    "■ キャリア観",
+    `  ${sa.future || "未記入"}`,
+    "",
+    "■ 担当者への伝言",
+    `  ${sa.note || "未記入"}`,
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━━",
+    "   このシートはAIが対話から自動構成しました",
+    "   開示情報: 経歴サマリのみ / 氏名・連絡先は非開示",
+    "━━━━━━━━━━━━━━━━━━━━━━",
+  ];
+  return lines.join("\n");
 }
 
 // ---------- 紹介候補Slack通知 ----------
@@ -6345,6 +6565,48 @@ async function buildPhaseMessage(phase, entry, env) {
         type: "text",
         text: "最後に、履歴書に記載するお名前を教えてください。（例: 山田 花子）\n\n※お名前はAIには送信されません\n※病院への紹介時にのみ使用します\n※担当者以外に共有することはありません",
       }];
+
+    // v2.0 P2-1: 自己分析エージェント7問（M4.5）
+    case "self_analysis": {
+      const step = Math.max(1, Math.min(7, entry.saStep || 1));
+      const q = SELF_ANALYSIS_QUESTIONS[step - 1];
+      const progress = `（${step}/7）`;
+      const items = [];
+      if (q.quickReply && Array.isArray(q.quickReply)) {
+        for (const lbl of q.quickReply.slice(0, 6)) {
+          items.push(qrItem(lbl, `sa_ans=${encodeURIComponent(lbl)}`));
+        }
+      }
+      if (q.optional) {
+        items.push(qrItem("スキップ", "sa=skip"));
+      }
+      items.push(qrItem("やめる", "sa=cancel"));
+      return [{
+        type: "text",
+        text: `${progress} ${q.text}`,
+        quickReply: items.length > 0 ? { items } : undefined,
+      }];
+    }
+
+    case "sa_review": {
+      // キャリアシート確認画面（buildSelfAnalysisReview で生成）
+      const sheetText = entry.careerSheetGenerated || "（生成中…）";
+      return [
+        { type: "text", text: "✨ 自己分析が完了しました！\n以下のキャリアシートを病院送付用に作成しました（氏名・連絡先は非開示）" },
+        { type: "text", text: sheetText.slice(0, 2000) },
+        {
+          type: "text",
+          text: "この内容で進めてもよろしいですか？",
+          quickReply: {
+            items: [
+              qrItem("✅ これでOK", "sa=confirm"),
+              qrItem("修正したい", "sa=edit"),
+              qrItem("やり直す", "sa=restart"),
+            ],
+          },
+        },
+      ];
+    }
 
     default:
       return null;
@@ -8047,6 +8309,25 @@ function handleFreeTextInput(text, entry) {
     }
   }
 
+  // v2.0 P2-1: 自己分析エージェント中の自由テキスト → 回答を保存して次の質問へ
+  if (phase === "self_analysis") {
+    const step = Math.max(1, Math.min(7, entry.saStep || 1));
+    const q = SELF_ANALYSIS_QUESTIONS[step - 1];
+    if (!entry.saAnswers) entry.saAnswers = {};
+    entry.saAnswers[q.key] = String(text).slice(0, 800);
+    entry.saStep = step + 1;
+    if (entry.saStep > 7) {
+      // 7問完了: postback handler 側で AI 生成を発火する都合上、ここでは sa_review への遷移シグナルを返す
+      return "sa_review_trigger";
+    }
+    return "self_analysis"; // 次の質問へ
+  }
+
+  // sa_review中の自由テキスト → AI相談に回す（修正リクエストなど）
+  if (phase === "sa_review") {
+    return "ai_consultation_reply";
+  }
+
   // v2.0: apply_consent/apply_confirm/interview_prep → AI相談に回す
   // （応募意思確認後・面接準備中の質問はAIが応える）
   if (phase === "apply_consent" || phase === "apply_confirm" || phase === "interview_prep") {
@@ -8767,6 +9048,150 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             type: "text",
             text: `${facility}の${{salary:"給料",shift:"夜勤・休日",culture:"雰囲気・教育",access:"立地"}[topic] || "情報"}を調べますね。少しお待ちください🌸`,
           }], channelAccessToken);
+          continue;
+        }
+
+        // v2.0 P2-1: 自己分析エージェント postback handlers
+        if (dataStr === "sa=start") {
+          // 自己分析を開始（intake/AI相談から呼ばれる）
+          entry.phase = "self_analysis";
+          entry.saStep = 1;
+          if (!entry.saAnswers) entry.saAnswers = {};
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, [
+            { type: "text", text: "🌱 自己分析エージェントを起動します\n5〜7分で、応募準備のための7つの質問にお答えください。\n音声入力もOK、後から続きもできます。" },
+            ...await buildPhaseMessage("self_analysis", entry, env),
+          ], channelAccessToken);
+          continue;
+        }
+        if (dataStr.startsWith("sa_ans=") && entry.phase === "self_analysis") {
+          // Quick Replyからの回答（MUST/NGなど）
+          const params = new URLSearchParams(dataStr);
+          const ans = params.get("sa_ans") || "";
+          const step = Math.max(1, Math.min(7, entry.saStep || 1));
+          const q = SELF_ANALYSIS_QUESTIONS[step - 1];
+          if (!entry.saAnswers) entry.saAnswers = {};
+          entry.saAnswers[q.key] = ans;
+          entry.saStep = step + 1;
+          if (entry.saStep > 7) {
+            // 7問完了 → AI でキャリアシート生成 → sa_review へ
+            entry.phase = "sa_review";
+            await saveLineEntry(userId, entry, env);
+            await lineReply(event.replyToken, [{ type: "text", text: "✨ 全問お答えいただきありがとうございます。\nキャリアシートを作成中…少しお待ちください🌸" }], channelAccessToken);
+            // バックグラウンドでAI生成→Push
+            const sheetUserId = userId;
+            const sheetEntry = entry;
+            const sheetToken = channelAccessToken;
+            ctx.waitUntil((async () => {
+              try {
+                const sheetText = await generateCareerSheet(sheetEntry, env);
+                sheetEntry.careerSheetGenerated = sheetText;
+                await saveLineEntry(sheetUserId, sheetEntry, env);
+                const reviewMsgs = await buildPhaseMessage("sa_review", sheetEntry, env);
+                if (reviewMsgs && reviewMsgs.length > 0) {
+                  await fetch("https://api.line.me/v2/bot/message/push", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sheetToken}` },
+                    body: JSON.stringify({ to: sheetUserId, messages: reviewMsgs.slice(0, 5) }),
+                  });
+                }
+              } catch (e) {
+                console.error(`[SA] career sheet generation error: ${e.message}`);
+              }
+            })());
+            continue;
+          }
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, await buildPhaseMessage("self_analysis", entry, env), channelAccessToken);
+          continue;
+        }
+        if (dataStr === "sa=skip" && entry.phase === "self_analysis") {
+          const step = Math.max(1, Math.min(7, entry.saStep || 1));
+          const q = SELF_ANALYSIS_QUESTIONS[step - 1];
+          if (!entry.saAnswers) entry.saAnswers = {};
+          entry.saAnswers[q.key] = "（スキップ）";
+          entry.saStep = step + 1;
+          if (entry.saStep > 7) {
+            entry.phase = "sa_review";
+            await saveLineEntry(userId, entry, env);
+            await lineReply(event.replyToken, [{ type: "text", text: "✨ ご回答ありがとうございます。\nキャリアシートを作成中…🌸" }], channelAccessToken);
+            const sheetUserId = userId;
+            const sheetEntry = entry;
+            const sheetToken = channelAccessToken;
+            ctx.waitUntil((async () => {
+              try {
+                const sheetText = await generateCareerSheet(sheetEntry, env);
+                sheetEntry.careerSheetGenerated = sheetText;
+                await saveLineEntry(sheetUserId, sheetEntry, env);
+                const reviewMsgs = await buildPhaseMessage("sa_review", sheetEntry, env);
+                if (reviewMsgs && reviewMsgs.length > 0) {
+                  await fetch("https://api.line.me/v2/bot/message/push", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sheetToken}` },
+                    body: JSON.stringify({ to: sheetUserId, messages: reviewMsgs.slice(0, 5) }),
+                  });
+                }
+              } catch (e) {
+                console.error(`[SA] career sheet generation error: ${e.message}`);
+              }
+            })());
+            continue;
+          }
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, await buildPhaseMessage("self_analysis", entry, env), channelAccessToken);
+          continue;
+        }
+        if (dataStr === "sa=cancel") {
+          entry.phase = "ai_consultation";
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, [{ type: "text", text: "了解しました。続きはいつでも「自己分析を始める」と送ってください🌸" }], channelAccessToken);
+          continue;
+        }
+        if (dataStr === "sa=confirm") {
+          // キャリアシート確定 → KV保存 → 応募意思へ誘導
+          if (entry.careerSheetGenerated && env.LINE_SESSIONS) {
+            await env.LINE_SESSIONS.put(`member:${userId}:career_sheet`, JSON.stringify({
+              text: entry.careerSheetGenerated,
+              answers: entry.saAnswers,
+              createdAt: Date.now(),
+            }));
+          }
+          entry.phase = "ai_consultation";
+          await saveLineEntry(userId, entry, env);
+          // Slack通知（キャリアシート確定）
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                text: `📋 *キャリアシート確定*\nユーザー: \`${userId}\`\n施設: ${entry.interestedFacility || "（未指定）"}\n時刻: ${nowJST}\n\n💬 \`!reply ${userId} メッセージ\``,
+              }),
+            }).catch(() => {}));
+          }
+          await lineReply(event.replyToken, [{
+            type: "text",
+            text: `✅ キャリアシートを保存しました\n\n${entry.interestedFacility ? entry.interestedFacility + "への応募" : "応募"}に進みますか？担当者が24時間以内にご連絡します。`,
+            quickReply: {
+              items: [
+                qrItem("📨 応募する", "apply_intent=start"),
+                qrItem("もう少し相談する", "consult=continue"),
+              ],
+            },
+          }], channelAccessToken);
+          continue;
+        }
+        if (dataStr === "sa=edit" || dataStr === "sa=restart") {
+          entry.phase = "self_analysis";
+          entry.saStep = 1;
+          entry.saAnswers = {};
+          delete entry.careerSheetGenerated;
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, [
+            { type: "text", text: "もう一度、自己分析を始めましょう🌱" },
+            ...await buildPhaseMessage("self_analysis", entry, env),
+          ], channelAccessToken);
           continue;
         }
 
@@ -10291,6 +10716,30 @@ ${entry.rmCvQualifications || '看護師免許'}
         } else if (nextPhase === "handoff") {
           entry.phase = "handoff";
           replyMessages = [{ type: "text", text: buildHandoffConfirmationText(entry) }];
+        } else if (nextPhase === "sa_review_trigger") {
+          // v2.0 P2-1: 自己分析7問完了 → バックグラウンドでAIキャリアシート生成
+          entry.phase = "sa_review";
+          replyMessages = [{ type: "text", text: "✨ 全問お答えいただきありがとうございます。\nキャリアシートを作成中…少しお待ちください🌸" }];
+          const sheetUserId = userId;
+          const sheetEntry = entry;
+          const sheetToken = channelAccessToken;
+          ctx.waitUntil((async () => {
+            try {
+              const sheetText = await generateCareerSheet(sheetEntry, env);
+              sheetEntry.careerSheetGenerated = sheetText;
+              await saveLineEntry(sheetUserId, sheetEntry, env);
+              const reviewMsgs = await buildPhaseMessage("sa_review", sheetEntry, env);
+              if (reviewMsgs && reviewMsgs.length > 0) {
+                await fetch("https://api.line.me/v2/bot/message/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sheetToken}` },
+                  body: JSON.stringify({ to: sheetUserId, messages: reviewMsgs.slice(0, 5) }),
+                });
+              }
+            } catch (e) {
+              console.error(`[SA] career sheet generation error: ${e.message}`);
+            }
+          })());
         } else {
           entry.phase = nextPhase;
 
@@ -10642,8 +11091,8 @@ ${facilityContext}
       ? "ご相談ありがとうございました。ここからは担当者がサポートしますね。"
       : "ここまでで一区切りにしますね。もう少し話したい場合は延長できます。";
     const limitButtons = isExtended
-      ? [qrItem("担当者に相談する", "consult=handoff"), qrItem("求人を見る", "consult=back_to_matching")]
-      : [qrItem("もう少し話す", "consult=extend"), qrItem("担当者に相談する", "consult=handoff"), qrItem("求人を見る", "consult=back_to_matching")];
+      ? [qrItem("📝 履歴書を作る", "sa=start"), qrItem("📨 応募する", "apply_intent=start"), qrItem("担当者に相談", "consult=handoff")]
+      : [qrItem("もう少し話す", "consult=extend"), qrItem("📝 履歴書を作る", "sa=start"), qrItem("📨 応募する", "apply_intent=start"), qrItem("担当者に相談", "consult=handoff")];
     return [
       { type: "text", text: aiResponse },
       { type: "text", text: limitMsg, quickReply: { items: limitButtons } },
@@ -10652,12 +11101,13 @@ ${facilityContext}
 
   const consultCount = entry.consultMessages.filter(m => m.role === "user").length;
 
-  // 3往復後に担当者提案
+  // v2.0: 3往復後に履歴書&応募&担当者の3択を提案
   const qrItems = consultCount >= 3
     ? [
         qrItem("もっと聞きたい", "consult=continue"),
+        qrItem("📝 履歴書を作る", "sa=start"),
+        qrItem("📨 応募する", "apply_intent=start"),
         qrItem("求人を見る", "consult=back_to_matching"),
-        qrItem("担当者と話したい", "consult=handoff"),
       ]
     : [
         qrItem("担当者と話したい", "consult=handoff"),
