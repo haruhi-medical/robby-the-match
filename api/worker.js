@@ -766,8 +766,146 @@ function aicaBuildWelcomeMessage(displayName) {
 最大4つの質問で、あなたの「本当に必要な条件」を
 整理した後、具体的な求人をご提案します✨
 
+🎙️ 入力が大変な時はLINEのマイクボタン長押しで
+音声でも送れます。文字起こししてお応えします。
+
 今、お仕事で気になっていることを、
 一言で言うとどのようなことですか？`;
+}
+
+// AICAの条件ヒアリング応答にQuick Replyを自動付与
+// AIが生成したテキスト中のキーワードを検出して、選択肢ボタンを付ける
+function aicaAppendConditionQR(replyText) {
+  if (!replyText) return null;
+  const t = replyText;
+  // type=message のQR項目（タップで送信されるテキスト）
+  const qr = (label, text) => ({ type: "action", action: { type: "message", label, text } });
+
+  // 経験年数
+  if (/経験.*年|何年目|何年/.test(t)) {
+    return { items: [
+      qr("1〜3年目", "1〜3年目"),
+      qr("3〜5年目", "3〜5年目"),
+      qr("5〜10年目", "5〜10年目"),
+      qr("10〜20年目", "10〜20年目"),
+      qr("20年以上", "20年以上"),
+    ]};
+  }
+  // 希望施設タイプ
+  if (/希望.*(施設|病棟|職場)|どのよう.*職場|どんな.*施設/.test(t)) {
+    return { items: [
+      qr("急性期病院", "急性期病院"),
+      qr("回復期病院", "回復期病院"),
+      qr("療養病院", "療養病院"),
+      qr("クリニック", "クリニック"),
+      qr("訪問看護", "訪問看護"),
+      qr("介護施設", "介護施設"),
+    ]};
+  }
+  // 働き方
+  if (/働き方|勤務形態|常勤.*非常勤|フルタイム/.test(t)) {
+    return { items: [
+      qr("日勤のみ", "日勤のみ"),
+      qr("二交代夜勤あり", "二交代夜勤あり"),
+      qr("三交代夜勤あり", "三交代夜勤あり"),
+      qr("夜勤専従", "夜勤専従"),
+      qr("パート", "パート"),
+    ]};
+  }
+  // 夜勤回数
+  if (/夜勤.*(回|月).*\?|夜勤.*希望|月何回|何回まで/.test(t)) {
+    return { items: [
+      qr("月3回まで", "月3回まで"),
+      qr("月4〜5回", "月4〜5回"),
+      qr("月6〜8回", "月6〜8回"),
+      qr("月8回以上OK", "月8回以上OK"),
+      qr("夜勤なし希望", "夜勤なし希望"),
+    ]};
+  }
+  // 通勤
+  if (/通勤.*(方法|手段)|電車.*車|どのよう.*通勤/.test(t)) {
+    return { items: [
+      qr("電車", "電車通勤"),
+      qr("車", "車通勤"),
+      qr("自転車", "自転車通勤"),
+      qr("徒歩", "徒歩圏内希望"),
+      qr("こだわらない", "通勤手段こだわらない"),
+    ]};
+  }
+  // 給与
+  if (/給与|年収|希望.*月給|希望.*収入|手取り/.test(t)) {
+    return { items: [
+      qr("現状維持", "現状維持で良い"),
+      qr("月+3万", "月給3万円以上アップ希望"),
+      qr("月+5万", "月給5万円以上アップ希望"),
+      qr("月+10万", "月給10万円以上アップ希望"),
+      qr("こだわらない", "給与こだわらない"),
+    ]};
+  }
+  // 時期
+  if (/転職.*時期|いつ頃|いつまで|いつから/.test(t)) {
+    return { items: [
+      qr("すぐ", "すぐ転職したい"),
+      qr("3ヶ月以内", "3ヶ月以内"),
+      qr("半年以内", "半年以内"),
+      qr("1年以内", "1年以内"),
+      qr("まだ未定", "時期は未定"),
+    ]};
+  }
+  // 役割
+  if (/役割|ポジション|主任|リーダー|プリセプター/.test(t)) {
+    return { items: [
+      qr("一般スタッフ", "一般スタッフ"),
+      qr("プリセプター", "プリセプター経験あり"),
+      qr("日勤リーダー", "日勤リーダー経験あり"),
+      qr("主任", "主任経験あり"),
+      qr("管理職", "管理職経験あり"),
+    ]};
+  }
+
+  return null;
+}
+
+// LINE音声メッセージを Whisper API で文字起こし
+async function transcribeLineAudio(messageId, channelAccessToken, env) {
+  if (!env.OPENAI_API_KEY) {
+    console.warn("[Whisper] OPENAI_API_KEY not configured");
+    return null;
+  }
+  try {
+    const audioRes = await fetch(`https://api-data.line.me/v2/bot/message/${messageId}/content`, {
+      headers: { "Authorization": `Bearer ${channelAccessToken}` },
+    });
+    if (!audioRes.ok) {
+      console.error(`[Whisper] LINE content fetch failed: ${audioRes.status}`);
+      return null;
+    }
+    const audioBuffer = await audioRes.arrayBuffer();
+    const audioBlob = new Blob([audioBuffer], { type: audioRes.headers.get("content-type") || "audio/m4a" });
+
+    const formData = new FormData();
+    formData.append("file", audioBlob, "audio.m4a");
+    formData.append("model", "whisper-1");
+    formData.append("language", "ja");
+
+    const whisperRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.OPENAI_API_KEY}` },
+      body: formData,
+    });
+    if (!whisperRes.ok) {
+      const errBody = await whisperRes.text().catch(() => "");
+      console.error(`[Whisper] API error: ${whisperRes.status} ${errBody.slice(0, 200)}`);
+      return null;
+    }
+    const result = await whisperRes.json();
+    const text = (result.text || "").trim();
+    console.log(`[Whisper] transcribed: "${text.slice(0, 50)}..."`);
+    return text || null;
+  } catch (e) {
+    console.error(`[Whisper] error: ${e.message}`);
+    return null;
+  }
 }
 
 // ============================================================
@@ -9837,6 +9975,38 @@ ${entry.rmCvQualifications || '看護師免許'}
         continue;
       }
 
+      // --- 音声メッセージ → Whisperで文字起こし → テキストとして処理 ---
+      if (event.type === "message" && event.message.type === "audio") {
+        console.log(`[LINE] Audio received: messageId=${event.message.id}, User: ${userId.slice(0, 8)}`);
+        const transcribed = await transcribeLineAudio(event.message.id, channelAccessToken, env);
+        if (!transcribed) {
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *音声文字起こし失敗*\nユーザー: \`${userId}\`\n時刻: ${nowJST}` }),
+            }).catch(() => {}));
+          }
+          await lineReply(event.replyToken, [{
+            type: "text",
+            text: "音声をうまく聞き取れませんでした🙇\nもう一度お話しいただくか、テキストでも教えていただけます🌸",
+          }], channelAccessToken);
+          continue;
+        }
+        if (env.SLACK_BOT_TOKEN) {
+          const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+          ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({ channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW", text: `🎙️ *LINE音声受信（文字起こし）*\nユーザー: \`${userId}\`\n認識結果: ${transcribed}\n時刻: ${nowJST}` }),
+          }).catch(() => {}));
+        }
+        // event.message を text 型に書き換えて、下のテキストハンドラへ自然合流
+        event.message = { type: "text", id: event.message.id, text: transcribed };
+        // ↓この下のテキストハンドラで通常処理される
+      }
+
       // --- テキストメッセージ ---
       if (event.type === "message" && event.message.type === "text") {
         const userText = event.message.text.trim();
@@ -10350,6 +10520,13 @@ ${entry.rmCvQualifications || '看護師免許'}
                     {
                       type: "text",
                       text: "ここから先は、求人検索のための条件をいくつかお伺いします 📝\n\n看護師経験は何年目でしょうか？",
+                      quickReply: { items: [
+                        { type: "action", action: { type: "message", label: "1〜3年目", text: "1〜3年目" } },
+                        { type: "action", action: { type: "message", label: "3〜5年目", text: "3〜5年目" } },
+                        { type: "action", action: { type: "message", label: "5〜10年目", text: "5〜10年目" } },
+                        { type: "action", action: { type: "message", label: "10〜20年目", text: "10〜20年目" } },
+                        { type: "action", action: { type: "message", label: "20年以上", text: "20年以上" } },
+                      ]},
                     },
                   ];
                 } else {
@@ -10516,14 +10693,17 @@ ${entry.rmCvQualifications || '看護師免許'}
                     }).catch(() => {});
                   }
                 } else {
-                  // 条件ヒアリング継続（QR脱出ボタンなし、リッチメニューで脱出可）
+                  // 条件ヒアリング継続（質問内容に応じてQR選択肢を自動付与）
                   await saveLineEntry(_userId, _entry, _env);
+                  const autoQR = aicaAppendConditionQR(result.reply);
+                  const msg = { type: "text", text: result.reply };
+                  if (autoQR) msg.quickReply = autoQR;
                   await fetch("https://api.line.me/v2/bot/message/push", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
                     body: JSON.stringify({
                       to: _userId,
-                      messages: [{ type: "text", text: result.reply }],
+                      messages: [msg],
                     }),
                   });
                 }
