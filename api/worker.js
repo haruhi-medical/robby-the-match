@@ -327,7 +327,9 @@ const AICA_INTAKE_SYSTEM_PROMPT = `あなたは、看護師専門の人材紹介
 ・「私はAIですので…」のスタンスは暗黙に保ち、わざわざ毎回明示しないでください
 ・1回の返信は200文字以内を厳守
 ・呼称は LINE の表示名 + 「さん」（「様」は使わない）
-・絵文字は使わない（区切り記号のみ: ◇・※・/）
+・絵文字は読みやすさのため適度に使ってOK（1メッセージに1〜2個まで）。例: 🌸 ✨ 📝 💼 🏥 🤔
+  ※多用や派手な絵文字（😂 🤣 ❤️ 🔥 等）は避ける。落ち着いた印象を保つ
+・段落改行を入れて視認性を確保する
 
 ---
 
@@ -488,6 +490,8 @@ MUST（絶対条件）とWANT（できれば）に分類して、求人マッチ
   - 「苦手」→ 業務内容/特定処置/特定診療科/夜勤自体/人間関係 を具体的に
 - 丁寧語、温度は上げない
 - 1回の返信は200文字以内
+- 絵文字は読みやすさのため1〜2個OK（🌸 ✨ 📝 💼 🏥 🤔 等の落ち着いたもの）。多用禁止
+- 段落改行で視認性を高める
 
 【収集済み情報】
 ${filledLines || "  (まだありません)"}
@@ -10397,15 +10401,44 @@ ${entry.rmCvQualifications || '看護師免許'}
                   _entry.aicaCareerSheet = result.reply;
                   _entry.phase = "aica_career_sheet";
                   const p = _entry.aicaProfile || {};
-                  if (p.area && !_entry.area) {
-                    _entry.areaLabel = p.area;
+
+                  // 働き方マッピング（AICA抽出値で上書き）
+                  if (p.workstyle) {
+                    const ws = String(p.workstyle);
+                    if (/日勤のみ|日勤専従/.test(ws)) _entry.workStyle = "day";
+                    else if (/夜勤専従/.test(ws)) _entry.workStyle = "night";
+                    else if (/パート|非常勤/.test(ws)) _entry.workStyle = "part";
+                    else if (/二交代|2交代|三交代|3交代|夜勤あり|夜勤OK/.test(ws)) _entry.workStyle = "twoshift";
                   }
-                  if (p.workstyle && !_entry.workStyle) {
-                    if (/日勤/.test(p.workstyle)) _entry.workStyle = "day";
-                    else if (/夜勤専従/.test(p.workstyle)) _entry.workStyle = "night";
-                    else if (/パート/.test(p.workstyle)) _entry.workStyle = "part";
-                    else _entry.workStyle = "twoshift";
+
+                  // 施設タイプマッピング（AICA抽出値で上書き）
+                  if (p.facility_hope) {
+                    const fh = String(p.facility_hope);
+                    if (/急性期|急性|二次救急|三次救急|大学病院|高度急性/.test(fh)) {
+                      _entry.facilityType = "hospital";
+                      _entry.hospitalSubType = "急性期";
+                    } else if (/回復期/.test(fh)) {
+                      _entry.facilityType = "hospital";
+                      _entry.hospitalSubType = "回復期";
+                    } else if (/療養|慢性期|ケアミックス/.test(fh)) {
+                      _entry.facilityType = "hospital";
+                      _entry.hospitalSubType = "慢性期";
+                    } else if (/病院/.test(fh)) {
+                      _entry.facilityType = "hospital";
+                    } else if (/クリニック|診療所|外来/.test(fh)) {
+                      _entry.facilityType = "clinic";
+                    } else if (/訪問/.test(fh)) {
+                      _entry.facilityType = "visiting";
+                    } else if (/介護|特養|老健|有料老人/.test(fh)) {
+                      _entry.facilityType = "care";
+                    }
                   }
+
+                  // areaLabel（表示用）
+                  if (p.area) _entry.areaLabel = _entry.areaLabel || p.area;
+
+                  console.log(`[AICA→matching] entry mapping: area=${_entry.area} ws=${_entry.workStyle} ft=${_entry.facilityType} sub=${_entry.hospitalSubType || ""}`);
+
                   await saveLineEntry(_userId, _entry, _env);
 
                   // 1. カルテ Push
@@ -10415,17 +10448,54 @@ ${entry.rmCvQualifications || '看護師免許'}
                     body: JSON.stringify({ to: _userId, messages: [{ type: "text", text: result.reply }] }),
                   });
 
-                  // 2. マッチング生成 → Push
+                  // 2. マッチング生成 → 結果が3件未満なら隣接エリア自動拡大 → Push
                   try {
                     await generateLineMatching(_entry, _env, 0);
+                    let resultCount = (_entry.matchingResults || []).length;
+                    let expandedNote = "";
+
+                    // 3件未満なら隣接エリアに拡大（社長指摘: 小田原1件問題）
+                    if (resultCount < 3 && _entry.area && ADJACENT_AREAS[_entry.area]) {
+                      const originalArea = _entry.area;
+                      const adjacents = ADJACENT_AREAS[_entry.area].slice(0, 2);
+                      const expandedResults = [..._entry.matchingResults || []];
+                      const seenIds = new Set(expandedResults.map(r => r.n || r.name));
+                      for (const adj of adjacents) {
+                        const tmpEntry = { ..._entry, area: adj, matchingResults: null };
+                        try {
+                          await generateLineMatching(tmpEntry, _env, 0);
+                          for (const r of (tmpEntry.matchingResults || [])) {
+                            const id = r.n || r.name;
+                            if (!seenIds.has(id)) {
+                              expandedResults.push(r);
+                              seenIds.add(id);
+                              if (expandedResults.length >= 5) break;
+                            }
+                          }
+                          if (expandedResults.length >= 5) break;
+                        } catch (e) { /* skip */ }
+                      }
+                      _entry.matchingResults = expandedResults;
+                      _entry.area = originalArea; // 元のエリアに戻す
+                      _entry.adjacentExpanded = true;
+                      resultCount = expandedResults.length;
+                      expandedNote = `\n※ご希望のエリアに合う求人が少なかったため、隣接エリア（${adjacents.join("・")}）も含めてご提案しています。`;
+                      console.log(`[AICA→matching] adjacent expansion: original=${originalArea} expanded count=${resultCount}`);
+                    }
+
                     _entry.phase = "matching_preview";
                     await saveLineEntry(_userId, _entry, _env);
                     const phaseMsgs = await buildPhaseMessage("matching_preview", _entry, _env);
-                    if (phaseMsgs && phaseMsgs.length > 0) {
+                    const messages = phaseMsgs || [];
+                    if (expandedNote && messages.length > 0) {
+                      // 隣接拡大の注記をテキストで先頭に追加
+                      messages.unshift({ type: "text", text: `お待たせしました ✨${expandedNote}` });
+                    }
+                    if (messages.length > 0) {
                       await fetch("https://api.line.me/v2/bot/message/push", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${_token}` },
-                        body: JSON.stringify({ to: _userId, messages: phaseMsgs.slice(0, 5) }),
+                        body: JSON.stringify({ to: _userId, messages: messages.slice(0, 5) }),
                       });
                     }
                   } catch (e) {
