@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A5F"/>
+      <stop offset="55%" stop-color="#2E7BB8"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#FFFFFF"/>
+  <g transform="translate(256 268)">
+    <path d="M -160 -40
+             C -160 -110, -90 -150, -40 -110
+             C -20 -94, -10 -76, 0 -56
+             C 10 -76, 20 -94, 40 -110
+             C 90 -150, 160 -110, 160 -40
+             C 160 30, 80 90, 0 158
+             C -80 90, -160 30, -160 -40 Z"
+          fill="none" stroke="url(#heartGrad)" stroke-width="34"
+          stroke-linejoin="round" stroke-linecap="round"/>
+    <polyline points="-118,-10 -70,-10 -45,-55 -10,40 25,-30 50,-10 118,-10"
+              fill="none" stroke="url(#heartGrad)" stroke-width="30"
+              stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+</svg>
