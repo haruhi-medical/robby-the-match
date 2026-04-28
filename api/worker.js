@@ -12118,8 +12118,10 @@ async function adminHashPassword(password, saltHex) {
     "raw", new TextEncoder().encode(password),
     { name: "PBKDF2" }, false, ["deriveBits"]
   );
+  // Cloudflare Workers は PBKDF2 iterations 上限 100,000
+  // 100k + 16-byte salt + HMAC-SHA256 で実質的な総当たり耐性は十分（NIST 800-63B 旧推奨値）
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: 600000, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
     key, 256
   );
   return bytesToHex(new Uint8Array(bits));
@@ -12443,10 +12445,10 @@ async function handleAdminRoute(request, env, ctx, url) {
         const userId = decodeURIComponent(parts[3]);
         if (!/^U[0-9a-f]{32}$/i.test(userId)) return adminJson({ error: "bad userId" }, 400);
         const [entryRaw, memberRaw, resumeDataRaw, handoffRaw] = await Promise.all([
-          env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 5 }),
-          env.LINE_SESSIONS.get(`member:${userId}`, { cacheTtl: 5 }),
-          env.LINE_SESSIONS.get(`member:${userId}:resume_data`, { cacheTtl: 5 }),
-          env.LINE_SESSIONS.get(`handoff:${userId}`, { cacheTtl: 5 }),
+          env.LINE_SESSIONS.get(`line:${userId}`, { cacheTtl: 60 }),
+          env.LINE_SESSIONS.get(`member:${userId}`, { cacheTtl: 60 }),
+          env.LINE_SESSIONS.get(`member:${userId}:resume_data`, { cacheTtl: 60 }),
+          env.LINE_SESSIONS.get(`handoff:${userId}`, { cacheTtl: 60 }),
         ]);
         const entry = entryRaw ? JSON.parse(entryRaw) : null;
         const member = memberRaw ? JSON.parse(memberRaw) : null;
@@ -12475,7 +12477,10 @@ async function handleAdminRoute(request, env, ctx, url) {
           if (!entryRaw2) return adminJson({ error: "user not found" }, 404);
           const entry2 = JSON.parse(entryRaw2);
           if (!enabled) {
-            entry2.phaseBeforeMute = entry2.phase || "free_consult";
+            // 既に mute 中なら phaseBeforeMute を上書きしない（元のphase復元のため）
+            if (!entry2.adminMutedAt) {
+              entry2.phaseBeforeMute = entry2.phase || "free_consult";
+            }
             entry2.phase = "handoff";
             entry2.handoffAt = Date.now();
             entry2.handoffReason = "admin_muted";
@@ -12483,7 +12488,10 @@ async function handleAdminRoute(request, env, ctx, url) {
             entry2.adminMutedReason = reason;
             entry2.adminMutedBy = "admin";
           } else {
-            entry2.phase = entry2.phaseBeforeMute || "free_consult";
+            // 復元: phaseBeforeMute が "handoff" 系なら無効値とみなし安全な phase へ
+            const restorePhase = entry2.phaseBeforeMute;
+            const isInvalidRestore = !restorePhase || restorePhase === "handoff" || restorePhase === "handoff_silent";
+            entry2.phase = isInvalidRestore ? "ai_consultation" : restorePhase;
             entry2.phaseBeforeMute = null;
             entry2.handoffAt = null;
             entry2.adminMutedAt = null;
@@ -12525,7 +12533,10 @@ async function handleAdminRoute(request, env, ctx, url) {
             if (entryRaw3) {
               const entry3 = JSON.parse(entryRaw3);
               entry3.adminLastReplyAt = Date.now();
-              entry3.phaseBeforeMute = entry3.phaseBeforeMute || entry3.phase || "free_consult";
+              // 既存の phaseBeforeMute を保持。新規 mute 時のみ phase を保存
+              if (!entry3.adminMutedAt && !entry3.phaseBeforeMute) {
+                entry3.phaseBeforeMute = entry3.phase || "free_consult";
+              }
               entry3.phase = "handoff";
               entry3.handoffAt = Date.now();
               entry3.handoffReason = entry3.handoffReason || "admin_replied";
