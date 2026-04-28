@@ -5417,3 +5417,56 @@ AI Marketing PDCA:
    - 「看護師のための地域別転職先紹介：東日本編」
    - 「看護師転職のためのインタビューテクニックと準備方法」
 
+### 🔎 競合監視（10:00:01）
+   - 「看護師転職のためのキャリアデザインガイド」
+   - 「看護師のための地域別転職先紹介：東日本編」
+   - 「看護師転職のためのインタビューテクニックと準備方法」
+[pdca_ai_engine] job=competitor 完了 (exit=0)
+[INFO] commit済み（pushは日次レビューで一括）
+
+
+## 2026-04-27 15:30 — Opus復旧確認 + !reply滞留検出セッション
+
+### Opus障害対応
+- 15:00〜15:04 Anthropic Opusダウン → cron pdca_content.sh が claude CLI exit 1 で全7件失敗
+- Slackに [OPUS DOWN] アラート連発（ai_content_engine.py の正常動作）
+- 15:31 claude CLI 動作確認OK（1+1=2 応答）
+- CFフォールバック無効化は仕様通り（品質維持）
+- 投稿キュー38件 ready で当日SNS投稿に支障なし
+- 再生成は社長判断保留
+
+### !reply 付け忘れ滞留検出
+- 指示キュー15件のうち3件が「先頭がU+32hex」のLINE返信草稿（!replyプレフィックス欠落）
+  - #13 (4/26 14:27) U7edff5f6... 「石塚です。」
+  - #14 (4/26 17:28) Ua3afee1a... 「ご登録ありがとうございます！…」
+  - #15 (4/27 15:16) U3dac5c67... 「千恵子様…」
+- LINE未送信。slack_commander.pyのリマインダー検知はネットワーク不調で発動せず
+- 社長指示「まだ送らないで」→ 私からの代理reply禁止、文面確認待ち
+- STATE.md冒頭に注意書き記載
+
+## 2026-04-26 全国47都道府県対応セッション
+
+### 戦略策定（6人パネル討論）
+- 大阪登録発生を契機に「ナースロビー全国区ブランド」へ整理
+- 法的: 23-ユ-302928 取扱地域=全国（社長確認済）→ memory `reference_license_nationwide.md`
+- パネル全員一致: ブランド名統一は今すぐ / 求人DB全国化は段階制 / 広告は契約病院ゼロエリア凍結
+
+### 実装（commit d6fe2c3 / ca63bfe / 6c127aa）
+- **施設DB**: 厚労省egov CSV → D1に**84,613施設**投入（全47都道府県）
+  - 東京14,711 / 大阪7,567 / 神奈川6,468 / 福岡4,735 / 愛知4,719 / 埼玉4,643 / 千葉3,726 ほか
+  - `scripts/import_egov_facilities.py` バッチ分割化（5000行/batch、17バッチ）
+- **求人DB**: ハローワーク47都道府県 → D1 jobs に**21,149件**投入
+  - 愛知1,339 / 福岡1,313 / 大阪1,305 / 東京1,201 / 北海道929 / 神奈川843 ほか
+  - `scripts/hellowork_fetch.py --all-japan` (M101-M147)
+  - `scripts/hellowork_rank.py` / `hellowork_to_d1.py` 全国対応化
+- **Worker**: AREA_PREF_MAP/PREF_NAMEを47県展開、JAPAN_PREFECTURES + JAPAN_REGIONS定数追加。デプロイ済（Version 6e1a55df）
+- **LINE Bot UI**: 「他の都道府県（全国対応）」→地方ブロック→都道府県の2段階Flexピッカー
+- **順番待ち実装**: `waitlist:{userId}` KV + Slack通知 + `/api/admin/trigger-waitlist-push` 管理API + unfollow自動cleanup
+- **ブランド整理**: LP/404/SNS投稿/カルーセル/病院送信メール = ナースロビー統一
+
+### 社長確認待ち
+- LP内「神奈川県以外も対応していますか？」FAQ回答+セクションタイトル「神奈川の看護師求人」「神奈川の看護師転職情報」を全国対応化するか維持か（SEOロングテール影響）
+
+### 悪魔の警告
+- 求人DBゼロのエリアに広告1円も使うな → 大阪等の広告配信は契約病院3件確保まで凍結
+- SEO 305ページ（area/guide/blog/hospitals）の「神奈川ナース転職」維持が地名ロングテール武器
