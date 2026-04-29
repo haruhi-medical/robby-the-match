@@ -247,6 +247,7 @@ class CaseRunner:
         chain_logger: Optional[ChainLogger],
         secret: str,
         step_delay_ms: int = 2000,  # KV propagation のため2秒（旧250ms→不足）
+        settle_delay_ms: int = 8000,  # 最終snapshot前に AICA BG (LLM呼出) を待つ
         per_step_timeout_s: float = 20.0,
     ) -> None:
         self.case = case
@@ -254,6 +255,7 @@ class CaseRunner:
         self.chain = chain_logger
         self.secret = secret
         self.step_delay_ms = step_delay_ms
+        self.settle_delay_ms = settle_delay_ms
         self.per_step_timeout = per_step_timeout_s
 
     async def run(self) -> RunnerResult:
@@ -287,6 +289,8 @@ class CaseRunner:
                 await self._follow(user_id, result)
 
             # 2) ステップ順次実行
+            #    text→AICA系は ctx.waitUntil で LLM を回すため、次stepまでの間隔を
+            #    長く取らないと race（前stepのphase未更新で次stepが処理される）が起きる。
             for i, step in enumerate(steps):
                 sr = await self._execute_step(step, user_id, i)
                 result.step_results.append(sr)
@@ -296,11 +300,27 @@ class CaseRunner:
                     # 1stepの失敗で残りスキップせず、なるべく走り切る方針
                     # （gatekeeper側でstep_resultsを見て総合判定）
                     pass
-                # スロットル
-                if self.step_delay_ms > 0:
-                    await asyncio.sleep(self.step_delay_ms / 1000.0)
 
-            # 3) 最終 audit-snapshot
+                # step次第で待ち時間を調整。
+                # - text → AICA BG処理（LLM 3-8s）を待つため 8s
+                # - postback / follow → KV propagation のみで足りるため step_delay_ms (default 2s)
+                # - 最終stepは settle_delay で別途待つので skip
+                if i < len(steps) - 1:
+                    kind = step.get("kind", "")
+                    base_ms = self.step_delay_ms
+                    if kind == "text":
+                        base_ms = max(base_ms, 8000)
+                    # YAML で `delay_after_ms` を明示指定された場合は最優先
+                    explicit = step.get("delay_after_ms")
+                    if isinstance(explicit, (int, float)) and explicit >= 0:
+                        base_ms = int(explicit)
+                    if base_ms > 0:
+                        await asyncio.sleep(base_ms / 1000.0)
+
+            # 3) 最終 audit-snapshot前に ctx.waitUntil 由来の BG処理 (AICA LLM呼出)
+            #    が落ち着くまで待つ。LLMは3-8秒、BGには2-3秒、計5-10秒で settle 想定。
+            #    ※ snapshot エンドポイント側の ver-key リトライと併用で安定。
+            await asyncio.sleep(self.settle_delay_ms / 1000.0)
             snap = await self._snapshot(user_id, result)
             if snap is not None:
                 result.entry_snapshots.append(snap)

@@ -1,0 +1,39 @@
+id: _aica_pure_001
+category: aica_4turn
+persona: misaki
+seed: 9001
+description: "純粋なAICAフロー: follow → 4ターン心理ヒアリング → summary 到達"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: text
+    text: "毎日同じ業務の繰り返しで全然成長してる気がしません。"
+    expect_phase: aica_turn2
+    expect_keywords_any: ["お話", "聞かせて", "気持ち", "そうなんですね", "そうですね"]
+  - kind: text
+    text: "プリセプター業務もやってるけど評価されてる感じが全然なくて。"
+    expect_phase: aica_turn3
+  - kind: text
+    text: "夜勤のたびに体調を崩してしまっていて、もう限界です。"
+    expect_phase: aica_turn4
+  - kind: text
+    text: "家族との時間も全然取れていなくて辛いです。"
+    expect_phase: aica_summary
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 8000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+metadata:
+  generated_by: "aica_pure_handcrafted"
+  generated_at: "2026-04-29"
