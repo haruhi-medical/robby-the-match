@@ -393,6 +393,9 @@ class RubricEvaluator:
         replyテキストが空の場合は 5（検査スキップ）。
         """
         msgs = _all_message_texts(run)
+        # Push API placeholder「考えています…」と「お待ちください」系は評価対象から除外
+        # (これらは ack-only でAICAの実応答ではない)
+        msgs = [m for m in msgs if not _is_placeholder_ack(m)]
         if not msgs:
             r.evidence["E"] = {"reason": "no text replies (skipped)"}
             return 5
@@ -768,12 +771,37 @@ def _extract_flex_text(node: Any) -> str:
     return ""
 
 
+# 即時 ack の placeholder。AICA の本物応答は Push 経由で aicaMessages に入る。
+_PLACEHOLDER_PATTERNS = (
+    "少々お待ちください",
+    "考えています",
+    "承知しました",
+)
+
+
+def _is_placeholder_ack(text: str) -> bool:
+    """LINE Reply API で消費されるだけの即時 ack か判定。"""
+    if not text:
+        return True
+    t = str(text)
+    # 短くてプレースホルダ語を含むものは ack 扱い
+    if len(t) > 80:
+        return False
+    return any(p in t for p in _PLACEHOLDER_PATTERNS)
+
+
 def _all_message_texts(run: Dict[str, Any]) -> List[str]:
     """全 step replies のテキスト一覧。
 
     優先順位:
     1. step_results[].replies (旧スキーマ、runner未対応)
-    2. entry_snapshots[0].entry.auditTrail[].replyTexts (実runner形式)
+    2. entry_snapshots[0].entry.auditTrail[].replyTexts (即時 reply のみ)
+    3. entry_snapshots[0].entry.aicaMessages[role=assistant] (AICA BG処理→Push経路)
+    4. entry_snapshots[0].entry.messages[role=assistant] (汎用ヒストリ)
+
+    AICA は ctx.waitUntil で LLM 呼んで Push API で送るため、auditTrail.replyTexts
+    には placeholder「考えています…」しか残らない。実際の共感応答は
+    entry.aicaMessages の assistant role に保存されているのでそちらも合算する。
     """
     out: List[str] = []
     # 1) step_results.replies
@@ -790,16 +818,43 @@ def _all_message_texts(run: Dict[str, Any]) -> List[str]:
                         out.append(flex_text)
             elif isinstance(m, str):
                 out.append(m)
-    # 2) auditTrail.replyTexts フォールバック
-    if not out:
-        snaps = run.get("entry_snapshots") or []
-        if snaps and isinstance(snaps[0], dict):
-            ent = snaps[0].get("entry") if isinstance(snaps[0].get("entry"), dict) else snaps[0]
-            audit = ent.get("auditTrail", []) if isinstance(ent, dict) else []
-            for t in audit:
-                for rt in t.get("replyTexts", []) or []:
-                    if rt:
-                        out.append(str(rt))
+
+    snaps = run.get("entry_snapshots") or []
+    ent = None
+    if snaps and isinstance(snaps[0], dict):
+        ent = snaps[0].get("entry") if isinstance(snaps[0].get("entry"), dict) else snaps[0]
+
+    # 2) auditTrail.replyTexts (placeholder含む即時reply)
+    if not out and ent:
+        audit = ent.get("auditTrail", []) if isinstance(ent, dict) else []
+        for t in audit:
+            for rt in t.get("replyTexts", []) or []:
+                if rt:
+                    out.append(str(rt))
+
+    # 3) AICA: aicaMessages[role=assistant] (Push経由の本物の応答)
+    if ent:
+        aica_msgs = ent.get("aicaMessages") or []
+        for m in aica_msgs:
+            if not isinstance(m, dict):
+                continue
+            if m.get("role") != "assistant":
+                continue
+            txt = m.get("text") or m.get("content") or ""
+            if txt:
+                out.append(str(txt))
+        # 4) 汎用 messages[role=assistant]
+        msgs = ent.get("messages") or []
+        for m in msgs:
+            if not isinstance(m, dict):
+                continue
+            role = m.get("role") or m.get("type")
+            if role != "assistant":
+                continue
+            txt = m.get("text") or m.get("content") or ""
+            if txt and str(txt) not in out:
+                out.append(str(txt))
+
     return out
 
 
