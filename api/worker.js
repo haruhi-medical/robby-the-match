@@ -5805,6 +5805,32 @@ function createLineEntry() {
 }
 
 // 監査用: entry.auditTrail に1件追加（最大100件で循環）
+// BG処理 (ctx.waitUntil + Push API) が phase を後追い更新したあと、
+// 直近の auditTrail エントリ (placeholder ack 時に作られた) を真のphase/replyTextsで更新する。
+// これで gatekeeper F軸が「ターン進行」を正しく検査できるようになる。
+function updateLastAuditTrail(entry, options = {}) {
+  if (!entry || !Array.isArray(entry.auditTrail) || entry.auditTrail.length === 0) return;
+  const last = entry.auditTrail[entry.auditTrail.length - 1];
+  if (!last) return;
+  try {
+    if (typeof options.phaseAfter === 'string') {
+      last.phaseAfter = options.phaseAfter;
+    } else {
+      // 明示指定なし: 現在の entry.phase を採用 (BG完了直後想定)
+      last.phaseAfter = entry.phase;
+    }
+    if (Array.isArray(options.appendReplyTexts) && options.appendReplyTexts.length > 0) {
+      last.replyTexts = (last.replyTexts || []).concat(
+        options.appendReplyTexts
+          .map(m => typeof m === 'string' ? m : (m?.text || m?.altText || ''))
+          .filter(Boolean)
+          .map(t => String(t).slice(0, 200))
+      );
+    }
+    last.bgUpdated = true;
+  } catch (e) { /* never fail the main flow */ }
+}
+
 function appendAuditTrail(entry, eventKind, phaseBefore, replyTexts = []) {
   if (!entry) return;
   if (!entry.auditTrail) entry.auditTrail = [];
@@ -11223,6 +11249,7 @@ ${entry.rmCvQualifications || '看護師免許'}
 
                 if (result.isEmergency) {
                   _entry.phase = "handoff";
+                  updateLastAuditTrail(_entry, { phaseAfter: "handoff", appendReplyTexts: [result.reply] });
                   await saveLineEntry(_userId, _entry, _env);
                   await fetch("https://api.line.me/v2/bot/message/push", {
                     method: "POST",
@@ -11246,6 +11273,7 @@ ${entry.rmCvQualifications || '看護師免許'}
                 let pushMessages;
                 if (result.isClosing) {
                   _entry.phase = "aica_condition";
+                  updateLastAuditTrail(_entry, { phaseAfter: "aica_condition", appendReplyTexts: [result.reply] });
                   pushMessages = [
                     { type: "text", text: result.reply },
                     {
@@ -11262,6 +11290,7 @@ ${entry.rmCvQualifications || '看護師免許'}
                   ];
                 } else {
                   _entry.phase = `aica_turn${(_entry.aicaTurnCount || 0) + 1}`;
+                  updateLastAuditTrail(_entry, { phaseAfter: _entry.phase, appendReplyTexts: [result.reply] });
                   pushMessages = [{ type: "text", text: result.reply }];
                 }
                 await saveLineEntry(_userId, _entry, _env);
@@ -11309,6 +11338,7 @@ ${entry.rmCvQualifications || '看護師免許'}
                 if (result.isComplete) {
                   _entry.aicaCareerSheet = result.reply;
                   _entry.phase = "aica_career_sheet";
+                  updateLastAuditTrail(_entry, { phaseAfter: "aica_career_sheet", appendReplyTexts: [result.reply] });
                   const p = _entry.aicaProfile || {};
 
                   // 働き方マッピング（AICA抽出値で上書き）
@@ -11425,6 +11455,7 @@ ${entry.rmCvQualifications || '看護師免許'}
                   }
                 } else {
                   // 条件ヒアリング継続（質問内容に応じてQR選択肢を自動付与）
+                  updateLastAuditTrail(_entry, { phaseAfter: "aica_condition", appendReplyTexts: [result.reply] });
                   await saveLineEntry(_userId, _entry, _env);
                   const autoQR = aicaAppendConditionQR(result.reply);
                   const msg = { type: "text", text: result.reply };
