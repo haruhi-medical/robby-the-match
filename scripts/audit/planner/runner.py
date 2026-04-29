@@ -246,7 +246,7 @@ class CaseRunner:
         line_client: LineClient,
         chain_logger: Optional[ChainLogger],
         secret: str,
-        step_delay_ms: int = 250,
+        step_delay_ms: int = 2000,  # KV propagation のため2秒（旧250ms→不足）
         per_step_timeout_s: float = 20.0,
     ) -> None:
         self.case = case

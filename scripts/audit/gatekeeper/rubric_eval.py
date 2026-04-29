@@ -769,8 +769,14 @@ def _extract_flex_text(node: Any) -> str:
 
 
 def _all_message_texts(run: Dict[str, Any]) -> List[str]:
-    """全 step replies のテキスト一覧。"""
+    """全 step replies のテキスト一覧。
+
+    優先順位:
+    1. step_results[].replies (旧スキーマ、runner未対応)
+    2. entry_snapshots[0].entry.auditTrail[].replyTexts (実runner形式)
+    """
     out: List[str] = []
+    # 1) step_results.replies
     for s in run.get("step_results", run.get("steps", [])) or []:
         for m in s.get("replies", []) or []:
             if isinstance(m, dict):
@@ -784,6 +790,16 @@ def _all_message_texts(run: Dict[str, Any]) -> List[str]:
                         out.append(flex_text)
             elif isinstance(m, str):
                 out.append(m)
+    # 2) auditTrail.replyTexts フォールバック
+    if not out:
+        snaps = run.get("entry_snapshots") or []
+        if snaps and isinstance(snaps[0], dict):
+            ent = snaps[0].get("entry") if isinstance(snaps[0].get("entry"), dict) else snaps[0]
+            audit = ent.get("auditTrail", []) if isinstance(ent, dict) else []
+            for t in audit:
+                for rt in t.get("replyTexts", []) or []:
+                    if rt:
+                        out.append(str(rt))
     return out
 
 
