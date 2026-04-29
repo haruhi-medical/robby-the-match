@@ -865,5 +865,14 @@
     "error": "Chrome MCP not connected; spec filter (platform=instagram) matched 0 entries",
     "ready_count": 37,
     "platform_filtered_count": 0
+  },
+  {
+    "platform": "instagram",
+    "dir": "ai_給与_0409_03",
+    "content_id": "ai_給与_0409_03",
+    "timestamp": "2026-04-29T21:02:46",
+    "status": "error",
+    "method": "meta_business_suite",
+    "error": "MBS posting failed"
   }
 ]

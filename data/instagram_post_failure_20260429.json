@@ -1,0 +1,28 @@
+{
+  "task": "instagram-daily-post",
+  "timestamp": "2026-04-29T21:11:14.286228+09:00",
+  "status": "failed",
+  "queue_entry": {
+    "id": 204,
+    "content_id": "ai_給与_0409_03",
+    "category": "salary",
+    "slide_dir": "content/generated/ai_batch_20260409_1500/ai_給与_0409_03",
+    "slide_count_on_disk": 8,
+    "selection_rule": "lowest id among status=ready posts with slide_dir and not yet instagram_posted"
+  },
+  "failure_reason": "Chrome MCP未接続（list_connected_browsers が空配列を返却）",
+  "fallback_attempted": [
+    "Chrome MCP list_connected_browsers → [] (拡張未接続)",
+    "Slack chat.postMessage を urllib で直接送信 → サンドボックスプロキシで 403 Forbidden",
+    "scripts/notify_slack.py / ig_post_meta_suite.py はホスト側Chrome debug portが必要でサンドボックスから到達不可"
+  ],
+  "action_required": [
+    "Mac Mini M4 上で Claude in Chrome 拡張のサインイン/接続状態を確認",
+    "Meta Business Suite (asset_id=1030390126820320) のログインセッションが有効か確認",
+    "手動再実行 もしくは ホストから scripts/ig_post_meta_suite.py を直接起動",
+    "4/13・4/17・4/29 と継続的にChrome未接続が原因で失敗。スケジュール実行時の拡張接続維持を恒久対応すべき"
+  ],
+  "ready_backlog_total": 36,
+  "content_still_ready": true,
+  "notes": "同一原因で 4/13, 4/17 にも失敗記録あり (instagram_post_failure_20260413.json / instagram_post_failure_20260417.json)。"
+}
