@@ -4221,6 +4221,7 @@ async function lineReply(replyToken, messages, channelAccessToken) {
   try {
     // 監査用: 現在処理中の entry に reply texts を記録（_auditCurrentEntry 経由）
     // 即時フラッシュ: replyTexts を集めた直後に auditTrail に push（saveLineEntry を待たない）
+    // さらに entry mutationを KV に再永続化（lineReply._currentEnv/_currentUserId/_currentCtx 経由）
     try {
       if (lineReply._currentEntry && messages && messages.length > 0) {
         const ap = lineReply._currentEntry._auditPending;
@@ -4234,10 +4235,16 @@ async function lineReply(replyToken, messages, channelAccessToken) {
               ap.replyTexts.push(String(s).slice(0, 200));
             }
           }
-          // ★ 即時フラッシュ: saveLineEntry がすでに走った後でも replyTexts を含めて記録
           try {
             appendAuditTrail(lineReply._currentEntry, ap.eventKind || 'unknown', ap.phaseBefore, ap.replyTexts);
             delete lineReply._currentEntry._auditPending;
+            // ★ KVに再永続化（in-memory mutation が次のwebhookで読まれるよう）
+            if (lineReply._currentEnv && lineReply._currentUserId) {
+              const _saveP = saveLineEntry(lineReply._currentUserId, lineReply._currentEntry, lineReply._currentEnv).catch(_e => {});
+              if (lineReply._currentCtx && lineReply._currentCtx.waitUntil) {
+                lineReply._currentCtx.waitUntil(_saveP);
+              }
+            }
           } catch (_ee) { /* never break reply */ }
         }
       }
@@ -9213,6 +9220,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         const _auditPhaseBefore = entry ? entry.phase : "(none)";
         if (entry) {
           entry._auditPending = { eventKind: "follow", phaseBefore: _auditPhaseBefore, replyTexts: [] };
+          lineReply._currentEnv = env;
+          lineReply._currentUserId = userId;
+          lineReply._currentCtx = ctx;
           lineReply._currentEntry = entry;
           // 管理画面で BOT OFF 中のユーザーは phase を welcome に戻さない（再フォローでBOT復活を防ぐ）
           if (entry.adminMutedAt) {
@@ -9228,6 +9238,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry.phase = "welcome";
           entry.updatedAt = Date.now();
           entry._auditPending = { eventKind: "follow", phaseBefore: _auditPhaseBefore, replyTexts: [] };
+          lineReply._currentEnv = env;
+          lineReply._currentUserId = userId;
+          lineReply._currentCtx = ctx;
           lineReply._currentEntry = entry;
         }
 
@@ -9504,6 +9517,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         }
         // 監査用
         entry._auditPending = { eventKind: "postback", phaseBefore: _pbPhaseBefore, replyTexts: [] };
+        lineReply._currentEnv = env;
+        lineReply._currentUserId = userId;
+        lineReply._currentCtx = ctx;
         lineReply._currentEntry = entry;
 
         const dataStr = event.postback.data;
@@ -10590,6 +10606,9 @@ ${entry.rmCvQualifications || '看護師免許'}
         }
         // 監査用
         entry._auditPending = { eventKind: "text", phaseBefore: _txtPhaseBefore, replyTexts: [] };
+        lineReply._currentEnv = env;
+        lineReply._currentUserId = userId;
+        lineReply._currentCtx = ctx;
         lineReply._currentEntry = entry;
 
         // ===== dm_text 重複処理防止（2026-04-20 追加） =====
