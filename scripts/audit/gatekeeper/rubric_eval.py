@@ -255,28 +255,53 @@ class RubricEvaluator:
         # auditTrail は [follow] + [postback/text/audio] の順。case が follow_first=true なら +1 オフセット
         snapshots = run.get("entry_snapshots") or []
         audit_trail = []
+        snap_entry: Dict[str, Any] = {}
         if snapshots and isinstance(snapshots[0], dict):
-            ent = snapshots[0].get("entry") if isinstance(snapshots[0].get("entry"), dict) else snapshots[0]
-            audit_trail = ent.get("auditTrail", []) if isinstance(ent, dict) else []
+            snap_entry = snapshots[0].get("entry") if isinstance(snapshots[0].get("entry"), dict) else snapshots[0]
+            if isinstance(snap_entry, dict):
+                audit_trail = snap_entry.get("auditTrail", [])
 
         # follow_first を考慮したオフセット
         follow_first = bool(case.get("preconditions", {}).get("follow_first"))
         offset = 1 if follow_first and audit_trail and audit_trail[0].get("eventKind") == "follow" else 0
 
+        # AICA は ctx.waitUntil + Push API でフェーズを後追い更新するため、
+        # auditTrail.phaseAfter は immediate ack 時点の値で post-BG の真の状態を見れない。
+        # → 最終ステップの phase 検査は **最終スナップショット** の entry.phase を使う。
+        final_phase = snap_entry.get("phase") if isinstance(snap_entry, dict) else None
+        final_axis = snap_entry.get("aicaAxis") if isinstance(snap_entry, dict) else None
+
         all_ok = True
+        last_step_idx = len(steps_case) - 1
         for idx, step_c in enumerate(steps_case):
             step_r = dict(steps_run[idx]) if idx < len(steps_run) else {}
             # auditTrail から phaseAfter / replyTexts を補完
             ai_idx = idx + offset
             if 0 <= ai_idx < len(audit_trail):
                 trail = audit_trail[ai_idx]
+                # 最終ステップの phase は snapshot 優先 (AICA BG処理の settle 後を見るため)
+                phase_for_check = trail.get("phaseAfter")
+                if idx == last_step_idx and final_phase:
+                    phase_for_check = final_phase
                 step_r["entry_after"] = {
-                    "phase": trail.get("phaseAfter"),
-                    "aicaAxis": (snapshots[0].get("entry", {}) if snapshots else {}).get("aicaAxis"),
+                    "phase": phase_for_check,
+                    "aicaAxis": final_axis,
                 }
                 # replyTexts → replies に正規化
                 rt = trail.get("replyTexts") or []
                 step_r["replies"] = [{"type": "text", "text": t} for t in rt if t]
+                # AICA最終ステップは Push 経由で aicaMessages に本物の応答が入るので、
+                # それも replies に追加してキーワード判定の対象にする。
+                if idx == last_step_idx and isinstance(snap_entry, dict):
+                    aica_msgs = snap_entry.get("aicaMessages") or []
+                    for m in aica_msgs:
+                        if isinstance(m, dict) and m.get("role") == "assistant":
+                            txt = m.get("text") or m.get("content") or ""
+                            if txt:
+                                step_r["replies"].append({"type": "text", "text": str(txt)})
+            elif idx == last_step_idx and final_phase:
+                # auditTrail にも届いてないケースの最終ステップ → 最終スナップショットだけで判定
+                step_r["entry_after"] = {"phase": final_phase, "aicaAxis": final_axis}
             ok, why = self._check_one_step(step_c, step_r)
             evidence["step_results"].append({"step": idx, "ok": ok, "reason": why})
             if not ok:

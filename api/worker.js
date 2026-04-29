@@ -8308,6 +8308,29 @@ function handleLinePostback(dataStr, entry) {
   const params = new URLSearchParams(dataStr);
   let nextPhase = null;
 
+  // === Test/Power-user shortcut: AICA 4ターン心理ヒアリングをスキップして condition へ ===
+  // 公開UIに露出しない (案内QRもない) が、postback値で送ると aica_condition に直接遷移。
+  // 主用途: 監査テストで condition フェーズを単独検証する。
+  // 既存ユーザが「もう年数とか希望から決めたい」場合の隠し導線にもなる。
+  if (params.has("aica_skip_to_condition")) {
+    entry.phase = "aica_condition";
+    entry.aicaTurnCount = 4;
+    entry.aicaMessages = entry.aicaMessages || [];
+    entry.aicaProfile = entry.aicaProfile || {};
+    entry.unexpectedTextCount = 0;
+    return {
+      type: "text",
+      text: "承知しました 📝\nぴったりの求人をお探しするために、いくつか具体的な条件をお伺いさせてください。\n\nまず、看護師としては何年目でしょうか？",
+      quickReply: { items: [
+        { type: "action", action: { type: "message", label: "1〜3年目", text: "1〜3年目" } },
+        { type: "action", action: { type: "message", label: "3〜5年目", text: "3〜5年目" } },
+        { type: "action", action: { type: "message", label: "5〜10年目", text: "5〜10年目" } },
+        { type: "action", action: { type: "message", label: "10〜20年目", text: "10〜20年目" } },
+        { type: "action", action: { type: "message", label: "20年以上", text: "20年以上" } },
+      ]},
+    };
+  }
+
   // intake_light: 都道府県選択（2段階の1段目）
   if (params.has("il_pref")) {
     const pref = params.get("il_pref");
@@ -9945,7 +9968,15 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         entry.messageCount++;
         entry.updatedAt = Date.now();
 
-        if (nextPhase) {
+        // ハンドラがメッセージオブジェクト ({type:"text", ...}) を直接返すケース:
+        // entry.phase は handler 内で既に設定済み。そのままreplyして次のevent loopへ。
+        if (nextPhase && typeof nextPhase === "object" && nextPhase.type === "text") {
+          await saveLineEntry(userId, entry, env);
+          await lineReply(event.replyToken, [nextPhase], channelAccessToken);
+          continue;
+        }
+
+        if (nextPhase && typeof nextPhase === "string") {
           entry.phase = nextPhase;
         }
 
