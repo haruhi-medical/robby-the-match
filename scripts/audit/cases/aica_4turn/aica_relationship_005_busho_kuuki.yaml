@@ -1,0 +1,41 @@
+id: aica_relationship_005
+category: aica_4turn
+persona: shinsotsu
+seed: 1005
+description: "Turn 1で病棟全体の空気が悪いを送ると軸=relationshipに分類されてTurn 2の深掘り質問が来る"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+    expect_keywords_any: ["お話", "聞かせて", "気持ち"]
+  - kind: text
+    text: "病棟全体がピリピリしていて誰とも話せない。新人も全員辞めていく。"
+    expect_phase: aica_turn2
+    expect_axis: relationship
+    expect_keywords_any: ["雰囲気", "辛い"]
+    expect_emojis_min: 0
+    expect_emojis_max: 3
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
