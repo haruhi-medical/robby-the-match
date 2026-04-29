@@ -6371,14 +6371,14 @@ async function buildPhaseMessage(phase, entry, env) {
         // カルーセル後のフォローメッセージ（Quick Reply付き）
         messages.push({
           type: "text",
-          text: "ナースロビーは病院側の負担が少ないシステムですので、内定に繋がりやすいです。気軽にお尋ねください！",
+          text: "気になる施設はありましたか？\n施設名や条件のご質問はそのまま文字や音声でお送りください 🌸\n\n応募される場合は下のボタンから🙏",
           quickReply: {
             items: [
+              qrItem("📨 応募する", "apply_intent=start"),
+              qrItem("📝 履歴書を作る", "rm=resume"),
               qrItem("他の求人も見る", "matching_preview=more"),
-              qrItemUri("全件チェック", buildAllJobsUri(entry)),
               qrItem("条件を変える", "welcome=see_jobs"),
               qrItem("直接相談する", "handoff=ok"),
-              qrItem("あとで見る", "matching_preview=later"),
             ],
           },
         });
@@ -9573,6 +9573,64 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           continue;
         }
         // ============ T1 ここまで ============
+
+        // v2.0 AICA: 応募意思表明（M6到達）
+        if (dataStr === "apply_intent=start") {
+          const facility = entry.interestedFacility || "気になっている求人";
+          entry.applyIntentAt = Date.now();
+          entry.phase = "handoff";
+          await saveLineEntry(userId, entry, env);
+
+          // Slack通知（AICAコンテキスト全部入り）
+          if (env.SLACK_BOT_TOKEN) {
+            const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+            const aicaAxisLabel = {
+              relationship: "人間関係", time: "労働時間", salary: "給与",
+              career: "キャリア", family: "家庭", vague: "漠然",
+            }[entry.aicaAxis] || "—";
+            const p = entry.aicaProfile || {};
+            const profile = await getLineProfile(userId, env);
+            const nameLabel = profile?.displayName || userId.slice(0, 8);
+            const matching = (entry.matchingResults || []).slice(0, 3).map((r, i) =>
+              `${i + 1}. ${r.n || r.name || "—"} (${r.sal || r.salary || "—"})`
+            ).join("\n  ");
+
+            ctx.waitUntil(fetch("https://slack.com/api/chat.postMessage", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+              body: JSON.stringify({
+                channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+                text: `🎯 *応募意思表明（M6到達）*\n` +
+                  `👤 ${nameLabel}\n` +
+                  `ユーザー: \`${userId}\`\n\n` +
+                  `🏥 *応募先*: ${facility}\n\n` +
+                  `📋 *AICAヒアリング情報*\n` +
+                  `  軸: ${aicaAxisLabel}\n` +
+                  `  根本原因: ${entry.aicaRootCause || "—"}\n` +
+                  `  経験年数: ${p.experience_years || "—"}\n` +
+                  `  現在の役割: ${p.current_position || "—"}\n` +
+                  `  経験分野: ${p.fields_experienced || "—"}\n` +
+                  `  強み: ${p.strengths || "—"}\n` +
+                  `  苦手: ${p.weaknesses || "—"}\n` +
+                  `  希望働き方: ${p.workstyle || "—"}\n` +
+                  `  希望施設: ${p.facility_hope || "—"}\n` +
+                  `  希望エリア: ${p.area || entry.areaLabel || "—"}\n` +
+                  `  希望給与: ${p.salary_hope || "—"}\n` +
+                  `  時期: ${p.timing || "—"}\n\n` +
+                  `🏥 *マッチング上位3件*\n  ${matching || "—"}\n\n` +
+                  `📝 *履歴書ドラフト*: ${entry.resumeDraft ? "作成済" : "未作成"}\n\n` +
+                  `時刻: ${nowJST}\n\n` +
+                  `💬 \`!reply ${userId} メッセージ\``,
+              }),
+            }).catch((e) => console.error(`[apply_intent] Slack error: ${e.message}`)));
+          }
+
+          await lineReply(event.replyToken, [{
+            type: "text",
+            text: `${facility}への応募意思、しかと承りました 🌸\n\n担当者から24時間以内にこのLINEでご連絡いたします。少々お待ちください。\n\n${entry.resumeDraft ? "" : "もしお時間あれば、リッチメニューの「履歴書作成」から職務経歴書ドラフトをご準備いただくと、応募がスムーズです 📝"}`,
+          }], channelAccessToken);
+          continue;
+        }
 
         // 【intake_qual】資格選択 → 年代選択へ（1問目→2問目）
         if (entry.phase === "intake_qual" && dataStr.startsWith("intake=qual&")) {
