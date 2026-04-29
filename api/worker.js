@@ -4220,6 +4220,7 @@ function timingSafeEqual(a, b) {
 async function lineReply(replyToken, messages, channelAccessToken) {
   try {
     // 監査用: 現在処理中の entry に reply texts を記録（_auditCurrentEntry 経由）
+    // 即時フラッシュ: replyTexts を集めた直後に auditTrail に push（saveLineEntry を待たない）
     try {
       if (lineReply._currentEntry && messages && messages.length > 0) {
         const ap = lineReply._currentEntry._auditPending;
@@ -4233,6 +4234,11 @@ async function lineReply(replyToken, messages, channelAccessToken) {
               ap.replyTexts.push(String(s).slice(0, 200));
             }
           }
+          // ★ 即時フラッシュ: saveLineEntry がすでに走った後でも replyTexts を含めて記録
+          try {
+            appendAuditTrail(lineReply._currentEntry, ap.eventKind || 'unknown', ap.phaseBefore, ap.replyTexts);
+            delete lineReply._currentEntry._auditPending;
+          } catch (_ee) { /* never break reply */ }
         }
       }
     } catch (_e) { /* never break reply */ }

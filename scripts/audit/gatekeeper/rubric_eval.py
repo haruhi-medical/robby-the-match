@@ -238,7 +238,7 @@ class RubricEvaluator:
         全 step が一致したら 5、1つでも違反すれば 0（部分点なし）。
         """
         steps_case = case.get("steps", []) or []
-        steps_run = run.get("steps", []) or []
+        steps_run = run.get("step_results", run.get("steps", [])) or []
         evidence: Dict[str, Any] = {"step_results": []}
 
         if not steps_case:
@@ -251,9 +251,32 @@ class RubricEvaluator:
             }
             return 0
 
+        # entry_after を auditTrail から逆算する（runner が per-step snapshot を取らないため）
+        # auditTrail は [follow] + [postback/text/audio] の順。case が follow_first=true なら +1 オフセット
+        snapshots = run.get("entry_snapshots") or []
+        audit_trail = []
+        if snapshots and isinstance(snapshots[0], dict):
+            ent = snapshots[0].get("entry") if isinstance(snapshots[0].get("entry"), dict) else snapshots[0]
+            audit_trail = ent.get("auditTrail", []) if isinstance(ent, dict) else []
+
+        # follow_first を考慮したオフセット
+        follow_first = bool(case.get("preconditions", {}).get("follow_first"))
+        offset = 1 if follow_first and audit_trail and audit_trail[0].get("eventKind") == "follow" else 0
+
         all_ok = True
         for idx, step_c in enumerate(steps_case):
-            step_r = steps_run[idx] if idx < len(steps_run) else {}
+            step_r = dict(steps_run[idx]) if idx < len(steps_run) else {}
+            # auditTrail から phaseAfter / replyTexts を補完
+            ai_idx = idx + offset
+            if 0 <= ai_idx < len(audit_trail):
+                trail = audit_trail[ai_idx]
+                step_r["entry_after"] = {
+                    "phase": trail.get("phaseAfter"),
+                    "aicaAxis": (snapshots[0].get("entry", {}) if snapshots else {}).get("aicaAxis"),
+                }
+                # replyTexts → replies に正規化
+                rt = trail.get("replyTexts") or []
+                step_r["replies"] = [{"type": "text", "text": t} for t in rt if t]
             ok, why = self._check_one_step(step_c, step_r)
             evidence["step_results"].append({"step": idx, "ok": ok, "reason": why})
             if not ok:
@@ -539,7 +562,7 @@ class RubricEvaluator:
 
         case.expectations.rubric.latency_p95_ms があればそれを上限基準に。
         """
-        steps = run.get("steps", []) or []
+        steps = run.get("step_results", run.get("steps", [])) or []
         durations = [int(s.get("duration_ms", 0) or 0) for s in steps]
         max_ms = max(durations) if durations else 0
         avg_ms = sum(durations) / len(durations) if durations else 0
@@ -590,7 +613,7 @@ class RubricEvaluator:
         score = 5
         violations: List[Dict[str, Any]] = []
         steps_case = case.get("steps", []) or []
-        steps_run = run.get("steps", []) or []
+        steps_run = run.get("step_results", run.get("steps", [])) or []
 
         # 不正署名期待ステップの応答コード確認
         for idx, sc in enumerate(steps_case):
@@ -642,7 +665,7 @@ class RubricEvaluator:
         - else          → 1
         警告のみで blocking しない。
         """
-        steps = run.get("steps", []) or []
+        steps = run.get("step_results", run.get("steps", [])) or []
         total_in = sum(int(s.get("estimated_tokens_in", 0) or 0) for s in steps)
         total_out = sum(int(s.get("estimated_tokens_out", 0) or 0) for s in steps)
 
@@ -748,7 +771,7 @@ def _extract_flex_text(node: Any) -> str:
 def _all_message_texts(run: Dict[str, Any]) -> List[str]:
     """全 step replies のテキスト一覧。"""
     out: List[str] = []
-    for s in run.get("steps", []) or []:
+    for s in run.get("step_results", run.get("steps", [])) or []:
         for m in s.get("replies", []) or []:
             if isinstance(m, dict):
                 t = m.get("text") or m.get("altText") or ""
@@ -767,7 +790,7 @@ def _all_message_texts(run: Dict[str, Any]) -> List[str]:
 def _extract_qr_pairs(run: Dict[str, Any]) -> List[Tuple[str, List[str]]]:
     """各stepの reply から (質問文, [QRラベル...]) を抽出。"""
     pairs: List[Tuple[str, List[str]]] = []
-    for s in run.get("steps", []) or []:
+    for s in run.get("step_results", run.get("steps", [])) or []:
         for m in s.get("replies", []) or []:
             if not isinstance(m, dict):
                 continue
