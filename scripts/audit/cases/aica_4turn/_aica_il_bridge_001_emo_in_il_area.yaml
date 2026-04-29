@@ -1,0 +1,28 @@
+id: _aica_il_bridge_001
+category: aica_4turn
+persona: misaki
+seed: 9101
+description: "IL→AICA bridge: il_area phase で感情テキスト送信 → AICA 心理ヒアリングに転回し共感応答"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: text
+    text: "もう本当に夜勤がきつくて限界です。プリセプター業務もやっていて、毎日泣きそう。"
+    expect_phase: aica_turn2
+    expect_keywords_any: ["お辛い", "限界", "つらい", "大変", "そうですよね", "聞かせて"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 8000
+    no_pii_leak: true
+    no_hallucination: true
+metadata:
+  generated_by: "il_aica_bridge_test"
+  generated_at: "2026-04-29"

@@ -2,25 +2,21 @@ id: aica_career_019
 category: aica_4turn
 persona: misaki
 seed: 1019
-description: "Turn 1で院内研修すら参加させてもらえないを送ると軸=careerに分類されてTurn 2の深掘り質問が来る"
+description: Turn 1で院内研修すら参加させてもらえないを送ると軸=careerに分類されてTurn 2の深掘り質問が来る
 preconditions:
   follow_first: true
   liff_session: null
   reset_kv: true
 steps:
-  - kind: postback
-    data: "rm=start"
-    expect_phase: il_area
-  - kind: postback
-    data: "il_area=yokohama_kawasaki"
-    expect_keywords_any: ["お話", "聞かせて", "気持ち"]
-  - kind: text
-    text: "院内研修すら参加させてもらえず、知識が古いままで不安。"
-    expect_phase: aica_turn2
-    expect_axis: career
-    expect_keywords_any: ["研修", "参加できない"]
-    expect_emojis_min: 0
-    expect_emojis_max: 3
+- kind: text
+  text: 院内研修すら参加させてもらえず、知識が古いままで不安。
+  expect_phase: aica_turn2
+  expect_axis: career
+  expect_keywords_any:
+  - 研修
+  - 参加できない
+  expect_emojis_min: 0
+  expect_emojis_max: 3
 expectations:
   rubric:
     functional: pass
@@ -30,12 +26,13 @@ expectations:
     no_pii_leak: true
     no_hallucination: true
   must_not_in_reply:
-    - "最高"
-    - "絶対"
-    - "No.1"
-    - "間違いなく"
-    - "業界一位"
-    - "確実に儲かる"
+  - 最高
+  - 絶対
+  - No.1
+  - 間違いなく
+  - 業界一位
+  - 確実に儲かる
 metadata:
-  generated_by: "planner_v1"
-  generated_at: "2026-04-29"
+  generated_by: planner_v1
+  generated_at: '2026-04-29'
+  rewritten_to_pure_aica_flow: '2026-04-29'

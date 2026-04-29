@@ -2,25 +2,21 @@ id: aica_vague_060
 category: aica_4turn
 persona: veteran
 seed: 1160
-description: "Turn 1で全部どうでもいい感じを送ると軸=vagueに分類されてTurn 2の深掘り質問が来る"
+description: Turn 1で全部どうでもいい感じを送ると軸=vagueに分類されてTurn 2の深掘り質問が来る
 preconditions:
   follow_first: true
   liff_session: null
   reset_kv: true
 steps:
-  - kind: postback
-    data: "rm=start"
-    expect_phase: il_area
-  - kind: postback
-    data: "il_area=yokohama_kawasaki"
-    expect_keywords_any: ["お話", "聞かせて", "気持ち"]
-  - kind: text
-    text: "正直、全部どうでもよくなってる。仕事も人生も"
-    expect_phase: aica_turn2
-    expect_axis: vague
-    expect_keywords_any: ["どうでもいい", "聞かせて"]
-    expect_emojis_min: 0
-    expect_emojis_max: 3
+- kind: text
+  text: 正直、全部どうでもよくなってる。仕事も人生も
+  expect_phase: aica_turn2
+  expect_axis: vague
+  expect_keywords_any:
+  - どうでもいい
+  - 聞かせて
+  expect_emojis_min: 0
+  expect_emojis_max: 3
 expectations:
   rubric:
     functional: pass
@@ -30,13 +26,14 @@ expectations:
     no_pii_leak: true
     no_hallucination: true
   must_not_in_reply:
-    - "最高"
-    - "絶対"
-    - "No.1"
-    - "間違いなく"
-    - "業界一位"
-    - "確実に儲かる"
+  - 最高
+  - 絶対
+  - No.1
+  - 間違いなく
+  - 業界一位
+  - 確実に儲かる
 metadata:
-  generated_by: "planner_v1"
-  generated_at: "2026-04-29"
-  source: "static"
+  generated_by: planner_v1
+  generated_at: '2026-04-29'
+  source: static
+  rewritten_to_pure_aica_flow: '2026-04-29'

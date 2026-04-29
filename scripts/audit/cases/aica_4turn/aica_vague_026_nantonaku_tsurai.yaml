@@ -2,25 +2,21 @@ id: aica_vague_026
 category: aica_4turn
 persona: misaki
 seed: 1026
-description: "Turn 1で言語化できないがとにかくしんどいを送ると軸=vagueに分類されてTurn 2の深掘り質問が来る"
+description: Turn 1で言語化できないがとにかくしんどいを送ると軸=vagueに分類されてTurn 2の深掘り質問が来る
 preconditions:
   follow_first: true
   liff_session: null
   reset_kv: true
 steps:
-  - kind: postback
-    data: "rm=start"
-    expect_phase: il_area
-  - kind: postback
-    data: "il_area=yokohama_kawasaki"
-    expect_keywords_any: ["お話", "聞かせて", "気持ち"]
-  - kind: text
-    text: "なんとなく毎日しんどい。理由はうまく言えないけど辞めたい。"
-    expect_phase: aica_turn2
-    expect_axis: vague
-    expect_keywords_any: ["しんどい", "理由"]
-    expect_emojis_min: 0
-    expect_emojis_max: 3
+- kind: text
+  text: なんとなく毎日しんどい。理由はうまく言えないけど辞めたい。
+  expect_phase: aica_turn2
+  expect_axis: vague
+  expect_keywords_any:
+  - しんどい
+  - 理由
+  expect_emojis_min: 0
+  expect_emojis_max: 3
 expectations:
   rubric:
     functional: pass
@@ -30,12 +26,13 @@ expectations:
     no_pii_leak: true
     no_hallucination: true
   must_not_in_reply:
-    - "最高"
-    - "絶対"
-    - "No.1"
-    - "間違いなく"
-    - "業界一位"
-    - "確実に儲かる"
+  - 最高
+  - 絶対
+  - No.1
+  - 間違いなく
+  - 業界一位
+  - 確実に儲かる
 metadata:
-  generated_by: "planner_v1"
-  generated_at: "2026-04-29"
+  generated_by: planner_v1
+  generated_at: '2026-04-29'
+  rewritten_to_pure_aica_flow: '2026-04-29'

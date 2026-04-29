@@ -2,25 +2,22 @@ id: aica_cond_006
 category: aica_condition
 persona: misaki
 seed: 2006
-description: "役割: 日勤リーダー兼務"
+description: '役割: 日勤リーダー兼務'
 preconditions:
   follow_first: true
   liff_session: null
   reset_kv: true
 steps:
-  - kind: postback
-    data: "rm=start"
-    expect_phase: il_area
-  - kind: postback
-    data: "il_area=yokohama_kawasaki"
-  - kind: postback
-    data: "aica_skip_to_condition"
-    expect_phase: aica_condition
-  - kind: text
-    text: "日勤リーダーをほぼ毎日やってます"
-    expect_phase: aica_condition
-    expect_keywords_any: ["リーダー", "役割"]
-    expect_emojis_max: 3
+- kind: postback
+  data: aica_skip_to_condition
+  expect_phase: aica_condition
+- kind: text
+  text: 日勤リーダーをほぼ毎日やってます
+  expect_phase: aica_condition
+  expect_keywords_any:
+  - リーダー
+  - 役割
+  expect_emojis_max: 3
 expectations:
   rubric:
     functional: pass
@@ -30,12 +27,13 @@ expectations:
     no_pii_leak: true
     no_hallucination: true
   must_not_in_reply:
-    - "最高"
-    - "絶対"
-    - "No.1"
-    - "間違いなく"
-    - "業界一位"
-    - "確実に儲かる"
+  - 最高
+  - 絶対
+  - No.1
+  - 間違いなく
+  - 業界一位
+  - 確実に儲かる
 metadata:
-  generated_by: "planner_v1"
-  generated_at: "2026-04-29"
+  generated_by: planner_v1
+  generated_at: '2026-04-29'
+  rewritten_to_pure_aica_flow: '2026-04-29'
