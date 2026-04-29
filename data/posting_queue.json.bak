@@ -1,7 +1,7 @@
 {
   "version": 2,
   "created": "2026-02-21T15:32:19.570003",
-  "updated": "2026-04-29T02:41:39.016055",
+  "updated": "2026-04-29T02:54:33.037823",
   "posts": [
     {
       "id": 1,
@@ -4655,11 +4655,11 @@
       ],
       "cta_type": "soft",
       "content_type": "salary",
-      "status": "video_created",
+      "status": "failed",
       "video_path": "/Users/robby2/robby-the-match/content/temp_videos/tiktok_ai_給与_0409_02_20260429.mp4",
       "posted_at": null,
       "tiktok_url": null,
-      "error": null,
+      "error": "all_upload_methods_failed",
       "performance": {
         "views": null,
         "likes": null,
