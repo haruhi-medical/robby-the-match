@@ -2674,8 +2674,49 @@ export default {
           return jsonResponse({ error: "userId required" }, 400);
         }
 
-        // KV から entry 取得
-        const entry = await getLineEntryAsync(userId, env);
+        // KV から entry 取得（監査用: cacheTtl=60 + ver-key 鮮度チェック + 最大3回リトライ）
+        // Cloudflare KV は cache_ttl 最小 60s。ver-key はエッジキャッシュも軽量なので
+        // 書き込み直後でも比較的早く更新される。ver の updatedAt と main の updatedAt を
+        // 比較して古い場合は短いバックオフでリトライ。
+        let entry = null;
+        const READ_OPTS = { cacheTtl: 60 };
+        if (env.LINE_SESSIONS) {
+          // 最大3回リトライ: 書込→audit-snapshot 間が <60s でもver-keyが先行するため
+          for (let attempt = 0; attempt < 3; attempt++) {
+            const [mainRaw, verRaw] = await Promise.all([
+              env.LINE_SESSIONS.get(`line:${userId}`, READ_OPTS),
+              env.LINE_SESSIONS.get(`ver:${userId}`, READ_OPTS),
+            ]);
+            if (!mainRaw && !verRaw) break;  // どちらも空 → entryなし
+            if (!mainRaw) {
+              // ver-key だけ存在 → 直近で put されたが main の cache が未到達
+              if (attempt < 2) {
+                await new Promise(r => setTimeout(r, 500));
+                continue;
+              }
+              break;
+            }
+            entry = JSON.parse(mainRaw);
+            if (verRaw) {
+              try {
+                const ver = JSON.parse(verRaw);
+                if (ver.updatedAt && entry.updatedAt && ver.updatedAt > entry.updatedAt) {
+                  // ver が新しい → main の cache が古い、短いバックオフで再試行
+                  if (attempt < 2) {
+                    await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+                    entry = null;
+                    continue;
+                  }
+                  // 最終リトライでも古い: phase だけ ver で上書き
+                  entry.phase = ver.phase;
+                  entry.updatedAt = ver.updatedAt;
+                  entry._verCorrected = true;
+                }
+              } catch (_) { /* skip */ }
+            }
+            break; // 鮮度OK or リトライ尽き
+          }
+        }
         if (!entry) {
           return jsonResponse({ error: "Not found", userId }, 404);
         }
@@ -2684,12 +2725,12 @@ export default {
         const auxKeys = {};
         if (env.LINE_SESSIONS) {
           try {
-            auxKeys.member = await env.LINE_SESSIONS.get(`member:${userId}`);
-            auxKeys.member_resume = await env.LINE_SESSIONS.get(`member:${userId}:resume`);
-            auxKeys.member_favorites = await env.LINE_SESSIONS.get(`member:${userId}:favorites`);
-            auxKeys.newjobs_notify = await env.LINE_SESSIONS.get(`newjobs_notify:${userId}`);
-            auxKeys.waitlist = await env.LINE_SESSIONS.get(`waitlist:${userId}`);
-            auxKeys.handoff = await env.LINE_SESSIONS.get(`handoff:${userId}`);
+            auxKeys.member = await env.LINE_SESSIONS.get(`member:${userId}`, READ_OPTS);
+            auxKeys.member_resume = await env.LINE_SESSIONS.get(`member:${userId}:resume`, READ_OPTS);
+            auxKeys.member_favorites = await env.LINE_SESSIONS.get(`member:${userId}:favorites`, READ_OPTS);
+            auxKeys.newjobs_notify = await env.LINE_SESSIONS.get(`newjobs_notify:${userId}`, READ_OPTS);
+            auxKeys.waitlist = await env.LINE_SESSIONS.get(`waitlist:${userId}`, READ_OPTS);
+            auxKeys.handoff = await env.LINE_SESSIONS.get(`handoff:${userId}`, READ_OPTS);
           } catch (e) { /* skip */ }
         }
 

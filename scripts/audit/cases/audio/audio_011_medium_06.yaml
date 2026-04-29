@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: audio
     audio: "normal_30sec_011.m4a"
     audio_text_simulated: "認定看護師を目指したいんですけど、研修に行かせてもらえなくて、ここじゃ無理かなと"

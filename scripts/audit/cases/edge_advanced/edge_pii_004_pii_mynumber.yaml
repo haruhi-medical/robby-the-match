@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: text
     text: "個人番号: 1234-5678-9012"
     expect_keywords_any: ["お話", "聞かせて"]

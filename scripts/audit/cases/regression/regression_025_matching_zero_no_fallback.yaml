@@ -11,9 +11,9 @@ steps:
   - kind: postback
     data: "rm=start"
   - kind: postback
-    data: "il_pref_kanagawa"
+    data: "il_pref=kanagawa"
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: postback
     data: "facility_custom=実在しない"
   - kind: postback

@@ -218,7 +218,11 @@ class FixProposer:
         """
         groups: Dict[str, FailurePattern] = {}
         for v in verdicts:
-            if v.get("passed"):
+            # 新 schema: verdict="PASS"/"FAIL"  旧 schema: passed=True/False
+            if "verdict" in v:
+                if str(v.get("verdict", "")).upper() == "PASS":
+                    continue
+            elif v.get("passed"):
                 continue
             reasons = v.get("blocking_reasons") or []
             if not reasons:

@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokosuka"
+    data: "il_area=yokosuka_miura"
   - kind: postback
     data: "rm=resume"
     expect_phase: rm_resume_start

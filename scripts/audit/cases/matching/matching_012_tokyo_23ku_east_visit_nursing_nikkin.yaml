@@ -12,17 +12,17 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_pref_tokyo"
+    data: "il_pref=tokyo"
     expect_keywords_any: ["tok"]
   - kind: postback
-    data: "il_area_23ku_east"
+    data: "il_pref=tokyo"
   - kind: postback
     data: "aica_skip_to_condition"
     expect_phase: aica_condition
   - kind: postback
-    data: "facility_type=visit_nursing"
+    data: "il_ft=visiting"
   - kind: postback
-    data: "worktype=nikkin"
+    data: "il_ws=day"
   - kind: postback
     data: "matching_run"
     expect_phase: matching_results

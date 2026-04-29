@@ -11,7 +11,7 @@ steps:
   - kind: postback
     data: "rm=start"
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: audio
     audio: "long_60s.m4a"
     audio_text_simulated: "60秒音声"

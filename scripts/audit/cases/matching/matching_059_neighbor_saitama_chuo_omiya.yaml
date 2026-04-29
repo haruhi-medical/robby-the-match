@@ -12,9 +12,9 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_pref_saitama"
+    data: "il_pref=saitama"
   - kind: postback
-    data: "il_area_saitama_chuo"
+    data: "il_pref=saitama"
   - kind: postback
     data: "aica_skip_to_condition"
   - kind: postback

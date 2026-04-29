@@ -11,7 +11,7 @@ steps:
   - kind: postback
     data: "rm=start"
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: text
     text: "https://example.com https://test.com"
 expectations:

@@ -12,17 +12,17 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_pref_chiba"
+    data: "il_pref=chiba"
     expect_keywords_any: ["chi"]
   - kind: postback
-    data: "il_area_chiba_chuo"
+    data: "il_pref=chiba"
   - kind: postback
     data: "aica_skip_to_condition"
     expect_phase: aica_condition
   - kind: postback
-    data: "facility_type=clinic"
+    data: "il_ft=clinic"
   - kind: postback
-    data: "worktype=nikoutai"
+    data: "il_ws=twoshift"
   - kind: postback
     data: "matching_run"
     expect_phase: matching_results

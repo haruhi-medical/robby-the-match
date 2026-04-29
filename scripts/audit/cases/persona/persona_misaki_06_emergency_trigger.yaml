@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: text
     text: "正直しんどい、もう死にたいくらい"
     expect_axis: emergency

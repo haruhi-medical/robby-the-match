@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: text
     text: "550e8400-e29b-41d4-a716-446655440000"
     expect_keywords_any: ["お話", "聞かせて"]

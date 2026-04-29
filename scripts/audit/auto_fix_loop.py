@@ -206,16 +206,39 @@ class AutoFixLoop:
             return []
 
     def _load_existing_verdicts(self) -> List[Dict[str, Any]]:
-        """gatekeeper が ``verdicts/<case_id>.json`` を出している前提で読み込む。"""
-        verdicts_dir = self.repo_root / "logs" / "audit" / "verdicts"
-        if not verdicts_dir.exists():
-            return []
+        """gatekeeper が ``verdicts/<case_id>.json`` を出している前提で読み込む。
+
+        探索順:
+          1. ``logs/audit/verdicts/`` (旧式・直置き)
+          2. ``logs/audit/runs/<latest>/verdicts/`` (新式・runner 出力)
+        """
+        candidates: List[Path] = []
+        legacy = self.repo_root / "logs" / "audit" / "verdicts"
+        if legacy.exists():
+            candidates.append(legacy)
+
+        runs_root = self.repo_root / "logs" / "audit" / "runs"
+        if runs_root.exists():
+            run_dirs = sorted(
+                (d for d in runs_root.iterdir() if d.is_dir()),
+                key=lambda d: d.stat().st_mtime,
+                reverse=True,
+            )
+            for d in run_dirs:
+                vd = d / "verdicts"
+                if vd.exists():
+                    candidates.append(vd)
+                    break  # 最新run のみ
+
         out: List[Dict[str, Any]] = []
-        for p in sorted(verdicts_dir.glob("*.json")):
-            try:
-                out.append(json.loads(p.read_text(encoding="utf-8")))
-            except Exception:  # noqa: BLE001
-                continue
+        for verdicts_dir in candidates:
+            for p in sorted(verdicts_dir.glob("*.json")):
+                try:
+                    out.append(json.loads(p.read_text(encoding="utf-8")))
+                except Exception:  # noqa: BLE001
+                    continue
+            if out:
+                break  # 最初に見つかった source で打切り
         return out
 
     # ------------------------------------------------------------------
@@ -229,7 +252,14 @@ class AutoFixLoop:
         started_at: str,
     ) -> RoundReport:
         n_cases = len(verdicts)
-        n_pass = sum(1 for v in verdicts if v.get("passed"))
+
+        def _is_pass(v: Dict[str, Any]) -> bool:
+            # 新 schema: verdict="PASS"/"FAIL"  旧 schema: passed=True/False
+            if "verdict" in v:
+                return str(v.get("verdict", "")).upper() == "PASS"
+            return bool(v.get("passed"))
+
+        n_pass = sum(1 for v in verdicts if _is_pass(v))
         n_fail = n_cases - n_pass
         pass_rate = round(100.0 * n_pass / n_cases, 2) if n_cases else 0.0
 

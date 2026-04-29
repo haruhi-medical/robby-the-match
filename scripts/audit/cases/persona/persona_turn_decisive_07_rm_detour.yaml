@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokosuka"
+    data: "il_area=yokosuka_miura"
   - kind: text
     text: "すぐ動きたい"
     expect_phase: aica_turn2

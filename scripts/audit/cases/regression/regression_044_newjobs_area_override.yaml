@@ -11,11 +11,11 @@ steps:
   - kind: postback
     data: "rm=new_jobs"
   - kind: postback
-    data: "newjobs_area_yokohama"
+    data: "newjobs_area=yokohama_kawasaki"
   - kind: postback
     data: "rm=new_jobs"
   - kind: postback
-    data: "newjobs_area_kawasaki"
+    data: "newjobs_area=yokohama_kawasaki"
     expect_keywords_any: ["川崎"]
 expectations:
   rubric:

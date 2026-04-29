@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
     expect_keywords_any: ["お話", "聞かせて", "気持ち"]
   - kind: text
     text: "同僚に陰口を言われている気がする。休憩室に入ると会話が止まる。"

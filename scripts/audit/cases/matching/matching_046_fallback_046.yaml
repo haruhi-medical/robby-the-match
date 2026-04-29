@@ -12,15 +12,15 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_pref_kanagawa"
+    data: "il_pref=kanagawa"
   - kind: postback
-    data: "il_area_kawasaki"
+    data: "il_area=yokohama_kawasaki"
   - kind: postback
     data: "aica_skip_to_condition"
   - kind: postback
     data: "facility_custom=深夜専門外来"
   - kind: postback
-    data: "worktype=weekly_2"
+    data: "il_ws=part"
   - kind: postback
     data: "matching_run"
     expect_phase: matching_zero_results

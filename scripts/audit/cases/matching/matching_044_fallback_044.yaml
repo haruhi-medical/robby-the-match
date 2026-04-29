@@ -12,15 +12,15 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_pref_saitama"
+    data: "il_pref=saitama"
   - kind: postback
-    data: "il_area_kawagoe"
+    data: "il_pref=saitama"
   - kind: postback
     data: "aica_skip_to_condition"
   - kind: postback
     data: "facility_custom=船員診療所"
   - kind: postback
-    data: "worktype=yakin"
+    data: "il_ws=twoshift"
   - kind: postback
     data: "matching_run"
     expect_phase: matching_zero_results

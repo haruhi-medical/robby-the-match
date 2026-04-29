@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_sagamihara"
+    data: "il_area=sagamihara_kenoh"
   - kind: text
     text: "管理職を"
     expect_phase: aica_turn2

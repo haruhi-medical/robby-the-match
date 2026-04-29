@@ -11,7 +11,7 @@ steps:
   - kind: postback
     data: "rm=start"
   - kind: postback
-    data: "il_area_sagamihara"
+    data: "il_area=sagamihara_kenoh"
   - kind: text
     text: "52歳でブランクあるけど転職できる?"
 expectations:

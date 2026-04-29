@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokosuka"
+    data: "il_area=yokosuka_miura"
   - kind: audio
     audio: "audio_001.m4a"
     audio_text_simulated: "来月までに辞めたい、最近本当にきつくて"

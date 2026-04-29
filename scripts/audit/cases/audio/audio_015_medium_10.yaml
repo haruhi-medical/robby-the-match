@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: audio
     audio: "normal_30sec_015.m4a"
     audio_text_simulated: "大阪から夫の転勤で関東に来月引っ越すんで、横浜とか川崎で急ぎで仕事を"

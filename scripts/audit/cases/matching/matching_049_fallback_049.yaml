@@ -12,15 +12,15 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_pref_tokyo"
+    data: "il_pref=tokyo"
   - kind: postback
-    data: "il_area_23ku_west"
+    data: "il_pref=tokyo"
   - kind: postback
     data: "aica_skip_to_condition"
   - kind: postback
     data: "facility_custom=離島診療所"
   - kind: postback
-    data: "worktype=yakin_senju"
+    data: "il_ws=night"
   - kind: postback
     data: "matching_run"
     expect_phase: matching_zero_results

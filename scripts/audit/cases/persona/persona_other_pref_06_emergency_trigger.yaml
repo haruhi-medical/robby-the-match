@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_osaka"
+    data: "il_pref=other"
   - kind: text
     text: "大阪から、もう死にたいくらい"
     expect_axis: emergency

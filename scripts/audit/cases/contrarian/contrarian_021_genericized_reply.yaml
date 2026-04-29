@@ -11,7 +11,7 @@ steps:
   - kind: postback
     data: "rm=start"
   - kind: postback
-    data: "il_area_kawasaki"
+    data: "il_area=yokohama_kawasaki"
   - kind: text
     text: "保育園のお迎えが、もう本当に"
     expect_keywords_any: ["お子さん", "両立"]

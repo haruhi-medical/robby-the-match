@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_osaka"
+    data: "il_pref=other"
   - kind: postback
     data: "aica_skip_to_condition"
     expect_phase: aica_condition

@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
     expect_keywords_any: ["お話", "聞かせて", "気持ち"]
   - kind: text
     text: "片道2時間通勤で夜勤明けに帰宅したら昼過ぎ。家族と過ごす時間が消える"

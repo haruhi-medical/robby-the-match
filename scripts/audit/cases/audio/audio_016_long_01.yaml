@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: audio
     audio: "normal_120sec_016.m4a"
     audio_text_simulated: "私は28歳の看護師で、急性期病院に5年勤めています。正直なところ、夜勤の頻度が月10回もあって、身体がもたない感じが続いていて、最近は仕事中にぼーっとしてミスをしてしまうことが増えました。師長に夜勤を減らしてほしいと相談したんですけど、人手不足だからって全然取り合ってもらえません。彼氏もいるので、結婚も考えたいんですけど、今の働き方だと将来が見えなくて。"

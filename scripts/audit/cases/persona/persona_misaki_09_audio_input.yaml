@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
   - kind: audio
     audio: "audio_001.m4a"
     audio_text_simulated: "なんかもう、最近本当にきつくて"

@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_shonan"
+    data: "il_area=shonan_kamakura"
   - kind: text
     text: "夜勤専従で5年、ちょっと聞いてもらいたくて"
     expect_phase: aica_turn2

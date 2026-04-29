@@ -12,9 +12,9 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_pref_chiba"
+    data: "il_pref=chiba"
   - kind: postback
-    data: "il_area_kashiwa"
+    data: "il_pref=chiba"
   - kind: postback
     data: "aica_skip_to_condition"
   - kind: postback

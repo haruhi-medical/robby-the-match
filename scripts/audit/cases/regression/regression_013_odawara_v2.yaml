@@ -11,9 +11,9 @@ steps:
   - kind: postback
     data: "rm=start"
   - kind: postback
-    data: "il_pref_kanagawa"
+    data: "il_pref=kanagawa"
   - kind: postback
-    data: "il_area_odawara"
+    data: "il_area=odawara_kensei"
   - kind: postback
     data: "expand_to_neighbor"
     expect_keywords_any: ["近隣", "隣接"]

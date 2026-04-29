@@ -12,7 +12,7 @@ steps:
     data: "rm=start"
     expect_phase: il_area
   - kind: postback
-    data: "il_area_yokohama"
+    data: "il_area=yokohama_kawasaki"
     expect_keywords_any: ["お話", "聞かせて", "気持ち"]
   - kind: text
     text: "コロナで2年連続昇給ストップ。物価は上がるのに給料は据え置き"
