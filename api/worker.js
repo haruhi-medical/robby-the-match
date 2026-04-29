@@ -2560,7 +2560,9 @@ export default {
     }
     if (url.pathname.startsWith("/api/admin/") &&
         url.pathname !== "/api/admin/trigger-waitlist-push" &&
-        url.pathname !== "/api/admin/trigger-newjobs-push") {
+        url.pathname !== "/api/admin/trigger-newjobs-push" &&
+        url.pathname !== "/api/admin/audit-snapshot" &&
+        url.pathname !== "/api/admin/audit-reset") {
       const adminResp = await handleAdminRoute(request, env, ctx, url);
       if (adminResp) return adminResp;
     }
@@ -2652,6 +2654,95 @@ export default {
         const fallbackDays = Number(body.fallbackDays) > 0 ? Number(body.fallbackDays) : 0;
         ctx.waitUntil(handleScheduledNewJobsNotify(env, { fallbackDays }));
         return jsonResponse({ ok: true, message: `newjobs push triggered (fallbackDays=${fallbackDays})` });
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500);
+      }
+    }
+
+    // 監査用: ユーザーKV state を取得（test runner用）
+    if (url.pathname === "/api/admin/audit-snapshot" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const { userId, secret } = body;
+
+        // 認証: env.AUDIT_SECRET と一致確認 (なければ env.LINE_PUSH_SECRET でも可)
+        const expectedSecret = env.AUDIT_SECRET || env.LINE_PUSH_SECRET;
+        if (!secret || secret !== expectedSecret) {
+          return jsonResponse({ error: "Unauthorized" }, 401);
+        }
+        if (!userId) {
+          return jsonResponse({ error: "userId required" }, 400);
+        }
+
+        // KV から entry 取得
+        const entry = await getLineEntryAsync(userId, env);
+        if (!entry) {
+          return jsonResponse({ error: "Not found", userId }, 404);
+        }
+
+        // 関連KVキーも取得
+        const auxKeys = {};
+        if (env.LINE_SESSIONS) {
+          try {
+            auxKeys.member = await env.LINE_SESSIONS.get(`member:${userId}`);
+            auxKeys.member_resume = await env.LINE_SESSIONS.get(`member:${userId}:resume`);
+            auxKeys.member_favorites = await env.LINE_SESSIONS.get(`member:${userId}:favorites`);
+            auxKeys.newjobs_notify = await env.LINE_SESSIONS.get(`newjobs_notify:${userId}`);
+            auxKeys.waitlist = await env.LINE_SESSIONS.get(`waitlist:${userId}`);
+            auxKeys.handoff = await env.LINE_SESSIONS.get(`handoff:${userId}`);
+          } catch (e) { /* skip */ }
+        }
+
+        // 巨大フィールドを切り詰め
+        const safeEntry = { ...entry };
+        if (safeEntry.matchingResults && safeEntry.matchingResults.length > 5) {
+          safeEntry.matchingResults = safeEntry.matchingResults.slice(0, 5);
+        }
+
+        return jsonResponse({
+          ok: true,
+          userId,
+          entry: safeEntry,
+          auxKeys,
+          ts: Date.now(),
+        });
+      } catch (e) {
+        return jsonResponse({ error: e.message }, 500);
+      }
+    }
+
+    // 監査用: ユーザーKV state を完全リセット（test cleanup用）
+    if (url.pathname === "/api/admin/audit-reset" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const { userId, secret } = body;
+
+        const expectedSecret = env.AUDIT_SECRET || env.LINE_PUSH_SECRET;
+        if (!secret || secret !== expectedSecret) {
+          return jsonResponse({ error: "Unauthorized" }, 401);
+        }
+        if (!userId) {
+          return jsonResponse({ error: "userId required" }, 400);
+        }
+
+        // userIdが U_TEST_ prefix のみ受付（本番userId保護）
+        if (!userId.startsWith("U_TEST_") && !userId.startsWith("Utest")) {
+          return jsonResponse({ error: "Only test userIds allowed (U_TEST_/Utest prefix)", userId }, 403);
+        }
+
+        // 全関連KV削除
+        if (env.LINE_SESSIONS) {
+          await env.LINE_SESSIONS.delete(`line:${userId}`);
+          await env.LINE_SESSIONS.delete(`member:${userId}`);
+          await env.LINE_SESSIONS.delete(`member:${userId}:resume`);
+          await env.LINE_SESSIONS.delete(`member:${userId}:favorites`);
+          await env.LINE_SESSIONS.delete(`newjobs_notify:${userId}`);
+          await env.LINE_SESSIONS.delete(`waitlist:${userId}`);
+          await env.LINE_SESSIONS.delete(`handoff:${userId}`);
+          await env.LINE_SESSIONS.delete(`liff:${userId}`);
+        }
+
+        return jsonResponse({ ok: true, userId, deleted: true });
       } catch (e) {
         return jsonResponse({ error: e.message }, 500);
       }
@@ -4128,6 +4219,24 @@ function timingSafeEqual(a, b) {
 // LINE Reply API呼び出し
 async function lineReply(replyToken, messages, channelAccessToken) {
   try {
+    // 監査用: 現在処理中の entry に reply texts を記録（_auditCurrentEntry 経由）
+    try {
+      if (lineReply._currentEntry && messages && messages.length > 0) {
+        const ap = lineReply._currentEntry._auditPending;
+        if (ap) {
+          if (!ap.replyTexts) ap.replyTexts = [];
+          for (const m of messages) {
+            if (typeof m === 'string') {
+              ap.replyTexts.push(m.slice(0, 200));
+            } else if (m && typeof m === 'object') {
+              const s = m.text || m.altText || JSON.stringify(m).slice(0, 100);
+              ap.replyTexts.push(String(s).slice(0, 200));
+            }
+          }
+        }
+      }
+    } catch (_e) { /* never break reply */ }
+
     const bodyStr = JSON.stringify({ replyToken, messages });
     console.log(`[LINE] Reply: ${messages.length} msgs, ${bodyStr.length} bytes, token: ${replyToken.slice(0, 8)}...`);
     const res = await fetch("https://api.line.me/v2/bot/message/reply", {
@@ -5613,12 +5722,48 @@ function createLineEntry() {
     welcomeIntent: null,    // 共通EP経由のintent（see_jobs/diagnose/consult/check_salary）
     messageCount: 0,
     unexpectedTextCount: 0, // 想定外テキスト連続カウント
+    auditTrail: [],         // 監査用イベント履歴 {ts, eventKind, phaseBefore, phaseAfter, replyTexts: [], unexpectedTextCount}
     updatedAt: Date.now(),
   };
 }
 
+// 監査用: entry.auditTrail に1件追加（最大100件で循環）
+function appendAuditTrail(entry, eventKind, phaseBefore, replyTexts = []) {
+  if (!entry) return;
+  if (!entry.auditTrail) entry.auditTrail = [];
+  try {
+    entry.auditTrail.push({
+      ts: Date.now(),
+      eventKind,                              // "text"|"postback"|"audio"|"follow"|"unfollow"|"sticker"|...
+      phaseBefore,                            // 処理前の phase
+      phaseAfter: entry.phase,                // 処理後の phase
+      replyTexts: (replyTexts || []).map(m => {
+        if (typeof m === 'string') return m.slice(0, 200);
+        if (m && typeof m === 'object') {
+          const s = m.text || m.altText || JSON.stringify(m).slice(0, 100);
+          return String(s).slice(0, 200);
+        }
+        return String(m || '').slice(0, 200);
+      }),
+      unexpectedTextCount: entry.unexpectedTextCount || 0,
+    });
+    if (entry.auditTrail.length > 100) {
+      entry.auditTrail = entry.auditTrail.slice(-100);
+    }
+  } catch (e) { /* audit failure must never break main flow */ }
+}
+
 // KVに保存（非同期、バックグラウンドで実行）
 async function saveLineEntry(userId, entry, env) {
+  // 監査用: _auditPending が立っている場合は auditTrail にフラッシュ
+  try {
+    if (entry && entry._auditPending) {
+      const ap = entry._auditPending;
+      appendAuditTrail(entry, ap.eventKind || 'unknown', ap.phaseBefore, ap.replyTexts || []);
+      delete entry._auditPending;
+    }
+  } catch (_e) { /* never break save flow */ }
+
   lineConversationMap.set(userId, entry); // インメモリ更新
   if (env?.LINE_SESSIONS) {
     try {
@@ -9024,6 +9169,13 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       const userId = event.source?.userId;
       if (!userId) continue;
 
+      // 監査用: イベント種別を判定してプリセット
+      const _auditEventKind = event.type === "message"
+        ? (event.message?.type || "message")
+        : (event.type || "unknown");
+      // _auditCurrentEntry を毎ループでクリア（前イベントの entry に reply記録が漏れないように）
+      lineReply._currentEntry = null;
+
       try { // 個別イベントのエラーで全体が止まらないように
 
       // --- 全メッセージをSlack転送（リアルタイム監視用） ---
@@ -9044,7 +9196,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       if (event.type === "follow") {
         // 再フォロー: 既存データがあれば保持し、phaseだけリセット
         let entry = await getLineEntryAsync(userId, env);
+        // 監査用: phaseBefore を取得して _auditPending を立てる
+        const _auditPhaseBefore = entry ? entry.phase : "(none)";
         if (entry) {
+          entry._auditPending = { eventKind: "follow", phaseBefore: _auditPhaseBefore, replyTexts: [] };
+          lineReply._currentEntry = entry;
           // 管理画面で BOT OFF 中のユーザーは phase を welcome に戻さない（再フォローでBOT復活を防ぐ）
           if (entry.adminMutedAt) {
             console.log(`[LINE] follow event: admin muted, preserve phase=${entry.phase} for ${userId.slice(0, 8)}`);
@@ -9058,6 +9214,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           entry = createLineEntry();
           entry.phase = "welcome";
           entry.updatedAt = Date.now();
+          entry._auditPending = { eventKind: "follow", phaseBefore: _auditPhaseBefore, replyTexts: [] };
+          lineReply._currentEntry = entry;
         }
 
         // ========== LIFF経由セッション復元 ==========
@@ -9319,6 +9477,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
       // --- postbackイベント（Quick Reply タップ） ---
       if (event.type === "postback") {
         let entry = await getLineEntryAsync(userId, env);
+        const _pbPhaseBefore = entry ? entry.phase : "(none)";
         if (!entry) {
           console.warn(`[LINE] No KV entry for postback ${userId.slice(0, 8)}, creating new session`);
           entry = createLineEntry();
@@ -9326,6 +9485,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         } else {
           console.log(`[LINE] KV hit for postback ${userId.slice(0, 8)}, phase: ${entry.phase}`);
         }
+        // 監査用
+        entry._auditPending = { eventKind: "postback", phaseBefore: _pbPhaseBefore, replyTexts: [] };
+        lineReply._currentEntry = entry;
 
         const dataStr = event.postback.data;
 
@@ -10401,6 +10563,7 @@ ${entry.rmCvQualifications || '看護師免許'}
         if (!userText) continue;
 
         let entry = await getLineEntryAsync(userId, env);
+        const _txtPhaseBefore = entry ? entry.phase : "(none)";
         if (!entry) {
           console.warn(`[LINE] No KV entry for ${userId.slice(0, 8)}, creating new session`);
           entry = createLineEntry();
@@ -10408,6 +10571,9 @@ ${entry.rmCvQualifications || '看護師免許'}
         } else {
           console.log(`[LINE] KV hit for ${userId.slice(0, 8)}, phase: ${entry.phase}, msgCount: ${entry.messageCount}`);
         }
+        // 監査用
+        entry._auditPending = { eventKind: "text", phaseBefore: _txtPhaseBefore, replyTexts: [] };
+        lineReply._currentEntry = entry;
 
         // ===== dm_text 重複処理防止（2026-04-20 追加） =====
         // follow handlerで既にsession復元済みのUUIDなら無視（同POST内のdm_text messageを捨てる）
