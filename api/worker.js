@@ -12246,18 +12246,34 @@ async function adminGetSession(request, env) {
   } catch { return null; }
 }
 
+// Slack 通知対象（重要操作のみ）。閲覧系はKV監査ログのみで通知しない。
+const ADMIN_SLACK_NOTIFY_ACTIONS = new Set([
+  "login",                    // ログイン検知（成功/失敗）
+  "login_lockout",            // ロックアウト発生
+  "bot_toggle",               // BOT ON/OFF
+  "reply_sent",               // LINE返信送信
+  "sign_bad_target",          // 不正なtarget署名要求（攻撃の兆候）
+  "sign_rate_limit",          // レート制限到達
+  "bot-toggle_hmac_fail",     // HMAC失敗（攻撃の兆候）
+  "reply_hmac_fail",          // 返信HMAC失敗
+]);
+
 async function adminWriteAudit(env, entry) {
   try {
     const ts = entry.ts || Date.now();
     const rand = crypto.randomUUID().slice(0, 8);
     const key = `admin:audit:${ts}:${rand}`;
     const record = { ts, ...entry };
+    // KV には全件保存（監査の完全性のため）
     await env.LINE_SESSIONS.put(key, JSON.stringify(record), {
       expirationTtl: 180 * 24 * 3600,
     });
-    if (env.SLACK_BOT_TOKEN) {
+    // Slack 通知は重要操作のみ
+    if (env.SLACK_BOT_TOKEN && ADMIN_SLACK_NOTIFY_ACTIONS.has(entry.action)) {
       const channel = env.SLACK_AUDIT_CHANNEL_ID || env.SLACK_CHANNEL_ID || "C09A7U4TV4G";
-      const text = `[AUDIT] ${entry.action} actor=${entry.actor || "admin"} target=${entry.target || ""} result=${entry.result || "ok"} ip=${entry.ip || ""}`;
+      const emoji = entry.result === "ok" ? "🔔" : (entry.result === "fail" || entry.result === "blocked" || entry.result === "rejected") ? "⚠️" : "ℹ️";
+      const targetShort = entry.target ? ` target=\`${String(entry.target).slice(0, 20)}\`` : "";
+      const text = `${emoji} *[管制塔] ${entry.action}* / actor=${entry.actor || "admin"} / result=${entry.result || "ok"} / ip=${entry.ip || "-"}${targetShort}`;
       await fetch("https://slack.com/api/chat.postMessage", {
         method: "POST",
         headers: {
