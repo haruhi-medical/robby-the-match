@@ -5761,12 +5761,19 @@ function appendAuditTrail(entry, eventKind, phaseBefore, replyTexts = []) {
 
 // KVに保存（非同期、バックグラウンドで実行）
 async function saveLineEntry(userId, entry, env) {
-  // 監査用: _auditPending が立っている場合は auditTrail にフラッシュ
+  // 監査用: _auditPending が立っており、かつ replyTexts が既に埋まっている場合のみ flush
+  // 空の場合は lineReply 側で後ほど flush されるのを待つ（順序: saveLineEntry → lineReply の handler 対策）
   try {
     if (entry && entry._auditPending) {
       const ap = entry._auditPending;
-      appendAuditTrail(entry, ap.eventKind || 'unknown', ap.phaseBefore, ap.replyTexts || []);
-      delete entry._auditPending;
+      // replyTexts が空 = まだ lineReply が走ってない → 保留（lineReply側でflushされる）
+      // replyTexts に内容あり = lineReply が先に走って populated → ここで flush
+      // ただし unfollow など lineReply を呼ばない handler は手動で appendAuditTrail を呼ぶ
+      if (Array.isArray(ap.replyTexts) && ap.replyTexts.length > 0) {
+        appendAuditTrail(entry, ap.eventKind || 'unknown', ap.phaseBefore, ap.replyTexts);
+        delete entry._auditPending;
+      }
+      // 空の場合: _auditPending を保持（lineReply がフラッシュする想定）
     }
   } catch (_e) { /* never break save flow */ }
 
@@ -9354,6 +9361,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           const phaseMsgs = await buildPhaseMessage(targetPhase, entry, env);
           const replyMsgs = [...shindanWelcome, ...(phaseMsgs || [])];
           await lineReply(event.replyToken, replyMsgs.slice(0, 5), channelAccessToken);
+          // v2.0 audit: lineReply後に再save（auditTrail.replyTextsをKVに永続化）
+          ctx.waitUntil(saveLineEntry(userId, entry, env));
 
           // LIFFセッション/session削除（消費済み）
           try {
@@ -9385,6 +9394,8 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
             type: "text",
             text: aicaBuildWelcomeMessage(entry.aicaDisplayName),
           }], channelAccessToken);
+          // v2.0 audit: lineReply後に再save（auditTrail.replyTextsをKVに永続化）
+          ctx.waitUntil(saveLineEntry(userId, entry, env));
 
           // 使用済みLIFFセッション削除
           try {

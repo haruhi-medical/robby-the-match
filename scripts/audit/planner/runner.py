@@ -398,14 +398,29 @@ class CaseRunner:
                 sr.status = res.get("status", 0)
                 sr.response_summary = _truncate(res.get("body"))
             elif kind == "audio":
-                res = await asyncio.wait_for(
-                    self.client.send_audio_async(
-                        user_id, step["audio_path"], duration_ms=step.get("duration_ms", 3000)
-                    ),
-                    timeout=self.per_step_timeout,
-                )
+                # audio_path があれば実音声、なければ audio_text_simulated を text として送信
+                audio_path = step.get("audio_path")
+                simulated_text = step.get("audio_text_simulated")
+                if audio_path:
+                    res = await asyncio.wait_for(
+                        self.client.send_audio_async(
+                            user_id, audio_path, duration_ms=step.get("duration_ms", 3000)
+                        ),
+                        timeout=self.per_step_timeout,
+                    )
+                elif simulated_text:
+                    # 実音声無しはWhisper想定文字起こしテキストでtext送信代用
+                    res = await asyncio.wait_for(
+                        self.client.send_text_async(user_id, simulated_text),
+                        timeout=self.per_step_timeout,
+                    )
+                    sr.response_summary = f"[audio simulated as text] {_truncate(res.get('body'))}"
+                else:
+                    sr.error = "audio step requires audio_path or audio_text_simulated"
+                    res = {"status": 0, "body": ""}
                 sr.status = res.get("status", 0)
-                sr.response_summary = _truncate(res.get("body"))
+                if not sr.response_summary:
+                    sr.response_summary = _truncate(res.get("body"))
             elif kind == "follow":
                 res = await asyncio.wait_for(
                     self.client.send_follow_async(user_id),
