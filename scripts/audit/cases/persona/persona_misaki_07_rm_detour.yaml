@@ -1,0 +1,44 @@
+id: persona_misaki_07
+category: persona
+persona: misaki
+seed: 7007
+description: "misaki: リッチメニューで横道→復帰"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: text
+    text: "ほんとに"
+    expect_phase: aica_turn2
+  - kind: postback
+    data: "rm=new_jobs"
+    expect_phase: newjobs_area_select
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+    expect_keywords_any: ["お話", "再開"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "llm_mutation"

@@ -1,0 +1,41 @@
+id: edge_dup_005
+category: edge_advanced
+persona: misaki
+seed: 11105
+description: "重複webhook(同テキスト人間関係)送信 → 2回目の冪等処理"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: text
+    text: "人間関係"
+    expect_phase: aica_turn2
+  - kind: text
+    text: "人間関係"
+    sleep_ms: 50
+    expect_keywords_any: ["同じ", "確認"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

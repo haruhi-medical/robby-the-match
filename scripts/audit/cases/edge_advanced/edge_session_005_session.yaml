@@ -1,0 +1,34 @@
+id: edge_session_005
+category: edge_advanced
+persona: misaki
+seed: 11505
+description: "session_id異常: SQLインジェクション試行"
+preconditions:
+  follow_first: true
+  liff_session: "'; DROP TABLE users--"
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+  - kind: text
+    text: "test"
+    expect_keywords_any: ["セッション", "再度", "もう一度"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

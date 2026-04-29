@@ -1,0 +1,43 @@
+id: resume_035
+category: resume
+persona: veteran
+seed: 10035
+description: "ブランク10年→AI補正生成"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: postback
+    data: "rm=resume"
+    expect_phase: rm_resume_start
+  - kind: text
+    text: "10年勤務後に10年ブランク"
+    expect_keywords_any: ["ブランク"]
+  - kind: postback
+    data: "resume_generate"
+    expect_keywords_any: ["履歴書", "ブランク"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

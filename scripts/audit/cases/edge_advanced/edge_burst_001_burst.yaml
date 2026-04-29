@@ -1,0 +1,51 @@
+id: edge_burst_001
+category: edge_advanced
+persona: misaki
+seed: 11001
+description: "連投5メッセージを1秒以内 (パターン1): デバウンス検証"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: text
+    text: "a"
+    sleep_ms: 100
+  - kind: text
+    text: "b"
+    sleep_ms: 100
+  - kind: text
+    text: "c"
+    sleep_ms: 100
+  - kind: text
+    text: "d"
+    sleep_ms: 100
+  - kind: text
+    text: "e"
+    sleep_ms: 100
+    expect_keywords_any: ["お話", "聞かせて"]
+    expect_emojis_max: 3
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

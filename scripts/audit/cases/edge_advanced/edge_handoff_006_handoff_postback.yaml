@@ -1,0 +1,34 @@
+id: edge_handoff_006
+category: edge_advanced
+persona: misaki
+seed: 11906
+description: "handoff中に postback=aica_skip_to_condition → aica_condition"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+  set_aica_phase: "handoff_active"
+steps:
+  - kind: postback
+    data: "aica_skip_to_condition"
+    expect_phase: aica_condition
+    expect_keywords_any: ["担当", "確認"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

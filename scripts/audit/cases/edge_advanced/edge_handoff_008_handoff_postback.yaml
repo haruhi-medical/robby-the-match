@@ -1,0 +1,34 @@
+id: edge_handoff_008
+category: edge_advanced
+persona: misaki
+seed: 11908
+description: "handoff中に postback=matching_run → handoff_pending"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+  set_aica_phase: "handoff_active"
+steps:
+  - kind: postback
+    data: "matching_run"
+    expect_phase: handoff_pending
+    expect_keywords_any: ["担当", "確認"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

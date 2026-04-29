@@ -1,0 +1,39 @@
+id: regression_012
+category: regression
+persona: misaki
+seed: 12012
+description: "小田原1件のみ問題 v1 (Variant 12)"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+  - kind: postback
+    data: "il_pref_kanagawa"
+  - kind: postback
+    data: "il_area_odawara"
+  - kind: postback
+    data: "matching_run"
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+    - "1件のみ"
+    - "1件しか"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "regression"

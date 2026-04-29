@@ -1,0 +1,61 @@
+id: contrarian_003
+category: contrarian
+persona: misaki
+seed: 13003
+description: "条件ヒアリングQ7で経験再質問"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: postback
+    data: "aica_skip_to_condition"
+  - kind: text
+    text: "5年です"
+  - kind: postback
+    data: "aica_q_role"
+  - kind: text
+    text: "リーダー"
+  - kind: postback
+    data: "aica_q_field"
+  - kind: text
+    text: "内科"
+  - kind: postback
+    data: "aica_q_strength"
+  - kind: text
+    text: "処置"
+  - kind: postback
+    data: "aica_q_weakness"
+  - kind: text
+    text: "夜勤"
+  - kind: postback
+    data: "aica_q_worktype"
+  - kind: text
+    text: "二交代"
+  - kind: postback
+    data: "aica_q_years"
+    expect_keywords_any: ["既に", "確認"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+    - "経験年数を教えて"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "contrarian"

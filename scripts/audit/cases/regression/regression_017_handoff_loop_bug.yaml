@@ -1,0 +1,36 @@
+id: regression_017
+category: regression
+persona: misaki
+seed: 12017
+description: "handoff後のループ防止 (Variant 17)"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "force_phase=handoff_active"
+  - kind: text
+    text: "もう一度ヒアリング"
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+    - "ヒアリング再開"
+  must_in_reply:
+    - "担当"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "regression"

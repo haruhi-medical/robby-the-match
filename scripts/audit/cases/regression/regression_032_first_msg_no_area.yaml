@@ -1,0 +1,34 @@
+id: regression_032
+category: regression
+persona: misaki
+seed: 12032
+description: "エリア未選択でいきなりテキスト (Variant 32)"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: text
+    text: "夜勤辛い"
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+  must_in_reply:
+    - "エリア"
+    - "都道府県"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "regression"

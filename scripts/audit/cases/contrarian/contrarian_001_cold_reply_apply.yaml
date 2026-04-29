@@ -1,0 +1,39 @@
+id: contrarian_001
+category: contrarian
+persona: misaki
+seed: 13001
+description: "応募時の返信が冷たすぎる検知"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: postback
+    data: "force_phase=matching_preview"
+  - kind: postback
+    data: "apply_intent=job_001"
+    expect_keywords_any: ["ありがとう", "嬉しい"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+    - "ご応募ありがとうございました。担当者から連絡します。"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "contrarian"

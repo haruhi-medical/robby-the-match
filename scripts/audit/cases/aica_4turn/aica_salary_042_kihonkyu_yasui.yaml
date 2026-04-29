@@ -1,0 +1,42 @@
+id: aica_salary_042
+category: aica_4turn
+persona: misaki
+seed: 1142
+description: "Turn 1で基本給が同年代より3万低いを送ると軸=salaryに分類されてTurn 2の深掘り質問が来る"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+    expect_keywords_any: ["お話", "聞かせて", "気持ち"]
+  - kind: text
+    text: "同期が他病院で基本給28万なのに、うちは25万。3年前から変わってない"
+    expect_phase: aica_turn2
+    expect_axis: salary
+    expect_keywords_any: ["基本給", "低い"]
+    expect_emojis_min: 0
+    expect_emojis_max: 3
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

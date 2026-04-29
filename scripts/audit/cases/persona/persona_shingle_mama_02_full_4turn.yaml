@@ -1,0 +1,48 @@
+id: persona_shingle_mama_02
+category: persona
+persona: shingle_mama
+seed: 7012
+description: "shingle_mama: AICA 4ターン完走"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_kawasaki"
+  - kind: text
+    text: "両立が厳しくて、辞めたいって思っちゃう"
+    expect_phase: aica_turn2
+    expect_axis: family
+  - kind: text
+    text: "毎日きつくて朝起きるのが辛い"
+    expect_phase: aica_turn3
+  - kind: text
+    text: "もう半年くらいこの状態が続いてる"
+    expect_phase: aica_turn4
+  - kind: text
+    text: "やっぱり転職した方がいいですよね"
+    expect_phase: aica_closing
+    expect_keywords_any: ["カルテ", "条件", "聞かせて"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "llm_mutation"

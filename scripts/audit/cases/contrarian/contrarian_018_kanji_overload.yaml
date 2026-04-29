@@ -1,0 +1,39 @@
+id: contrarian_018
+category: contrarian
+persona: shinsotsu
+seed: 13018
+description: "難解な漢字が多用"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: text
+    text: "辞めたい"
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+    - "於いて"
+    - "之を"
+    - "斯くの如く"
+    - "生憎"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "contrarian"

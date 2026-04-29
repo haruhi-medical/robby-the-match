@@ -1,0 +1,42 @@
+id: aica_career_050
+category: aica_4turn
+persona: misaki
+seed: 1150
+description: "Turn 1でもっとアカデミックな環境へを送ると軸=careerに分類されてTurn 2の深掘り質問が来る"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+    expect_keywords_any: ["お話", "聞かせて", "気持ち"]
+  - kind: text
+    text: "市中病院から大学病院に転職して、症例も研究も触れたい"
+    expect_phase: aica_turn2
+    expect_axis: career
+    expect_keywords_any: ["大学病院", "目指したい"]
+    expect_emojis_min: 0
+    expect_emojis_max: 3
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

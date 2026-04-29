@@ -1,0 +1,48 @@
+id: matching_035
+category: matching
+persona: misaki
+seed: 8035
+description: "kanagawa/sagamihara/visit_nursing/nikoutai の組合せでマッチング → 求人提示"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_pref_kanagawa"
+    expect_keywords_any: ["kan"]
+  - kind: postback
+    data: "il_area_sagamihara"
+  - kind: postback
+    data: "aica_skip_to_condition"
+    expect_phase: aica_condition
+  - kind: postback
+    data: "facility_type=visit_nursing"
+  - kind: postback
+    data: "worktype=nikoutai"
+  - kind: postback
+    data: "matching_run"
+    expect_phase: matching_results
+    expect_keywords_any: ["件", "求人"]
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "pairwise"

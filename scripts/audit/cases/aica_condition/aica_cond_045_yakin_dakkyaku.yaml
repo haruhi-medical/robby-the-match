@@ -1,0 +1,42 @@
+id: aica_cond_045
+category: aica_condition
+persona: misaki
+seed: 2145
+description: "夜勤希望: 月1回までなら可"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+    expect_phase: il_area
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: postback
+    data: "aica_skip_to_condition"
+    expect_phase: aica_condition
+  - kind: text
+    text: "夜勤は月1回くらいなら入っても大丈夫"
+    expect_phase: aica_condition
+    expect_keywords_any: ["夜勤", "1回"]
+    expect_emojis_max: 3
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "static"

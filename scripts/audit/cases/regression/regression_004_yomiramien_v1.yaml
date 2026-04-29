@@ -1,0 +1,36 @@
+id: regression_004
+category: regression
+persona: misaki
+seed: 12004
+description: "読み取れません誤発火 v1: 長文 (Variant 4)"
+preconditions:
+  follow_first: true
+  liff_session: null
+  reset_kv: true
+steps:
+  - kind: postback
+    data: "rm=start"
+  - kind: postback
+    data: "il_area_yokohama"
+  - kind: text
+    text: "夜勤明けで頭ぼーっとして何書いてるか分からない"
+expectations:
+  rubric:
+    functional: pass
+    empathy_min: 4
+    consistency: must_match_qr
+    latency_p95_ms: 5000
+    no_pii_leak: true
+    no_hallucination: true
+  must_not_in_reply:
+    - "最高"
+    - "絶対"
+    - "No.1"
+    - "間違いなく"
+    - "業界一位"
+    - "確実に儲かる"
+    - "読み取れません"
+metadata:
+  generated_by: "planner_v1"
+  generated_at: "2026-04-29"
+  source: "regression"
