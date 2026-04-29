@@ -6,7 +6,7 @@ from datetime import datetime
 from playwright.async_api import async_playwright
 
 BASE = "https://robby-the-match-api.robby-the-robot-2026.workers.dev"
-PASSWORD = "cZKgDRMZWabCvUE7"
+PASSWORD = "20260202"
 OUT_DIR = os.path.expanduser("~/robby-the-match/logs/admin-dashboard-build/2026-04-28/screenshots")
 os.makedirs(OUT_DIR, exist_ok=True)
 

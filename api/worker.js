@@ -5682,6 +5682,7 @@ async function saveLineEntry(userId, entry, env) {
         await adminPushRecentActivity(env, userId, summary, toSave.phase, {
           handoffAt: toSave.handoffAt || null,
           adminMutedAt: toSave.adminMutedAt || null,
+          displayName: toSave.lineDisplayName || toSave.aicaDisplayName || toSave.fullName || null,
         });
       } catch (e) {
         console.error(`[Admin] recent activity push failed: ${e.message}`);
@@ -12319,6 +12320,7 @@ async function adminPushRecentActivity(env, userId, summary, phase, extra = {}) 
       ts,
       handoffAt: extra.handoffAt || null,
       adminMutedAt: extra.adminMutedAt || null,
+      displayName: extra.displayName || null,
     };
     // 24h TTL（PII含む可能性。180日は長すぎる、レビュー指摘）
     await env.LINE_SESSIONS.put(key, JSON.stringify(record), { expirationTtl: 24 * 3600 });
@@ -12508,6 +12510,51 @@ async function handleAdminRoute(request, env, ctx, url) {
       for (const it of items) it.lastMessage = recentMap.get(it.userId) || null;
       const total = items.length;
       const sliced = items.slice(offset, offset + limit);
+
+      // 表示名を解決（line:userId と member:userId の displayName を取得）
+      // 表示する分だけ取得（max limit=100）
+      await Promise.all(sliced.map(async it => {
+        try {
+          const [lineRaw, memberRaw] = await Promise.all([
+            env.LINE_SESSIONS.get(`line:${it.userId}`, { cacheTtl: 60 }),
+            env.LINE_SESSIONS.get(`member:${it.userId}`, { cacheTtl: 60 }),
+          ]);
+          let name = null;
+          let area = null;
+          if (lineRaw) {
+            const e = JSON.parse(lineRaw);
+            name = e.lineDisplayName || e.aicaDisplayName || e.fullName || null;
+            area = e.areaLabel || e.area || null;
+          }
+          if (!name && memberRaw) {
+            const m = JSON.parse(memberRaw);
+            name = m.name || m.fullName || null;
+          }
+          // LINE Profile API でフェッチ（未取得かつ trigger チャンス）
+          if (!name && env.LINE_CHANNEL_ACCESS_TOKEN) {
+            try {
+              const res = await fetch(`https://api.line.me/v2/bot/profile/${it.userId}`, {
+                headers: { "Authorization": `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}` },
+              });
+              if (res.ok) {
+                const profile = await res.json();
+                name = profile.displayName || null;
+                // 次回以降のために entry に書き戻し（ベストエフォート）
+                if (name && lineRaw) {
+                  try {
+                    const e2 = JSON.parse(lineRaw);
+                    e2.lineDisplayName = name;
+                    await env.LINE_SESSIONS.put(`line:${it.userId}`, JSON.stringify(e2), { expirationTtl: 2592000 });
+                  } catch {}
+                }
+              }
+            } catch {}
+          }
+          it.displayName = name || null;
+          it.area = area || null;
+        } catch {}
+      }));
+
       await adminWriteAudit(env, { actor: "admin", ip, action: "conversations_view", result: "ok" });
       return adminJson({ items: sliced, total, limit, offset });
     }
@@ -12856,8 +12903,9 @@ async function viewDashboard(){
   if((d.recent||[]).length===0){html+='<div class="empty">まだ活動はありません</div>';}
   else{for(const r of d.recent){
     const safeUid=esc(r.userId||'');
+    const displayLabel=r.displayName?esc(r.displayName):'<span style="color:#aaa">'+safeUid.slice(0,8)+'…</span>';
     html+='<div class="list-item" onclick="location.hash=\\'#user/'+encodeURIComponent(r.userId||'')+'\\'">';
-    html+='<div class="meta"><div class="name">'+safeUid.slice(0,8)+'…</div>';
+    html+='<div class="meta"><div class="name">'+displayLabel+'</div>';
     html+='<div class="sub">'+esc(r.summary||'')+'</div></div>';
     html+=phaseBadge(r.phase)+' <span style="font-size:11px;color:#999;margin-left:6px">'+fmtTime(r.ts)+'</span></div>';
   }}
@@ -12870,9 +12918,11 @@ async function viewConversations(){
   if(d.items.length===0){html+='<div class="empty">会話なし</div>';}
   else{for(const it of d.items){
     const safeUid=esc(it.userId);
+    const displayLabel=it.displayName?esc(it.displayName):'<span style="color:#aaa">'+safeUid.slice(0,8)+'…'+safeUid.slice(-4)+'</span>';
+    const subLine=[it.area?esc(it.area):null,(it.lastMessage||'(履歴なし)').slice(0,30)].filter(Boolean).join(' / ');
     html+='<div class="list-item" onclick="location.hash=\\'#user/'+encodeURIComponent(it.userId)+'\\'">';
-    html+='<div class="meta"><div class="name">'+safeUid.slice(0,8)+'…'+safeUid.slice(-4)+'</div>';
-    html+='<div class="sub">'+esc((it.lastMessage||'(履歴なし)').slice(0,40))+'</div></div>';
+    html+='<div class="meta"><div class="name">'+displayLabel+'</div>';
+    html+='<div class="sub">'+esc(subLine)+'</div></div>';
     html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+phaseBadge(it.phase);
     html+='<span style="font-size:11px;color:#999">'+fmtTime(it.updatedAt)+'</span></div></div>';
   }}
