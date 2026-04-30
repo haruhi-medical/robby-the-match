@@ -12835,26 +12835,87 @@ async function handleAdminRoute(request, env, ctx, url) {
       const today = new Date().toISOString().slice(0, 10);
       const newFollowersRaw = await env.LINE_SESSIONS.get(`event:${today}:line_follow`);
       const newFollowers = parseInt(newFollowersRaw || "0", 10);
-      const recent = await adminReadRecentActivities(env, 200);
+
+      // ver:* を listAll → updatedAt 降順 → 全ユーザー集計
+      const verKeys = await kvListAll(env.LINE_SESSIONS, "ver:");
+      const allUsers = [];
+      const targetVerKeys = verKeys.slice(0, 200);
+      for (let i = 0; i < targetVerKeys.length; i += 50) {
+        const chunk = targetVerKeys.slice(i, i + 50);
+        const chunkResults = await Promise.all(chunk.map(async k => {
+          try {
+            const v = await env.LINE_SESSIONS.get(k.name, { cacheTtl: 60 });
+            if (!v) return null;
+            const meta = JSON.parse(v);
+            const userId = k.name.replace(/^ver:/, "");
+            return { userId, phase: meta.phase || "unknown", updatedAt: meta.updatedAt || 0 };
+          } catch { return null; }
+        }));
+        chunkResults.forEach(r => { if (r) allUsers.push(r); });
+      }
+      allUsers.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+      // 4指標を全ユーザーから集計
       let aiConsulting = 0, applyIntent = 0, emergency = 0;
       const now = Date.now();
-      const seenUsers = new Set();
-      const uniqueRecent = []; // ユーザー単位で最新1件のみ
+      for (const u of allUsers) {
+        if (ADMIN_PHASE_AI_CONSULT.includes(u.phase) || ADMIN_PHASE_AICA.includes(u.phase)) aiConsulting++;
+        if (ADMIN_PHASE_APPLY.includes(u.phase)) applyIntent++;
+      }
+
+      // 直近10人を抽出 → displayName と最後の活動概要を解決
+      const top10 = allUsers.slice(0, 10);
+      const recentRaw = await adminReadRecentActivities(env, 100);
+      const recentMap = new Map();
+      for (const r of recentRaw) {
+        if (!recentMap.has(r.userId)) recentMap.set(r.userId, r);
+      }
+
+      const recent = await Promise.all(top10.map(async u => {
+        let displayName = null;
+        let handoffAt = null;
+        let lastUserMsg = null;
+        try {
+          const lineRaw = await env.LINE_SESSIONS.get(`line:${u.userId}`, { cacheTtl: 60 });
+          if (lineRaw) {
+            const e = JSON.parse(lineRaw);
+            displayName = e.lineDisplayName || e.aicaDisplayName || e.fullName || null;
+            handoffAt = e.handoffAt || null;
+            // 最後のユーザー発言を抽出（messages/consultMessages/aicaMessages のいずれか）
+            const allMsgs = [].concat(e.messages || [], e.consultMessages || [], e.aicaMessages || []);
+            const userMsgs = allMsgs.filter(m => m && m.role === "user" && m.content);
+            if (userMsgs.length > 0) {
+              lastUserMsg = String(userMsgs[userMsgs.length - 1].content).slice(0, 60);
+            }
+          }
+          if (!displayName) {
+            const memberRaw = await env.LINE_SESSIONS.get(`member:${u.userId}`, { cacheTtl: 60 });
+            if (memberRaw) {
+              const m = JSON.parse(memberRaw);
+              displayName = m.name || m.fullName || null;
+            }
+          }
+        } catch {}
+        const recentEntry = recentMap.get(u.userId);
+        return {
+          userId: u.userId,
+          phase: u.phase,
+          ts: u.updatedAt,
+          displayName,
+          summary: recentEntry?.summary || lastUserMsg || null,
+          handoffAt,
+        };
+      }));
+
+      // emergency: phase=handoff かつ handoffAt > 24h前のユーザー数
       for (const r of recent) {
-        if (seenUsers.has(r.userId)) continue;
-        seenUsers.add(r.userId);
-        // ユーザー単位の最新活動を集約
-        if (uniqueRecent.length < 20) {
-          uniqueRecent.push(r);
-        }
-        if (ADMIN_PHASE_AI_CONSULT.includes(r.phase) || ADMIN_PHASE_AICA.includes(r.phase)) aiConsulting++;
-        if (ADMIN_PHASE_APPLY.includes(r.phase)) applyIntent++;
         if (r.phase === "handoff" && r.handoffAt && (now - r.handoffAt > 24 * 3600 * 1000)) emergency++;
       }
+
       await adminWriteAudit(env, { actor: "admin", ip, action: "dashboard_view", result: "ok" });
       return adminJson({
         today: { newFollowers, aiConsulting, applyIntent, emergency },
-        recent: uniqueRecent.slice(0, 10),
+        recent,
       });
     }
 
@@ -13281,9 +13342,10 @@ async function viewDashboard(){
   else{for(const r of d.recent){
     const safeUid=esc(r.userId||'');
     const displayLabel=r.displayName?esc(r.displayName):'<span style="color:#aaa">'+safeUid.slice(0,8)+'…</span>';
+    const sub=r.summary?esc(r.summary):'<span style="color:#bbb">(履歴なし)</span>';
     html+='<div class="list-item" onclick="location.hash=\\'#user/'+encodeURIComponent(r.userId||'')+'\\'">';
     html+='<div class="meta"><div class="name">'+displayLabel+'</div>';
-    html+='<div class="sub">'+esc(r.summary||'')+'</div></div>';
+    html+='<div class="sub">'+sub+'</div></div>';
     html+=phaseBadge(r.phase)+' <span style="font-size:11px;color:#999;margin-left:6px">'+fmtTime(r.ts)+'</span></div>';
   }}
   root.innerHTML=html;
