@@ -12835,13 +12835,18 @@ async function handleAdminRoute(request, env, ctx, url) {
       const today = new Date().toISOString().slice(0, 10);
       const newFollowersRaw = await env.LINE_SESSIONS.get(`event:${today}:line_follow`);
       const newFollowers = parseInt(newFollowersRaw || "0", 10);
-      const recent = await adminReadRecentActivities(env, 100);
+      const recent = await adminReadRecentActivities(env, 200);
       let aiConsulting = 0, applyIntent = 0, emergency = 0;
       const now = Date.now();
       const seenUsers = new Set();
+      const uniqueRecent = []; // ユーザー単位で最新1件のみ
       for (const r of recent) {
         if (seenUsers.has(r.userId)) continue;
         seenUsers.add(r.userId);
+        // ユーザー単位の最新活動を集約
+        if (uniqueRecent.length < 20) {
+          uniqueRecent.push(r);
+        }
         if (ADMIN_PHASE_AI_CONSULT.includes(r.phase) || ADMIN_PHASE_AICA.includes(r.phase)) aiConsulting++;
         if (ADMIN_PHASE_APPLY.includes(r.phase)) applyIntent++;
         if (r.phase === "handoff" && r.handoffAt && (now - r.handoffAt > 24 * 3600 * 1000)) emergency++;
@@ -12849,7 +12854,7 @@ async function handleAdminRoute(request, env, ctx, url) {
       await adminWriteAudit(env, { actor: "admin", ip, action: "dashboard_view", result: "ok" });
       return adminJson({
         today: { newFollowers, aiConsulting, applyIntent, emergency },
-        recent: recent.slice(0, 10),
+        recent: uniqueRecent.slice(0, 10),
       });
     }
 
