@@ -158,15 +158,12 @@
       <div class="hint">具体名は不要です</div>
       <select name="education" required>
         <option value="">選択してください</option>
-        <option value="university">大学卒業</option>
-        <option value="vocational">専門学校卒業</option>
-        <option value="high_school">高校卒業</option>
+        <option value="university">看護大学 卒業</option>
+        <option value="vocational_3">看護専門学校（3年） 卒業</option>
+        <option value="vocational_2">看護専門学校（2年/准看） 卒業</option>
+        <option value="university_other">大学（看護以外）卒業</option>
         <option value="other">その他</option>
       </select>
-      <label style="margin-top: 8px;">
-        <input type="checkbox" name="nursingSchool" value="yes">
-        看護系の学校でした
-      </label>
     </fieldset>
 
     <!-- 2. 経歴 -->
@@ -271,7 +268,6 @@
       jobId: fd.get('jobId'),
       jobName: fd.get('jobName'),
       education: fd.get('education'),
-      nursingSchool: fd.get('nursingSchool') === 'yes',
       experienceYears: fd.get('experienceYears'),
       dept: fd.getAll('dept'),
       experienceDetail: fd.get('experienceDetail') || '',

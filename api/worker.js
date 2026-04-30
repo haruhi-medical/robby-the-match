@@ -3168,7 +3168,6 @@ export default {
           jobId: jobId || null,
           jobName: jobName || null,
           education: String(body.education).slice(0, 50),
-          nursingSchool: !!body.nursingSchool,
           experienceYears: String(body.experienceYears).slice(0, 50),
           dept: Array.isArray(body.dept) ? body.dept.slice(0, 15).map(s => String(s).slice(0, 50)) : [],
           experienceDetail: String(body.experienceDetail || "").slice(0, 1000),
