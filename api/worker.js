@@ -965,13 +965,25 @@ function aicaBuildWelcomeMessage(displayName) {
 転職を考えはじめたきっかけは、どんなことでしたか？`;
 }
 
-// Patch 6 (A) / Patch 8: Welcome に付ける QuickReply
-// 社長指示で「自分で入力」を先頭に変更。一番自然な選択肢が最初に見える
+// Patch 6 (A) / Patch 8 / Patch 9: Welcome に付ける QuickReply
+// Patch 9 修正: 「自分の言葉で書く」をタップ→キーボード自動オープン（旧: 自動メッセージ送信でAI誤発火）
 function aicaBuildWelcomeQuickReply() {
   const qr = (label, text) => ({ type: "action", action: { type: "message", label, text } });
   return {
     items: [
-      qr("自分の言葉で書く", "自分の言葉で入力します"),
+      // Patch 9: postback + inputOption=openKeyboard でキーボード起動
+      // タップ時はメッセージ送信せず、ユーザーが自由文入力するのを待つ
+      {
+        type: "action",
+        action: {
+          type: "postback",
+          label: "自分の言葉で書く",
+          data: "aica_open_keyboard",
+          displayText: " ",  // チャット欄に何も表示しない（空白1文字）
+          inputOption: "openKeyboard",
+          fillInText: "",
+        },
+      },
       qr("夜勤・勤務時間がつらい", "夜勤や勤務時間が体力的にきつくて悩んでいます"),
       qr("人間関係で悩んでいる", "職場の人間関係で悩んでいます"),
       qr("給与・評価に不満", "給与や評価に納得できなくて悩んでいます"),
@@ -9883,6 +9895,16 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         lineReply._currentEntry = entry;
 
         const dataStr = event.postback.data;
+
+        // ============ Patch 9: AICA自由入力キーボード起動 ============
+        // 「自分の言葉で書く」postback → キーボードはinputOptionで自動起動済
+        // BOTは応答せず、ユーザーが自由文を入力するのを待つ
+        if (dataStr === "aica_open_keyboard") {
+          // KV保存（phase維持・自由入力待機状態）
+          await saveLineEntry(userId, entry, env);
+          // ユーザーには何も返さない（キーボードが既に開いている）
+          continue;
+        }
 
         // ============ 🏠 リッチメニュー: マイページ ============
         // postback loop内で inline 処理 (userId必要 + entry.phase 維持のため buildPhaseMessage を経由しない)
