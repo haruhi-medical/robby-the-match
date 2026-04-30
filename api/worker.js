@@ -435,18 +435,21 @@ Turn 4（クロージング判定）:
 
 ---
 
-【クロージングのトーク例（Turn 4 回答後）】
+【クロージングのトーク例（Turn 4 回答後）— Patch 8 で重複防止】
 
-「○○さん、ここまでお話聞かせてくださってありがとうございます🌸
+⚠️ クロージング時は以下の流れで「**1つのメッセージだけ**」生成すること。
+「ここから先は…」を二重に書かない（後段で固定文言が追加されることはない）。
+
+「○○さん、お話を聞かせてくださってありがとうございます🌸
 
 伺ってきた限り、○○さんにとって一番必要なのは
 『（具体的条件）』のようですね。
 
-ここから先は、この条件を満たす求人を、弊社の
-データベースからいくつかご提案させていただきます。
+ここから先は、ぴったりの求人をお探しするための条件を
+いくつか伺わせてください。
 
-その前に、あと数点だけ、求人検索のために必要な
-事務的な情報をお聞かせいただけますか？」
+まず、看護師としては何年目ですか？
+（数字でお答えください。例: 3、または「5年目」など）」
 
 ---
 
@@ -537,19 +540,33 @@ MUST（絶対条件）とWANT（できれば）に分類して、求人マッチ
 相手は「${name}」です。「${displayName || "お名前"}さん」付けで呼びます。「様」は使いません。
 
 【会話ルール】
-- **必ず最初に「受け止めの一文」を書く**（受け止めゼロは絶対禁止）
-  例: ユーザー「ICU8年です」→ 「ICU8年のご経験があるのですね。本当にお疲れさまです🌸」
-       ユーザー「夜勤月10回」→ 「月10回の夜勤、体力的にも本当にきついですよね…」
-       ユーザー「日勤リーダー」→ 「日勤リーダーをされているんですね。大変お疲れさまです」
-  受け止めなしで質問に入ると冷たく聞こえる
+- 軽く受け止めの一文（過剰共感はNG）
+  ◎ 良い: ユーザー「ICU8年です」→ 「ICU8年のご経験ですね、ありがとうございます」
+  ✕ 過剰NG: 「本当にお疲れさまです」「想像するだけで大変だと思います」← やってないAIに言われたくない
 - 受け止めの後、**質問は1〜2項目まで**（質問攻めは禁止）
 - 選択式で答えられる質問には選択肢を明示
-- 深掘り（重要）:
-  - 「内科」→ 循環器/消化器/呼吸器/神経/内分泌/血液/腎臓 のどれが中心か
-  - 「外科」→ 消化器外科/心臓血管外科/脳神経外科/整形外科/形成外科 のどれか
-  - 「夜勤あり」→ 月何回まで、2交代か3交代か
-  - 「得意」→ アセスメント/急変対応/創傷処置/化学療法/輸液管理/人工呼吸器管理/OPE介助/ターミナルケア/患者指導/家族対応 から
-  - 「苦手」→ 業務内容/特定処置/特定診療科/夜勤自体/人間関係 を具体的に
+
+【経験年数の聞き方】（社長指示・Patch 8）
+- ユーザーには**数字で答えてもらう**: 「看護師として何年目ですか？（数字でお答えください。例: 3、または「5年目」）」
+- 選択肢QRは出さない。フリーテキストで数字を受け取る
+- 受け取った数字は extracted.experience_years に整数で保存
+
+【経験した科・分野の聞き方】（社長指示・Patch 8 重要）
+- 看護師は**複数科を経験**しているのが普通（例: 「循環器急性期病棟3年、呼吸器内科慢性期5年」）
+- 単純な単一選択（「内科系」など）だと「全部経験あり」と誤解されるNG
+- ユーザーには次のように促す:
+  「これまでのご経験を、ざっくりで構いませんのでお書きください。
+  例: 「循環器急性期で3年、その後呼吸器内科で5年」のような形だとイメージしやすいです」
+- AIは入力を「科 + 期 + 年数」に構造化して extracted.fields_experienced に保存
+- もし不明確なら「もう少し詳しく聞かせてください」と1ターン追加
+
+【深掘り（重要）】
+- 「内科」のみ → 「具体的にどの分野が中心でしたか？循環器/消化器/呼吸器/神経 など」
+- 「外科」のみ → 「消化器外科/心臓血管外科/脳神経外科/整形外科 など、どれが中心でしたか？」
+- 「夜勤あり」→ 月何回まで、2交代か3交代か
+- 「得意」→ アセスメント/急変対応/創傷処置/化学療法/輸液管理/人工呼吸器管理/OPE介助/ターミナルケア/患者指導/家族対応 から具体例
+- 「苦手」→ 業務内容/特定処置/特定診療科/夜勤自体/人間関係 を具体的に
+
 - 丁寧語、温度を抑えつつも温かく
 - 1回の返信は200〜300文字（受け止め+質問の余裕を確保）
 - 絵文字は**必ず1〜2個使う**（🌸 ✨ 📝 💼 🏥 🤔 🌱 ※ 等の落ち着いたもの）
@@ -867,19 +884,19 @@ function aicaBuildWelcomeMessage(displayName) {
 転職を考えはじめたきっかけは、どんなことでしたか？`;
 }
 
-// Patch 6 (A): Welcome に付ける QuickReply（話のきっかけ7軸）
-// AICA軸自動分類の入口を可視化。ユーザーは1タップで悩みを伝えられる
+// Patch 6 (A) / Patch 8: Welcome に付ける QuickReply
+// 社長指示で「自分で入力」を先頭に変更。一番自然な選択肢が最初に見える
 function aicaBuildWelcomeQuickReply() {
   const qr = (label, text) => ({ type: "action", action: { type: "message", label, text } });
   return {
     items: [
+      qr("自分の言葉で書く", "自分の言葉で入力します"),
       qr("夜勤・勤務時間がつらい", "夜勤や勤務時間が体力的にきつくて悩んでいます"),
       qr("人間関係で悩んでいる", "職場の人間関係で悩んでいます"),
       qr("給与・評価に不満", "給与や評価に納得できなくて悩んでいます"),
       qr("キャリアに迷い", "今後のキャリアの方向性に迷っています"),
       qr("家庭との両立", "家庭と仕事の両立で悩んでいます"),
       qr("なんとなく疲れた", "なんとなく疲れていて、変えたいと思っています"),
-      qr("自分で書く", "自分で入力します"),
     ],
   };
 }
@@ -897,16 +914,12 @@ function aicaAppendConditionQR(replyText) {
   // 順序: 経験年数 → 役割 → 分野 → 強み → 弱み → 施設タイプ → 働き方 → 夜勤 → エリア → 通勤 → 給与 → 時期
   // 各項目は「他の質問で使われるキーワードが含まれていない」前提で先頭から判定
 
-  // 経験年数（数字 + 年/年目 の質問が明示されている時のみ）
+  // 経験年数（Patch 8: 社長指示で QuickReply 廃止。数字フリーテキスト入力に統一）
+  // 旧: 1〜3年/3〜5年/5〜10年/10年以上 などの幅広な選択肢で正確性が損なわれていた
+  // 新: ユーザーは数字（例: "3" / "5年目"）を直接入力。QRは表示しない
+  // → 関数は null を返し、aicaBuildConditionSystemPrompt の指示でAIが「数字でお答えください」と促す
   if (/何年目|看護師.*?何年|経験.*?年数|経験年数|看護師としては.*?年/.test(t) && !/役割|施設|希望|働き方|通勤|給与|分野|強み|弱み/.test(t)) {
-    return { items: [
-      qr("1年未満", "1年未満"),
-      qr("1〜3年", "1〜3年"),
-      qr("3〜5年", "3〜5年"),
-      qr("5〜10年", "5〜10年"),
-      qr("10年以上", "10年以上"),
-      qr("自分で入力", "自分で入力します"),
-    ]};
+    return null;
   }
   // 役割（リーダー・プリセプター・主任など）
   if (/(リーダー|プリセプター|主任|師長|管理職).*?経験|現在の役割|役割.*?(教えて|伺|お聞き)|ポジション/.test(t) && !/施設|希望|分野|働き方/.test(t)) {
@@ -919,18 +932,20 @@ function aicaAppendConditionQR(replyText) {
       qr("自分で入力", "自分で入力します"),
     ]};
   }
-  // 経験した科・分野（Patch 7: 役割と区別）
+  // 経験した科・分野（Patch 8: 複数キャリア対応・「自分で書く」を先頭）
+  // 社長指示: 看護師は「循環器急性期3年、呼吸器内科5年」など複数科経験が普通。
+  // 単一選択だと「全部経験あり」に見える誤解を生む → 自由記述を促す + 簡易選択は補助
   if (/(科|分野|診療科|専門領域|得意な分野).*?(経験|教えて|伺)|どんな.*?(科|分野)|これまで.*?(科|分野)/.test(t) && !/役割|施設|働き方/.test(t)) {
     return { items: [
-      qr("内科系", "内科系（循環器・消化器・呼吸器など）"),
-      qr("外科系", "外科系（消化器外科・整形外科など）"),
-      qr("ICU・救急", "ICU・救急・急性期"),
-      qr("精神科", "精神科"),
-      qr("小児科・産科", "小児科・産科"),
-      qr("訪問看護", "訪問看護・在宅"),
-      qr("介護・施設系", "介護施設・特養"),
-      qr("クリニック外来", "クリニック外来"),
-      qr("自分で入力", "自分で入力します"),
+      qr("自分で書く（推奨）", "経験を自分で書きます"),
+      qr("主に内科系", "主に内科系（循環器・消化器・呼吸器など）"),
+      qr("主に外科系", "主に外科系（消化器外科・整形外科など）"),
+      qr("主にICU・救急", "主にICU・救急・急性期"),
+      qr("主に精神科", "主に精神科"),
+      qr("主に小児・産科", "主に小児科・産科"),
+      qr("主に訪問看護", "主に訪問看護・在宅"),
+      qr("主に介護・施設", "主に介護施設・特養"),
+      qr("主にクリニック", "主にクリニック外来"),
     ]};
   }
   // 強み（Patch 7: 具体例を提示）
@@ -1148,19 +1163,11 @@ async function aicaProcessTextBackground({ userId, userText, channelAccessToken,
       await saveLineEntry(userId, entry, env);
       // Patch 2 Phase D: AICA系 logPhaseTransition 明示
       await logPhaseTransition(userId, _prevPhase, "aica_condition", "summary_to_condition", entry, env, null);
+      // Patch 8: 固定追加メッセージを廃止（result.replyにクロージング+「何年目」誘導が含まれる）
+      // 旧: 「ここから先は…看護師経験は何年目でしょうか？」 + 1〜3年目QR
+      // 新: result.reply のみ（数字フリーテキスト入力を促す。QRは「自分で入力」のみ）
       await pushTo([
         { type: "text", text: result.reply },
-        {
-          type: "text",
-          text: "ここから先は、求人検索のための条件をいくつかお伺いします 📝\n\n看護師経験は何年目でしょうか？",
-          quickReply: { items: [
-            { type: "action", action: { type: "message", label: "1〜3年目", text: "1〜3年目" } },
-            { type: "action", action: { type: "message", label: "3〜5年目", text: "3〜5年目" } },
-            { type: "action", action: { type: "message", label: "5〜10年目", text: "5〜10年目" } },
-            { type: "action", action: { type: "message", label: "10〜20年目", text: "10〜20年目" } },
-            { type: "action", action: { type: "message", label: "20年以上", text: "20年以上" } },
-          ]},
-        },
       ]);
     } else {
       const _prevPhase = entry.phase;
@@ -11422,19 +11429,9 @@ ${entry.rmCvQualifications || '看護師免許'}
                   updateLastAuditTrail(_entry, { phaseAfter: "aica_condition", appendReplyTexts: [result.reply] });
                   // Patch 2 Phase D: AICA系 logPhaseTransition 明示
                   await logPhaseTransition(_userId, _prevPhaseBg, "aica_condition", "summary_to_condition", _entry, _env, null);
+                  // Patch 8: 固定追加メッセージ（看護師経験は何年目QR）廃止 → result.reply に統合済
                   pushMessages = [
                     { type: "text", text: result.reply },
-                    {
-                      type: "text",
-                      text: "ここから先は、ぴったりの求人をお探しするために\nいくつか具体的な条件をお伺いさせてください 📝\n\nまず、看護師としては何年目でしょうか？",
-                      quickReply: { items: [
-                        { type: "action", action: { type: "message", label: "1〜3年目", text: "1〜3年目" } },
-                        { type: "action", action: { type: "message", label: "3〜5年目", text: "3〜5年目" } },
-                        { type: "action", action: { type: "message", label: "5〜10年目", text: "5〜10年目" } },
-                        { type: "action", action: { type: "message", label: "10〜20年目", text: "10〜20年目" } },
-                        { type: "action", action: { type: "message", label: "20年以上", text: "20年以上" } },
-                      ]},
-                    },
                   ];
                 } else {
                   const _prevPhaseTurn = _entry.phase;
@@ -13828,11 +13825,13 @@ async function handleScheduledNurture(env) {
 }
 
 // ========== Cron Trigger: ハンドオフBot補助（2時間おき） ==========
+// 【Patch 8 (2026-04-30) 改訂】社長指示「AIが進めるルール違反」対応
+// 旧: 15分後「担当者に転送しました」/ 2h後「担当者に再度連絡」← 人間頼み文言で違反
+// 新: 15分後「診断の続きやりませんか？」AI再開誘導 + QuickReply / 2h後Push廃止
 // マイルストーン:
-//   - 15分経過: 「担当者に転送しました。24時間以内にLINEでお返事します」LINE Push
-//   - 2時間経過 (legacy): 「担当者に再度連絡しました」LINE Push + Slackリマインダー
-//   - 24時間経過: Slack #ロビー小田原人材紹介 に「24時間リマインダー」
-// 各マイルストーンは個別フラグ(followUpSent15min / followUpSent / reminder24hSent)で冪等性確保
+//   - 15分経過: 「お時間ある時、診断の続きをやりませんか？」+ 続ける/今は休む QR
+//   - 24時間経過: Slack #ロビー小田原人材紹介 に「24時間リマインダー」（社長手動対応用）
+// 各マイルストーンは個別フラグ(followUpSent15min / reminder24hSent)で冪等性確保
 async function handleScheduledHandoffFollowup(env) {
   if (!env?.LINE_SESSIONS || !env?.LINE_CHANNEL_ACCESS_TOKEN) return;
   const token = env.LINE_CHANNEL_ACCESS_TOKEN;
@@ -13856,10 +13855,11 @@ async function handleScheduledHandoffFollowup(env) {
         const minutesSinceHandoff = (now - data.handoffAt) / 60000;
         let dirty = false;
 
-        // --- Milestone 1: 15分経過の初動LINE Push（受付確認） ---
-        // NOTE: cronは2時間おき起動のため「即時15分」は保証できないが、初回cron起床時に送信される
-        // ハンドオフ成立後30分以内の最初のcronで到達する想定。ユーザ体験上「受付済」を早期に保証するのが目的。
-        if (!data.followUpSent15min && minutesSinceHandoff >= 15) {
+        // --- Milestone 1: 15分経過の AI再開誘導 Push（Patch 8: 旧「担当者に転送」を廃止） ---
+        // 社長指示: 「担当者連絡しました」は AI 完走方針に反する → 「診断の続きやりませんか？」誘導に変更
+        // 例外: apply_intent=start による handoff（M6到達・重要事項説明待ち）の場合は Push しない
+        const isApplyIntentHandoff = !!data.applyIntentAt;
+        if (!data.followUpSent15min && minutesSinceHandoff >= 15 && !isApplyIntentHandoff) {
           const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -13867,7 +13867,13 @@ async function handleScheduledHandoffFollowup(env) {
               to: userId,
               messages: [{
                 type: "text",
-                text: "担当者に転送しました。24時間以内にこのLINEでお返事しますので、少々お待ちください。\n\n気になることがあれば\nいつでもメッセージくださいね。",
+                text: "お時間あるときに、診断の続きをやりませんか？\n\n4ターンの簡単な質問で、ぴったりの求人をAIがお探しします🌸",
+                quickReply: {
+                  items: [
+                    { type: "action", action: { type: "postback", label: "続きをやる", data: "fallback=continue_aica", displayText: "続きをやる" } },
+                    { type: "action", action: { type: "postback", label: "今は休む", data: "fallback=pause_aica", displayText: "今は休む" } },
+                  ],
+                },
               }],
             }),
           });
@@ -13880,19 +13886,12 @@ async function handleScheduledHandoffFollowup(env) {
           }
         }
 
-        // --- Milestone 2: 2時間経過の再通知（既存） ---
-        if (!data.followUpSent && hoursSinceHandoff >= 2) {
-          const pushRes = await fetch("https://api.line.me/v2/bot/message/push", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({
-              to: userId,
-              messages: [{
-                type: "text",
-                text: "担当者に再度連絡しました。もう少々お待ちくださいね。\n\n何か気になることがあれば\nいつでもメッセージください。",
-              }],
-            }),
-          });
+        // --- Milestone 2: 2時間経過の再通知 → Patch 8 で廃止 ---
+        // 旧: 「担当者に再度連絡しました」← AI完走方針違反のため削除
+        // 連発Pushはユーザー体験を損なう。15分時のAI再開誘導を1度送れば十分
+        if (false && !data.followUpSent && hoursSinceHandoff >= 2) {
+          // (廃止) 互換のため if(false) で残置。MVP2 で完全削除予定
+          const pushRes = { ok: false };
 
           if (pushRes.ok) {
             data.followUpSent = true;
