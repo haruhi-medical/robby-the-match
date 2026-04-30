@@ -11724,15 +11724,10 @@ ${entry.rmCvQualifications || '看護師免許'}
           entry.phase = "apply_consent";
           replyMessages = await buildPhaseMessage("apply_consent", entry, env);
         } else if (nextPhase === null) {
-          if (entry.unexpectedTextCount >= 3) {
-            // Stage 3: 3回以上 → 担当者引き継ぎ (preamble + 統一文言)
-            entry.phase = "handoff";
-            replyMessages = [{
-              type: "text",
-              text: `うまくお答えできずすみません。\n${buildHandoffConfirmationText(entry)}`,
-            }];
-            await sendHandoffNotification(userId, entry, env);
-          } else if (entry.unexpectedTextCount === 2) {
+          // Patch 2 Phase C (2026-04-30): 3回失敗自動handoff廃止
+          // 旧: unexpectedTextCount >= 3 → 自動 handoff
+          // 新: 何度失敗しても「人に相談したい」明示要求が来るまでQuick Replyで誘導継続
+          if (entry.unexpectedTextCount >= 2) {
             // Stage 2: 2回目 → フォールバック選択肢を提示
             replyMessages = [{
               type: "text",
