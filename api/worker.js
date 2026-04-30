@@ -3159,8 +3159,17 @@ export default {
           return jsonResponse({ error: "valid userId required" }, 400);
         }
         // バリデーション（最小限）
-        if (!body.education || !body.experienceYears || !body.license || !body.goal) {
+        if (!body.education || !Array.isArray(body.workHistory) || body.workHistory.length === 0 || !body.license || !body.goal) {
           return jsonResponse({ error: "required fields missing" }, 400);
+        }
+        // workHistory: 各エントリ{dept, ward, years} が必要
+        const cleanedWorkHistory = body.workHistory.slice(0, 8).map(j => ({
+          dept: String(j.dept || "").slice(0, 50),
+          ward: String(j.ward || "").slice(0, 50),
+          years: String(j.years || "").slice(0, 30),
+        })).filter(j => j.dept && j.ward && j.years);
+        if (cleanedWorkHistory.length === 0) {
+          return jsonResponse({ error: "at least one work history entry required" }, 400);
         }
         // KV保存（career_sheet:{userId}）
         const sheetData = {
@@ -3168,9 +3177,7 @@ export default {
           jobId: jobId || null,
           jobName: jobName || null,
           education: String(body.education).slice(0, 50),
-          experienceYears: String(body.experienceYears).slice(0, 50),
-          dept: Array.isArray(body.dept) ? body.dept.slice(0, 15).map(s => String(s).slice(0, 50)) : [],
-          experienceDetail: String(body.experienceDetail || "").slice(0, 1000),
+          workHistory: cleanedWorkHistory,
           license: String(body.license).slice(0, 30),
           otherCerts: String(body.otherCerts || "").slice(0, 500),
           reason: Array.isArray(body.reason) ? body.reason.slice(0, 10).map(s => String(s).slice(0, 50)) : [],
@@ -3213,7 +3220,7 @@ export default {
             headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
             body: JSON.stringify({
               channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-              text: `📋 *キャリアシート完成*\nuserId: \`${userId}\`\n求人: ${jobName || "—"}\n資格: ${sheetData.license} / 経験: ${sheetData.experienceYears}\n科: ${sheetData.dept.join(", ")}\n理由: ${sheetData.reason.join(", ")}\n叶えたいこと: ${sheetData.goal.slice(0, 100)}\n時刻: ${nowJST}\n\n→ 電話予約UIをLINEへPush済`,
+              text: `📋 *キャリアシート完成*\nuserId: \`${userId}\`\n求人: ${jobName || "—"}\n資格: ${sheetData.license} / 学歴: ${sheetData.education}\n経歴:\n${cleanedWorkHistory.map((j,i) => `  ${i+1}社目: ${j.dept} / ${j.ward} / ${j.years}`).join("\n")}\n転職理由: ${sheetData.reason.join(", ")}\n叶えたいこと: ${sheetData.goal.slice(0, 100)}\n時刻: ${nowJST}\n\n→ 電話予約UIをLINEへPush済`,
             }),
           }).catch(() => {}));
         }

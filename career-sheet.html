@@ -102,6 +102,50 @@
     margin: 0;
   }
   .checkbox-grid input { margin-right: 6px; }
+  .job-entry {
+    background: var(--pink-soft);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .job-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .job-entry-title {
+    font-weight: bold;
+    color: var(--pink);
+  }
+  .job-entry-remove {
+    background: transparent;
+    border: 1px solid #C00;
+    color: #C00;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .field-label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .btn-secondary {
+    width: 100%;
+    background: white;
+    color: var(--pink);
+    border: 2px dashed var(--pink);
+    padding: 10px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .btn-secondary:hover { background: var(--pink-soft); }
   button[type="submit"] {
     width: 100%;
     background: var(--pink);
@@ -169,29 +213,59 @@
     <!-- 2. 経歴 -->
     <fieldset>
       <legend>2. 経歴<span class="req">必須</span></legend>
-      <div class="hint">経験年数（複数科の場合は合計年数で構いません）</div>
-      <select name="experienceYears" required>
-        <option value="">選択してください</option>
-        <option value="under_1">1年未満</option>
-        <option value="1_3">1〜3年</option>
-        <option value="3_5">3〜5年</option>
-        <option value="5_10">5〜10年</option>
-        <option value="10_plus">10年以上</option>
-      </select>
-      <div class="hint" style="margin-top: 16px;">経験した診療科（複数選択OK）</div>
-      <div class="checkbox-grid">
-        <label><input type="checkbox" name="dept" value="内科系">内科系</label>
-        <label><input type="checkbox" name="dept" value="外科系">外科系</label>
-        <label><input type="checkbox" name="dept" value="ICU・救急">ICU・救急</label>
-        <label><input type="checkbox" name="dept" value="精神科">精神科</label>
-        <label><input type="checkbox" name="dept" value="小児科">小児科</label>
-        <label><input type="checkbox" name="dept" value="産婦人科">産婦人科</label>
-        <label><input type="checkbox" name="dept" value="整形外科">整形外科</label>
-        <label><input type="checkbox" name="dept" value="訪問看護">訪問看護</label>
-        <label><input type="checkbox" name="dept" value="介護施設">介護施設</label>
-        <label><input type="checkbox" name="dept" value="クリニック">クリニック外来</label>
+      <div class="hint">卒業後に勤めた職場を、順番に追加してください。<br>例: 1社目「呼吸器内科 / 急性期 / 5年」→ 2社目「訪問看護 / 在宅 / 3年」</div>
+
+      <div id="job-history-list">
+        <!-- 1社目（デフォルト表示・削除不可） -->
+        <div class="job-entry" data-index="0">
+          <div class="job-entry-header">
+            <span class="job-entry-title">1社目（卒業後）</span>
+          </div>
+          <label>
+            <span class="field-label">配属された科・分野</span>
+            <select name="job_dept_0" class="job-dept" required>
+              <option value="">選択してください</option>
+              <option value="内科系">内科系（循環器/消化器/呼吸器/腎臓/血液/神経/内分泌など）</option>
+              <option value="外科系">外科系（消化器外科/心臓血管外科/整形外科など）</option>
+              <option value="ICU・救急">ICU・救急・HCU</option>
+              <option value="手術室">手術室・OPE</option>
+              <option value="小児科">小児科</option>
+              <option value="産婦人科">産婦人科・NICU</option>
+              <option value="精神科">精神科</option>
+              <option value="緩和ケア">緩和ケア・ホスピス</option>
+              <option value="透析">透析</option>
+              <option value="訪問看護">訪問看護</option>
+              <option value="介護施設">介護施設・特養・老健</option>
+              <option value="クリニック">クリニック外来</option>
+              <option value="健診">健診センター・人間ドック</option>
+              <option value="その他">その他</option>
+            </select>
+          </label>
+          <label>
+            <span class="field-label">病棟・職場のタイプ</span>
+            <select name="job_ward_0" class="job-ward" required>
+              <option value="">選択してください</option>
+              <option value="急性期">急性期病棟</option>
+              <option value="回復期">回復期リハ病棟</option>
+              <option value="慢性期">慢性期・療養病棟</option>
+              <option value="ICU">ICU・HCU・救急</option>
+              <option value="外来">外来</option>
+              <option value="手術室">手術室</option>
+              <option value="訪問">訪問・在宅</option>
+              <option value="施設">施設・特養・老健</option>
+              <option value="クリニック">クリニック</option>
+              <option value="健診">健診</option>
+              <option value="その他">その他</option>
+            </select>
+          </label>
+          <label>
+            <span class="field-label">勤務年数</span>
+            <input type="text" name="job_years_0" class="job-years" placeholder="例: 5年、または 3年6ヶ月" required>
+          </label>
+        </div>
       </div>
-      <textarea name="experienceDetail" placeholder="具体的に書きたい場合（任意）&#10;例: 循環器急性期病棟3年、呼吸器内科5年" style="margin-top: 12px;"></textarea>
+
+      <button type="button" id="add-job-btn" class="btn-secondary">＋ 別の職場を追加</button>
     </fieldset>
 
     <!-- 3. 資格 -->
@@ -252,6 +326,93 @@
   const status = document.getElementById('status');
   const submitBtn = document.getElementById('submitBtn');
 
+  // 職場エントリの動的追加
+  const jobList = document.getElementById('job-history-list');
+  const addJobBtn = document.getElementById('add-job-btn');
+  let jobIndex = 1; // 1社目は初期表示済、次の追加から index=1
+
+  const ordinalLabel = (i) => {
+    const n = i + 1;
+    return n === 1 ? '1社目（卒業後）' : `${n}社目`;
+  };
+
+  function buildJobEntry(idx) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'job-entry';
+    wrapper.dataset.index = String(idx);
+    wrapper.innerHTML = `
+      <div class="job-entry-header">
+        <span class="job-entry-title">${ordinalLabel(idx)}</span>
+        <button type="button" class="job-entry-remove">削除</button>
+      </div>
+      <label>
+        <span class="field-label">配属された科・分野</span>
+        <select name="job_dept_${idx}" class="job-dept" required>
+          <option value="">選択してください</option>
+          <option value="内科系">内科系（循環器/消化器/呼吸器/腎臓/血液/神経/内分泌など）</option>
+          <option value="外科系">外科系（消化器外科/心臓血管外科/整形外科など）</option>
+          <option value="ICU・救急">ICU・救急・HCU</option>
+          <option value="手術室">手術室・OPE</option>
+          <option value="小児科">小児科</option>
+          <option value="産婦人科">産婦人科・NICU</option>
+          <option value="精神科">精神科</option>
+          <option value="緩和ケア">緩和ケア・ホスピス</option>
+          <option value="透析">透析</option>
+          <option value="訪問看護">訪問看護</option>
+          <option value="介護施設">介護施設・特養・老健</option>
+          <option value="クリニック">クリニック外来</option>
+          <option value="健診">健診センター・人間ドック</option>
+          <option value="その他">その他</option>
+        </select>
+      </label>
+      <label>
+        <span class="field-label">病棟・職場のタイプ</span>
+        <select name="job_ward_${idx}" class="job-ward" required>
+          <option value="">選択してください</option>
+          <option value="急性期">急性期病棟</option>
+          <option value="回復期">回復期リハ病棟</option>
+          <option value="慢性期">慢性期・療養病棟</option>
+          <option value="ICU">ICU・HCU・救急</option>
+          <option value="外来">外来</option>
+          <option value="手術室">手術室</option>
+          <option value="訪問">訪問・在宅</option>
+          <option value="施設">施設・特養・老健</option>
+          <option value="クリニック">クリニック</option>
+          <option value="健診">健診</option>
+          <option value="その他">その他</option>
+        </select>
+      </label>
+      <label>
+        <span class="field-label">勤務年数</span>
+        <input type="text" name="job_years_${idx}" class="job-years" placeholder="例: 5年、または 3年6ヶ月" required>
+      </label>
+    `;
+    wrapper.querySelector('.job-entry-remove').addEventListener('click', () => {
+      wrapper.remove();
+      relabelJobs();
+    });
+    return wrapper;
+  }
+
+  function relabelJobs() {
+    const entries = jobList.querySelectorAll('.job-entry');
+    entries.forEach((el, i) => {
+      const titleEl = el.querySelector('.job-entry-title');
+      if (titleEl) titleEl.textContent = ordinalLabel(i);
+    });
+  }
+
+  addJobBtn.addEventListener('click', () => {
+    if (jobList.querySelectorAll('.job-entry').length >= 8) {
+      alert('職場は最大8社までご入力いただけます');
+      return;
+    }
+    const entry = buildJobEntry(jobIndex);
+    jobList.appendChild(entry);
+    jobIndex++;
+    relabelJobs();
+  });
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!document.getElementById('userId').value) {
@@ -262,15 +423,24 @@
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中...';
 
+    // 職場エントリを workHistory 配列としてまとめる
+    const workHistory = [];
+    jobList.querySelectorAll('.job-entry').forEach(entry => {
+      const dept = entry.querySelector('.job-dept').value;
+      const ward = entry.querySelector('.job-ward').value;
+      const years = entry.querySelector('.job-years').value;
+      if (dept && ward && years) {
+        workHistory.push({ dept, ward, years });
+      }
+    });
+
     const fd = new FormData(form);
     const payload = {
       userId: fd.get('userId'),
       jobId: fd.get('jobId'),
       jobName: fd.get('jobName'),
       education: fd.get('education'),
-      experienceYears: fd.get('experienceYears'),
-      dept: fd.getAll('dept'),
-      experienceDetail: fd.get('experienceDetail') || '',
+      workHistory,
       license: fd.get('license'),
       otherCerts: fd.get('otherCerts') || '',
       reason: fd.getAll('reason'),
