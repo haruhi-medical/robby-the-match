@@ -1042,8 +1042,11 @@ async function aicaProcessTextBackground({ userId, userText, channelAccessToken,
       return;
     }
     if (result.isClosing) {
+      const _prevPhase = entry.phase;
       entry.phase = "aica_condition";
       await saveLineEntry(userId, entry, env);
+      // Patch 2 Phase D: AICA系 logPhaseTransition 明示
+      await logPhaseTransition(userId, _prevPhase, "aica_condition", "summary_to_condition", entry, env, null);
       await pushTo([
         { type: "text", text: result.reply },
         {
@@ -1059,8 +1062,11 @@ async function aicaProcessTextBackground({ userId, userText, channelAccessToken,
         },
       ]);
     } else {
+      const _prevPhase = entry.phase;
       entry.phase = `aica_turn${(entry.aicaTurnCount || 0) + 1}`;
       await saveLineEntry(userId, entry, env);
+      // Patch 2 Phase D: AICA turn 進行をログ
+      await logPhaseTransition(userId, _prevPhase, entry.phase, "aica_turn_progress", entry, env, null);
       await pushTo([{ type: "text", text: result.reply }]);
     }
     return;
@@ -1071,7 +1077,10 @@ async function aicaProcessTextBackground({ userId, userText, channelAccessToken,
     const result = await aicaHandleConditionTurn({ userText, entry, env });
     if (result.isComplete) {
       entry.aicaCareerSheet = result.reply;
+      const _prevPhase = entry.phase;
       entry.phase = "aica_career_sheet";
+      // Patch 2 Phase D: AICA系 logPhaseTransition 明示
+      await logPhaseTransition(userId, _prevPhase, "aica_career_sheet", "condition_to_sheet", entry, env, null);
       const p = entry.aicaProfile || {};
       if (p.workstyle) {
         const ws = String(p.workstyle);
@@ -11206,7 +11215,10 @@ ${entry.rmCvQualifications || '看護師免許'}
         ]);
         if (entry.phase && _IL_BRIDGE_PHASES.has(entry.phase) && isEmotionalVentingText(userText)) {
           console.log(`[IL→AICA bridge] phase=${entry.phase} text="${userText.slice(0, 30)}…" → aica_turn1 転回`);
+          const _bridgePrevPhase = entry.phase;
           entry.phase = "aica_turn1";
+          // Patch 2 Phase D: IL→AICAブリッジ遷移を明示ログ
+          ctx.waitUntil(logPhaseTransition(userId, _bridgePrevPhase, "aica_turn1", "il_emotional_bridge", entry, env, ctx));
           entry.aicaTurnCount = 0;
           entry.aicaMessages = [];
           delete entry.aicaAxis;
@@ -11279,8 +11291,11 @@ ${entry.rmCvQualifications || '看護師免許'}
 
                 let pushMessages;
                 if (result.isClosing) {
+                  const _prevPhaseBg = _entry.phase;
                   _entry.phase = "aica_condition";
                   updateLastAuditTrail(_entry, { phaseAfter: "aica_condition", appendReplyTexts: [result.reply] });
+                  // Patch 2 Phase D: AICA系 logPhaseTransition 明示
+                  await logPhaseTransition(_userId, _prevPhaseBg, "aica_condition", "summary_to_condition", _entry, _env, null);
                   pushMessages = [
                     { type: "text", text: result.reply },
                     {
@@ -11296,8 +11311,11 @@ ${entry.rmCvQualifications || '看護師免許'}
                     },
                   ];
                 } else {
+                  const _prevPhaseTurn = _entry.phase;
                   _entry.phase = `aica_turn${(_entry.aicaTurnCount || 0) + 1}`;
                   updateLastAuditTrail(_entry, { phaseAfter: _entry.phase, appendReplyTexts: [result.reply] });
+                  // Patch 2 Phase D: AICA turn 進行をログ
+                  await logPhaseTransition(_userId, _prevPhaseTurn, _entry.phase, "aica_turn_progress", _entry, _env, null);
                   pushMessages = [{ type: "text", text: result.reply }];
                 }
                 await saveLineEntry(_userId, _entry, _env);
@@ -11344,8 +11362,11 @@ ${entry.rmCvQualifications || '看護師免許'}
 
                 if (result.isComplete) {
                   _entry.aicaCareerSheet = result.reply;
+                  const _prevCondPhase = _entry.phase;
                   _entry.phase = "aica_career_sheet";
                   updateLastAuditTrail(_entry, { phaseAfter: "aica_career_sheet", appendReplyTexts: [result.reply] });
+                  // Patch 2 Phase D: condition→career_sheet 遷移をログ
+                  await logPhaseTransition(_userId, _prevCondPhase, "aica_career_sheet", "condition_to_sheet", _entry, _env, null);
                   const p = _entry.aicaProfile || {};
 
                   // 働き方マッピング（AICA抽出値で上書き）
