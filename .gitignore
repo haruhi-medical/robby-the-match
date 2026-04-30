@@ -20,6 +20,8 @@ content/temp_instagram/
 content/temp_videos/
 data/.instagram_session.json
 data/.tiktok_cookies.*
+data/hellowork_jobs_d1_batches/
+data/hellowork_jobs_d1.sql
 data/ga4-credentials.json
 data/public_data/*.csv
 data/public_data/*.xlsx
