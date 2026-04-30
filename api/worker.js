@@ -9476,47 +9476,11 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           }).catch(() => {}));
         }
 
-        if (preloadedCtx && hasCompleteShindan) {
-          // 求人データ生成: preMatching HITならそれを使う、それ以外は常に再生成
-          // 再フォロー時に古いmatchingResultsが再利用されると旧フォーマット表示になるので強制再生成
-          if (!entry._preMatchingHit) {
-            entry.matchingResults = null; // 古いデータをクリア
-            try {
-              await generateLineMatching(entry, env, 0);
-            } catch (e) {
-              console.error(`[LINE] generateLineMatching on follow error: ${e.message}`);
-            }
-          }
-
-          // urgency問わず常に matching_preview に統一 (リッチメニュー「お仕事探しスタート」と同じ挙動)
-          // 旧: urgency=info → info_detour 経由で年収相場マップ提案。社長指示により廃止
-          const targetPhase = 'matching_preview';
-          entry.phase = targetPhase;
-          entry._consumedSessionId = consumedSessionId;  // 同POSTのdm_textを重複処理しないための目印
-          if (entry.matchingResults && entry.matchingResults.length > 0) {
-            if (!entry.browsedJobIds) entry.browsedJobIds = [];
-            entry.browsedJobIds.push(...entry.matchingResults.slice(0, 5).map(r => r.id || r.n).filter(Boolean));
-          }
-          await saveLineEntry(userId, entry, env);
-
-          // LP診断経由専用ウェルカムを先頭に prepend
-          const shindanWelcome = buildShindanWelcome(entry);
-          const phaseMsgs = await buildPhaseMessage(targetPhase, entry, env);
-          const replyMsgs = [...shindanWelcome, ...(phaseMsgs || [])];
-          await lineReply(event.replyToken, replyMsgs.slice(0, 5), channelAccessToken);
-          // v2.0 audit: lineReply後に再save（auditTrail.replyTextsをKVに永続化）
-          ctx.waitUntil(saveLineEntry(userId, entry, env));
-
-          // LIFFセッション/session削除（消費済み）
-          try {
-            if (liffSessionCtx && env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${userId}`);
-            webSessionMap.delete(`liff:${userId}`);
-            if (consumedSessionId && env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`session:${consumedSessionId}`);
-            if (consumedSessionId) webSessionMap.delete(`session:${consumedSessionId}`);
-          } catch (e) { /* 削除失敗は無視 */ }
-        } else {
-          // v2.0(AICA): 診断データ未完 or 流入経路不明 → AICA 4ターン心理ヒアリング起動
-          entry.welcomeSource = entry.welcomeSource || 'none';
+        // Patch 2 Phase B (2026-04-30): 診断3問フロー廃止。全ユーザーAICA一本化（社長指示）
+        // 旧: LP診断完了済（hasCompleteShindan）→ matching_preview 直行
+        // 新: 全員 aica_turn1 起動。LP診断由来の area/workStyle/urgency は profile に退避してAICAで活用
+        {
+          entry.welcomeSource = entry.welcomeSource || (preloadedCtx ? 'shindan' : 'none');
           entry.phase = "aica_turn1";
           entry.aicaTurnCount = 0;
           entry.aicaMessages = [];
@@ -9525,6 +9489,19 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           delete entry.aicaConditionMessages;
           delete entry.aicaRootCause;
           if (consumedSessionId) entry._consumedSessionId = consumedSessionId;
+
+          // LP診断由来データを AICA preload hint として退避（4ターン後の条件カルテで活用）
+          if (preloadedCtx) {
+            entry.aicaPreloadHints = {
+              area: entry.area || null,
+              areaLabel: entry.areaLabel || null,
+              prefecture: entry.prefecture || null,
+              workStyle: entry.workStyle || null,
+              urgency: entry.urgency || null,
+              facilityType: entry.facilityType || null,
+              source: preloadedCtx.source || null,
+            };
+          }
 
           // displayName取得（AICA呼称用）
           try {
@@ -9540,10 +9517,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           // v2.0 audit: lineReply後に再save（auditTrail.replyTextsをKVに永続化）
           ctx.waitUntil(saveLineEntry(userId, entry, env));
 
-          // 使用済みLIFFセッション削除
+          // 使用済みLIFFセッション/dm_textセッション削除
           try {
             if (liffSessionCtx && env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`liff:${userId}`);
             webSessionMap.delete(`liff:${userId}`);
+            if (consumedSessionId && env?.LINE_SESSIONS) await env.LINE_SESSIONS.delete(`session:${consumedSessionId}`);
+            if (consumedSessionId) webSessionMap.delete(`session:${consumedSessionId}`);
           } catch (e) { /* 削除失敗は無視 */ }
         }
 
@@ -9639,9 +9618,12 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
         let entry = await getLineEntryAsync(userId, env);
         const _pbPhaseBefore = entry ? entry.phase : "(none)";
         if (!entry) {
-          console.warn(`[LINE] No KV entry for postback ${userId.slice(0, 8)}, creating new session`);
+          // Patch 2 Phase B: 新規postbackでKV未登録 → AICAから開始（旧: il_area）
+          console.warn(`[LINE] No KV entry for postback ${userId.slice(0, 8)}, creating new session → aica_turn1`);
           entry = createLineEntry();
-          entry.phase = "il_area";
+          entry.phase = "aica_turn1";
+          entry.aicaTurnCount = 0;
+          entry.aicaMessages = [];
         } else {
           console.log(`[LINE] KV hit for postback ${userId.slice(0, 8)}, phase: ${entry.phase}`);
         }
@@ -11850,8 +11832,11 @@ ${entry.rmCvQualifications || '看護師免許'}
         const msgType = event.message.type; // sticker, image, video, audio, location, file
         let entry = await getLineEntryAsync(userId, env);
         if (!entry) {
+          // Patch 2 Phase B: 新規（非テキスト）でKV未登録 → AICAから開始（旧: il_area）
           entry = createLineEntry();
-          entry.phase = "il_area";
+          entry.phase = "aica_turn1";
+          entry.aicaTurnCount = 0;
+          entry.aicaMessages = [];
         }
 
         // Slack転送（非テキストメッセージも運営者に通知）
