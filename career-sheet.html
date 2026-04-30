@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>キャリアシート作成 | ナースロビー</title>
+<style>
+  :root {
+    --pink: #E8756D;
+    --pink-soft: #FBE8E5;
+    --gray-bg: #F8F8F8;
+    --text: #2C2C2C;
+    --muted: #888;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    margin: 0;
+    background: var(--gray-bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .header {
+    background: var(--pink);
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+  }
+  .header h1 { margin: 0; font-size: 18px; }
+  .header .sub { font-size: 12px; opacity: 0.9; margin-top: 4px; }
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .intro {
+    background: white;
+    padding: 16px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    border-left: 4px solid var(--pink);
+  }
+  .intro strong { color: var(--pink); }
+  fieldset {
+    background: white;
+    border: 1px solid #DDD;
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  legend {
+    padding: 0 8px;
+    font-weight: bold;
+    color: var(--pink);
+  }
+  legend .req {
+    color: #C00;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  legend .opt {
+    color: var(--muted);
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  label {
+    display: block;
+    margin: 8px 0;
+  }
+  label.inline {
+    display: inline-block;
+    margin-right: 12px;
+  }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #CCC;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .checkbox-grid label {
+    background: var(--pink-soft);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    margin: 0;
+  }
+  .checkbox-grid input { margin-right: 6px; }
+  button[type="submit"] {
+    width: 100%;
+    background: var(--pink);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 16px;
+  }
+  button[type="submit"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .status {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    display: none;
+  }
+  .status.success { background: #D4EDDA; color: #155724; display: block; }
+  .status.error { background: #F8D7DA; color: #721C24; display: block; }
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📝 キャリアシート作成</h1>
+  <div class="sub">所要時間 約3分・5項目</div>
+</div>
+
+<div class="container">
+  <div class="intro">
+    <strong>○○さんへ最適なご案内のため</strong><br>
+    以下の5項目を入力してください。具体的な学校名や病院名は不要です。
+  </div>
+
+  <form id="form">
+    <input type="hidden" name="userId" id="userId">
+    <input type="hidden" name="jobId" id="jobId">
+    <input type="hidden" name="jobName" id="jobName">
+
+    <!-- 1. 学歴 -->
+    <fieldset>
+      <legend>1. 学歴<span class="req">必須</span></legend>
+      <div class="hint">具体名は不要です</div>
+      <select name="education" required>
+        <option value="">選択してください</option>
+        <option value="university">大学卒業</option>
+        <option value="vocational">専門学校卒業</option>
+        <option value="high_school">高校卒業</option>
+        <option value="other">その他</option>
+      </select>
+      <label style="margin-top: 8px;">
+        <input type="checkbox" name="nursingSchool" value="yes">
+        看護系の学校でした
+      </label>
+    </fieldset>
+
+    <!-- 2. 経歴 -->
+    <fieldset>
+      <legend>2. 経歴<span class="req">必須</span></legend>
+      <div class="hint">経験年数（複数科の場合は合計年数で構いません）</div>
+      <select name="experienceYears" required>
+        <option value="">選択してください</option>
+        <option value="under_1">1年未満</option>
+        <option value="1_3">1〜3年</option>
+        <option value="3_5">3〜5年</option>
+        <option value="5_10">5〜10年</option>
+        <option value="10_plus">10年以上</option>
+      </select>
+      <div class="hint" style="margin-top: 16px;">経験した診療科（複数選択OK）</div>
+      <div class="checkbox-grid">
+        <label><input type="checkbox" name="dept" value="内科系">内科系</label>
+        <label><input type="checkbox" name="dept" value="外科系">外科系</label>
+        <label><input type="checkbox" name="dept" value="ICU・救急">ICU・救急</label>
+        <label><input type="checkbox" name="dept" value="精神科">精神科</label>
+        <label><input type="checkbox" name="dept" value="小児科">小児科</label>
+        <label><input type="checkbox" name="dept" value="産婦人科">産婦人科</label>
+        <label><input type="checkbox" name="dept" value="整形外科">整形外科</label>
+        <label><input type="checkbox" name="dept" value="訪問看護">訪問看護</label>
+        <label><input type="checkbox" name="dept" value="介護施設">介護施設</label>
+        <label><input type="checkbox" name="dept" value="クリニック">クリニック外来</label>
+      </div>
+      <textarea name="experienceDetail" placeholder="具体的に書きたい場合（任意）&#10;例: 循環器急性期病棟3年、呼吸器内科5年" style="margin-top: 12px;"></textarea>
+    </fieldset>
+
+    <!-- 3. 資格 -->
+    <fieldset>
+      <legend>3. 資格<span class="req">必須</span></legend>
+      <select name="license" required>
+        <option value="">選択してください</option>
+        <option value="rn">正看護師</option>
+        <option value="lpn">准看護師</option>
+        <option value="phn">保健師</option>
+        <option value="midwife">助産師</option>
+        <option value="other">その他</option>
+      </select>
+      <textarea name="otherCerts" placeholder="その他の資格（任意）&#10;例: BLS、認定看護師(緩和ケア)" style="margin-top: 12px;"></textarea>
+    </fieldset>
+
+    <!-- 4. 転職したい理由 -->
+    <fieldset>
+      <legend>4. 転職したい理由<span class="req">必須</span></legend>
+      <div class="hint">複数選択OK</div>
+      <div class="checkbox-grid">
+        <label><input type="checkbox" name="reason" value="給与">給与・待遇</label>
+        <label><input type="checkbox" name="reason" value="人間関係">人間関係</label>
+        <label><input type="checkbox" name="reason" value="夜勤">夜勤・勤務時間</label>
+        <label><input type="checkbox" name="reason" value="スキルアップ">スキルアップ</label>
+        <label><input type="checkbox" name="reason" value="家庭との両立">家庭との両立</label>
+        <label><input type="checkbox" name="reason" value="通勤">通勤距離</label>
+        <label><input type="checkbox" name="reason" value="評価">評価・キャリア</label>
+        <label><input type="checkbox" name="reason" value="その他">その他</label>
+      </div>
+      <textarea name="reasonDetail" placeholder="詳しく書きたい場合（任意）"></textarea>
+    </fieldset>
+
+    <!-- 5. 転職で叶えたいこと -->
+    <fieldset>
+      <legend>5. 転職で叶えたいこと<span class="req">必須</span></legend>
+      <div class="hint">少しだけ想いを書いてください（50文字程度でOK）</div>
+      <textarea name="goal" required placeholder="例: 日勤中心で家庭と両立しつつ、スキルも維持できる職場で働きたい"></textarea>
+    </fieldset>
+
+    <button type="submit" id="submitBtn">送信する</button>
+    <div id="status" class="status"></div>
+  </form>
+
+  <div class="footer">
+    © 2026 ナースロビー / プライバシーは厳守します
+  </div>
+</div>
+
+<script>
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  document.getElementById('userId').value = params.get('u') || '';
+  document.getElementById('jobId').value = params.get('job') || '';
+  document.getElementById('jobName').value = params.get('name') || '';
+
+  const form = document.getElementById('form');
+  const status = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!document.getElementById('userId').value) {
+      status.className = 'status error';
+      status.textContent = 'エラー: ユーザー情報が取得できません。LINEのフォームリンクから再度お試しください。';
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送信中...';
+
+    const fd = new FormData(form);
+    const payload = {
+      userId: fd.get('userId'),
+      jobId: fd.get('jobId'),
+      jobName: fd.get('jobName'),
+      education: fd.get('education'),
+      nursingSchool: fd.get('nursingSchool') === 'yes',
+      experienceYears: fd.get('experienceYears'),
+      dept: fd.getAll('dept'),
+      experienceDetail: fd.get('experienceDetail') || '',
+      license: fd.get('license'),
+      otherCerts: fd.get('otherCerts') || '',
+      reason: fd.getAll('reason'),
+      reasonDetail: fd.get('reasonDetail') || '',
+      goal: fd.get('goal'),
+    };
+
+    try {
+      const res = await fetch('https://robby-the-match-api.robby-the-robot-2026.workers.dev/api/career-sheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        status.className = 'status success';
+        status.innerHTML = '✅ 送信完了しました！<br>LINEに戻って、電話予約日時を選んでください📞';
+        submitBtn.style.display = 'none';
+        // 3秒後にLINEへ戻すヒント
+        setTimeout(() => {
+          status.innerHTML += '<br><br>LINEアプリに戻ってください 🌸';
+        }, 2000);
+      } else {
+        status.className = 'status error';
+        status.textContent = 'エラー: ' + (data.error || '送信に失敗しました');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '送信する';
+      }
+    } catch (err) {
+      status.className = 'status error';
+      status.textContent = 'ネットワークエラー: ' + err.message;
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送信する';
+    }
+  });
+})();
+</script>
+</body>
+</html>
