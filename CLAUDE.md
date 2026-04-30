@@ -1,4 +1,4 @@
-# 神奈川ナース転職 — v9.3
+# 神奈川ナース転職 — v9.4
 
 > IMPORTANT: このファイルは200行以内。詳細は `@docs/` を参照。
 
@@ -203,10 +203,34 @@ CTA毎回LINE登録 → 8:2ルール厳守
 ペルソナ不在 → 「ミサキが止まるか？」必須チェック
 ```
 
+## 🚨 課金事故防止ルール v9.4（詳細: @docs/billing-safety-v9.4.md）
+
+### 実装前社長承認ルール（最重要）
+
+次の変更は実装前に Slack #claudecode で社長承認必須:
+1. AI API呼び出しを増やす変更（OpenAI/Anthropic/Gemini）
+2. 既存ユーザー導線変更（welcome/リッチメニュー/postback）
+3. コスト構造影響（新cron/ポーリング間隔）
+4. 業務フロー影響（handoff削減/自動応答範囲拡大）
+
+プロセス: 「XX実装したい。理由YY、想定コストZZ」→ 社長OK → デプロイ → 「✅完了 v<hash>」報告
+
+### QA監査・ガードレール・緊急時対応
+
+- QA監査: 自動実行・無限リトライ禁止。実行前Slack告知（$15）→社長OK→実行。月$30上限
+- AICA: MAX_TURNS_PER_PHASE=20 / TOTAL=100 / DAILY=50
+- /api/chat: IP rate 1分10回・1時間100回 / /api/line-push: 5分内重複ブロック
+- OpenAI異常→API key無効化+Hard Limit $0 / CF異常→Workers Pause / LINE 5000超→停止フラグ
+- 自動化追加前: AI呼ぶ？コスト？月総額？リトライ？承認？記載？ 1つでもNoなら**実装しない**
+- 既存21cron 月次レビュー: 実行頻度・AI呼び出し・コスト・不要cron停止判断
+
+---
+
 ## バージョン
 
 ```
-v9.4 | 2026-03-24 | Computer Use+Dispatch+自律判定ルール追加
+v9.4 | 2026-04-30 | 課金事故防止ルール明文化（実装前社長承認、QA監査運用、AICAガードレール）
+v9.4 | 2026-03-24 | Computer Use+Dispatch+自律判定ルール追加（旧v9.4・別エントリ）
 v9.3 | 2026-03-24 | 行動原則強化+cron全修復+コード点検+content-reviewer追加
 v9.2 | 2026-03-16 | データドリブン運用方針+Chrome DevTools MCP
 v9.1 | 2026-03-11 | シン・AI転職コンセプト+LP全面リビルド

@@ -296,6 +296,87 @@ const AICA_EMERGENCY_KEYWORDS = [
   "虐待",
 ];
 
+// ===== Patch v9.4: AICA MAX_TURNS ガード（課金事故防止） =====
+// 統合パッチ指示書（2026-04-30）に基づく実装
+// Phase B（全員AICA起動）後の暴走防止。3段階の上限でユーザーごとのコストをキャップ
+const AICA_MAX_TURNS_PER_PHASE = 20;  // 1フェーズ20ターン上限
+const AICA_MAX_TURNS_TOTAL = 100;     // 1ユーザーtotal 100ターン上限
+const AICA_DAILY_TURN_CAP = 50;       // 1日50ターン上限
+
+function _todayKeyJST() {
+  return new Date(Date.now() + 9*3600000).toISOString().slice(0, 10);
+}
+
+/**
+ * AICAターン上限チェック。各上限を超えていたら false を返し、上位ハンドラは呼び出しを停止する。
+ * カウンタは entry.aicaTurnCounters 内に保存（既存KV互換性維持のため新フィールド名）。
+ * 上限到達時は Slack通知＋必要に応じて handoff/沈黙に遷移
+ *
+ * @param {string} userId
+ * @param {object} entry - line entry (will be mutated to increment counters)
+ * @param {object} env
+ * @returns {Promise<{ok: true}|{ok: false, reason: string}>}
+ */
+async function checkAICATurnLimit(userId, entry, env) {
+  if (!entry.aicaTurnCounters) entry.aicaTurnCounters = {};
+  const c = entry.aicaTurnCounters;
+  const phase = entry.phase || "unknown";
+  const phaseTurns = (c.byPhase?.[phase]) || 0;
+  const totalTurns = c.total || 0;
+  const todayKey = _todayKeyJST();
+  const todayTurns = (c.byDay?.[todayKey]) || 0;
+
+  // 1) フェーズ別上限
+  if (phaseTurns >= AICA_MAX_TURNS_PER_PHASE) {
+    if (env?.SLACK_BOT_TOKEN) {
+      const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+      fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+          text: `⚠️ *AICA phase turn limit 到達*\nuserId: \`${userId}\`\nphase: ${phase}\nturns: ${phaseTurns}/${AICA_MAX_TURNS_PER_PHASE}\n時刻: ${nowJST}`,
+        }),
+      }).catch(() => {});
+    }
+    return { ok: false, reason: "phase_limit", message: "お話を伺っているうちに長くなってきましたね。一旦ここで整理いたします。担当者から改めてご連絡することも可能です。" };
+  }
+
+  // 2) 全体上限
+  if (totalTurns >= AICA_MAX_TURNS_TOTAL) {
+    if (env?.SLACK_BOT_TOKEN) {
+      const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+      fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
+          text: `🔴 *AICA total turn limit 到達*\nuserId: \`${userId}\`\nturns: ${totalTurns}/${AICA_MAX_TURNS_TOTAL}\n時刻: ${nowJST}`,
+        }),
+      }).catch(() => {});
+    }
+    return { ok: false, reason: "total_limit", message: "たくさんお話くださってありがとうございます。一旦ここで整理いたします。担当者から改めてご連絡いたします。" };
+  }
+
+  // 3) 日次上限
+  if (todayTurns >= AICA_DAILY_TURN_CAP) {
+    return { ok: false, reason: "daily_limit", message: "本日のご相談回数の上限に達しました。明日もう一度ご利用ください🌸" };
+  }
+
+  // カウンタをインクリメント（呼び出し側が ok=true を受け取った直後に AI 呼び出しが入る前提）
+  c.byPhase = c.byPhase || {};
+  c.byPhase[phase] = phaseTurns + 1;
+  c.total = totalTurns + 1;
+  c.byDay = c.byDay || {};
+  c.byDay[todayKey] = todayTurns + 1;
+  // 古い日次カウンタを掃除（30日以前を削除）
+  const cutoff = new Date(Date.now() - 30*24*3600000).toISOString().slice(0, 10);
+  for (const k of Object.keys(c.byDay)) {
+    if (k < cutoff) delete c.byDay[k];
+  }
+  return { ok: true };
+}
+
 const AICA_EMERGENCY_RESPONSE = `お話を聞かせていただき、ありがとうございます。
 
 ここは求人のご相談窓口のため、すぐにお話を
@@ -1140,6 +1221,19 @@ async function aicaProcessTextBackground({ userId, userText, channelAccessToken,
 
   // aica_turn1〜4
   if (["aica_turn1", "aica_turn2", "aica_turn3", "aica_turn4"].includes(entry.phase)) {
+    // v9.4 ガード: AICAターン上限チェック
+    const limitChk = await checkAICATurnLimit(userId, entry, env);
+    if (!limitChk.ok) {
+      const handoffReason = limitChk.reason;
+      if (handoffReason === "phase_limit" || handoffReason === "total_limit") {
+        entry.phase = "handoff";
+        entry.handoffAt = Date.now();
+        entry.handoffReason = `aica_turn_limit:${handoffReason}`;
+      }
+      await saveLineEntry(userId, entry, env);
+      await pushTo([{ type: "text", text: limitChk.message }]);
+      return;
+    }
     const result = await aicaHandleIntakeTurn({ userText, entry, env });
     if (result.isEmergency) {
       // Patch 7: 緊急時のルート決定。phase は handoff にせず emergency_paused とし、
@@ -1182,6 +1276,19 @@ async function aicaProcessTextBackground({ userId, userText, channelAccessToken,
 
   // aica_condition
   if (entry.phase === "aica_condition") {
+    // v9.4 ガード: AICAターン上限チェック
+    const limitChk = await checkAICATurnLimit(userId, entry, env);
+    if (!limitChk.ok) {
+      const handoffReason = limitChk.reason;
+      if (handoffReason === "phase_limit" || handoffReason === "total_limit") {
+        entry.phase = "handoff";
+        entry.handoffAt = Date.now();
+        entry.handoffReason = `aica_turn_limit:${handoffReason}`;
+      }
+      await saveLineEntry(userId, entry, env);
+      await pushTo([{ type: "text", text: limitChk.message }]);
+      return;
+    }
     const result = await aicaHandleConditionTurn({ userText, entry, env });
     if (result.isComplete) {
       entry.aicaCareerSheet = result.reply;
@@ -11381,6 +11488,20 @@ ${entry.rmCvQualifications || '看護師免許'}
           // === aica_turn1〜4: 心理ヒアリング ===
           // AI処理は ctx.waitUntil + Push API でバックグラウンド実行（Webhookタイムアウト対策）
           if (["aica_turn1", "aica_turn2", "aica_turn3", "aica_turn4"].includes(entry.phase)) {
+            // v9.4 ガード: AICAターン上限チェック（BG処理開始前に判定）
+            const limitChk = await checkAICATurnLimit(userId, entry, env);
+            if (!limitChk.ok) {
+              const handoffReason = limitChk.reason;
+              if (handoffReason === "phase_limit" || handoffReason === "total_limit") {
+                entry.phase = "handoff";
+                entry.handoffAt = Date.now();
+                entry.handoffReason = `aica_turn_limit:${handoffReason}`;
+              }
+              await saveLineEntry(userId, entry, env);
+              await lineReply(event.replyToken, [{ type: "text", text: limitChk.message }], channelAccessToken);
+              continue;
+            }
+
             // 即時にKV保存+ユーザーへ「考え中」アック（Reply Token消費）
             await saveLineEntry(userId, entry, env);
             await lineReply(event.replyToken, [{
@@ -11468,6 +11589,20 @@ ${entry.rmCvQualifications || '看護師免許'}
           // === aica_condition: 条件ヒアリング ===
           // AI処理は ctx.waitUntil + Push でバックグラウンド実行
           if (entry.phase === "aica_condition") {
+            // v9.4 ガード: AICAターン上限チェック
+            const limitChk = await checkAICATurnLimit(userId, entry, env);
+            if (!limitChk.ok) {
+              const handoffReason = limitChk.reason;
+              if (handoffReason === "phase_limit" || handoffReason === "total_limit") {
+                entry.phase = "handoff";
+                entry.handoffAt = Date.now();
+                entry.handoffReason = `aica_turn_limit:${handoffReason}`;
+              }
+              await saveLineEntry(userId, entry, env);
+              await lineReply(event.replyToken, [{ type: "text", text: limitChk.message }], channelAccessToken);
+              continue;
+            }
+
             await saveLineEntry(userId, entry, env);
             await lineReply(event.replyToken, [{
               type: "text",
