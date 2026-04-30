@@ -464,7 +464,7 @@ LINE Messaging API
 2. **api-aica/ ディレクトリ**: C3採用方針により、MVP2でモジュール分割時に統合（廃止予定）
 3. **緊急ワード3定義の統一**（ISSUE-EMERG-1）: worker.js:291=12語 / worker.js:10973=8語 / api-aica/prompts.js=14語
 4. **candidates D1テーブル未実装**（ISSUE-CANDIDATES-1）→ D群DDL適用で解消（4.5日工数）
-5. **HEARING/MATCHED/HANDOFF richmenu 未作成**（ISSUE-RICHMENU-1）
+5. ~~HEARING/MATCHED/HANDOFF richmenu 未作成~~ → **誤検知**: 現行メインメニュー1種で完成済
 6. **worker.js 15,702行の一体型**（ISSUE-WORKER-BLOAT）→ MVP2で6モジュール分割
 7. **計測タグ実装監査**（F1-2）: aica系logPhaseTransition明示追加（11219行 / 1074行 等）
 8. **音声入力の安定性**: Whisper接続実装済みだが本番テスト未完
