@@ -10271,7 +10271,7 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
 
           // フォームURL生成（userId + jobId + jobName を URLパラメータで渡す）
           // Patch 12-fix4: キャッシュバスティング付与（LINE内ブラウザ対策）
-          const cacheBust = `v=${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-3`;
+          const cacheBust = `v=${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-4`;
           const formUrl = `https://quads-nurse.com/career-sheet.html?u=${encodeURIComponent(userId)}&job=${encodeURIComponent(decodedJobId)}&name=${encodeURIComponent(jobName)}&${cacheBust}`;
 
           await lineReply(event.replyToken, [

@@ -259,19 +259,63 @@
             <span class="field-label">配属された科・分野</span>
             <select name="job_dept_0" class="job-dept" required>
               <option value="">選択してください</option>
-              <option value="内科系">内科系（循環器/消化器/呼吸器/腎臓/血液/神経/内分泌など）</option>
-              <option value="外科系">外科系（消化器外科/心臓血管外科/整形外科など）</option>
-              <option value="ICU・救急">ICU・救急・HCU</option>
-              <option value="手術室">手術室・OPE</option>
-              <option value="小児科">小児科</option>
-              <option value="産婦人科">産婦人科・NICU</option>
-              <option value="精神科">精神科</option>
-              <option value="緩和ケア">緩和ケア・ホスピス</option>
-              <option value="透析">透析</option>
-              <option value="訪問看護">訪問看護</option>
-              <option value="介護施設">介護施設・特養・老健</option>
-              <option value="クリニック">クリニック外来</option>
-              <option value="健診">健診センター・人間ドック</option>
+              <optgroup label="内科系">
+                <option value="呼吸器内科">呼吸器内科</option>
+                <option value="循環器内科">循環器内科</option>
+                <option value="消化器内科">消化器内科</option>
+                <option value="神経内科">神経内科</option>
+                <option value="腎臓内科">腎臓内科</option>
+                <option value="血液内科">血液内科</option>
+                <option value="内分泌・糖尿病内科">内分泌・糖尿病内科</option>
+                <option value="腫瘍内科">腫瘍内科</option>
+                <option value="内科一般">内科一般・混合内科</option>
+              </optgroup>
+              <optgroup label="外科系">
+                <option value="消化器外科">消化器外科</option>
+                <option value="心臓血管外科">心臓血管外科</option>
+                <option value="脳神経外科">脳神経外科</option>
+                <option value="整形外科">整形外科</option>
+                <option value="形成外科">形成外科</option>
+                <option value="呼吸器外科">呼吸器外科</option>
+                <option value="泌尿器科">泌尿器科</option>
+                <option value="外科一般">外科一般・混合外科</option>
+              </optgroup>
+              <optgroup label="ICU・急性期">
+                <option value="ICU">ICU</option>
+                <option value="HCU">HCU</option>
+                <option value="CCU">CCU（循環器集中治療）</option>
+                <option value="救急外来">救急外来</option>
+                <option value="救命救急センター">救命救急センター（ER）</option>
+                <option value="手術室">手術室・OPE</option>
+              </optgroup>
+              <optgroup label="周産期・小児">
+                <option value="産科">産科</option>
+                <option value="婦人科">婦人科</option>
+                <option value="NICU">NICU</option>
+                <option value="小児科病棟">小児科病棟</option>
+                <option value="小児科外来">小児科外来</option>
+              </optgroup>
+              <optgroup label="その他病棟・専門">
+                <option value="精神科">精神科</option>
+                <option value="緩和ケア">緩和ケア・ホスピス</option>
+                <option value="透析">透析</option>
+                <option value="リハビリ科">リハビリテーション科</option>
+                <option value="眼科">眼科</option>
+                <option value="耳鼻咽喉科">耳鼻咽喉科</option>
+                <option value="皮膚科">皮膚科</option>
+              </optgroup>
+              <optgroup label="病院外">
+                <option value="訪問看護">訪問看護</option>
+                <option value="訪問診療">訪問診療同行</option>
+                <option value="特養">介護施設（特養）</option>
+                <option value="老健">介護施設（老健）</option>
+                <option value="有料老人ホーム">有料老人ホーム</option>
+                <option value="クリニック">クリニック外来</option>
+                <option value="健診">健診センター・人間ドック</option>
+                <option value="保育園">保育園・幼稚園</option>
+                <option value="企業看護">企業看護・産業保健</option>
+                <option value="学校">学校保健（養護教諭）</option>
+              </optgroup>
               <option value="その他">その他</option>
             </select>
           </label>
@@ -403,19 +447,63 @@
         <span class="field-label">配属された科・分野</span>
         <select name="job_dept_${idx}" class="job-dept" required>
           <option value="">選択してください</option>
-          <option value="内科系">内科系（循環器/消化器/呼吸器/腎臓/血液/神経/内分泌など）</option>
-          <option value="外科系">外科系（消化器外科/心臓血管外科/整形外科など）</option>
-          <option value="ICU・救急">ICU・救急・HCU</option>
-          <option value="手術室">手術室・OPE</option>
-          <option value="小児科">小児科</option>
-          <option value="産婦人科">産婦人科・NICU</option>
-          <option value="精神科">精神科</option>
-          <option value="緩和ケア">緩和ケア・ホスピス</option>
-          <option value="透析">透析</option>
-          <option value="訪問看護">訪問看護</option>
-          <option value="介護施設">介護施設・特養・老健</option>
-          <option value="クリニック">クリニック外来</option>
-          <option value="健診">健診センター・人間ドック</option>
+          <optgroup label="内科系">
+            <option value="呼吸器内科">呼吸器内科</option>
+            <option value="循環器内科">循環器内科</option>
+            <option value="消化器内科">消化器内科</option>
+            <option value="神経内科">神経内科</option>
+            <option value="腎臓内科">腎臓内科</option>
+            <option value="血液内科">血液内科</option>
+            <option value="内分泌・糖尿病内科">内分泌・糖尿病内科</option>
+            <option value="腫瘍内科">腫瘍内科</option>
+            <option value="内科一般">内科一般・混合内科</option>
+          </optgroup>
+          <optgroup label="外科系">
+            <option value="消化器外科">消化器外科</option>
+            <option value="心臓血管外科">心臓血管外科</option>
+            <option value="脳神経外科">脳神経外科</option>
+            <option value="整形外科">整形外科</option>
+            <option value="形成外科">形成外科</option>
+            <option value="呼吸器外科">呼吸器外科</option>
+            <option value="泌尿器科">泌尿器科</option>
+            <option value="外科一般">外科一般・混合外科</option>
+          </optgroup>
+          <optgroup label="ICU・急性期">
+            <option value="ICU">ICU</option>
+            <option value="HCU">HCU</option>
+            <option value="CCU">CCU（循環器集中治療）</option>
+            <option value="救急外来">救急外来</option>
+            <option value="救命救急センター">救命救急センター（ER）</option>
+            <option value="手術室">手術室・OPE</option>
+          </optgroup>
+          <optgroup label="周産期・小児">
+            <option value="産科">産科</option>
+            <option value="婦人科">婦人科</option>
+            <option value="NICU">NICU</option>
+            <option value="小児科病棟">小児科病棟</option>
+            <option value="小児科外来">小児科外来</option>
+          </optgroup>
+          <optgroup label="その他病棟・専門">
+            <option value="精神科">精神科</option>
+            <option value="緩和ケア">緩和ケア・ホスピス</option>
+            <option value="透析">透析</option>
+            <option value="リハビリ科">リハビリテーション科</option>
+            <option value="眼科">眼科</option>
+            <option value="耳鼻咽喉科">耳鼻咽喉科</option>
+            <option value="皮膚科">皮膚科</option>
+          </optgroup>
+          <optgroup label="病院外">
+            <option value="訪問看護">訪問看護</option>
+            <option value="訪問診療">訪問診療同行</option>
+            <option value="特養">介護施設（特養）</option>
+            <option value="老健">介護施設（老健）</option>
+            <option value="有料老人ホーム">有料老人ホーム</option>
+            <option value="クリニック">クリニック外来</option>
+            <option value="健診">健診センター・人間ドック</option>
+            <option value="保育園">保育園・幼稚園</option>
+            <option value="企業看護">企業看護・産業保健</option>
+            <option value="学校">学校保健（養護教諭）</option>
+          </optgroup>
           <option value="その他">その他</option>
         </select>
       </label>
