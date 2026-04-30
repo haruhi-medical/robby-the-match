@@ -3162,6 +3162,10 @@ export default {
         if (!body.education || !Array.isArray(body.workHistory) || body.workHistory.length === 0 || !body.license || !body.goal) {
           return jsonResponse({ error: "required fields missing" }, 400);
         }
+        // 個人情報取扱同意 必須（職業安定法5条の5・個人情報保護法対応）
+        if (!body.privacyConsent) {
+          return jsonResponse({ error: "privacy consent required" }, 400);
+        }
         // workHistory: 各エントリ{dept, ward, years} が必要
         const cleanedWorkHistory = body.workHistory.slice(0, 8).map(j => ({
           dept: String(j.dept || "").slice(0, 50),
@@ -3183,6 +3187,8 @@ export default {
           reason: Array.isArray(body.reason) ? body.reason.slice(0, 10).map(s => String(s).slice(0, 50)) : [],
           reasonDetail: String(body.reasonDetail || "").slice(0, 1000),
           goal: String(body.goal).slice(0, 1000),
+          privacyConsent: !!body.privacyConsent,
+          privacyConsentAt: body.privacyConsentAt || new Date().toISOString(),
           submittedAt: Date.now(),
         };
         if (env?.LINE_SESSIONS) {

@@ -146,6 +146,35 @@
     margin-top: 8px;
   }
   .btn-secondary:hover { background: var(--pink-soft); }
+  .consent-fieldset {
+    background: #FFF8F7;
+    border: 1px solid var(--pink);
+  }
+  .consent-text {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: white;
+    border-radius: 4px;
+  }
+  .consent-text a {
+    color: var(--pink);
+    text-decoration: underline;
+  }
+  .consent-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: 2px solid var(--pink);
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .consent-check input { transform: scale(1.3); }
   button[type="submit"] {
     width: 100%;
     background: var(--pink);
@@ -191,10 +220,12 @@
     以下の5項目を入力してください。具体的な学校名や病院名は不要です。
   </div>
 
-  <form id="form">
+  <form id="form" novalidate>
     <input type="hidden" name="userId" id="userId">
     <input type="hidden" name="jobId" id="jobId">
     <input type="hidden" name="jobName" id="jobName">
+    <!-- LINE内ブラウザ対策: HTML5バリデーションをJSに統一 -->
+
 
     <!-- 1. 学歴 -->
     <fieldset>
@@ -306,6 +337,26 @@
       <textarea name="goal" required placeholder="例: 日勤中心で家庭と両立しつつ、スキルも維持できる職場で働きたい"></textarea>
     </fieldset>
 
+    <!-- 6. 個人情報の取り扱いに関する同意 -->
+    <fieldset class="consent-fieldset">
+      <legend>個人情報の取り扱い<span class="req">必須</span></legend>
+      <div class="consent-text">
+        ご入力いただいた情報は、看護師職業紹介事業（許可番号 23-ユ-302928）における求人マッチング、応募サポート、求人施設への推薦のために利用します。
+        <br><br>
+        ◇ 利用目的: 求人マッチング・推薦・連絡<br>
+        ◇ 提供範囲: 応募意思を示した求人施設のみ（ご本人の同意後）<br>
+        ◇ 委託先: OpenAI（AI処理）、Cloudflare（データ保管）<br>
+        ◇ 保管期間: 最終ご利用から3年<br>
+        ◇ 削除請求: いつでも担当者まで
+        <br><br>
+        詳細は<a href="https://quads-nurse.com/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>をご確認ください。
+      </div>
+      <label class="consent-check">
+        <input type="checkbox" name="privacyConsent" value="yes" required>
+        <span>上記内容に同意します</span>
+      </label>
+    </fieldset>
+
     <button type="submit" id="submitBtn">送信する</button>
     <div id="status" class="status"></div>
   </form>
@@ -413,13 +464,70 @@
     relabelJobs();
   });
 
+  function showError(msg) {
+    status.className = 'status error';
+    status.textContent = msg;
+    status.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    // ステータスリセット
+    status.className = 'status';
+    status.textContent = '';
+
     if (!document.getElementById('userId').value) {
-      status.className = 'status error';
-      status.textContent = 'エラー: ユーザー情報が取得できません。LINEのフォームリンクから再度お試しください。';
+      showError('エラー: ユーザー情報が取得できません。LINEのフォームリンクから再度お試しください。');
       return;
     }
+
+    // 学歴
+    if (!form.querySelector('select[name="education"]').value) {
+      showError('「1. 学歴」を選択してください。');
+      return;
+    }
+
+    // 経歴（1社目以降の dept/ward/years）
+    const jobEntriesEl = jobList.querySelectorAll('.job-entry');
+    let jobInvalid = false;
+    jobEntriesEl.forEach(el => {
+      const d = el.querySelector('.job-dept').value;
+      const w = el.querySelector('.job-ward').value;
+      const y = el.querySelector('.job-years').value.trim();
+      if (!d || !w || !y) jobInvalid = true;
+    });
+    if (jobInvalid) {
+      showError('「2. 経歴」の各項目（科・病棟タイプ・勤務年数）をすべてご入力ください。');
+      return;
+    }
+
+    // 資格
+    if (!form.querySelector('select[name="license"]').value) {
+      showError('「3. 資格」を選択してください。');
+      return;
+    }
+
+    // 転職理由（複数チェック）の最低1つ必須
+    const reasonChecks = form.querySelectorAll('input[name="reason"]:checked');
+    if (reasonChecks.length === 0) {
+      showError('「4. 転職したい理由」を1つ以上選択してください。');
+      return;
+    }
+
+    // 叶えたいこと
+    const goalText = form.querySelector('textarea[name="goal"]').value.trim();
+    if (!goalText) {
+      showError('「5. 転職で叶えたいこと」をご入力ください。');
+      return;
+    }
+
+    // 個人情報同意チェック
+    const consentCheck = form.querySelector('input[name="privacyConsent"]');
+    if (!consentCheck || !consentCheck.checked) {
+      showError('「個人情報の取り扱いに同意します」にチェックしてください。');
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中...';
 
@@ -433,6 +541,12 @@
         workHistory.push({ dept, ward, years });
       }
     });
+    if (workHistory.length === 0) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送信する';
+      showError('経歴を1社以上ご入力ください。');
+      return;
+    }
 
     const fd = new FormData(form);
     const payload = {
@@ -446,6 +560,8 @@
       reason: fd.getAll('reason'),
       reasonDetail: fd.get('reasonDetail') || '',
       goal: fd.get('goal'),
+      privacyConsent: true,
+      privacyConsentAt: new Date().toISOString(),
     };
 
     try {
