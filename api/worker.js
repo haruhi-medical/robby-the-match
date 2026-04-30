@@ -6788,20 +6788,72 @@ async function buildPhaseMessage(phase, entry, env) {
       lines.push(`━━━━━━━━━━\nこの求人にご興味があれば、下の「📨 問い合わせる」から、担当者との電話相談までAIがご案内します。`);
       const text = lines.join('\n\n').slice(0, 4800);
 
-      // Patch 12: 詳細閲覧後に問い合わせるボタンを最優先で提示
+      // Patch 12-fix4: 「問い合わせる」を Flex カード化（社長指示）
       const inquireJobId = job.jobId || job.id || job.n || job.employer || `job_${idx}`;
-      return [{
-        type: "text",
-        text,
-        quickReply: {
-          items: [
-            qrItem("📨 この求人について問い合わせる", `inquire_job=${encodeURIComponent(inquireJobId)}&src=detail`),
-            qrItem("⭐ 気になる（保存）", `fav_add=${encodeURIComponent(inquireJobId)}&src=detail`),
-            qrItem("他の求人も見る", "match=other"),
-            qrItem("逆指名したい", "match=reverse"),
-          ],
+      const inquireCard = {
+        type: "flex",
+        altText: "この求人について問い合わせる",
+        contents: {
+          type: "bubble",
+          size: "kilo",
+          body: {
+            type: "box",
+            layout: "vertical",
+            paddingAll: "16px",
+            spacing: "sm",
+            contents: [
+              { type: "text", text: "📨 この求人について", weight: "bold", size: "md", color: "#E8756D" },
+              { type: "text", text: "問い合わせる", weight: "bold", size: "xl", color: "#E8756D" },
+              { type: "separator", margin: "md" },
+              { type: "text", text: `${(job.n || "ご希望の求人").slice(0, 30)}`, size: "sm", color: "#555555", wrap: true, margin: "md" },
+              { type: "text", text: "3分のキャリアシート入力 → 担当者との電話日時を予約 → AIがすべてご案内します。", size: "xs", color: "#888888", wrap: true, margin: "sm" },
+            ],
+          },
+          footer: {
+            type: "box",
+            layout: "vertical",
+            spacing: "sm",
+            contents: [
+              {
+                type: "button",
+                style: "primary",
+                color: "#E8756D",
+                height: "md",
+                action: {
+                  type: "postback",
+                  label: "📨 問い合わせる",
+                  data: `inquire_job=${encodeURIComponent(inquireJobId)}&src=detail`,
+                  displayText: "この求人について問い合わせます",
+                },
+              },
+              {
+                type: "button",
+                style: "secondary",
+                height: "sm",
+                action: {
+                  type: "postback",
+                  label: "⭐ 気になる（保存だけ）",
+                  data: `fav_add=${encodeURIComponent(inquireJobId)}&src=detail`,
+                  displayText: "この求人が気になる",
+                },
+              },
+            ],
+          },
         },
-      }];
+      };
+      return [
+        {
+          type: "text",
+          text,
+          quickReply: {
+            items: [
+              qrItem("他の求人も見る", "match=other"),
+              qrItem("逆指名したい", "match=reverse"),
+            ],
+          },
+        },
+        inquireCard,
+      ];
     }
 
     case "matching_preview": {
@@ -10218,7 +10270,9 @@ async function processLineEvents(events, channelAccessToken, env, ctx) {
           await saveLineEntry(userId, entry, env);
 
           // フォームURL生成（userId + jobId + jobName を URLパラメータで渡す）
-          const formUrl = `https://quads-nurse.com/career-sheet.html?u=${encodeURIComponent(userId)}&job=${encodeURIComponent(decodedJobId)}&name=${encodeURIComponent(jobName)}`;
+          // Patch 12-fix4: キャッシュバスティング付与（LINE内ブラウザ対策）
+          const cacheBust = `v=${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-3`;
+          const formUrl = `https://quads-nurse.com/career-sheet.html?u=${encodeURIComponent(userId)}&job=${encodeURIComponent(decodedJobId)}&name=${encodeURIComponent(jobName)}&${cacheBust}`;
 
           await lineReply(event.replyToken, [
             {
