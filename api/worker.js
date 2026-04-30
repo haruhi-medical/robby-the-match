@@ -11033,10 +11033,12 @@ ${entry.rmCvQualifications || '看護師免許'}
             // 駅名等のフリーテキスト受け付け（ハードル下げる）
             entry.intakePostalRaw = userText.slice(0, 100);
           }
-          entry.phase = "handoff";
-          entry.handoffAt = Date.now();
-          entry.handoffRequestedByUser = false;
-          entry.handoffReason = "intake_human_complete";
+          // Patch 2 (2026-04-30): intake_postal完了後のhandoff放置ロスト対策
+          // 旧: entry.phase = "handoff" → 社長返信待ちで53%離脱
+          // 新: matching_preview に直結し、AIで完走させる。Slack通知は進捗ログとして残す
+          entry.phase = "matching_preview";
+          entry.intakeCompletedAt = Date.now();
+          entry.intakeCompleteAutoContinued = true;
           entry.messageCount = (entry.messageCount || 0) + 1;
 
           // opt-out設計: 3問完了時点で新着通知を自動ON（郵便番号/駅名からエリア判定できた場合のみ）
@@ -11074,9 +11076,15 @@ ${entry.rmCvQualifications || '看護師免許'}
             })());
           }
 
+          // Patch 2: AI完走化。マッチングを生成してそのまま表示（人間対応待ちにしない）
+          await generateLineMatching(entry, env);
           await saveLineEntry(userId, entry, env);
-          await lineReply(event.replyToken, buildIntakeHumanThanks(entry), channelAccessToken);
-          // Slack通知
+          await lineReply(event.replyToken, [
+            { type: "text", text: "ありがとうございます。条件に合いそうな求人をAIが探しました。気になるものがあれば「⭐気になる」を押してください。" },
+            ...buildMatchingMessages(entry),
+          ].slice(0, 5), channelAccessToken);
+
+          // Slack通知（リード進捗ログとして残す。社長は休日でも見られる。返信義務はなし）
           ctx.waitUntil((async () => {
             if (!env.SLACK_BOT_TOKEN) return;
             const nowJST = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
@@ -11094,14 +11102,14 @@ ${entry.rmCvQualifications || '看護師免許'}
               headers: { "Authorization": `Bearer ${env.SLACK_BOT_TOKEN}`, "Content-Type": "application/json; charset=utf-8" },
               body: JSON.stringify({
                 channel: env.SLACK_CHANNEL_ID || "C0AEG626EUW",
-                text: `🎯 *新規リード → 人間対応リクエスト*\n${nameLine}${src}ユーザーID: \`${userId}\`\n\n📋 *基本情報*\n💼 資格: ${qualDisp}\n👤 年代: ${ageDisp}\n📮 郵便番号: \`${postalDisp}\`\n\n時刻: ${nowJST}\n${picLine}📲 返信 → https://chat.line.biz/\n\n✅ *対応TODO*\n☐ 24時間以内にLINEで連絡\n☐ 郵便番号から通勤可能エリアを確認\n☐ 資格・年代から求人候補を絞り込み`,
+                text: `📈 *新規リード進捗（AI継続中）*\n${nameLine}${src}ユーザーID: \`${userId}\`\n\n📋 *基本情報*\n💼 資格: ${qualDisp}\n👤 年代: ${ageDisp}\n📮 郵便番号: \`${postalDisp}\`\n\n時刻: ${nowJST}\n${picLine}\n✅ AIがマッチング表示まで自動継続中。応募意思表明（apply_intent=start）時に重要事項説明のためご通知します。\n💬 介入したい場合 → \`!reply ${userId} メッセージ\``,
               }),
             }).catch((e) => { console.error(`[Slack] intake notify failed: ${e.message}`); });
           })());
           ctx.waitUntil(trackFunnelEvent(FUNNEL_EVENTS.HANDOFF, userId, entry, env, ctx));
-          ctx.waitUntil(logPhaseTransition(userId, "intake_postal", "handoff", "text", entry, env, ctx));
-          // 担当者連絡待ちの間、求人検索できるようリッチメニューをhandoff用に切り替え
-          ctx.waitUntil(switchRichMenu(userId, RICH_MENU_STATES.handoff, env));
+          ctx.waitUntil(logPhaseTransition(userId, "intake_postal", "matching_preview", "text", entry, env, ctx));
+          // リッチメニューをマッチング後の状態に切替（matched用、handoffではなく）
+          ctx.waitUntil(switchRichMenu(userId, RICH_MENU_STATES.matched, env));
           continue;
         }
 
