@@ -6773,15 +6773,18 @@ async function buildPhaseMessage(phase, entry, env) {
       if (job.hol) lines.push(`【休日】\n年${job.hol}日`);
       if (job.wel) lines.push(`【待遇・福利厚生】\n${job.wel.slice(0, 400)}`);
       if (job.desc) lines.push(`【仕事内容】\n${job.desc.slice(0, 400)}`);
-      lines.push(`━━━━━━━━━━\n気になる求人があれば担当者にお繋ぎします。`);
+      lines.push(`━━━━━━━━━━\nこの求人にご興味があれば、下の「📨 問い合わせる」から、担当者との電話相談までAIがご案内します。`);
       const text = lines.join('\n\n').slice(0, 4800);
 
+      // Patch 12: 詳細閲覧後に問い合わせるボタンを最優先で提示
+      const inquireJobId = job.jobId || job.id || job.n || job.employer || `job_${idx}`;
       return [{
         type: "text",
         text,
         quickReply: {
           items: [
-            qrItem("担当者に相談する", "match=consult"),
+            qrItem("📨 この求人について問い合わせる", `inquire_job=${encodeURIComponent(inquireJobId)}&src=detail`),
+            qrItem("⭐ 気になる（保存）", `fav_add=${encodeURIComponent(inquireJobId)}&src=detail`),
             qrItem("他の求人も見る", "match=other"),
             qrItem("逆指名したい", "match=reverse"),
           ],
@@ -6888,9 +6891,10 @@ async function buildPhaseMessage(phase, entry, env) {
             type: "box", layout: "vertical", paddingAll: "12px",
             contents: [
               {
+                // Patch 12: 求人カードはプレビュー扱い。「📋 詳しく見る」→詳細画面で問い合わせボタン
                 type: "button", style: "primary", height: "sm",
                 color: BRAND_COLOR,
-                action: { type: "postback", label: "この施設について聞く", data: `match=detail&idx=${idx}`, displayText: `${name}について聞きたい` },
+                action: { type: "postback", label: "📋 詳しく見る", data: `match=detail&idx=${idx}`, displayText: `${name}の詳細を見る` },
               },
               {
                 type: "button",
@@ -6902,20 +6906,6 @@ async function buildPhaseMessage(phase, entry, env) {
                   label: "⭐ 気になる",
                   data: `fav_add=${encodeURIComponent(job.jobId || job.id || job.n || job.employer || `job_${idx}`)}&src=match`,
                   displayText: "この求人が気になる",
-                },
-              },
-              {
-                // Patch 11: 問い合わせるボタン（千恵子ロスト対策）
-                type: "button",
-                style: "primary",
-                color: "#E8756D",
-                height: "sm",
-                margin: "sm",
-                action: {
-                  type: "postback",
-                  label: "📨 問い合わせる",
-                  data: `inquire_job=${encodeURIComponent(job.jobId || job.id || job.n || job.employer || `job_${idx}`)}&src=match`,
-                  displayText: "この求人について問い合わせます",
                 },
               },
             ],
